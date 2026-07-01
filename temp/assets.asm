@@ -53,7 +53,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE_1
-;src/assets.c:6: BANKREF(game_levels)
+;src/assets.c:7: BANKREF(game_levels)
 ;	---------------------------------
 ; Function __func_game_levels
 ; ---------------------------------
@@ -62,7 +62,7 @@ ___func_game_levels::
 	.local b___func_game_levels 
 	___bank_game_levels = b___func_game_levels 
 	.globl ___bank_game_levels 
-;src/assets.c:7: BANKREF(chr_gb)
+;src/assets.c:8: BANKREF(chr_gb)
 ;	---------------------------------
 ; Function __func_chr_gb
 ; ---------------------------------
@@ -71,7 +71,7 @@ ___func_chr_gb::
 	.local b___func_chr_gb 
 	___bank_chr_gb = b___func_chr_gb 
 	.globl ___bank_chr_gb 
-;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
+;src/assets.c:11: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
 ;	---------------------------------
 ; Function __func_chr_gb_tiles
 ; ---------------------------------
@@ -101,6 +101,8 @@ _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
 	.dw _stereomadness_map
+	.dw _stereomadness_sprites_placements
+	.dw #0x00d4
 	.dw #0x0100
 	.dw #0x037e
 	.dw #0x0010
@@ -112,6 +114,8 @@ _level_bot:
 	.dw __str_1
 	.dw _chr_gb_tiles
 	.dw _backontrack_map
+	.dw #0x0000
+	.dw #0x0000
 	.dw #0x0100
 	.dw #0x034e
 	.dw #0x0010
@@ -123,6 +127,8 @@ _level_pg:
 	.dw __str_2
 	.dw _chr_gb_tiles
 	.dw _polargeist_map
+	.dw #0x0000
+	.dw #0x0000
 	.dw #0x0100
 	.dw #0x03a6
 	.dw #0x0010
@@ -134,6 +140,8 @@ _level_du:
 	.dw __str_3
 	.dw _chr_gb_tiles
 	.dw _dryout_map
+	.dw #0x0000
+	.dw #0x0000
 	.dw #0x0100
 	.dw #0x034a
 	.dw #0x0010

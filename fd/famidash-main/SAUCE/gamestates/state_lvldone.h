@@ -1,0 +1,316 @@
+CODE_BANK_PUSH(LVLDONE_BANK)
+
+void set_lvldone_palette();
+void checkcointimer();
+void checkcoinproceed();
+void set_completion_data();
+void lvl_done_update();
+
+#include "defines/charmap/bgm_charmap.h"
+
+const char cheater[] = "CHEATER";
+const uint8_t cheatersize = sizeof(cheater) - 1;
+
+void state_lvldone() {
+	#define current_state tmp2
+	#define sprite_0_y tmp3
+	#define delay_spr_0 tmp4
+	#define delay_timer tmpptr1
+	#define top_scroll scroll_x
+
+	oam_clear();
+
+	crossPRGBankJump0(set_lvldone_palette);
+	
+	// Make a nametable for the chain
+    vram_adr(NAMETABLE_C);
+	vram_fill(0xfe, 0x3c0);
+	vram_fill(0x00, 0x3f);
+
+	// Copy the level done screen to the bot left and right nametable
+	vram_adr(NAMETABLE_A);
+	if (practice_point_count) {
+		vram_unrle(practicedone);
+	} else {
+		vram_unrle(leveldone);
+	}
+	#if !__VS_SYSTEM
+	display_attempt_counter(0xD0, NTADR_A(20, 13));	// Same bank as this
+	if (DEBUG_MODE || kandokidshack || kandokidshack3 || kandokidshack4 || cheated) draw_padded_text(cheater, cheatersize, 18, NTADR_A(7, 14));
+	#endif
+
+
+	hexToDec(jumps);
+	tmp1 = 0;
+	if (hexToDecOutputBuffer[4]) {
+		one_vram_buffer(0xD0+hexToDecOutputBuffer[4], NTADR_A(18,15));
+		tmp1++;
+	}
+
+	if (hexToDecOutputBuffer[4] | hexToDecOutputBuffer[3]) {
+		one_vram_buffer(0xD0+hexToDecOutputBuffer[3], NTADR_A(18+tmp1,15));
+		tmp1++;
+	}
+	
+	if (hexToDecOutputBuffer[4] | hexToDecOutputBuffer[3] | hexToDecOutputBuffer[2]) {
+		one_vram_buffer(0xD0+hexToDecOutputBuffer[2], NTADR_A(18+tmp1,15));
+		tmp1++;
+	}
+
+	if (hexToDecOutputBuffer[4] | hexToDecOutputBuffer[3] | hexToDecOutputBuffer[2] | hexToDecOutputBuffer[1]) {
+		one_vram_buffer(0xD0+hexToDecOutputBuffer[1], NTADR_A(18+tmp1,15));
+		tmp1++;
+	}
+	one_vram_buffer(0xD0+hexToDecOutputBuffer[0], NTADR_A(18+tmp1,15));
+	flush_vram_update2();
+
+	delay_spr_0 = 0x20;
+	#if __VS_SYSTEM
+	menutimer = 0;
+	#endif
+	current_state = 0;
+	
+	crossPRGBankJump0(set_completion_data);
+
+	#include "defines/charmap/endlevel_charmap.h"
+
+	tmp1 = 0;
+	tmpptr1 = NULL;
+	
+	tmp5 = 0x0000; // speed
+	tmp6 = 0xf000; // real y 
+
+    set_scroll_x(0);
+    set_scroll_y(0xe8);
+
+    ppu_on_all();
+
+	sfx_play(sfx_level_complete, 0);
+	menuselection = 1;
+
+	#if __VS_SYSTEM
+//	coins_inserted--;
+	#endif
+	
+	while (1) {
+		ppu_wait_nmi();
+		
+ 		// read the first controller
+
+		kandoframecnt++;
+
+		if (kandoframecnt & 1 && mouse_timer) mouse_timer--;
+		switch (current_state) {
+		case 0:
+			tmp5 += 0x40;
+			tmp6 -= tmp5;
+			set_scroll_y(high_byte(tmp6));
+			
+			if (high_byte(tmp6) < 10) {
+				current_state = 1;
+				high_byte(tmp5) = -0x06;
+			}
+			break;
+		case 1:
+			tmp5 += 0x40;
+			tmp6 -= tmp5;
+			set_scroll_y(high_byte(tmp6));
+			if (high_byte(tmp6) < 5 && !(high_byte(tmp5) & 0x80)) {
+				current_state = 2;
+				high_byte(tmp5) = -0x03;
+			}
+			break;
+		case 2:
+			tmp5 += 0x40;
+			tmp6 -= tmp5;
+			set_scroll_y(high_byte(tmp6));
+			if (high_byte(tmp6) < 3 && !(high_byte(tmp5) & 0x80)) {
+				current_state = 3;
+				set_scroll_y(0);
+			}
+			break;
+		case 3:
+			// Draw the level stat text
+			//achievements
+			kandokidshack = 0;
+			kandokidshack2 = 0;
+
+			tmp2 = 0;
+
+			if (!invisblocks) {
+				do {
+					// kandokidshack = kandokidshack + coin1_obtained[tmp2] + coin2_obtained[tmp2] + coin3_obtained[tmp2];
+					__A__ = tmp2; __asm__("tay");
+					__A__ = kandokidshack;
+					__asm__("clc \n adc %v, y", coin1_obtained);
+					__asm__("clc \n adc %v, y", coin2_obtained);
+					__asm__("clc \n adc %v, y", coin3_obtained);
+					kandokidshack = __A__;
+					if (LEVELCOMPLETE[tmp2]) kandokidshack2 += stars_list[tmp2];
+					tmp2++;
+				}
+				#ifdef FLAG_ENABLE_TEST_LEVELS
+				while (tmp2 < 255);
+				#else
+				while (tmp2 < LEVEL_COUNT2);
+				#endif
+			}
+			else {
+				do {
+					// kandokidshack = kandokidshack + coin1_obtained[tmp2] + coin2_obtained[tmp2] + coin3_obtained[tmp2];
+					__A__ = tmp2; __asm__("tay");
+					__A__ = kandokidshack;
+					__asm__("clc \n adc %v, y", invisible_coin1_obtained);
+					__asm__("clc \n adc %v, y", invisible_coin2_obtained);
+					__asm__("clc \n adc %v, y", invisible_coin3_obtained);
+					kandokidshack = __A__;
+					if (invisible_LEVELCOMPLETE[tmp2]) kandokidshack2 += stars_list[tmp2];
+					tmp2++;
+				}
+				#ifdef FLAG_ENABLE_TEST_LEVELS
+				while (tmp2 < 255);
+				#else
+				while (tmp2 < LEVEL_COUNT2);
+				#endif
+			}
+
+			tmp2 = 0;
+			current_state = 4;
+			tmp1 = 1;
+			break;
+		case 4: // coin 1
+			if (coins & COIN_1){
+				one_vram_buffer(0x90, NTADR_A(11,18));
+				one_vram_buffer(0x91, NTADR_A(12,18));
+				one_vram_buffer(0xA0, NTADR_A(11,19));
+				one_vram_buffer(0xA1, NTADR_A(12,19));
+				checkcointimer();
+			}
+			tmp1--;
+			checkcoinproceed();
+			break;
+		case 5: // coin 2
+			if (coins & COIN_2){
+				one_vram_buffer(0x90, NTADR_A(15,18));
+				one_vram_buffer(0x91, NTADR_A(16,18));
+				one_vram_buffer(0xA0, NTADR_A(15,19));
+				one_vram_buffer(0xA1, NTADR_A(16,19));
+				checkcointimer();
+			}
+			tmp1--;
+			checkcoinproceed();
+			break;
+		case 6: // coin 3
+			if (coins & COIN_3){
+				one_vram_buffer(0x90, NTADR_A(19,18));
+				one_vram_buffer(0x91, NTADR_A(20,18));
+				one_vram_buffer(0xA0, NTADR_A(19,19));
+				one_vram_buffer(0xA1, NTADR_A(20,19));
+				checkcointimer();
+			}
+			tmp1--;
+			checkcoinproceed();
+			break;
+		case 7:
+			lvl_done_update();
+			oam_clear();
+
+			mouse_and_cursor();
+
+			if (mouse.left_press) {
+				if (mouse.y >= 0xC5 && mouse.y <= 0xE3) {
+					if (mouse.x >= 0x36 && mouse.x <= 0x53) {
+						sfx_play(sfx_start_level, 0);
+						gameState = STATE_GAME;
+						//oam_clear();
+						coins = 0;
+						return;					
+					}
+					if (mouse.x >= 0xA6 && mouse.x <= 0xc3) {
+						sfx_play(sfx_exit_level, 0);
+						music_update();
+						gameState = STATE_LEVELSELECT;
+						menuselection = 0;
+						//oam_clear();
+						menuMusicCurrentlyPlaying = 0;
+						return;
+					}
+				}
+			}
+
+		#if !__VS_SYSTEM	// Disable level restarting on VS system
+			if (joypad1.press_left || joypad1.press_right) { menuselection ^= 1; lvl_done_update(); }
+			if (joypad1.press_start || joypad1.press_a){
+				if (menuselection) {
+		#else
+			if (joypad1.press_start || joypad1.press_a || menutimer == 2000){
+		#endif
+
+					sfx_play(sfx_exit_level, 0);
+					music_update();
+					gameState = STATE_LEVELSELECT;
+					menuselection = 0;
+
+					//oam_clear();
+					menuMusicCurrentlyPlaying = 0;
+					return;
+			#if !__VS_SYSTEM
+				} else {
+					
+					sfx_play(sfx_start_level, 0);
+					gameState = STATE_GAME;
+					coins = 0;
+
+					//oam_clear();
+					return;
+				}
+			#endif
+			}
+
+
+		#if __VS_SYSTEM
+			menutimer++;
+		#endif
+
+		}
+		kandoframecnt++;
+		if (kandoframecnt & 1 && mouse_timer) mouse_timer--;	
+						
+	}
+	#undef current_state
+	#undef sprite_0_y
+	#undef delay_spr_0
+	#undef delay_timer
+	#undef top_scroll
+}
+
+#include "defines/charmap/endlevel_charmap.h"
+void lvl_done_update() {
+	if (menuselection) {
+		one_vram_buffer(0xFF, NTADR_A(8,23));
+		one_vram_buffer(0xFF, NTADR_A(9,23));
+		one_vram_buffer(0x94, NTADR_A(22,23));
+		one_vram_buffer(0x95, NTADR_A(23,23));
+	} else {
+		one_vram_buffer(0x94, NTADR_A(8,23));
+		one_vram_buffer(0x95, NTADR_A(9,23));
+		one_vram_buffer(0xFF, NTADR_A(22,23));
+		one_vram_buffer(0xFF, NTADR_A(23,23));
+	}
+}	
+
+
+void checkcointimer(){
+	if (tmp1 == 1){
+		sfx_play(sfx_coin,0);
+		tmp1 = 50;
+	}
+}
+void checkcoinproceed(){
+	if (tmp1 == 0 || tmp1 == 30) {
+		tmp2++;
+		tmp1 = 1;
+	}
+}
+
+CODE_BANK_POP()

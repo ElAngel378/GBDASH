@@ -7,7 +7,7 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  8 _MAX_LEVELS                                                     00001054 GR
+  8 _MAX_LEVELS                                                     00001064 GR
     ___bank_backontrack_map                                         ******** GX
     ___bank_chr_gb                                              =   00000001 G
     ___bank_chr_gb_tiles                                        =   00000001 G
@@ -19,19 +19,19 @@ Symbol Table
   8 ___func_chr_gb_tiles                                            00000000 GR
   8 ___func_game_levels                                             00000000 GR
     ___size_chr_gb_tiles                                        =   00001000 G
-  8 __str_0                                                         00001055 R
-  8 __str_1                                                         00001064 R
-  8 __str_2                                                         00001072 R
-  8 __str_3                                                         0000107D R
+  8 __str_0                                                         00001065 R
+  8 __str_1                                                         00001074 R
+  8 __str_2                                                         00001082 R
+  8 __str_3                                                         0000108D R
     _backontrack                                                    ******** GX
     _backontrack_map                                                ******** GX
   8 _chr_gb_tiles                                                   00000000 GR
     _dryout                                                         ******** GX
     _dryout_map                                                     ******** GX
-  8 _game_levels                                                    0000104C GR
-  8 _level_bot                                                      0000101C GR
-  8 _level_du                                                       0000103C GR
-  8 _level_pg                                                       0000102C GR
+  8 _game_levels                                                    0000105C GR
+  8 _level_bot                                                      00001020 GR
+  8 _level_du                                                       00001048 GR
+  8 _level_pg                                                       00001034 GR
   8 _level_sm                                                       0000100C GR
   8 _level_songs                                                    00001000 GR
     _polargeist                                                     ******** GX
@@ -39,9 +39,11 @@ Symbol Table
   8 _song_bank                                                      00001008 GR
     _stereomadness                                                  ******** GX
     _stereomadness_map                                              ******** GX
+    _stereomadness_sprites_placements                               ******** GX
     b___func_chr_gb                                             =   00000001 L
     b___func_chr_gb_tiles                                       =   00000001 L
     b___func_game_levels                                        =   00000001 L
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
@@ -56,7 +58,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size     1085   flags    0
+   8 _CODE_1                                    size     1095   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

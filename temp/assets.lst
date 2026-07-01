@@ -53,7 +53,7 @@
                                      53 ; code
                                      54 ;--------------------------------------------------------
                                      55 	.area _CODE_1
-                                     56 ;src/assets.c:6: BANKREF(game_levels)
+                                     56 ;src/assets.c:7: BANKREF(game_levels)
                                      57 ;	---------------------------------
                                      58 ; Function __func_game_levels
                                      59 ; ---------------------------------
@@ -62,7 +62,7 @@
                                      62 	.local b___func_game_levels 
                          00000001    63 	___bank_game_levels = b___func_game_levels 
                                      64 	.globl ___bank_game_levels 
-                                     65 ;src/assets.c:7: BANKREF(chr_gb)
+                                     65 ;src/assets.c:8: BANKREF(chr_gb)
                                      66 ;	---------------------------------
                                      67 ; Function __func_chr_gb
                                      68 ; ---------------------------------
@@ -71,7 +71,7 @@
                                      71 	.local b___func_chr_gb 
                          00000001    72 	___bank_chr_gb = b___func_chr_gb 
                                      73 	.globl ___bank_chr_gb 
-                                     74 ;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
+                                     74 ;src/assets.c:11: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
                                      75 ;	---------------------------------
                                      76 ; Function __func_chr_gb_tiles
                                      77 ; ---------------------------------
@@ -116,70 +116,78 @@
     0000100A 08                      98 	.db #0x08	; 8
     0000100B 07                      99 	.db #0x07	; 7
     0000100C                        100 _level_sm:
-    0000100Cr55r10                  101 	.dw __str_0
+    0000100Cr65r10                  101 	.dw __str_0
     0000100Er00r00                  102 	.dw _chr_gb_tiles
     00001010r00r00                  103 	.dw _stereomadness_map
-    00001012 00 01                  104 	.dw #0x0100
-    00001014 7E 03                  105 	.dw #0x037e
-    00001016 10 00                  106 	.dw #0x0010
-    00001018 00                     107 	.db #0x00	; 0
-    00001019 00                     108 	.db #0x00	; 0
-    0000101Ar00                     109 	.byte ___bank_stereomadness_map
-    0000101B C0                     110 	.db #0xc0	; 192
-    0000101C                        111 _level_bot:
-    0000101Cr64r10                  112 	.dw __str_1
-    0000101Er00r00                  113 	.dw _chr_gb_tiles
-    00001020r00r00                  114 	.dw _backontrack_map
-    00001022 00 01                  115 	.dw #0x0100
-    00001024 4E 03                  116 	.dw #0x034e
-    00001026 10 00                  117 	.dw #0x0010
-    00001028 00                     118 	.db #0x00	; 0
-    00001029 00                     119 	.db #0x00	; 0
-    0000102Ar00                     120 	.byte ___bank_backontrack_map
-    0000102B B8                     121 	.db #0xb8	; 184
-    0000102C                        122 _level_pg:
-    0000102Cr72r10                  123 	.dw __str_2
-    0000102Er00r00                  124 	.dw _chr_gb_tiles
-    00001030r00r00                  125 	.dw _polargeist_map
-    00001032 00 01                  126 	.dw #0x0100
-    00001034 A6 03                  127 	.dw #0x03a6
-    00001036 10 00                  128 	.dw #0x0010
-    00001038 00                     129 	.db #0x00	; 0
-    00001039 00                     130 	.db #0x00	; 0
-    0000103Ar00                     131 	.byte ___bank_polargeist_map
-    0000103B C1                     132 	.db #0xc1	; 193
-    0000103C                        133 _level_du:
-    0000103Cr7Dr10                  134 	.dw __str_3
-    0000103Er00r00                  135 	.dw _chr_gb_tiles
-    00001040r00r00                  136 	.dw _dryout_map
-    00001042 00 01                  137 	.dw #0x0100
-    00001044 4A 03                  138 	.dw #0x034a
-    00001046 10 00                  139 	.dw #0x0010
-    00001048 00                     140 	.db #0x00	; 0
-    00001049 00                     141 	.db #0x00	; 0
-    0000104Ar00                     142 	.byte ___bank_dryout_map
-    0000104B B9                     143 	.db #0xb9	; 185
-    0000104C                        144 _game_levels:
-    0000104Cr0Cr10                  145 	.dw _level_sm
-    0000104Er1Cr10                  146 	.dw _level_bot
-    00001050r2Cr10                  147 	.dw _level_pg
-    00001052r3Cr10                  148 	.dw _level_du
-    00001054                        149 _MAX_LEVELS:
-    00001054 04                     150 	.db #0x04	; 4
-    00001055                        151 __str_0:
-    00001055 53 54 45 52 45 4F 20   152 	.ascii "STEREO MADNESS"
+    00001012r00r00                  104 	.dw _stereomadness_sprites_placements
+    00001014 D4 00                  105 	.dw #0x00d4
+    00001016 00 01                  106 	.dw #0x0100
+    00001018 7E 03                  107 	.dw #0x037e
+    0000101A 10 00                  108 	.dw #0x0010
+    0000101C 00                     109 	.db #0x00	; 0
+    0000101D 00                     110 	.db #0x00	; 0
+    0000101Er00                     111 	.byte ___bank_stereomadness_map
+    0000101F C0                     112 	.db #0xc0	; 192
+    00001020                        113 _level_bot:
+    00001020r74r10                  114 	.dw __str_1
+    00001022r00r00                  115 	.dw _chr_gb_tiles
+    00001024r00r00                  116 	.dw _backontrack_map
+    00001026 00 00                  117 	.dw #0x0000
+    00001028 00 00                  118 	.dw #0x0000
+    0000102A 00 01                  119 	.dw #0x0100
+    0000102C 4E 03                  120 	.dw #0x034e
+    0000102E 10 00                  121 	.dw #0x0010
+    00001030 00                     122 	.db #0x00	; 0
+    00001031 00                     123 	.db #0x00	; 0
+    00001032r00                     124 	.byte ___bank_backontrack_map
+    00001033 B8                     125 	.db #0xb8	; 184
+    00001034                        126 _level_pg:
+    00001034r82r10                  127 	.dw __str_2
+    00001036r00r00                  128 	.dw _chr_gb_tiles
+    00001038r00r00                  129 	.dw _polargeist_map
+    0000103A 00 00                  130 	.dw #0x0000
+    0000103C 00 00                  131 	.dw #0x0000
+    0000103E 00 01                  132 	.dw #0x0100
+    00001040 A6 03                  133 	.dw #0x03a6
+    00001042 10 00                  134 	.dw #0x0010
+    00001044 00                     135 	.db #0x00	; 0
+    00001045 00                     136 	.db #0x00	; 0
+    00001046r00                     137 	.byte ___bank_polargeist_map
+    00001047 C1                     138 	.db #0xc1	; 193
+    00001048                        139 _level_du:
+    00001048r8Dr10                  140 	.dw __str_3
+    0000104Ar00r00                  141 	.dw _chr_gb_tiles
+    0000104Cr00r00                  142 	.dw _dryout_map
+    0000104E 00 00                  143 	.dw #0x0000
+    00001050 00 00                  144 	.dw #0x0000
+    00001052 00 01                  145 	.dw #0x0100
+    00001054 4A 03                  146 	.dw #0x034a
+    00001056 10 00                  147 	.dw #0x0010
+    00001058 00                     148 	.db #0x00	; 0
+    00001059 00                     149 	.db #0x00	; 0
+    0000105Ar00                     150 	.byte ___bank_dryout_map
+    0000105B B9                     151 	.db #0xb9	; 185
+    0000105C                        152 _game_levels:
+    0000105Cr0Cr10                  153 	.dw _level_sm
+    0000105Er20r10                  154 	.dw _level_bot
+    00001060r34r10                  155 	.dw _level_pg
+    00001062r48r10                  156 	.dw _level_du
+    00001064                        157 _MAX_LEVELS:
+    00001064 04                     158 	.db #0x04	; 4
+    00001065                        159 __str_0:
+    00001065 53 54 45 52 45 4F 20   160 	.ascii "STEREO MADNESS"
              4D 41 44 4E 45 53 53
-    00001063 00                     153 	.db 0x00
-    00001064                        154 __str_1:
-    00001064 42 41 43 4B 20 4F 4E   155 	.ascii "BACK ON TRACK"
+    00001073 00                     161 	.db 0x00
+    00001074                        162 __str_1:
+    00001074 42 41 43 4B 20 4F 4E   163 	.ascii "BACK ON TRACK"
              20 54 52 41 43 4B
-    00001071 00                     156 	.db 0x00
-    00001072                        157 __str_2:
-    00001072 50 4F 4C 41 52 47 45   158 	.ascii "POLARGEIST"
+    00001081 00                     164 	.db 0x00
+    00001082                        165 __str_2:
+    00001082 50 4F 4C 41 52 47 45   166 	.ascii "POLARGEIST"
              49 53 54
-    0000107C 00                     159 	.db 0x00
-    0000107D                        160 __str_3:
-    0000107D 44 52 59 20 4F 55 54   161 	.ascii "DRY OUT"
-    00001084 00                     162 	.db 0x00
-                                    163 	.area _INITIALIZER
-                                    164 	.area _CABS (ABS)
+    0000108C 00                     167 	.db 0x00
+    0000108D                        168 __str_3:
+    0000108D 44 52 59 20 4F 55 54   169 	.ascii "DRY OUT"
+    00001094 00                     170 	.db 0x00
+                                    171 	.area _INITIALIZER
+                                    172 	.area _CABS (ABS)

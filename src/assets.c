@@ -1,6 +1,7 @@
 #pragma bank 1
 #include <gbdk/incbin.h>
 #include "assets.h"
+#include "stereomadness_sprites.h"
 #include "../levels/chr_data/chr_gb.h"
 
 BANKREF(game_levels)
@@ -52,6 +53,8 @@ const Level level_sm = {
   "STEREO MADNESS",
   chr_gb_tiles,
   stereomadness_map,
+  (const SpritePlacement *)stereomadness_sprites_placements,
+  STEREOMADNESS_SPRITES_COUNT,
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
   192
@@ -61,6 +64,7 @@ const Level level_bot = {
   "BACK ON TRACK",
   chr_gb_tiles,
   backontrack_map,
+  NULL, 0,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
   184
@@ -70,6 +74,7 @@ const Level level_pg = {
   "POLARGEIST",
   chr_gb_tiles,
   polargeist_map,
+  NULL, 0,
   chr_gb_TILE_COUNT, 934, 16, 0, 0,
   BANK(polargeist_map),
   193
@@ -79,6 +84,7 @@ const Level level_du = {
   "DRY OUT",
   chr_gb_tiles,
   dryout_map,
+  NULL, 0,
   chr_gb_TILE_COUNT, 842, 16, 0, 0,
   BANK(dryout_map),
   185

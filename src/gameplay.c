@@ -12,6 +12,8 @@
 #include "ship1.h"
 #include "../levels/chr_data/chr_gb.h"
 #include "famidash_metatiles.h"
+#include "fd_portal_sprites.h"
+#include "stereomadness_sprites.h"
 #include "hUGEDriver.h"
 
 #define BKG_MT_W 16
@@ -45,6 +47,47 @@ void draw_menu(void) BANKED {
   redraw = 0;
 }
 
+void draw_level_sprites(uint16_t scroll_x, uint16_t scroll_y, const SpritePlacement *sprites, uint16_t count) {
+    // Starting OAM index (0 is reserved for the player)
+    uint8_t oam_idx = 1;
+
+    if (!sprites) {
+        // Hide all sprites if no sprite data
+        for (; oam_idx < 40; oam_idx++) hide_sprite(oam_idx);
+        return;
+    }
+
+    // Simple visibility window: 160px wide + some padding
+    uint16_t view_left = scroll_x;
+    uint16_t view_right = scroll_x + 160;
+
+    for (uint16_t i = 0; i < count; i++) {
+        const SpritePlacement *sp = &sprites[i];
+
+        // Horizontal visibility check
+        if (sp->x >= view_left - 16 && sp->x <= view_right) {
+            if (oam_idx >= 40) break; // OAM Full
+
+            int16_t screen_x = (int16_t)sp->x - (int16_t)scroll_x + 8;
+            int16_t screen_y = (int16_t)sp->y - (int16_t)scroll_y + 16;
+
+            // Vertical visibility check (off-screen sprites are moved to 0 to hide)
+            if (screen_y < 0 || screen_y > 160) {
+                hide_sprite(oam_idx);
+            } else {
+                move_sprite(oam_idx, (uint8_t)screen_x, (uint8_t)screen_y);
+                set_sprite_tile(oam_idx, 0x20 + sp->tile);
+            }
+            oam_idx++;
+        }
+    }
+
+    // Hide remaining OAM slots
+    for (; oam_idx < 40; oam_idx++) {
+        hide_sprite(oam_idx);
+    }
+}
+
 void play_level(uint8_t idx) BANKED {
   const Level *l;
   const uint8_t *level_tiles;
@@ -54,6 +97,8 @@ void play_level(uint8_t idx) BANKED {
   uint16_t level_map_h;
   uint8_t level_tiles_bank;
   uint8_t level_map_bank;
+  const SpritePlacement *level_sprites;
+  uint16_t level_sprite_count;
 
   // game_levels is in Bank 1
   l = game_levels[idx];
@@ -64,6 +109,8 @@ void play_level(uint8_t idx) BANKED {
   level_map_h = l->map_height;
   level_tiles_bank = BANK(chr_gb);
   level_map_bank = l->map_bank;
+  level_sprites = l->sprites;
+  level_sprite_count = l->sprite_count;
 
   // Power on sound
   NR52_REG = 0x80;
@@ -97,6 +144,10 @@ void play_level(uint8_t idx) BANKED {
 
   set_sprite_data(0, 8, icon1_tiles);
   set_sprite_data(8, 4, ship_tiles);
+
+  // Load FamiDash portal/object sprites starting at index 32
+  set_sprite_data(0x20, PORTAL_SPRITE_TILES_COUNT, (uint8_t *)portal_sprite_tiles);
+
 
   move_bkg(0, (uint8_t)cam_py);
   fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
@@ -207,6 +258,9 @@ void play_level(uint8_t idx) BANKED {
       loaded_r = need_col;
       draw_mt_column((uint8_t)(need_col % BKG_MT_W), need_col, level_map, level_map_w, level_map_h, level_map_bank);
     }
+
+    // Draw the objects/portals from the TMX SP layer
+    draw_level_sprites(scroll_px, cam_py, level_sprites, level_sprite_count);
 
     if (player.mode == MODE_SHIP) {
         if (player.gravity_flipped) {

@@ -1,0 +1,1488 @@
+{
+	community_levels: [
+		/*
+		{
+			level: "yourlevel",
+			upperText: "UPPER TEXT",
+			lowerText: "LOWER TEXT",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "EASY",
+			stars: 1,
+			songID: "song_stereo_madness",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x12,
+			startingGroundColor: 0x02,
+			//spawnYPositionHi: 0x30,		;default #$B000
+			//spawnYPositionLow: 0x00,
+			//scrollYPositionHi: 0x02,		;default $02EF, less to go up
+			//scrollYPositionLow: 0x30,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [8, 8],
+					offsetY: +8,
+					offsetX: -8
+				},
+			]	
+		},
+		*/
+		{
+			level: "bestautomaticlvl",
+			upperText: "BEST",
+			lowerText: "AUTOMATIC LVL",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "AUTO",
+			stars: 1,
+			songID: "song_dry_out",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x16,
+			startingGroundColor: 0x10,
+			maxFallSpeed: 0x07,
+			parallaxDisable: false
+		},
+		/*
+		{
+            level: "movie",
+            upperText: "THE TRIPLE",
+            lowerText: "SPIKE OF DOOM",
+            decoType: "DECO1",
+            spikeSet: "A",
+            blockSet: "A",
+            sawSet: "A",
+            difficulty: "AUTO",
+            stars: 1,
+            songID: "song_stereo_madness_2",
+            startingGameMode: 0,
+            startingSpeed: 0,
+            startingBackgroundColor: 0x0F,
+            startingGroundColor: 0x0F,
+            parallaxDisable: false
+        },
+		*/
+		{
+			level: "sonar",
+			lowerText: "SONAR",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "EASY",
+			stars: 2,
+			songID: "song_stereo_madness_2",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x01,
+			startingGroundColor: 0x01,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[371, 21],	[624, 21],		//cube portal
+					],
+					offsetY: -8
+				},
+			]
+		},
+		{
+			level: "darkparadise",
+			lowerText: "DARK PARADISE",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "EASY",
+			stars: 2,
+			songID: "song_xenogenesis",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x01,
+			startingGroundColor: 0x01,
+			parallaxDisable: true
+		},
+		{
+			level: "xmaschallenge",
+			upperText: "XMAS",
+			lowerText: "CHALLENGE",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "EASY",
+			stars: 2,
+			songID: "song_snow",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x16,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [
+						[30, 23], [38, 23], [44, 23],
+					],
+					offsetX: -4
+				},
+				{
+					coordinates: [
+						[34, 23], [42, 23], [48, 23],
+					],
+					offsetX: +4
+				},
+				{
+					coordinates: [
+						[57, 25], [79, 22], [100, 23],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [99, 22],
+					offsetX: +16
+				},
+			]
+		},
+		{
+			level: "ninox",
+			lowerText: "NINOX",
+			decoType: "DECOCLOUD",
+			spikeSet: "B",
+			blockSet: "C",
+			sawSet: "A",
+			difficulty: "NORMAL",
+			stars: 3,
+			songID: "song_ninox",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x12,
+			startingGroundColor: 0x02,
+			objectOffsets: [
+				{
+					coordinates: [
+						[167, 24],	[171, 24],	[213, 22],	[217, 22],	[377, 25],	[381, 25],	[389, 25],	[393, 25],	[411, 26],	[418, 26],	[429, 25],	[435, 25],		//deco
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[346, 21],	[350, 21],	[383, 19],	[389, 19],	[418, 19],	[427, 19],		//deco
+					],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "somewhereinaforest",
+			upperText: "SOMEWHERE",
+			lowerText: "IN A FOREST",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "D",
+			sawSet: "A",
+			difficulty: "NORMAL",
+			stars: 3,
+			songID: "song_somewhere_in_a_forest",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[65, 25], [111, 25], [375, 15], [387, 19], [403, 19], [507, 15], [519, 10], [946, 25], [961, 24], [965, 26], [213, 25], [946, 21], [950, 20], [955, 17], [738, 9],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[386, 18], [707, 9], [717, 9], [797, 17],
+					],
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[507, 14], [878, 22], [274, 24], [457, 18], [467, 21], [670, 10], [650, 9], [713, 8],
+					],
+					offsetX: -8
+				},
+				{
+					coordinates: [
+						[6, 20], [14, 19], [24, 18], [38, 20], [52, 19], [273, 23], [614, 4],
+					],
+					offsetY: +8,
+					offsetX: +8
+				},
+			]
+		},
+		{
+			level: "lookatthislevel",
+			upperText: "LOOK AT",
+			lowerText: "THIS LEVEL",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 4,			
+			songID: "song_driving_by_night",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{ coordinates: [161, 18], offsetX: +4 }, //pad
+				{ coordinates: [172, 16], offsetX: +8 }, //circle
+				{ coordinates: [180, 17], offsetX: +8 }, //circle
+				{ coordinates: [189, 16], offsetX: +8 }, //circle
+				{ coordinates: [197, 16], offsetX: +8 }, //circle
+				{ coordinates: [198, 16], offsetX: -8 }, //arrow
+				{ coordinates: [200, 16], offsetX: +8 }, //circle
+				{ coordinates: [201, 16], offsetX: -8 }, //arrow
+				{ coordinates: [203, 16], offsetX: +8 }, //circle
+				{ coordinates: [204, 16], offsetX: -8 }, //arrow
+				{ coordinates: [211, 17], offsetX: +8 }, //circle
+				{ coordinates: [219, 16], offsetX: +8 }, //circle
+				{ coordinates: [227, 17], offsetX: +8 }, //circle
+				{ coordinates: [235, 18], offsetX: +8 }, //circle
+				{ coordinates: [236, 18], offsetX: -8 }, //arrow
+				{ coordinates: [238, 18], offsetX: +8 }, //circle
+				{ coordinates: [239, 18], offsetX: -8 }, //arrow
+				{ coordinates: [241, 18], offsetX: +8 }, //circle
+				{ coordinates: [242, 18], offsetX: -8 }, //arrow
+				{ coordinates: [249, 16], offsetX: +8 }, //circle
+				{ coordinates: [257, 17], offsetX: +8 }, //circle
+				{ coordinates: [264, 16], offsetX: -15 }, //portal
+				{ coordinates: [269, 17], offsetX: +8 }, //circle
+				{ coordinates: [277, 16], offsetX: +8 }, //circle
+				{ coordinates: [285, 17], offsetX: +8 }, //circle
+				{ coordinates: [286, 17], offsetX: -8 }, //arrow
+				{ coordinates: [288, 17], offsetX: +8 }, //circle
+				{ coordinates: [289, 17], offsetX: -8 }, //arrow
+				{ coordinates: [291, 17], offsetX: +8 }, //circle
+				{ coordinates: [292, 17], offsetX: -8 }, //arrow
+				{ coordinates: [299, 16], offsetX: +8 }, //circle
+				{ coordinates: [307, 17], offsetX: +8 }, //circle
+				{ coordinates: [315, 16], offsetX: +8 }, //circle
+				{ coordinates: [323, 16], offsetX: +8 }, //circle
+				{ coordinates: [324, 16], offsetX: -8 }, //arrow
+				{ coordinates: [326, 16], offsetX: +8 }, //circle
+				{ coordinates: [327, 16], offsetX: -8 }, //arrow
+				{ coordinates: [329, 16], offsetX: +8 }, //circle
+				{ coordinates: [330, 16], offsetX: -8 }, //arrow
+				{ coordinates: [337, 17], offsetX: +8 }, //circle
+				{ coordinates: [345, 16], offsetX: +8 }, //circle
+				{ coordinates: [353, 16], offsetX: +8 }, //circle
+				{ coordinates: [354, 16], offsetX: -8 }, //arrow
+				{ coordinates: [356, 16], offsetX: +8 }, //circle
+				{ coordinates: [357, 16], offsetX: -8 }, //arrow
+				{ coordinates: [359, 16], offsetX: +8 }, //circle
+				{ coordinates: [360, 16], offsetX: -8 }, //arrow
+				{ coordinates: [363, 15], offsetX: -15 }, //portal
+				{ coordinates: [380, 16], offsetX: +16 }, //circle (sign)
+				{ coordinates: [403, 18], offsetX: +16 }, //circle (sign)
+				{ coordinates: [447, 13], offsetX: +16 }, //circle (sign)
+				{ coordinates: [485, 17], offsetX: +16 }, //circle (sign)
+				{ coordinates: [522, 18], offsetX: +16 }, //circle (sign)
+			],
+		},
+		{
+			level: "ajollyretrochristmas",
+			upperText: "A JOLLY RETRO",
+			lowerText: "CHRISTMAS",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "D",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 5,
+			songID: "song_snow",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[60, 15], [201, 23], [247, 25], [431, 19], [575, 18], [838, 6], [856, 8], [868, 8], [890, 13], [919, 7], [980, 10], [1402, 8], [1488, 14], [1495, 14],
+					],
+					offsetY: -8,
+				},
+				{
+					coordinates: [
+						[1417, 13], [1479, 13], [1498, 13], [1499, 13], [1500, 13], [1501, 13], [1502, 13], [1503, 13], [1504, 13], [1505, 13], [1506, 13], [1507, 13], [1508, 13], [1509, 13], [1510, 13], [1511, 13],
+					],
+					offsetX: +8
+				},
+			]	
+		},
+		{
+			level: "ultiatedestruction",
+			upperText: "ULTIATE",
+			lowerText: "DESTRUCTION",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 5,
+			songID: "song_ultimatedestruction",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x11,
+			startingGroundColor: 0x11,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [
+						[185, 20], [233, 23], [239, 25], [298, 24], [305, 24], [311, 23], [314, 24], [495, 20], [500, 20], [505, 20],
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [
+						[236, 25], [242, 26], [249, 26],
+					],
+					offsetX: +8
+				},
+				{
+					coordinates: [
+						[151, 24], [155, 24], [156, 25], [160, 25], [162, 24], [166, 24], [168, 23], [172, 23], [173, 24], [177, 24], [178, 22], [182, 22], [183, 23], [187, 23], [188, 22], [192, 22], [193, 24], [197, 24],
+					],
+					offsetY: -4
+				},
+			]
+		},
+		{
+			level: "moonlight",
+			lowerText: "MOONLIGHT",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 5,
+			songID: "song_fantasy",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [159, 14],
+					offsetY: +8
+				},
+				{
+					coordinates: [250, 14],
+					offsetY: +8
+				},
+				{
+					coordinates: [282, 14],
+					offsetX: +8
+				},
+				{
+					coordinates: [334, 13],
+					offsetY: +8
+				},
+				{
+					coordinates: [397, 15],
+					offsetY: +8
+				},
+				{
+					coordinates: [419, 14],
+					offsetY: +8
+				},
+				{
+					coordinates: [430, 11],
+					offsetY: +8
+				},
+				{
+					coordinates: [431, 11],
+					offsetY: +8
+				},
+				{
+					coordinates: [432, 11],
+					offsetY: +8
+				},
+				{
+					coordinates: [475, 13],
+					offsetY: +8
+				},
+				{
+					coordinates: [596, 14],
+					offsetY: -8
+				},
+				{
+					coordinates: [608, 12],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "fofii_fofii_fofii",
+			upperText: "FOFII",
+			lowerText: "FOFII FOFII",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 5,
+			songID: "song_meowstuff",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[20, 37],	[29, 37],	[38, 37],	[257, 33],	[442, 27],	[446, 27],		//yellow orb
+						[363, 28],	[432, 23],		//coin
+					],
+					offsetX: +8		
+				},
+				{
+					coordinates: [
+						[340, 36],		//red orb
+					],
+					offsetX: -8		
+				},
+				{
+					coordinates: [
+						[345, 33],	[449, 25],	[623, 18],		//speed portal					
+					],
+					offsetY: -8		
+				},
+			]			
+		},
+		{
+			level: "selectpaymenttype",
+			upperText: "SELECT",
+			lowerText: "PAYMENT TYPE",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "D",
+			sawSet: "A",
+			difficulty: "HARD",
+			stars: 5,
+			songID: "song_select_payment_type",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x12,
+			startingGroundColor: 0x02,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [[134, 20], [150, 21]],
+					offsetY: +8,
+				},
+				{
+					coordinates: [612, 17],
+					offsetX: +16
+				},
+			]	
+		},
+		{
+			level: "pyrophoric",
+			lowerText: "PYROPHORIC",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_pyrophoric_legacy_remix",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x07,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [
+						[43, 18], [280, 25], [435, 21], [450, 18],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[83, 18],
+					],
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[202, 16], [280, 25],
+					],
+					offsetX: +8
+				},
+				{
+					coordinates: [54, 20],
+					offsetY: -4,
+					offsetX: +8
+				},
+			]
+		},
+		{
+			level: "cryogenic",
+			lowerText: "CRYOGENIC",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_cryogenic",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x07,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [109, 13],
+					offsetX: +8
+				},
+				{
+					coordinates: [121, 14],
+					offsetX: +8
+				},
+				{
+					coordinates: [144, 10],
+					offsetX: +8
+				},
+				{
+					coordinates: [222, 15],
+					offsetY: -8
+				},
+				{
+					coordinates: [265, 13],
+					offsetX: +16
+				},
+				{
+					coordinates: [266, 12],
+					offsetY: +16
+				},
+				{
+					coordinates: [292, 11],
+					offsetX: +8
+				},
+				{
+					coordinates: [295, 18],
+					offsetY: +8
+				},
+				{
+					coordinates: [298, 18],
+					offsetY: +8
+				},
+				{
+					coordinates: [334, 19],
+					offsetY: +8
+				},
+				{
+					coordinates: [337, 19],
+					offsetY: +8
+				},
+				{
+					coordinates: [346, 13],
+					offsetY: +8
+				},
+				{
+					coordinates: [348, 16],
+					offsetX: +8
+				},
+				{
+					coordinates: [354, 12],
+					offsetX: +16
+				},
+				{
+					coordinates: [355, 11],
+					offsetY: +16
+				},
+				{
+					coordinates: [441, 18],
+					offsetX: +16
+				},
+				{
+					coordinates: [442, 17],
+					offsetY: +16
+				},
+				{
+					coordinates: [461, 24],
+					offsetX: +8
+				},
+				{
+					coordinates: [469, 22],
+					offsetY: +8
+				},
+				{
+					coordinates: [478, 24],
+					offsetX: +8
+				},
+				{
+					coordinates: [479, 20],
+					offsetX: +8
+				},
+				{
+					coordinates: [496, 23],
+					offsetX: +8
+				},
+				{
+					coordinates: [630, 18],
+					offsetX: +16
+				},
+				{
+					coordinates: [631, 17],
+					offsetY: +16
+				},
+				{
+					coordinates: [741, 16],
+					offsetX: +16
+				},
+				{
+					coordinates: [742, 17],
+					offsetY: -8
+				},
+				{
+					coordinates: [830, 22],
+					offsetX: +16
+				},
+			]
+		},
+		{
+			level: "oceane",
+			lowerText: "OCEANE",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_kesobomb",
+			startingGameMode: 0,
+			startingSpeed: 2,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},
+		{
+			level: "generationretro",
+			upperText: "GENERATION",
+			lowerText: "RETRO",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_glitch_gremlin",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},	
+		{
+			level: "scarletsurge",
+			upperText: "SCARLET",
+			lowerText: "SURGE",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_check_out",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},		
+		{
+			level: "tinytunes",
+			upperText: "TINY",
+			lowerText: "TUNES",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 6,
+			songID: "song_tiny_tunes",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},		
+		{
+			level: "fireaura",
+			lowerText: "FIRE AURA",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 7,
+			songID: "song_fire_aura",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[981, 21],	[988, 20],	[1017, 23],	[1046, 22],	[1050, 23],	[1058, 24],	[1083, 20],	[1087, 21],	[1105, 21],		//deco												
+					],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "rainbowdust",
+			upperText: "RAINBOW",
+			lowerText: "DUST",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 7,
+			songID: "song_chaoz_fantasy_extended",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [
+						[70, 22],	[73, 24],	[76, 22],		//deco
+					],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "wintherace",
+			upperText: "WIN",
+			lowerText: "THE RACE",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 7,
+			songID: "song_win_the_race",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [
+						[65, 17], [96, 21], [143, 23], [187, 18], [320, 20], [376, 20], [481, 16], [500, 18], [502, 21], [503, 21], [504, 21], [505, 21], [511, 21], [513, 21], [647, 21], [735, 22],
+						[839, 20], [843, 24],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[128, 21], [182, 22], [187, 18], [217, 18], [217, 19], [217, 20], [320, 20], [414, 21], [433, 14], [470, 26], [472, 16], [480, 20], [513, 21], [679, 21],
+					],
+					offsetX: -8
+				},
+				{
+					coordinates: [
+						[477, 20], [478, 24], [626, 20], [678, 21],
+					],
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[519, 19],
+					],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "factorytime",
+			lowerText: "FACTORY TIME",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 7,
+			songID: "song_factory_time",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x12,
+			startingGroundColor: 0x02,
+			objectOffsets: [
+				{
+					coordinates: [
+						[169, 17], [170, 17], [184, 17], [185, 17], [188, 17], [189, 17], [193, 17], [194, 17], 
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [397, 26],
+					offsetX: -8
+				},
+			]
+		},	
+		{
+			level: "thesteamworks",
+			lowerText: "THE STEAMWORKS",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "D",
+			sawSet: "A",
+			difficulty: "HARDER",
+			stars: 7,
+			songID: "song_meltdown",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [111, 17],
+					offsetX: +8
+				},
+				{
+					coordinates: [112, 18],
+					offsetY: -8
+				},
+				{
+					coordinates: [171, 17],
+					offsetX: +8
+				},
+				{
+					coordinates: [244, 14],
+					offsetX: +8
+				},
+				{
+					coordinates: [251, 15],
+					offsetY: -8
+				},
+				{
+					coordinates: [424, 14],
+					offsetY: -8
+				},
+				{
+					coordinates: [762, 13],
+					offsetY: +8
+				},
+				{
+					coordinates: [787, 13],
+					offsetY: +8
+				},
+				{
+					coordinates: [806, 15],
+					offsetX: +8
+				},
+				{
+					coordinates: [840, 15],
+					offsetY: -8
+				},
+				{
+					coordinates: [952, 14],
+					offsetY: -8
+				},
+				{
+					coordinates: [962, 16],
+					offsetY: +8
+				},
+				{
+					coordinates: [1091, 14],
+					offsetY: -8
+				},
+			]
+		},		
+		{
+			level: "rainingtacos",
+			lowerText: "RAINING TACOS",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_raining_tacos",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			spawnYPositionHi: 0x00,
+			maxFallSpeed: 0x07,
+			objectOffsets: [
+				{
+					coordinates: [
+						[58, 27], [63, 23], [91, 24], [96, 24], [98, 27], [99, 27], [150, 23], [150, 24],
+						[169, 25], [301, 19], [309, 21], [319, 20], [336, 18], [352, 19], [362, 20], [377, 19],
+						[377, 20], [422, 18], [504, 10], [531, 13], [545, 17], [598, 16], [627, 14], [631, 16],
+						[717, 16], [748, 15], [753, 15], [933, 18],
+						[173, 28],
+					],
+					offsetX: +8
+				},
+				{
+					coordinates: [
+						[94, 25], [129, 23], [133, 23], [137, 23], [166, 22], [175, 25], [180, 21], [218, 19],
+						[221, 20], [224, 19], [227, 20], [238, 19], [246, 22], [251, 21], [278, 21], [309, 21],
+						[316, 18], [388, 21], [396, 21], [402, 20], [408, 19], [479, 11], [497, 12], [511, 9],
+						[517, 10], [523, 11], [552, 17], [589, 12], [606, 15], [619, 14], [627, 14], [748, 15],
+						[761, 15], [771, 14], [919, 19], [933, 18],
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [
+						[150, 24], [190, 24], [218, 20], [227, 21], [227, 22], [377, 20],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[618, 14], [726, 16],
+					],
+					offsetX: +16
+				},
+			]
+		},		
+		{
+			level: "dorabaebasic10",
+			upperText: "DORABAE",
+			lowerText: "BASIC10",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_infiltration",
+			startingGameMode: 0,
+			startingSpeed: 2,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [136, 24],		//arrow
+					offsetY: -3,
+					offsetX: -5
+				},
+				{
+					coordinates: [138, 23],		//arrow
+					offsetY: -5,
+					offsetX: -11
+				},
+				{
+					coordinates: [140, 22],		//arrow
+					offsetX: -16
+				},
+				{
+					coordinates: [142, 21],		//arrow
+					offsetY: -11,
+					offsetX: -21
+				},
+				{
+					coordinates: [144, 20],		//arrow
+					offsetY: -13,
+					offsetX: -27
+				},
+				{
+					coordinates: [130, 24],		//blue gravity portal
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[173, 17],		//3x speed portal
+						[364, 18],		//2x speed portal
+						[624, 21],		//undual portal
+						[713, 19],		//3x speed portal
+						[758, 19],		//undual portal
+						[894, 17],		//0.5x speed portal
+						[140, 22],		//arrow
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [501, 17],		//arrow
+					offsetX: +8
+				},
+				{
+					coordinates: [
+						[501, 19],	[671, 24],		//arrow
+					],
+					offsetX: -8
+				},
+				{
+					coordinates: [
+						[507, 16],		//1x speed portal
+						[525, 20],		//dual portal
+						[624, 20],	[758, 18],		//blue gravity portal
+						[668, 25],	[879, 23],		//arrow
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [525, 22],		//big portal
+					offsetY: -24
+				},
+				{
+					coordinates: [700, 25],		//1x speed portal
+					offsetY: -2
+				},
+				{
+					coordinates: [712, 18],		//dual portal
+					offsetY: +2,
+					offsetX: +16
+				},
+			]
+		},
+		{ 
+			level: "offtomars",
+			upperText: "OFF TO",
+			lowerText: "MARS",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_off_to_mars",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			maxFallSpeed: 0x07,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [80, 56],
+					offsetY: +8,
+				},
+				{
+					coordinates: [179, 55],
+					offsetY: -8,
+				},
+				{
+					coordinates: [
+						[195, 54],
+						[535, 11],
+						[674, 17],
+						[673, 17],
+						[786, 25],
+						[860, 54],
+						[879, 54]
+					],
+					offsetX: +8,
+				},
+			],
+		},
+		{
+			level: "akrile",
+			lowerText: "AKRILE",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_the_explorer",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0f,
+			startingGroundColor: 0x0f,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [38,25],
+					offsetX: 8,
+				},
+				{
+					coordinates: [95,22],
+					offsetY: -8,
+				},
+				{
+					coordinates: [107,21],
+					offsetX: 8,
+				},
+				{
+					coordinates: [160,24],
+					offsetY: -8,
+				},
+				{
+					coordinates: [172,22],
+					offsetX: 8,
+				},
+				{
+					coordinates: [175,24],
+					offsetY: -8,
+				},
+				{
+					coordinates: [189,21],
+					offsetY: 8,
+				},
+				{
+					coordinates: [190,24],
+					offsetX: 8,
+					offsetY: -8,
+				},
+				{
+					coordinates: [200,22],
+					offsetY: -8,
+				},
+				{
+					coordinates: [208,24],
+					offsetX: 8,
+					offsetY: -8,
+				},
+				{
+					coordinates: [223,21],
+					offsetY: 8,
+				},
+				{
+					coordinates: [240,26],
+					offsetX: 8,
+				},
+				{
+					coordinates: [251,23],
+					offsetX: 8,
+					offsetY: 8,
+				},
+				{
+					coordinates: [305,22],
+					offsetY: -8,
+				},
+				{
+					coordinates: [325,22],
+					offsetY: -8,
+				},
+				{
+					coordinates: [347,20],
+					offsetY: -5,
+				},
+				{
+					coordinates: [381,18],
+					offsetX: -16,
+				},
+				{
+					coordinates: [383,20],
+					offsetX: -16,
+				},
+				{
+					coordinates: [381,22],
+					offsetX: -16,
+				},
+				{
+					coordinates: [399,20],
+					offsetX: 16,
+				},
+				{
+					coordinates: [440,19],
+					offsetX: -16,
+				},
+				{
+					coordinates: [438,21],
+					offsetX: -16,
+				},
+				{
+					coordinates: [491,16],
+					offsetX: 16,
+				},
+				{
+					coordinates: [515,16],
+					offsetX: 8,
+				},
+				{
+					coordinates: [521,19],
+					offsetX: 8,
+				},
+			]
+		},
+		{
+			level: "subtleoddities",
+			upperText: "SUBTLE",
+			lowerText: "ODDITIES",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_subtle_oddities",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},
+		{
+			level: "powertrip",
+			lowerText: "POWER TRIP",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "A",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_power_trip",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},
+		{
+			level: "danceofviolins",
+			upperText: "DANCE OF",
+			lowerText: "VIOLINS",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_dance_of_the_violins",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},
+		{
+			level: "newdashcity",
+			lowerText: "NEW DASH CITY",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 8,
+			songID: "song_new_dash_city",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			maxFallSpeed: 0x07,
+			hasSuperheroes: false,
+			objectOffsets: [
+				{
+					coordinates: [
+						[169, 20], [881, 11], [1056, 21], [1059, 23], [1075, 22], [1077, 18], [1099, 17], [1157, 19], [1309, 23], [1369, 24], [1385, 24], [1441, 24],
+					],
+					offsetX: +8
+				},
+				{
+					coordinates: [
+						[187, 17], [190, 17], [232, 18], [233, 18], [550, 22], [768, 18], [769, 18], [777, 16], [778, 16], [893, 13], [1145, 21], [1190, 21], [1238, 21],
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [
+						[157, 23], [364, 23], [366, 23], [534, 23], [722, 23], [906, 11], [1001, 14], [1006, 14], [1033, 15], [1057, 22], [1104, 20], [1273, 22], [1328, 21], [1384, 22],
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[859, 8], [1127, 18],
+					],
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[536, 16], [566, 16], [1225, 21],
+					],
+					offsetY: +8,
+					offsetX: +8,
+				},
+			]
+		},
+		{
+			level: "birdbrain",
+			lowerText: "BIRDBRAIN",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "D",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 9,
+			songID: "song_birdbrain",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			spawnYPositionHi: 0x10,
+			maxFallSpeed: 0x07,
+			parallaxDisable: true,
+			containsKasaneTeto: false,
+			objectOffsets: [
+				{
+					coordinates: [
+						[9, 18], [17, 20], [138, 14], [138, 16], [174, 17], [183, 14], [206, 15], [286, 19], [345, 15], [368, 16], [758, 14], [761, 14], [627, 9], [332, 15],
+					],
+					offsetX: +8
+				},
+				{
+					coordinates: [
+						[61, 21], [182, 14], [261, 17], [472, 9],
+					],
+					offsetX: +16
+				},
+				{
+					coordinates: [
+						[49, 18], [138, 14], [138, 16], [210, 17], [222, 18], [345, 15], [346, 15], [472, 9], [473, 9], [505, 13], [564, 7], [920, 17],
+					],
+					offsetY: +8
+				},
+				{
+					coordinates: [
+						[4, 19], [49, 19], [151, 14], [164, 15], [305, 19], [392, 13], [492, 11], [500, 14], [525, 5], [716, 10], [728, 11], [895, 17], [900, 18], [910, 10], [928, 18], [956, 18],
+						[123, 14], [135, 16], [145, 16], [298, 20],
+					],
+					offsetY: -8
+				},
+			]
+		},
+		{
+			level: "aprettyeasylevel",
+			upperText: "A PRETTY",
+			lowerText: "EASY LEVEL",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "C",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 9,
+			songID: "song_against_the_odds_redux",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x12,
+			startingGroundColor: 0x02,
+			objectOffsets: [
+				{
+					coordinates: [
+						[87, 21],	[205, 16],	[218, 21],	[231, 19],	[264, 20],		//gravity portal
+						[343, 23],	[468, 21],	[532, 20],	[657, 16],					//gravity portal
+					],
+					offsetY: -8
+				},
+				{
+					coordinates: [
+						[227, 17],	[255, 16],	[277, 14],	[326, 15],					//gravity portal
+						[417, 15],	[518, 14],	[648, 14],								//gravity portal
+					],
+					offsetY: +8
+				},
+			]
+		},
+		{
+			level: "tetrix",
+			lowerText: "TETRIX",
+			decoType: "DECO1",
+			spikeSet: "C",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 9,
+			songID: "song_tetris_remix_final",
+			startingGameMode: 0,
+			startingSpeed: 0,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+		},
+		{
+			level: "highlife",
+			lowerText: "HIGH LIFE",
+			decoType: "DECO1",
+			spikeSet: "A",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "INSANE",
+			stars: 9,
+			songID: "song_magic_touch",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true
+		},
+/*		{
+			level: "futurefunkfix",
+			lowerText: "FUTURE FUNK",
+			decoType: "EXTRASPRITES1",
+			spikeSet: "C",
+			blockSet: "B",
+			sawSet: "A",
+			difficulty: "DEMON",
+			stars: 10,
+			songID: "song_whats_a_future_funk",
+			startingGameMode: 0,
+			startingSpeed: 1,
+			startingBackgroundColor: 0x0F,
+			startingGroundColor: 0x0F,
+			parallaxDisable: true,
+			objectOffsets: [
+				{
+					coordinates: [738, 53],
+					offsetX: -8
+				},			
+			]
+		}, */
+	], 
+	globalObjectOffsets: [
+		/*	Format:
+		{
+			objectID: int or array,
+			--
+			offset: [x_offset, y_offset] (in px)
+			OR
+			offset{X, Y}: offset (in px)
+
+			override: true if you want this setting to override the previous one for this tile
+		}
+		*/
+		{
+			objectID: 0x3E, /* Right medium post */
+			offsetX: -8
+		},
+		{
+			objectID: [0x0A, 0x0D, 0x25, 0x52, 0x56, 0xFD], /* Bottom pads */
+			offsetY: 8
+		},
+	],
+	levelSetDefineName: "B"
+}

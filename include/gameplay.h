@@ -23,6 +23,8 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint16_t map_h, uint8_t 
 
 void draw_menu(void) BANKED;
 
+void draw_level_sprites(uint16_t scroll_x, uint16_t scroll_y, const SpritePlacement *sprites, uint16_t count);
+
 // Main gameplay loop for a specific level
 void play_level(uint8_t idx) BANKED;
 

@@ -33,6 +33,7 @@ Symbol Table
   8 ___str_3                                                        000000A8 R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
+  8 _draw_level_sprites                                             000000AC GR
   8 _draw_menu                                                      00000011 GR
     _draw_mt_column                                                 ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -50,22 +51,24 @@ Symbol Table
     _level_songs                                                    ******** GX
     _load_bkg_tileset                                               ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     000000AC GR
+  8 _play_level                                                     00000273 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
+    _portal_sprite_tiles                                            ******** GX
     _printf                                                         ******** GX
-    _puts                                                           ******** GX
-    _redraw                                                         ******** GX
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _puts                                                           ******** GX
+    _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
   8 _setup_menu_font                                                00000000 GR
+    _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
     _song_bank                                                      ******** GX
@@ -91,7 +94,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size      7A2   flags    0
+   8 _CODE_1                                    size      9BE   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

@@ -1,0 +1,274 @@
+{
+	songModule: "music_master.fms",
+	songs: [
+		{
+			fmsSongName: "emehT uneM",
+			lowerText: "EMEHT UNEM",
+			originalArtistText: "ROBTOP",
+		},
+		{
+			fmsSongName: "Stereo Madness",
+			upperText: "STEREO ",
+			lowerText: "MADNESS",
+			originalArtistText: "FOREVERBOUND",
+			vsSystemEnabled: true,
+			nsfData: {
+				trackLabel: "Stereo Madness",
+				trackAuthor: {
+					original: "ForeverBound",
+					cover: "Zenith302, UserSniper"
+				},
+				durationNTSC: 85550,
+				durationPAL: 102840
+			}
+		},
+		{
+			fmsSongName: "Cycles",
+			lowerText: "CYCLES",
+			originalArtistText: "DJVI",
+			nsfData: {
+				trackLabel: "Cycles",
+				trackAuthor: {
+					original: "DJVI",
+					cover: "aquamarine.gay, alexmush"
+				},
+				durationNTSC: 85933,
+				durationPAL: 103280
+			}
+		},
+		{
+			fmsSongName: "Practice",
+			lowerText: "PRACTICE",
+			originalArtistText: "OCULARNEBULA",
+			vsSystemEnabled: false,
+		},
+		{
+			fmsSongName: "Scheming Weasel",
+			upperText: "SCHEMING",
+			lowerText: "WEASEL",
+			originalArtistText: "KEVIN MACLEOD",
+			vsSystemEnabled: false
+		},
+		{
+			fmsSongName: "Astronomical Expedition",
+			upperText: "ASTRONOMICAL",
+			lowerText: "EXPEDITION",
+			originalArtistText: "SEAGLOWINGPRO",
+		},
+		{
+			fmsSongName: "C Madness",
+			lowerText: "C MADNESS",
+			originalArtistText: "FOREVERBOUND",
+		},
+		{
+			fmsSongName: "Clownparty Remix",
+			upperText: "CLOWNPARTY",
+			lowerText: "REMIX",
+			originalArtistText: "WATERFLAME",
+		},
+		{
+			fmsSongName: "Deep Swim",
+			lowerText: "DEEP SWIM",
+			originalArtistText: "WINDOWS96",
+		},
+		{
+			fmsSongName: "Dastardly",
+			upperText: "DICK DASTARDLY",
+			lowerText: "RICHARDSON",
+			originalArtistText: "LCHAVASSE",
+		},
+		{
+			fmsSongName: "Hungryman Adventures",
+			upperText: "ELECTROMAN",
+			lowerText: "MY VERSION",
+			originalArtistText: "WATERFLAME",
+		},
+		{
+			fmsSongName: "endgame",
+			lowerText: "ENDGAME",
+			originalArtistText: "WATERFLAME",
+			vsSystemEnabled: true,
+			nsfData: {
+				trackLabel: "Decode ~ Endgame",
+				trackAuthor: {
+					original: "Waterflame",
+					cover: "Vikrinox"
+				},
+				durationNTSC: 79283,
+				durationPAL: 95280
+			}
+		},
+		{
+			fmsSongName: "Ground to ReTraY",
+			upperText: "GROUND TO",
+			lowerText: "RETRAY",
+			originalArtistText: "DETIOUS   SGP",
+		},
+		{
+			fmsSongName: "Load",
+			lowerText: "LOAD",
+			originalArtistText: "KIYNARIA"
+		},
+		{
+			fmsSongName: "Nine Circles",
+			lowerText: "NINE CIRCLES",
+			originalArtistText: "RUKKUS",
+		},
+		{
+			fmsSongName: "Sunslammer",
+			lowerText: "SUNSLAMMER",
+			originalArtistText: "SETH PEELLE"
+		},
+		{
+			fmsSongName: "Unity",
+			lowerText: "UNITY",
+			originalArtistText: "THEFATRAT"
+		},
+		{
+			fmsSongName: "Future Funk PT1",
+			upperText: "WHATS A",
+			lowerText: "FUTUREFUNKPT1",
+			originalArtistText: "LEMKUUJA",
+		},
+		{
+			fmsSongName: "Future Funk PT2",
+			upperText: "WHATS A",
+			lowerText: "FUTUREFUNKPT2",
+			originalArtistText: "LEMKUUJA",
+		},
+		{
+			fmsSongName: "Youve been Trolled",
+			upperText: "YOUVE BEEN",
+			lowerText: "TROLLED",
+			originalArtistText: "THECLYDECASH",
+		},
+	],
+	SFX: [
+		{
+			text: "DEATH",
+			nsfData: {
+				trackLabel: "Death SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 383,
+				durationPAL: 460
+			}
+		},
+		{
+			text: "CLICK",
+			nsfData: {
+				trackLabel: "Click SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 50,
+				durationPAL: 40
+			}
+		},
+		{
+			text: "LEVEL COMPLETE",
+			nsfData: {
+				trackLabel: "LEVEL COMPLETE! SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 3167,
+				durationPAL: 3020
+			}
+		},
+		{
+			text: "COIN",
+			nsfData: {
+				trackLabel: "Coin SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 683,
+				durationPAL: 700
+			}
+		},
+		{
+			text: "CHEST OPEN",
+			nsfData: {
+				trackLabel: "Chest Open SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 100,
+				durationPAL: 120
+			}
+		},
+		{
+			text: "ORBS",
+			nsfData: {
+				trackLabel: "Orbs SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 683,
+				durationPAL: 820
+			}
+		},
+		{
+			text: "DIAMONDS",
+			nsfData: {
+				trackLabel: "Diamonds SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 683,
+				durationPAL: 820
+			}
+		},
+		{
+			text: "EXIT LEVEL",
+			nsfData: {
+				trackLabel: "Exit Level SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 650,
+				durationPAL: 680
+			}
+		},
+		{
+			text: "START LEVEL",
+			nsfData: {
+				trackLabel: "Start Level SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 967,
+				durationPAL: 920
+			}
+		},
+		{
+			text: "INVALID",
+			nsfData: {
+				trackLabel: "Invalid SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 633,
+				durationPAL: 640
+			}
+		},
+		{
+			text: "ACHIEVEMENT GET",
+			nsfData: {
+				trackLabel: "Achievement Get SFX",
+				trackAuthor: "UserSniper",
+				durationNTSC: 950,
+				durationPAL: 1140
+			}
+		}
+	],
+	PCM: [
+		{
+			segment: "PCM_BANK",
+			path: "MUSIC/PCM/SSDPCM2-geometryDash.pcm",
+			sampleRateNTSC: 4,
+			sampleRatePAL: 3,
+			nsfData: {
+				trackLabel: "Geometry Dash Voice Clip",
+				trackAuthor: "VA: MDK",
+				durationNTSC: 1150,
+				durationPAL: 1100
+			}
+		},
+		{
+			segment: "PCM_BANK_B",
+			path: "MUSIC/PCM/SSDPCM2-fire.pcm",
+			sampleRateNTSC: 10,
+			sampleRatePAL: 8,
+			nsfData: {
+				trackLabel: "FIRE IN THE HOLE! Voice Clip",
+				trackAuthor: "VA: Joe",
+				durationNTSC: 1650,
+				durationPAL: 1650
+			}
+		}
+	],
+	dpcmAligner: "dpcm_C-sides"
+}
