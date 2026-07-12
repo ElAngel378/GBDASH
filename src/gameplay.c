@@ -146,33 +146,18 @@ void play_level(uint8_t idx) BANKED {
     }
 
     player.world_x = cam_px;
-    // Player Mode logic (hardcoded for now lol)
-    // Mode Portals for Stereo Madness
-    if (idx == 0) {
-        uint16_t col = (player.world_x + 8) >> 4;
-        if (col == 266) player.mode = MODE_SHIP; // 266
-        else if (col == 418) player.mode = MODE_CUBE;
-        else if (col == 763) player.mode = MODE_SHIP;
-    }
-    // Mode Portals for Back on Track
-    if (idx == 1) {
-        uint16_t col = (player.world_x + 8) >> 4;
-        if (col == 421) player.mode = MODE_SHIP;
-        else if (col == 559) player.mode = MODE_CUBE;
-    }
-    // Mode Portals for Polargeist
-    if (idx == 2) {
-        uint16_t col = (player.world_x + 8) >> 4;
-        if (col == 321) player.mode = MODE_SHIP;
-        else if (col == 443) player.mode = MODE_CUBE;
-    }
-    // Mode Portals for Dry Out
-    if (idx == 3) {
-        uint16_t col = (player.world_x + 8) >> 4;
-        if (col == 292) player.gravity_flipped = 1;
-        else if (col == 429) player.gravity_flipped = 0;
-        else if (col == 566) player.mode = MODE_SHIP;
-        else if (col == 707) player.mode = MODE_CUBE;
+    // Dynamic Portal Logic
+    uint16_t col = (player.world_x + 8) >> 4;
+    const PortalDef *p_ptr = l->portals;
+    while (p_ptr->x != 0xFFFF) {
+        if (col == p_ptr->x) {
+            uint8_t obj = p_ptr->obj;
+            if (obj == 0) player.mode = MODE_CUBE;
+            else if (obj == 1) player.mode = MODE_SHIP;
+            else if (obj == 8) player.gravity_flipped = 0;
+            else if (obj == 9) player.gravity_flipped = 1;
+        }
+        p_ptr++;
     }
 
 

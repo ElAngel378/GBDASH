@@ -23,6 +23,11 @@ extern const uint8_t polargeist_map[];
 BANKREF_EXTERN(dryout_map)
 extern const uint8_t dryout_map[];
 
+extern const PortalDef stereomadness_portals[];
+extern const PortalDef backontrack_portals[];
+extern const PortalDef polargeist_portals[];
+extern const PortalDef dryout_portals[];
+
 // Music songs
 extern const hUGESong_t stereomadness;
 extern const hUGESong_t dryout;
@@ -54,7 +59,8 @@ const Level level_sm = {
   stereomadness_map,
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
-  192
+  192,
+  stereomadness_portals
 };
 
 const Level level_bot = {
@@ -63,7 +69,8 @@ const Level level_bot = {
   backontrack_map,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
-  184
+  184,
+  backontrack_portals
 };
 
 const Level level_pg = {
@@ -72,7 +79,8 @@ const Level level_pg = {
   polargeist_map,
   chr_gb_TILE_COUNT, 934, 16, 0, 0,
   BANK(polargeist_map),
-  193
+  193,
+  polargeist_portals
 };
 
 const Level level_du = {
@@ -81,7 +89,8 @@ const Level level_du = {
   dryout_map,
   chr_gb_TILE_COUNT, 842, 16, 0, 0,
   BANK(dryout_map),
-  185
+  185,
+  dryout_portals
 };
 
 // Global level list used by the menu and gameplay systems

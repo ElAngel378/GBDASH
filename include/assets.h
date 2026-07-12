@@ -5,6 +5,15 @@
 #include <stdint.h>
 #include "hUGEDriver.h"
 
+#ifndef PORTALDEF_TYPE
+#define PORTALDEF_TYPE
+typedef struct {
+    uint16_t x;
+    uint8_t y;
+    uint8_t obj;
+} PortalDef;
+#endif
+
 // Structure defining a game level's data and metadata
 typedef struct {
   const char *name;
@@ -17,6 +26,7 @@ typedef struct {
   uint8_t map_is_compressed;
   uint8_t map_bank;     // ROM bank where the map resides
   uint8_t timer_divider; // The TMA_REG value for hUGEDriver
+  const PortalDef *portals;
 } Level;
 
 // Per-level song pointers (same order as game_levels[]; NULL = silent)
