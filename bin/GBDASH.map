@@ -37,7 +37,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000000A1  l__DATA   |    000000AB  l__HEADER |    00000200  s__CODE  
      00000C64  l__HOME   |    00000EBC  l__CODE_6 |    00001000  ___size_c
      000017BE  l__CODE_9 |    00001976  l__CODE   |    00001B76  s__HOME  
-     00001D0A  l__CODE_7 |    00002000  _rROMB0   |    0000247C  l__CODE_1
+     00001DDC  l__CODE_7 |    00002000  _rROMB0   |    0000250F  l__CODE_1
      000027DA  s__BASE   |    000027DA  s__CODE_0 |    000027DA  s__INITIA
      000027DA  s__LIT    |    000027E6  s__GSINIT |    000027F2  s__GSFINA
      000029B0  l__CODE_8 |    00003000  _rROMB1   |    000034A0  ___size_d
@@ -401,7 +401,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_1                00014000    0000247C =        9340. bytes (REL,CON)
+_CODE_1                00014000    0000250F =        9487. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -410,8 +410,8 @@ _CODE_1                00014000    0000247C =        9340. bytes (REL,CON)
      0001500C  _level_sm |    0001501E  _level_bo |    00015030  _level_pg
      00015042  _level_du |    00015054  _game_lev |    0001505C  _MAX_LEVE
      0001508D  _setup_me |    0001509E  _draw_men |    00015139  _play_lev
-     000158B4  ___func_p |    000158B4  _player_i |    000158F6  _player_s
-     0001590B  _player_u
+     00015947  ___func_p |    00015947  _player_i |    00015989  _player_s
+     0001599E  _player_u
 ASxxxx Linker V03.00/V05.40 + sdld,  page 30.
 Hexadecimal  [32-Bits]
 
@@ -427,11 +427,11 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_7                00074000    00001D0A =        7434. bytes (REL,CON)
+_CODE_7                00074000    00001DDC =        7644. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00075CF5  _dryout  
+     00075DC7  _dryout  
 ASxxxx Linker V03.00/V05.40 + sdld,  page 32.
 Hexadecimal  [32-Bits]
 

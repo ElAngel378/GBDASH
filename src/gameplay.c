@@ -87,6 +87,14 @@ void play_level(uint8_t idx) BANKED {
   uint8_t died;
   int16_t py;
 
+  uint8_t target_bg_idx = 0;
+const uint8_t bg_pals[] = {
+        0xE4, // 0: White BG, Normal Tileset
+        0x19, // 1: Light Gray BG, Flipped Tileset
+        0x1A, // 2: Dark Gray BG, Flipped Tileset
+        0x1B  // 3: Black BG, Flipped Tileset
+};
+
   Player player;
   player_init(&player, 0, 240);
 
@@ -101,7 +109,7 @@ void play_level(uint8_t idx) BANKED {
   move_bkg(0, (uint8_t)cam_py);
   fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
 
-  BGP_REG = 0xE4;
+  BGP_REG = bg_pals[0];
   OBP0_REG = 0xE4;
   SPRITES_8x16;
 
@@ -156,6 +164,7 @@ void play_level(uint8_t idx) BANKED {
             else if (obj == 1) player.mode = MODE_SHIP;
             else if (obj == 8) player.gravity_flipped = 0;
             else if (obj == 9) player.gravity_flipped = 1;
+            else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
         }
         p_ptr++;
     }
@@ -186,6 +195,7 @@ void play_level(uint8_t idx) BANKED {
     wait_vbl_done();
 
     // UPDATE
+    BGP_REG = bg_pals[target_bg_idx];
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
     if (needs_render) {
@@ -236,8 +246,10 @@ void play_level(uint8_t idx) BANKED {
       cam_py = 112;
       scroll_acc = 0;
       loaded_r = BKG_MT_W - 1;
+      target_bg_idx = 0;
       player_init(&player, 0, 240);
       move_bkg(0, (uint8_t)cam_py);
+      BGP_REG = bg_pals[0];
       fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
 
       TAC_REG = 0x04;
