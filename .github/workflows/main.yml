@@ -28,17 +28,12 @@ jobs:
           ls -l /opt/gbdk/bin/sdcc
           lcc -v
 
-      - name: Make executables executable
-        run: |
-          chmod +x processers/LSDJ/lsdj2txt
-          chmod +x processers/FUR/furnace
-
-      - name: Compile GameBoy ROM with hUGEDriver
+      - name: Compile GameBoy ROM
         run: |
           make
 
-      - name: Upload ROM
-        uses: actions/upload-artifact@v4
-        with:
-          name: GBDASH
-          path: build/game.gb
+#      - name: Upload ROM
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: GBDASH
+#          path: build/game.gb
