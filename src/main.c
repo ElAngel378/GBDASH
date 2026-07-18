@@ -1,31 +1,13 @@
 #include <gb/gb.h>
-#include <stdint.h>
-#include "menuscreen.h"
-#include "register.h"
-#include "level.h"
-#include "macros.h"
+#include "Instruments/Instruments.h"
 
-
-extern void register_all_music(void);
-
-static void waitforframes(char frames) {
-    while (frames > 0) {
-        frames--;
-        wait_vbl_done();
-    }
-}
-
+uint8_t vol = 15;
+uint16_t per = 0;
 void main(void)
 {
-    clearmacros();
-    register_all_music();
-    domenu();
-    while (TRUE)
+    while (1)
     {
-        uint8_t joy = joypad();
-        if (joy & J_START) {
-            dolevel();
-        }
+        wait_vbl_done();
     }
     
 }

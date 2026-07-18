@@ -22,58 +22,107 @@ endif
 
 # Directories
 SRC_DIR := src
-MUSIC_DIR := $(SRC_DIR)/music
 INC_DIR := include
 BUILD_DIR := build
-BUILD_MUSIC_DIR := $(BUILD_DIR)/music
+
+INSTRUMENT_DIR := $(SRC_DIR)/Instruments
+STREAM_DIR := $(SRC_DIR)/Streams
+
+BUILD_INSTRUMENT_DIR := $(BUILD_DIR)/Instruments
+BUILD_STREAM_DIR := $(BUILD_DIR)/Streams
+
 
 # Tools and flags
-CC      := lcc
-CFLAGS  := -I$(INC_DIR) -I$(SRC_DIR) -c -debug
-ROM_TITLE := GB_DASH
+CC := lcc
+
+CFLAGS := \
+	-I$(INC_DIR) \
+	-I$(SRC_DIR) \
+	-I$(INSTRUMENT_DIR) \
+	-I$(STREAM_DIR) \
+	-c \
+	-debug
 
 LDFLAGS := \
 	-I$(INC_DIR) \
 	-I$(SRC_DIR) \
+	-I$(INSTRUMENT_DIR) \
+	-I$(STREAM_DIR) \
 	-Wl-lhugedriver/gbdk/hUGEDriver.lib \
-	-Wl-yt19 -Wl-yo8 -debug
+	-Wl-yt19 \
+	-Wl-yo8 \
+	-debug
 
-# Sources and objects
-SRC_SOURCES   := $(wildcard $(SRC_DIR)/*.c)
-MUSIC_SOURCES := $(wildcard $(MUSIC_DIR)/*.c)
-SOURCES       := $(SRC_SOURCES) $(MUSIC_SOURCES)
 
-SRC_OBJECTS   := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_SOURCES))
-MUSIC_OBJECTS := $(patsubst $(MUSIC_DIR)/%.c,$(BUILD_MUSIC_DIR)/%.o,$(MUSIC_SOURCES))
-OBJECTS       := $(SRC_OBJECTS) $(MUSIC_OBJECTS)
+# Sources
+SRC_SOURCES := $(wildcard $(SRC_DIR)/*.c)
+INSTRUMENT_SOURCES := $(wildcard $(INSTRUMENT_DIR)/*.c)
+STREAM_SOURCES := $(wildcard $(STREAM_DIR)/*.c)
 
+SOURCES := \
+	$(SRC_SOURCES) \
+	$(INSTRUMENT_SOURCES) \
+	$(STREAM_SOURCES)
+
+
+# Objects
+SRC_OBJECTS := \
+	$(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_SOURCES))
+
+INSTRUMENT_OBJECTS := \
+	$(patsubst $(INSTRUMENT_DIR)/%.c,$(BUILD_INSTRUMENT_DIR)/%.o,$(INSTRUMENT_SOURCES))
+
+STREAM_OBJECTS := \
+	$(patsubst $(STREAM_DIR)/%.c,$(BUILD_STREAM_DIR)/%.o,$(STREAM_SOURCES))
+
+OBJECTS := \
+	$(SRC_OBJECTS) \
+	$(INSTRUMENT_OBJECTS) \
+	$(STREAM_OBJECTS)
+
+
+# Output
 TARGET := $(BUILD_DIR)/game.gb
 
-# Default rule
-all: run_processtotxt prebuild $(TARGET)
 
-# Run processtotxt.py before build
-run_processtotxt:
-	@python processtotxt.py
+# Default build
+all: $(TARGET)
 
-# Link final binary
+
+# Link
 $(TARGET): $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
-# Compile each .c to .o
+
+# Compile root src files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(BUILD_MUSIC_DIR)/%.o: $(MUSIC_DIR)/%.c | $(BUILD_DIR)
+
+# Compile instruments
+$(BUILD_INSTRUMENT_DIR)/%.o: $(INSTRUMENT_DIR)/%.c | $(BUILD_INSTRUMENT_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-# Ensure build directories exist
+
+# Compile streams
+$(BUILD_STREAM_DIR)/%.o: $(STREAM_DIR)/%.c | $(BUILD_STREAM_DIR)
+	$(CC) $(CFLAGS) -o $@ $<
+
+
+# Create directories
 $(BUILD_DIR):
 	$(MKDIR_P) $(BUILD_DIR)
-	$(MKDIR_P) $(BUILD_MUSIC_DIR)
 
-# Clean build files
+$(BUILD_INSTRUMENT_DIR):
+	$(MKDIR_P) $(BUILD_INSTRUMENT_DIR)
+
+$(BUILD_STREAM_DIR):
+	$(MKDIR_P) $(BUILD_STREAM_DIR)
+
+
+# Clean
 clean:
 	$(RM_RF) $(BUILD_DIR)
 
-.PHONY: all clean prebuild run_processtotxt
+
+.PHONY: all clean
