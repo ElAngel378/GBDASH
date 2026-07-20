@@ -37,9 +37,9 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000000A2  l__DATA   |    000000AB  l__HEADER |    00000200  s__CODE  
      00000AF6  l__HOME   |    00000EBC  l__CODE_6 |    00001000  ___size_c
      000017BE  l__CODE_9 |    0000185A  l__CODE   |    00001A5A  s__HOME  
-     00001DDC  l__CODE_7 |    00002000  _rROMB0   |    0000250B  l__CODE_1
-     00002550  s__BASE   |    00002550  s__CODE_0 |    00002550  s__INITIA
-     00002550  s__LIT    |    0000255C  s__GSINIT |    00002568  s__GSFINA
+     00001DDC  l__CODE_7 |    00002000  _rROMB0   |    00002550  s__BASE  
+     00002550  s__CODE_0 |    00002550  s__INITIA |    00002550  s__LIT   
+     0000255C  s__GSINIT |    00002568  s__GSFINA |    0000256A  l__CODE_1
      000029B0  l__CODE_8 |    00003000  _rROMB1   |    000034A0  ___size_d
      000034A0  l__CODE_4 |    000034E0  ___size_b |    000034E0  l__CODE_3
      000037E0  ___size_s |    000037E0  l__CODE_2 |    00003A60  ___size_p
@@ -394,7 +394,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_1                00014000    0000250B =        9483. bytes (REL,CON)
+_CODE_1                00014000    0000256A =        9578. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    

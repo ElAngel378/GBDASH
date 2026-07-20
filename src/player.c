@@ -67,6 +67,15 @@ uint8_t player_update(
         p->on_ground = 0;
     }
 
+    // Check frontal collision for death before vertical snap to fix 1-tile wall bug.
+    // Using col_at (Bank 0) is required here because player_update is in Bank 1.
+    uint8_t front_mid = col_at(p->world_x + PLAYER_SIZE, p->world_y + 8, map, map_w, map_h, map_bank);
+
+    if (IS_SOLID(front_mid)) {
+        p->dead = 1;
+        return 1;
+    }
+
     // Calculate vertical movement
     int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
     int8_t pixels = (int8_t)(effective_vel >> 4);
@@ -162,14 +171,14 @@ uint8_t player_update(
         return 1;
     }
 
-    // Cube animation (Optimized to avoid 32-bit math)
+    // Cube animation (1.7 frames per step)
     if (p->on_ground) {
         p->anim_timer = 0;
         p->anim_frame = 0;
     } else {
-        p->anim_timer++;
-        if (p->anim_timer >= 2) {
-            p->anim_timer = 0;
+        p->anim_timer += 17;
+        if (p->anim_timer >= 17) {
+            p->anim_timer -= 17;
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }
