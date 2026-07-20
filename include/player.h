@@ -33,12 +33,14 @@ typedef struct {
     uint8_t  mode;
     uint8_t  anim_frame;
     uint16_t anim_timer;
+    uint8_t  last_joy;
+    uint8_t  touching_orb;
 } Player;
 
 extern uint8_t player_noclip;
 
 // Reset player state to starting position
-void player_init(Player *p, uint16_t start_x, int16_t start_y) __banked;
+void player_init(Player *p, uint16_t start_x, int16_t start_y);
 
 uint8_t player_update(
     Player *p,
@@ -47,9 +49,9 @@ uint8_t player_update(
     uint16_t map_w,
     uint16_t map_h,
     uint8_t map_bank
-) __banked;
+);
 
 // Returns player's Y position relative to the camera
-int16_t player_screen_y(const Player *p, uint16_t cam_py) __banked;
+int16_t player_screen_y(const Player *p, uint16_t cam_py);
 
 #endif // PLAYER_H

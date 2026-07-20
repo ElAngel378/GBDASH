@@ -7,26 +7,21 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-    ___bank_player_update                                       =   00000001 G
-  8 ___func_player_update                                           00000000 GR
-  9 __xinit__player_noclip                                          00000000 R
-    _col_at                                                         ******** GX
-  8 _player_init                                                    00000000 GR
+  8 __xinit__player_noclip                                          00000000 R
+    _col_at_begin                                                   ******** GX
+    _col_at_end                                                     ******** GX
+    _col_at_raw                                                     ******** GX
+  0 _player_init                                                    00000000 GR
   3 _player_noclip                                                  00000000 GR
-  8 _player_screen_y                                                00000042 GR
-  8 _player_update                                                  00000057 GR
-    b___func_player_update                                      =   00000001 L
-    b_player_init                                               =   00000001 G
-    b_player_screen_y                                           =   00000001 G
-    b_player_update                                             =   00000001 G
-
+  0 _player_screen_y                                                0000004B GR
+  0 _player_update                                                  00000057 GR
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size        0   flags    0
+   0 _CODE                                      size      C15   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        1   flags    0
@@ -34,7 +29,6 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size      C24   flags    0
-   9 _INITIALIZER                               size        1   flags    0
-   A _CABS                                      size        0   flags    8
+   8 _INITIALIZER                               size        1   flags    0
+   9 _CABS                                      size        0   flags    8
 

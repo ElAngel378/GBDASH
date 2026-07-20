@@ -1,12 +1,8 @@
-#pragma bank 1
-
 #include "player.h"
-
-BANKREF(player_update)
 
 uint8_t player_noclip = 0;
 
-void player_init(Player *p, uint16_t start_x, int16_t start_y) __banked {
+void player_init(Player *p, uint16_t start_x, int16_t start_y) {
     p->world_x = start_x;
     p->world_y = start_y;
     p->vel_y = 0;
@@ -16,9 +12,11 @@ void player_init(Player *p, uint16_t start_x, int16_t start_y) __banked {
     p->anim_frame = 0;
     p->gravity_flipped = 0;
     p->mode = MODE_CUBE;
+    p->last_joy = 0;
+    p->touching_orb = 0;
 }
 
-int16_t player_screen_y(const Player *p, uint16_t cam_y) __banked {
+int16_t player_screen_y(const Player *p, uint16_t cam_y) {
     return (int16_t)p->world_y - (int16_t)cam_y;
 }
 
@@ -29,8 +27,10 @@ uint8_t player_update(
     uint16_t map_w,
     uint16_t map_h,
     uint8_t  map_bank
-) __banked {
+) {
     if (p->dead) return 1;
+
+    col_at_begin(map_bank);
 
     // Ship Physics
     if (p->mode == MODE_SHIP) {
@@ -58,6 +58,7 @@ uint8_t player_update(
     if (player_noclip) {
         if (joy & J_A) p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         p->world_y += (int8_t)(p->vel_y >> 4);
+        col_at_end();
         return 0;
     }
 
@@ -68,11 +69,11 @@ uint8_t player_update(
     }
 
     // Check frontal collision for death before vertical snap to fix 1-tile wall bug.
-    // Using col_at (Bank 0) is required here because player_update is in Bank 1.
-    uint8_t front_mid = col_at(p->world_x + PLAYER_SIZE, p->world_y + 8, map, map_w, map_h, map_bank);
+    uint8_t front_mid = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + 8, map, map_w, map_h);
 
     if (IS_SOLID(front_mid)) {
         p->dead = 1;
+        col_at_end();
         return 1;
     }
 
@@ -88,8 +89,8 @@ uint8_t player_update(
     int16_t check_y_head = (p->gravity_flipped) ? ny + PLAYER_SIZE : ny;
 
     // Check for "Ground" (Foot direction)
-    uint8_t cl = col_at(p->world_x + 2, check_y_foot, map, map_w, map_h, map_bank);
-    uint8_t cr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_foot, map, map_w, map_h, map_bank);
+    uint8_t cl = col_at_raw(p->world_x + 2, check_y_foot, map, map_w, map_h);
+    uint8_t cr = col_at_raw(p->world_x + PLAYER_SIZE - 2, check_y_foot, map, map_w, map_h);
 
     uint8_t falling = (p->gravity_flipped) ? (pixels <= 0) : (pixels >= 0);
 
@@ -103,8 +104,8 @@ uint8_t player_update(
         p->on_ground = 1;
     } else {
         // Ceiling check
-        uint8_t hl = col_at(p->world_x + 2, check_y_head, map, map_w, map_h, map_bank);
-        uint8_t hr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_head, map, map_w, map_h, map_bank);
+        uint8_t hl = col_at_raw(p->world_x + 2, check_y_head, map, map_w, map_h);
+        uint8_t hr = col_at_raw(p->world_x + PLAYER_SIZE - 2, check_y_head, map, map_w, map_h);
         if (IS_SOLID(hl) || IS_SOLID(hr)) {
             if (p->gravity_flipped) {
                 p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
@@ -117,8 +118,8 @@ uint8_t player_update(
 
             // Sticky ground check
             int16_t sticky_y = (p->gravity_flipped) ? ny - 1 : ny + PLAYER_SIZE + 1;
-            uint8_t gl = col_at(p->world_x + 2, sticky_y, map, map_w, map_h, map_bank);
-            uint8_t gr = col_at(p->world_x + PLAYER_SIZE - 2, sticky_y, map, map_w, map_h, map_bank);
+            uint8_t gl = col_at_raw(p->world_x + 2, sticky_y, map, map_w, map_h);
+            uint8_t gr = col_at_raw(p->world_x + PLAYER_SIZE - 2, sticky_y, map, map_w, map_h);
             if (IS_SOLID(gl) || IS_SOLID(gr)) {
                 p->on_ground = 1;
                 // Don't zero velocity in ship
@@ -130,17 +131,17 @@ uint8_t player_update(
     }
 
     // Recalculate frontal points at NEW position for Orbs, Pads, and Hazards
-    uint8_t front_head = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
-    uint8_t front_foot = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
+    uint8_t front_head = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_HBOX, map, map_w, map_h);
+    uint8_t front_foot = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
 
     // Hazard Collision box
-    uint8_t hz_tl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
-    uint8_t hz_tr = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
-    uint8_t hz_bl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
-    uint8_t hz_br = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
+    uint8_t hz_tl = col_at_raw(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h);
+    uint8_t hz_tr = col_at_raw(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h);
+    uint8_t hz_bl = col_at_raw(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
+    uint8_t hz_br = col_at_raw(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
 
     // Orbs and Pads logic
-    uint8_t mid = col_at(p->world_x + 8, p->world_y + 8, map, map_w, map_h, map_bank);
+    uint8_t mid = col_at_raw(p->world_x + 8, p->world_y + 8, map, map_w, map_h);
 
     if (IS_PAD(mid) || IS_PAD(front_head) || IS_PAD(front_foot)) {
         uint8_t hit = (IS_PAD(mid)) ? mid : (IS_PAD(front_head) ? front_head : front_foot);
@@ -168,15 +169,18 @@ uint8_t player_update(
     if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
         IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
         p->dead = 1;
+        col_at_end();
         return 1;
     }
+
+    col_at_end();
 
     // Cube animation (1.7 frames per step)
     if (p->on_ground) {
         p->anim_timer = 0;
         p->anim_frame = 0;
     } else {
-        p->anim_timer += 17;
+        p->anim_timer += 10;
         if (p->anim_timer >= 17) {
             p->anim_timer -= 17;
             p->anim_frame++;
@@ -190,5 +194,6 @@ uint8_t player_update(
         return 1;
     }
 
+    p->last_joy = joy;
     return 0;
 }
