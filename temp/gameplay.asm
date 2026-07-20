@@ -462,10 +462,10 @@ _play_level::
 	ldhl	sp,	#34
 	ld	a, #0x0f
 	ld	(hl+), a
+;src/gameplay.c:90: uint8_t target_bg_idx = 0;
 	xor	a, a
-;src/gameplay.c:90: uint8_t target_bg_idx = 3;
 	ld	(hl+), a
-	ld	(hl), #0x03
+	ld	(hl), a
 ;src/gameplay.c:91: const uint8_t bg_pals[] = {
 	ldhl	sp,	#4
 	ld	(hl), #0xe4

@@ -43,11 +43,9 @@ extern const uint8_t famidash_metatile_collision[256];
 
 #define col_of(tile_id) (famidash_metatile_collision[(tile_id)])
 
-// Forward declaration for music initialization
 struct hUGESong_t;
 
-// Checks collision at a world coordinate.
-// This function resides in Bank 0 (HOME) to allow switching ROM banks to read map data.
+// Checks collision at a world coordinate (Bank 0, handles switching)
 uint8_t col_at(
     uint16_t world_px,
     int16_t  world_py,
@@ -56,6 +54,19 @@ uint8_t col_at(
     uint16_t map_h,
     uint8_t  map_bank
 );
+
+// Raw collision check (No bank switching, must be inside begin/end)
+uint8_t col_at_raw(
+    uint16_t world_px,
+    int16_t  world_py,
+    const uint8_t *map,
+    uint16_t map_w,
+    uint16_t map_h
+);
+
+// Batch collision context: switches to the map bank once.
+void col_at_begin(uint8_t map_bank);
+void col_at_end(void);
 
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);

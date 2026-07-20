@@ -4,14 +4,23 @@
 
 #define BKG_MT_H 16
 
-// This function must be in BANK 0
-uint8_t col_at(
+static uint8_t _prev_map_bank;
+
+void col_at_begin(uint8_t map_bank) {
+    _prev_map_bank = _current_bank;
+    SWITCH_ROM(map_bank);
+}
+
+void col_at_end(void) {
+    SWITCH_ROM(_prev_map_bank);
+}
+
+uint8_t col_at_raw(
     uint16_t world_px,
     int16_t  world_py,
     const uint8_t *map,
     uint16_t map_w,
-    uint16_t map_h,
-    uint8_t  map_bank
+    uint16_t map_h
 ) {
     if (world_py < 0) return COL_NONE;
     uint16_t mx = world_px >> 4;
@@ -20,10 +29,7 @@ uint8_t col_at(
     if (mx >= map_w || my >= map_h) return COL_ALL;
 
     uint8_t col;
-    uint8_t _prev = _current_bank;
-    SWITCH_ROM(map_bank);
     col = famidash_metatile_collision[map[(uint16_t)my * map_w + mx]];
-    SWITCH_ROM(_prev);
 
     if (col == COL_DEATH_TOP_HALF) {
         if (((uint16_t)world_py & 0x0F) < 8) return COL_NONE;
@@ -35,6 +41,22 @@ uint8_t col_at(
     }
 
     return col;
+}
+
+// This function must be in BANK 0
+uint8_t col_at(
+    uint16_t world_px,
+    int16_t  world_py,
+    const uint8_t *map,
+    uint16_t map_w,
+    uint16_t map_h,
+    uint8_t  map_bank
+) {
+    uint8_t res;
+    col_at_begin(map_bank);
+    res = col_at_raw(world_px, world_py, map, map_w, map_h);
+    col_at_end();
+    return res;
 }
 
 // Loads tileset into VRAM. Handles splitting if tiles > 128.
@@ -60,12 +82,14 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   uint8_t _prev = _current_bank;
   SWITCH_ROM(map_bank);
 
+  const uint8_t *map_ptr = &map[map_col];
   for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
-    uint8_t mt = map[(uint16_t)r * map_w + map_col];
+    uint8_t mt = *map_ptr;
     uint8_t by = (r & (BKG_MT_H - 1)) << 1;
 
-    set_bkg_tiles(bx, by, 2, 1, &metatiles[mt][0]);
-    set_bkg_tiles(bx, by + 1, 2, 1, &metatiles[mt][2]);
+    set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
+    set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
+    map_ptr += map_w;
   }
 
   SWITCH_ROM(_prev);

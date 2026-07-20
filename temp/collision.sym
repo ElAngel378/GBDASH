@@ -10,29 +10,32 @@ Symbol Table
     _TMA_REG                                                        ******** GX
     __current_bank                                                  ******** GX
     __mulint                                                        ******** GX
-  0 _col_at                                                         00000000 GR
+  2 __prev_map_bank                                                 00000000 R
+  0 _col_at                                                         000000D3 GR
+  0 _col_at_begin                                                   00000000 GR
+  0 _col_at_end                                                     0000000E GR
+  0 _col_at_raw                                                     00000017 GR
     _current_song_bank                                              ******** GX
-  0 _draw_mt_column                                                 0000011E GR
+  0 _draw_mt_column                                                 00000148 GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 00000212 GR
+  0 _fill_scroll_bg                                                 000001DD GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              0000025F GR
-  0 _load_bkg_tileset                                               000000D3 GR
+  0 _init_music_banked                                              0000022A GR
+  0 _load_bkg_tileset                                               000000FD GR
     _metatiles                                                      ******** GX
     _music_ready                                                    ******** GX
     _rROMB0                                                         ******** GX
     _set_bkg_data                                                   ******** GX
     _set_bkg_tiles                                                  ******** GX
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      28D   flags    0
+   0 _CODE                                      size      258   flags    0
    1 _HRAM                                      size        0   flags    0
-   2 _DATA                                      size        0   flags    0
+   2 _DATA                                      size        1   flags    0
    3 _INITIALIZED                               size        0   flags    0
    4 _DABS                                      size        0   flags    8
    5 _HOME                                      size        0   flags    0

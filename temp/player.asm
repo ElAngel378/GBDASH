@@ -180,7 +180,7 @@ _player_update::
 	or	a, a
 	jr	Z, 00102$
 	ld	a, #0x01
-	jp	00249$
+	jp	00253$
 00102$:
 ;src/player.c:36: if (p->mode == MODE_SHIP) {
 	ldhl	sp,#36
@@ -255,7 +255,7 @@ _player_update::
 	ldhl	sp,#10
 	ld	a, (hl+)
 	ld	e, a
-;src/player.c:81: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
+;src/player.c:71: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
 	ld	a, (hl+)
 	ld	d, a
 	ld	a, (de)
@@ -280,12 +280,12 @@ _player_update::
 ;src/player.c:38: p->vel_y += (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
 	ld	a, c
 	or	a, a
-	jr	Z, 00251$
+	jr	Z, 00255$
 	ld	hl, #0x0008
-	jr	00252$
-00251$:
+	jr	00256$
+00255$:
 	ld	hl, #0xfff8
-00252$:
+00256$:
 	add	hl, de
 	ld	c, l
 	ld	b, h
@@ -301,12 +301,12 @@ _player_update::
 ;src/player.c:40: p->vel_y += (p->gravity_flipped) ? -SHIP_GRAVITY : SHIP_GRAVITY;
 	ld	a, c
 	or	a, a
-	jr	Z, 00253$
+	jr	Z, 00257$
 	ld	hl, #0xfffb
-	jr	00254$
-00253$:
+	jr	00258$
+00257$:
 	ld	hl, #0x0005
-00254$:
+00258$:
 	add	hl, de
 	ld	c, l
 	ld	b, h
@@ -335,16 +335,16 @@ _player_update::
 	ld	a, #0x00
 	sbc	a, b
 	bit	7, e
-	jr	Z, 01130$
+	jr	Z, 01148$
 	bit	7, d
-	jr	NZ, 01131$
+	jr	NZ, 01149$
 	cp	a, a
-	jr	01131$
-01130$:
+	jr	01149$
+01148$:
 	bit	7, d
-	jr	Z, 01131$
+	jr	Z, 01149$
 	scf
-01131$:
+01149$:
 	jr	NC, 00107$
 	ldhl	sp,	#10
 	ld	a, (hl+)
@@ -464,16 +464,16 @@ _player_update::
 	ld	a, #0x00
 	sbc	a, b
 	bit	7, e
-	jr	Z, 01132$
+	jr	Z, 01150$
 	bit	7, d
-	jr	NZ, 01133$
+	jr	NZ, 01151$
 	cp	a, a
-	jr	01133$
-01132$:
+	jr	01151$
+01150$:
 	bit	7, d
-	jr	Z, 01133$
+	jr	Z, 01151$
 	scf
-01133$:
+01151$:
 	jr	NC, 00121$
 	ldhl	sp,	#10
 	ld	a, (hl+)
@@ -515,13 +515,13 @@ _player_update::
 	ldhl	sp,	#29
 	ld	(hl), a
 	or	a, a
-	jr	Z, 00255$
+	jr	Z, 00259$
 	ld	(hl), #0x5d
-	jr	00256$
-00255$:
+	jr	00260$
+00259$:
 	ldhl	sp,	#29
 	ld	(hl), #0xa3
-00256$:
+00260$:
 	ldhl	sp,	#29
 	ld	a, (hl)
 	ld	c, a
@@ -557,9 +557,9 @@ _player_update::
 	ld	h, a
 	xor	a, a
 	add	hl, hl
-	jr	nc,01134$
+	jr	nc,01152$
 	dec	a
-01134$:
+01152$:
 	add	hl, hl
 	rla
 	add	hl, hl
@@ -584,7 +584,7 @@ _player_update::
 	ld	(hl), b
 ;src/player.c:61: return 0;
 	xor	a, a
-	jp	00249$
+	jp	00253$
 00125$:
 ;src/player.c:65: if (p->mode == MODE_CUBE && (joy & J_A) && p->on_ground) {
 	pop	de
@@ -614,9 +614,9 @@ _player_update::
 	ld	a, (de)
 	or	a, a
 	ld	a, #0x5d
-	jr	NZ, 00258$
+	jr	NZ, 00262$
 	ld	a, #0xa3
-00258$:
+00262$:
 	ld	c, a
 	rlca
 	sbc	a, a
@@ -635,7 +635,7 @@ _player_update::
 	ld	l, a
 	ld	(hl), #0x00
 00127$:
-;src/player.c:81: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
+;src/player.c:71: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
@@ -654,11 +654,11 @@ _player_update::
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/player.c:81: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
+;src/player.c:71: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
 	ldhl	sp,	#29
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00259$
+	jr	Z, 00263$
 	ld	de, #0x0000
 	ldhl	sp,	#25
 	ld	a,	(hl+)
@@ -672,8 +672,8 @@ _player_update::
 	ldhl	sp,	#28
 	ld	(hl-), a
 	ld	(hl), e
-	jr	00260$
-00259$:
+	jr	00264$
+00263$:
 	ldhl	sp,	#25
 	ld	a, (hl+)
 	inc	hl
@@ -681,12 +681,12 @@ _player_update::
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl), a
-00260$:
+00264$:
 	ldhl	sp,	#27
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-;src/player.c:82: int8_t pixels = (int8_t)(effective_vel >> 4);
+;src/player.c:72: int8_t pixels = (int8_t)(effective_vel >> 4);
 	sra	b
 	rr	c
 	sra	b
@@ -697,7 +697,7 @@ _player_update::
 	rr	c
 	ldhl	sp,	#25
 	ld	(hl), c
-;src/player.c:83: if (p->gravity_flipped) pixels = -pixels;
+;src/player.c:73: if (p->gravity_flipped) pixels = -pixels;
 	ldhl	sp,	#29
 	ld	a, (hl)
 	or	a, a
@@ -707,7 +707,7 @@ _player_update::
 	sub	a, (hl)
 	ld	(hl), a
 00131$:
-;src/player.c:84: int16_t ny = p->world_y + pixels;
+;src/player.c:74: int16_t ny = p->world_y + pixels;
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -732,13 +732,13 @@ _player_update::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/player.c:85: p->on_ground = 0;
+;src/player.c:75: p->on_ground = 0;
 	ldhl	sp,	#14
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
-;src/player.c:88: int16_t check_y_foot = (p->gravity_flipped) ? ny : ny + PLAYER_SIZE;
+;src/player.c:78: int16_t check_y_foot = (p->gravity_flipped) ? ny : ny + PLAYER_SIZE;
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
@@ -769,7 +769,7 @@ _player_update::
 	ldhl	sp,	#22
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00261$
+	jr	Z, 00265$
 	ldhl	sp,	#4
 	ld	a, (hl)
 	ldhl	sp,	#28
@@ -778,8 +778,8 @@ _player_update::
 	ld	a, (hl)
 	ldhl	sp,	#29
 	ld	(hl), a
-	jr	00262$
-00261$:
+	jr	00266$
+00265$:
 	ldhl	sp,	#26
 	ld	a, (hl+)
 	inc	hl
@@ -787,7 +787,7 @@ _player_update::
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl), a
-00262$:
+00266$:
 	ldhl	sp,	#28
 	ld	a, (hl)
 	ldhl	sp,	#23
@@ -795,12 +795,12 @@ _player_update::
 	ldhl	sp,	#29
 	ld	a, (hl)
 	ldhl	sp,	#24
-;src/player.c:89: int16_t check_y_head = (p->gravity_flipped) ? ny + PLAYER_SIZE : ny;
+;src/player.c:79: int16_t check_y_head = (p->gravity_flipped) ? ny + PLAYER_SIZE : ny;
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00263$
+	jr	Z, 00267$
 	ldhl	sp,	#26
 	ld	a, (hl+)
 	inc	hl
@@ -808,8 +808,8 @@ _player_update::
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl), a
-	jr	00264$
-00263$:
+	jr	00268$
+00267$:
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ldhl	sp,	#28
@@ -818,7 +818,7 @@ _player_update::
 	ld	a, (hl)
 	ldhl	sp,	#29
 	ld	(hl), a
-00264$:
+00268$:
 	ldhl	sp,	#28
 	ld	a, (hl)
 	ldhl	sp,	#6
@@ -827,7 +827,7 @@ _player_update::
 	ld	a, (hl)
 	ldhl	sp,	#7
 	ld	(hl), a
-;src/player.c:92: uint8_t cl = col_at(p->world_x + 2, check_y_foot, map, map_w, map_h, map_bank);
+;src/player.c:82: uint8_t cl = col_at(p->world_x + 2, check_y_foot, map, map_w, map_h, map_bank);
 	ldhl	sp,	#36
 	ld	a, (hl)
 	ldhl	sp,	#28
@@ -873,7 +873,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#20
 	ld	(hl), a
-;src/player.c:93: uint8_t cr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_foot, map, map_w, map_h, map_bank);
+;src/player.c:83: uint8_t cr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_foot, map, map_w, map_h, map_bank);
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -913,7 +913,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#21
 	ld	(hl), a
-;src/player.c:95: uint8_t falling = (p->gravity_flipped) ? (pixels <= 0) : (pixels >= 0);
+;src/player.c:85: uint8_t falling = (p->gravity_flipped) ? (pixels <= 0) : (pixels >= 0);
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
@@ -922,30 +922,30 @@ _player_update::
 	ldhl	sp,	#22
 	ld	(hl), a
 	or	a, a
-	jr	Z, 00265$
+	jr	Z, 00269$
 	ldhl	sp,	#25
 	ld	e, (hl)
 	xor	a, a
 	ld	d, a
 	sub	a, (hl)
 	bit	7, e
-	jr	Z, 01135$
+	jr	Z, 01153$
 	bit	7, d
-	jr	NZ, 01136$
+	jr	NZ, 01154$
 	cp	a, a
-	jr	01136$
-01135$:
+	jr	01154$
+01153$:
 	bit	7, d
-	jr	Z, 01136$
+	jr	Z, 01154$
 	scf
-01136$:
+01154$:
 	ld	a, #0x00
 	rla
 	xor	a, #0x01
 	ldhl	sp,	#23
 	ld	(hl), a
-	jr	00266$
-00265$:
+	jr	00270$
+00269$:
 	ldhl	sp,	#25
 	ld	a, (hl-)
 	dec	hl
@@ -953,8 +953,8 @@ _player_update::
 	and	a, #0x01
 	xor	a, #0x01
 	ld	(hl), a
-00266$:
-;src/player.c:99: p->world_y = ((ny >> 4) + 1) << 4;
+00270$:
+;src/player.c:89: p->world_y = ((ny >> 4) + 1) << 4;
 	ldhl	sp,#2
 	ld	a, (hl+)
 	ld	c, a
@@ -970,7 +970,7 @@ _player_update::
 	ld	l, c
 	ld	h, b
 	inc	hl
-;src/player.c:101: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+;src/player.c:91: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
 	push	hl
 	ldhl	sp,	#28
 	ld	a, (hl)
@@ -980,29 +980,29 @@ _player_update::
 	ldhl	sp,	#29
 	ld	b, (hl)
 	pop	hl
-;src/player.c:99: p->world_y = ((ny >> 4) + 1) << 4;
+;src/player.c:89: p->world_y = ((ny >> 4) + 1) << 4;
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
 	ld	e, l
 	ld	d, h
-;src/player.c:101: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+;src/player.c:91: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
 	add	a, #0xf0
 	ld	c, a
 	ld	a, b
 	adc	a, #0xff
-;src/player.c:99: p->world_y = ((ny >> 4) + 1) << 4;
+;src/player.c:89: p->world_y = ((ny >> 4) + 1) << 4;
 	ldhl	sp,	#24
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;src/player.c:101: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+;src/player.c:91: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
 	inc	hl
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/player.c:97: if (falling && (IS_SOLID(cl) || IS_SOLID(cr))) {
+;src/player.c:87: if (falling && (IS_SOLID(cl) || IS_SOLID(cr))) {
 	ldhl	sp,	#23
 	ld	a, (hl)
 	or	a, a
@@ -1040,12 +1040,12 @@ _player_update::
 	sub	a, #0x06
 	jr	NZ, 00168$
 00167$:
-;src/player.c:98: if (p->gravity_flipped) {
+;src/player.c:88: if (p->gravity_flipped) {
 	ldhl	sp,	#22
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00133$
-;src/player.c:99: p->world_y = ((ny >> 4) + 1) << 4;
+;src/player.c:89: p->world_y = ((ny >> 4) + 1) << 4;
 	ldhl	sp,	#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1058,7 +1058,7 @@ _player_update::
 	ld	(de), a
 	jr	00134$
 00133$:
-;src/player.c:101: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+;src/player.c:91: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
 	ldhl	sp,	#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1070,7 +1070,7 @@ _player_update::
 	ld	a, (hl)
 	ld	(de), a
 00134$:
-;src/player.c:103: p->vel_y = 0;
+;src/player.c:93: p->vel_y = 0;
 	ldhl	sp,	#10
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -1078,7 +1078,7 @@ _player_update::
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl), a
-;src/player.c:104: p->on_ground = 1;
+;src/player.c:94: p->on_ground = 1;
 	ldhl	sp,	#14
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -1086,7 +1086,7 @@ _player_update::
 	ld	(hl), #0x01
 	jp	00169$
 00168$:
-;src/player.c:107: uint8_t hl = col_at(p->world_x + 2, check_y_head, map, map_w, map_h, map_bank);
+;src/player.c:97: uint8_t hl = col_at(p->world_x + 2, check_y_head, map, map_w, map_h, map_bank);
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -1125,7 +1125,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#23
 	ld	(hl), a
-;src/player.c:108: uint8_t hr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_head, map, map_w, map_h, map_bank);
+;src/player.c:98: uint8_t hr = col_at(p->world_x + PLAYER_SIZE - 2, check_y_head, map, map_w, map_h, map_bank);
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -1164,7 +1164,7 @@ _player_update::
 	ld	b, (hl)
 	call	_col_at
 	ld	c, a
-;src/player.c:109: if (IS_SOLID(hl) || IS_SOLID(hr)) {
+;src/player.c:99: if (IS_SOLID(hl) || IS_SOLID(hr)) {
 	ldhl	sp,	#23
 	ld	a, (hl)
 	sub	a, #0x07
@@ -1191,7 +1191,7 @@ _player_update::
 	sub	a, #0x06
 	jr	NZ, 00158$
 00157$:
-;src/player.c:110: if (p->gravity_flipped) {
+;src/player.c:100: if (p->gravity_flipped) {
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
@@ -1199,7 +1199,7 @@ _player_update::
 	ld	a, (de)
 	or	a, a
 	jr	Z, 00136$
-;src/player.c:111: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+;src/player.c:101: p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
 	ldhl	sp,	#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1212,7 +1212,7 @@ _player_update::
 	ld	(de), a
 	jr	00137$
 00136$:
-;src/player.c:113: p->world_y = ((ny >> 4) + 1) << 4;
+;src/player.c:103: p->world_y = ((ny >> 4) + 1) << 4;
 	ldhl	sp,	#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1224,7 +1224,7 @@ _player_update::
 	ld	a, (hl)
 	ld	(de), a
 00137$:
-;src/player.c:115: p->vel_y = 0;
+;src/player.c:105: p->vel_y = 0;
 	ldhl	sp,	#10
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -1234,7 +1234,7 @@ _player_update::
 	ld	(hl), a
 	jp	00169$
 00158$:
-;src/player.c:117: p->world_y = ny;
+;src/player.c:107: p->world_y = ny;
 	ldhl	sp,	#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1245,21 +1245,21 @@ _player_update::
 	inc	de
 	ld	a, (hl)
 	ld	(de), a
-;src/player.c:120: int16_t sticky_y = (p->gravity_flipped) ? ny - 1 : ny + PLAYER_SIZE + 1;
+;src/player.c:110: int16_t sticky_y = (p->gravity_flipped) ? ny - 1 : ny + PLAYER_SIZE + 1;
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	a, (de)
 	or	a, a
-	jr	Z, 00267$
+	jr	Z, 00271$
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	dec	bc
-	jr	00268$
-00267$:
+	jr	00272$
+00271$:
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -1268,8 +1268,8 @@ _player_update::
 	add	hl, de
 	ld	c, l
 	ld	b, h
-00268$:
-;src/player.c:121: uint8_t gl = col_at(p->world_x + 2, sticky_y, map, map_w, map_h, map_bank);
+00272$:
+;src/player.c:111: uint8_t gl = col_at(p->world_x + 2, sticky_y, map, map_w, map_h, map_bank);
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -1305,7 +1305,7 @@ _player_update::
 	ldhl	sp,	#29
 	ld	(hl), a
 	pop	bc
-;src/player.c:122: uint8_t gr = col_at(p->world_x + PLAYER_SIZE - 2, sticky_y, map, map_w, map_h, map_bank);
+;src/player.c:112: uint8_t gr = col_at(p->world_x + PLAYER_SIZE - 2, sticky_y, map, map_w, map_h, map_bank);
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -1339,7 +1339,7 @@ _player_update::
 	push	hl
 	call	_col_at
 	ld	c, a
-;src/player.c:123: if (IS_SOLID(gl) || IS_SOLID(gr)) {
+;src/player.c:113: if (IS_SOLID(gl) || IS_SOLID(gr)) {
 	ldhl	sp,	#27
 	ld	a, (hl)
 	sub	a, #0x07
@@ -1366,13 +1366,13 @@ _player_update::
 	sub	a, #0x06
 	jr	NZ, 00169$
 00148$:
-;src/player.c:124: p->on_ground = 1;
+;src/player.c:114: p->on_ground = 1;
 	ldhl	sp,	#14
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x01
-;src/player.c:126: if (p->mode == MODE_CUBE) p->vel_y = 0;
+;src/player.c:116: if (p->mode == MODE_CUBE) p->vel_y = 0;
 	pop	de
 	push	de
 	ld	a, (de)
@@ -1387,7 +1387,7 @@ _player_update::
 	ld	(hl), a
 	jr	00169$
 00146$:
-;src/player.c:127: else if (p->gravity_flipped) { if (p->vel_y < 0) p->vel_y = 0; }
+;src/player.c:117: else if (p->gravity_flipped) { if (p->vel_y < 0) p->vel_y = 0; }
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
@@ -1407,7 +1407,7 @@ _player_update::
 	ld	a, (de)
 ;src/player.c:38: p->vel_y += (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
 	ld	l, a
-;src/player.c:127: else if (p->gravity_flipped) { if (p->vel_y < 0) p->vel_y = 0; }
+;src/player.c:117: else if (p->gravity_flipped) { if (p->vel_y < 0) p->vel_y = 0; }
 	ld	a, c
 	or	a, a
 	jr	Z, 00143$
@@ -1422,23 +1422,23 @@ _player_update::
 	ld	(hl), a
 	jr	00169$
 00143$:
-;src/player.c:128: else { if (p->vel_y > 0) p->vel_y = 0; }
+;src/player.c:118: else { if (p->vel_y > 0) p->vel_y = 0; }
 	ld	e, l
 	xor	a, a
 	ld	d, a
 	cp	a, b
 	sbc	a, l
 	bit	7, e
-	jr	Z, 01164$
+	jr	Z, 01182$
 	bit	7, d
-	jr	NZ, 01165$
+	jr	NZ, 01183$
 	cp	a, a
-	jr	01165$
-01164$:
+	jr	01183$
+01182$:
 	bit	7, d
-	jr	Z, 01165$
+	jr	Z, 01183$
 	scf
-01165$:
+01183$:
 	jr	NC, 00169$
 	ldhl	sp,	#10
 	ld	a, (hl+)
@@ -1448,7 +1448,7 @@ _player_update::
 	ld	(hl+), a
 	ld	(hl), a
 00169$:
-;src/player.c:134: uint8_t front_head = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:124: uint8_t front_head = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1496,7 +1496,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#19
 	ld	(hl), a
-;src/player.c:135: uint8_t front_foot = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:125: uint8_t front_foot = col_at(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1544,7 +1544,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#20
 	ld	(hl), a
-;src/player.c:138: uint8_t hz_tl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:128: uint8_t hz_tl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1592,7 +1592,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#21
 	ld	(hl), a
-;src/player.c:139: uint8_t hz_tr = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:129: uint8_t hz_tr = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1640,7 +1640,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#22
 	ld	(hl), a
-;src/player.c:140: uint8_t hz_bl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:130: uint8_t hz_bl = col_at(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1688,7 +1688,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#23
 	ld	(hl), a
-;src/player.c:141: uint8_t hz_br = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
+;src/player.c:131: uint8_t hz_br = col_at(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1736,7 +1736,7 @@ _player_update::
 	call	_col_at
 	ldhl	sp,	#24
 	ld	(hl), a
-;src/player.c:144: uint8_t mid = col_at(p->world_x + 8, p->world_y + 8, map, map_w, map_h, map_bank);
+;src/player.c:134: uint8_t mid = col_at(p->world_x + 8, p->world_y + 8, map, map_w, map_h, map_bank);
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -1782,40 +1782,40 @@ _player_update::
 	ld	l, a
 	push	hl
 	call	_col_at
-;src/player.c:145: if (IS_PAD(mid) || IS_PAD(front_head) || IS_PAD(front_foot)) {
+;src/player.c:136: if (IS_PAD(mid) || IS_PAD(front_head) || IS_PAD(front_foot)) {
 	ldhl	sp,#25
 	ld	(hl), a
 	sub	a, #0x0b
 	ld	a, #0x01
-	jr	Z, 01167$
+	jr	Z, 01185$
 	xor	a, a
-01167$:
+01185$:
 	ldhl	sp,	#26
 	ld	(hl-), a
 	ld	a, (hl)
 	sub	a, #0x0e
 	ld	a, #0x01
-	jr	Z, 01169$
+	jr	Z, 01187$
 	xor	a, a
-01169$:
+01187$:
 	ldhl	sp,	#27
 	ld	(hl), a
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x0b
 	ld	a, #0x01
-	jr	Z, 01171$
+	jr	Z, 01189$
 	xor	a, a
-01171$:
+01189$:
 	ldhl	sp,	#28
 	ld	(hl), a
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x0e
 	ld	a, #0x01
-	jr	Z, 01173$
+	jr	Z, 01191$
 	xor	a, a
-01173$:
+01191$:
 	ldhl	sp,	#29
 	ld	(hl), a
 	ldhl	sp,	#26
@@ -1843,46 +1843,46 @@ _player_update::
 	sub	a, #0x0e
 	jr	NZ, 00199$
 00198$:
-;src/player.c:146: uint8_t hit = (IS_PAD(mid)) ? mid : (IS_PAD(front_head) ? front_head : front_foot);
+;src/player.c:137: uint8_t hit = (IS_PAD(mid)) ? mid : (IS_PAD(front_head) ? front_head : front_foot);
 	ldhl	sp,	#26
 	bit	0, (hl)
-	jr	NZ, 00272$
+	jr	NZ, 00276$
 	inc	hl
 	bit	0, (hl)
-	jr	Z, 00269$
-00272$:
+	jr	Z, 00273$
+00276$:
 	ldhl	sp,	#25
 	ld	a, (hl)
-	jr	00270$
-00269$:
+	jr	00274$
+00273$:
 	ldhl	sp,	#28
 	bit	0, (hl)
-	jr	NZ, 00277$
+	jr	NZ, 00281$
 	inc	hl
 	bit	0, (hl)
-	jr	Z, 00274$
-00277$:
+	jr	Z, 00278$
+00281$:
 	ldhl	sp,	#19
 	ld	a, (hl)
-	jr	00275$
-00274$:
+	jr	00279$
+00278$:
 	ldhl	sp,	#20
 	ld	a, (hl)
-00275$:
-00270$:
+00279$:
+00274$:
 	ld	b, a
-;src/player.c:81: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
+;src/player.c:71: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	a, (de)
 	ld	c, a
-;src/player.c:147: if (hit == COL_PAD_BLUE) {
+;src/player.c:138: if (hit == COL_PAD_BLUE) {
 	ld	a, b
 	sub	a, #0x0e
 	jr	NZ, 00179$
-;src/player.c:148: p->gravity_flipped = !p->gravity_flipped;
+;src/player.c:139: p->gravity_flipped = !p->gravity_flipped;
 	dec	hl
 	ld	a, c
 	sub	a, #0x01
@@ -1893,12 +1893,12 @@ _player_update::
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/player.c:150: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+;src/player.c:140: p->vel_y = (p->gravity_flipped) ? -20 : 20;
 	or	a, a
 	ld	a, #0xec
-	jr	NZ, 00280$
+	jr	NZ, 00284$
 	ld	a, #0x14
-00280$:
+00284$:
 	ld	c, a
 	rlca
 	sbc	a, a
@@ -1912,15 +1912,15 @@ _player_update::
 	ld	(hl), b
 	jr	00180$
 00179$:
-;src/player.c:152: p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+;src/player.c:142: p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
 	ld	a, c
 	or	a, a
-	jr	Z, 00281$
+	jr	Z, 00285$
 	ld	bc, #0x008c
-	jr	00282$
-00281$:
+	jr	00286$
+00285$:
 	ld	bc, #0xff74
-00282$:
+00286$:
 	ldhl	sp,	#10
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -1929,7 +1929,7 @@ _player_update::
 	ld	(hl+), a
 	ld	(hl), b
 00180$:
-;src/player.c:154: p->on_ground = 0;
+;src/player.c:144: p->on_ground = 0;
 	ldhl	sp,	#14
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -1937,7 +1937,7 @@ _player_update::
 	ld	(hl), #0x00
 	jp	00200$
 00199$:
-;src/player.c:155: } else if ((joy & J_A) && (IS_ORB(mid) || IS_ORB(front_head) || IS_ORB(front_foot))) {
+;src/player.c:145: } else if ((joy & J_A) && (IS_ORB(mid) || IS_ORB(front_head) || IS_ORB(front_foot))) {
 	ldhl	sp,	#16
 	ld	a, (hl)
 	or	a, a
@@ -1946,51 +1946,51 @@ _player_update::
 	ld	a, (hl)
 	sub	a, #0x0a
 	ld	a, #0x01
-	jr	Z, 01180$
+	jr	Z, 01198$
 	xor	a, a
-01180$:
+01198$:
 	ld	b, a
 	ldhl	sp,	#25
 	ld	a, (hl)
 	sub	a, #0x0c
 	ld	a, #0x01
-	jr	Z, 01182$
+	jr	Z, 01200$
 	xor	a, a
-01182$:
+01200$:
 	ldhl	sp,	#28
 	ld	(hl), a
 	ldhl	sp,	#25
 	ld	a, (hl)
 	sub	a, #0x0d
 	ld	a, #0x01
-	jr	Z, 01184$
+	jr	Z, 01202$
 	xor	a, a
-01184$:
+01202$:
 	ld	c, a
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x0a
 	ld	a, #0x01
-	jr	Z, 01186$
+	jr	Z, 01204$
 	xor	a, a
-01186$:
+01204$:
 	ld	e, a
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x0c
 	ld	a, #0x01
-	jr	Z, 01188$
+	jr	Z, 01206$
 	xor	a, a
-01188$:
+01206$:
 	ldhl	sp,	#29
 	ld	(hl), a
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x0d
 	ld	a, #0x01
-	jr	Z, 01190$
+	jr	Z, 01208$
 	xor	a, a
-01190$:
+01208$:
 	ld	d, a
 	ld	a, b
 	or	a, a
@@ -2022,65 +2022,65 @@ _player_update::
 	sub	a, #0x0d
 	jp	NZ, 00200$
 00187$:
-;src/player.c:156: uint8_t hit = (IS_ORB(mid)) ? mid : (IS_ORB(front_head) ? front_head : front_foot);
+;src/player.c:146: uint8_t hit = (IS_ORB(mid)) ? mid : (IS_ORB(front_head) ? front_head : front_foot);
 	bit	0, b
-	jr	NZ, 00286$
+	jr	NZ, 00290$
 	ldhl	sp,	#28
 	ld	b, (hl)
 	bit	0, b
-	jr	NZ, 00286$
+	jr	NZ, 00290$
 	bit	0, c
-	jr	Z, 00283$
-00286$:
+	jr	Z, 00287$
+00290$:
 	ldhl	sp,	#25
 	ld	a, (hl)
 	ldhl	sp,	#29
 	ld	(hl), a
-	jr	00284$
-00283$:
+	jr	00288$
+00287$:
 	bit	0, e
-	jr	NZ, 00294$
+	jr	NZ, 00298$
 	ldhl	sp,	#29
 	ld	c, (hl)
 	bit	0, c
-	jr	NZ, 00294$
+	jr	NZ, 00298$
 	bit	0, d
-	jr	Z, 00291$
-00294$:
+	jr	Z, 00295$
+00298$:
 	ldhl	sp,	#19
 	ld	a, (hl)
-	jr	00292$
-00291$:
+	jr	00296$
+00295$:
 	ldhl	sp,	#20
 	ld	a, (hl)
-00292$:
+00296$:
 	ldhl	sp,	#29
 	ld	(hl), a
-00284$:
-;src/player.c:81: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
+00288$:
+;src/player.c:71: int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
 	ldhl	sp,#12
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	a, (de)
 	ldhl	sp,	#28
-;src/player.c:157: if (hit == COL_ORB_MAGENTA) {
+;src/player.c:147: if (hit == COL_ORB_MAGENTA) {
 	ld	(hl+), a
 	ld	a, (hl)
 	sub	a, #0x0d
 	jr	NZ, 00185$
-;src/player.c:158: p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+;src/player.c:148: p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
 	ldhl	sp,	#28
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00299$
+	jr	Z, 00303$
 	inc	hl
 	ld	(hl), #0x3c
-	jr	00300$
-00299$:
+	jr	00304$
+00303$:
 	ldhl	sp,	#29
 	ld	(hl), #0xc4
-00300$:
+00304$:
 	ldhl	sp,	#29
 	ld	a, (hl-)
 	ld	(hl+), a
@@ -2099,12 +2099,12 @@ _player_update::
 	ld	(de), a
 	jr	00186$
 00185$:
-;src/player.c:159: } else if (hit == COL_ORB_BLUE) {
+;src/player.c:149: } else if (hit == COL_ORB_BLUE) {
 	ldhl	sp,	#29
 	ld	a, (hl)
 	sub	a, #0x0c
 	jr	NZ, 00182$
-;src/player.c:160: p->gravity_flipped = !p->gravity_flipped;
+;src/player.c:150: p->gravity_flipped = !p->gravity_flipped;
 	ldhl	sp,	#28
 	ld	a, (hl)
 	sub	a, #0x01
@@ -2116,12 +2116,12 @@ _player_update::
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/player.c:161: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+;src/player.c:151: p->vel_y = (p->gravity_flipped) ? -20 : 20;
 	or	a, a
 	ld	a, #0xec
-	jr	NZ, 00302$
+	jr	NZ, 00306$
 	ld	a, #0x14
-00302$:
+00306$:
 	ld	c, a
 	rlca
 	sbc	a, a
@@ -2135,14 +2135,14 @@ _player_update::
 	ld	(hl), b
 	jr	00186$
 00182$:
-;src/player.c:163: p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
+;src/player.c:153: p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
 	ldhl	sp,	#28
 	ld	a, (hl)
 	or	a, a
 	ld	a, #0x5d
-	jr	NZ, 00304$
+	jr	NZ, 00308$
 	ld	a, #0xa3
-00304$:
+00308$:
 	ld	c, a
 	rlca
 	sbc	a, a
@@ -2155,14 +2155,14 @@ _player_update::
 	ld	(hl+), a
 	ld	(hl), b
 00186$:
-;src/player.c:165: p->on_ground = 0;
+;src/player.c:155: p->on_ground = 0;
 	ldhl	sp,	#14
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
 00200$:
-;src/player.c:169: if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
+;src/player.c:159: if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
 	ldhl	sp,	#19
 	ld	a, (hl)
 	sub	a, #0x07
@@ -2195,7 +2195,7 @@ _player_update::
 	ld	a, (hl)
 	sub	a, #0x06
 	jp	Z, 00206$
-;src/player.c:170: IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
+;src/player.c:160: IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
 	ldhl	sp,	#21
 	ld	a, (hl)
 	sub	a, #0x08
@@ -2309,17 +2309,17 @@ _player_update::
 	sub	a, #0x11
 	jr	NZ, 00207$
 00206$:
-;src/player.c:171: p->dead = 1;
+;src/player.c:161: p->dead = 1;
 	ldhl	sp,	#8
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-;src/player.c:172: return 1;
+;src/player.c:162: return 1;
 	ld	a,#0x01
 	ld	(hl),a
-	jp	00249$
+	jp	00253$
 00207$:
-;src/player.c:176: if (p->on_ground) {
+;src/player.c:166: if (p->on_ground) {
 	ldhl	sp,#14
 	ld	a, (hl+)
 	ld	e, a
@@ -2327,7 +2327,7 @@ _player_update::
 	ld	a, (de)
 	ldhl	sp,	#29
 	ld	(hl), a
-;src/player.c:177: p->anim_timer = 0;
+;src/player.c:167: p->anim_timer = 0;
 	ldhl	sp,#36
 	ld	a, (hl+)
 	ld	e, a
@@ -2336,7 +2336,7 @@ _player_update::
 	add	hl, de
 	ld	c, l
 	ld	b, h
-;src/player.c:178: p->anim_frame = 0;
+;src/player.c:168: p->anim_frame = 0;
 	ldhl	sp,#36
 	ld	a, (hl+)
 	ld	e, a
@@ -2350,13 +2350,13 @@ _player_update::
 	pop	hl
 	ld	a, h
 	ldhl	sp,	#28
-;src/player.c:176: if (p->on_ground) {
+;src/player.c:166: if (p->on_ground) {
 	ld	(hl+), a
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00244$
-;src/player.c:177: p->anim_timer = 0;
-;src/player.c:178: p->anim_frame = 0;
+	jr	Z, 00248$
+;src/player.c:167: p->anim_timer = 0;
+;src/player.c:168: p->anim_frame = 0;
 	dec	hl
 	xor	a, a
 	ld	(bc), a
@@ -2366,47 +2366,55 @@ _player_update::
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), #0x00
-	jr	00245$
-00244$:
-;src/player.c:180: p->anim_timer++;
+	jr	00249$
+00248$:
+;src/player.c:170: p->anim_timer++;
 	ld	l, c
 	ld	h, b
 	ld	a,	(hl+)
 	ld	h, (hl)
-	ld	l, a
-	inc	hl
-	ld	a, l
+	ld	e, a
+	ld	d, h
+	inc	de
+	ld	l, c
+	ld	h, b
+	ld	a, e
+	ld	(hl+), a
+	ld	(hl), d
+;src/player.c:171: if (p->anim_timer >= 2) {
+	ld	a, e
+	sub	a, #0x02
+	ld	a, d
+	sbc	a, #0x00
+	jr	C, 00249$
+;src/player.c:172: p->anim_timer = 0;
+	xor	a, a
 	ld	(bc), a
 	inc	bc
-	ld	a, h
 	ld	(bc), a
-;src/player.c:182: p->anim_frame = ((uint32_t)p->anim_timer * 3 / 5) % 24;
-	ld	c, l
-	ld	b, h
-	xor	a, a
-	ld	d, a
+;src/player.c:173: p->anim_frame++;
+	ldhl	sp,#27
+	ld	a, (hl+)
 	ld	e, a
-	push	de
-	push	bc
-	ld	bc, #0x0003
-	ld	de, #0x0000
-	call	__mullong
-	ld	hl, #0x0000
-	push	hl
-	ld	l, #0x05
-	push	hl
-	call	__divulong
-	ld	e, c
-	ld	d, b
-	ld	bc, #0x0018
-	call	__modsint
+	ld	a, (hl-)
+	ld	d, a
+	ld	a, (de)
+	inc	a
+	ld	e, (hl)
+	inc	hl
+	ld	h, (hl)
+	ld	l, e
+	ld	(hl), a
+;src/player.c:174: if (p->anim_frame >= 24) p->anim_frame = 0;
+	sub	a, #0x18
+	jr	C, 00249$
 	ldhl	sp,	#27
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-	ld	(hl), c
-00245$:
-;src/player.c:84: int16_t ny = p->world_y + pixels;
+	ld	(hl), #0x00
+00249$:
+;src/player.c:74: int16_t ny = p->world_y + pixels;
 	ldhl	sp,#17
 	ld	a, (hl+)
 	ld	e, a
@@ -2416,7 +2424,7 @@ _player_update::
 	inc	de
 	ld	a, (de)
 	ld	b, a
-;src/player.c:186: if (p->world_y > (int16_t)((uint16_t)map_h << 4) || p->world_y < -32) {
+;src/player.c:179: if (p->world_y > (int16_t)((uint16_t)map_h << 4) || p->world_y < -32) {
 	ldhl	sp,	#43
 	ld	a, (hl+)
 	ld	e, (hl)
@@ -2437,17 +2445,17 @@ _player_update::
 	ld	a, h
 	sbc	a, b
 	bit	7, e
-	jr	Z, 01237$
+	jr	Z, 01255$
 	bit	7, d
-	jr	NZ, 01238$
+	jr	NZ, 01256$
 	cp	a, a
-	jr	01238$
-01237$:
+	jr	01256$
+01255$:
 	bit	7, d
-	jr	Z, 01238$
+	jr	Z, 01256$
 	scf
-01238$:
-	jr	C, 00246$
+01256$:
+	jr	C, 00250$
 	ld	a, c
 	sub	a, #0xe0
 	ld	a, b
@@ -2455,22 +2463,22 @@ _player_update::
 	ccf
 	rra
 	sbc	a, #0x7f
-	jr	NC, 00247$
-00246$:
-;src/player.c:187: p->dead = 1;
+	jr	NC, 00251$
+00250$:
+;src/player.c:180: p->dead = 1;
 	ldhl	sp,	#8
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-;src/player.c:188: return 1;
+;src/player.c:181: return 1;
 	ld	a,#0x01
 	ld	(hl),a
-	jr	00249$
-00247$:
-;src/player.c:191: return 0;
+	jr	00253$
+00251$:
+;src/player.c:184: return 0;
 	xor	a, a
-00249$:
-;src/player.c:192: }
+00253$:
+;src/player.c:185: }
 	add	sp, #30
 	ret
 	.area _CODE_1

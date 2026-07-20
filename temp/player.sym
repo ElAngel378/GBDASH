@@ -9,9 +9,6 @@ Symbol Table
     .__.H$L.                                                    =   00000000 L
     ___bank_player_update                                       =   00000001 G
   8 ___func_player_update                                           00000000 GR
-    __divulong                                                      ******** GX
-    __modsint                                                       ******** GX
-    __mullong                                                       ******** GX
   9 __xinit__player_noclip                                          00000000 R
     _col_at                                                         ******** GX
   8 _player_init                                                    00000000 GR
@@ -37,7 +34,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size      BC8   flags    0
+   8 _CODE_1                                    size      BC5   flags    0
    9 _INITIALIZER                               size        1   flags    0
    A _CABS                                      size        0   flags    8
 
