@@ -191,7 +191,7 @@ _level_ju:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.byte ___bank_jumper_map
-	.db #0x8e	; 142
+	.db #0x8d	; 141
 	.dw _jumper_portals
 _level_tm:
 	.dw __str_7
@@ -238,7 +238,7 @@ __str_6:
 	.ascii "JUMPER"
 	.db 0x00
 __str_7:
-	.ascii "TIME MACHINE"
+	.ascii "BROKE MACHINE"
 	.db 0x00
 	.area _INITIALIZER
 	.area _CABS (ABS)

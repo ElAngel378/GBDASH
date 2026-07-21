@@ -147,12 +147,12 @@ const Level level_ju = {
   jumper_map,
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
-  142,
+  141,
   jumper_portals
 };
 
 const Level level_tm = {
-  "TIME MACHINE",
+  "BROKE MACHINE",
   chr_gb_tiles,
   timemachine_map,
   chr_gb_TILE_COUNT, 997, 16, 0, 0,

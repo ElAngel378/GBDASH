@@ -147,7 +147,7 @@ uint8_t player_update(
         uint8_t hit = (IS_PAD(mid)) ? mid : (IS_PAD(front_head) ? front_head : front_foot);
         if (hit == COL_PAD_BLUE) {
             p->gravity_flipped = !p->gravity_flipped;
-            p->vel_y = (p->gravity_flipped) ? -20 : 20;
+            p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
         } else {
             p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
         }
@@ -158,7 +158,7 @@ uint8_t player_update(
             p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
         } else if (hit == COL_ORB_BLUE) {
             p->gravity_flipped = !p->gravity_flipped;
-            p->vel_y = (p->gravity_flipped) ? -20 : 20;
+            p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
         } else {
             p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         }

@@ -168,8 +168,18 @@ const uint8_t bg_pals[] = {
             uint8_t obj = p_ptr->obj;
             if (obj == 0) player.mode = MODE_CUBE;
             else if (obj == 1) player.mode = MODE_SHIP;
-            else if (obj == 8) player.gravity_flipped = 0;
-            else if (obj == 9) player.gravity_flipped = 1;
+            else if (obj == 8) {
+                if (player.gravity_flipped) {
+                    player.gravity_flipped = 0;
+                    player.vel_y = 20; // Snappy nudge down
+                }
+            }
+            else if (obj == 9) {
+                if (!player.gravity_flipped) {
+                    player.gravity_flipped = 1;
+                    player.vel_y = -20; // Snappy nudge up
+                }
+            }
             else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
         }
         p_ptr++;

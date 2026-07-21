@@ -89,7 +89,7 @@ DEF ___size_chr_gb_tiles 0x1000
 DEF l__CODE_250 0x16C4
 DEF l__CODE_254 0x17BE
 DEF l__CODE_249 0x18CE
-DEF l__CODE_1 0x19BE
+DEF l__CODE_1 0x19DC
 DEF l__CODE_252 0x1DDC
 DEF _rROMB0 0x2000
 DEF l__CODE_251 0x2218
@@ -440,9 +440,9 @@ DEF _level_ju 0x15084
 DEF _level_tm 0x15096
 DEF _game_levels 0x150A8
 DEF _MAX_LEVELS 0x150B8
-DEF _setup_menu_font 0x15119
-DEF _draw_menu 0x1512A
-DEF _play_level 0x151C5
+DEF _setup_menu_font 0x1511A
+DEF _draw_menu 0x1512B
+DEF _play_level 0x151C6
 DEF _backontrack 0xFE57A9
 DEF _baseafterbase 0xFB6203
 DEF _cantletgo 0xFA56AF

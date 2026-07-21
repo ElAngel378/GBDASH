@@ -1890,11 +1890,11 @@
     000008C7 66               [ 8] 1890 	ld	h, (hl)
     000008C8 6B               [ 4] 1891 	ld	l, e
     000008C9 77               [ 8] 1892 	ld	(hl), a
-                                   1893 ;src/player.c:150: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+                                   1893 ;src/player.c:150: p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
     000008CA B7               [ 4] 1894 	or	a, a
-    000008CB 3E EC            [ 8] 1895 	ld	a, #0xec
+    000008CB 3E C0            [ 8] 1895 	ld	a, #0xc0
     000008CD 20 02            [12] 1896 	jr	NZ, 00289$
-    000008CF 3E 14            [ 8] 1897 	ld	a, #0x14
+    000008CF 3E 40            [ 8] 1897 	ld	a, #0x40
     000008D1                       1898 00289$:
     000008D1 4F               [ 4] 1899 	ld	c, a
     000008D2 07               [ 4] 1900 	rlca
@@ -2114,11 +2114,11 @@
     000009EF 66               [ 8] 2114 	ld	h, (hl)
     000009F0 6B               [ 4] 2115 	ld	l, e
     000009F1 77               [ 8] 2116 	ld	(hl), a
-                                   2117 ;src/player.c:161: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+                                   2117 ;src/player.c:161: p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
     000009F2 B7               [ 4] 2118 	or	a, a
-    000009F3 3E EC            [ 8] 2119 	ld	a, #0xec
+    000009F3 3E C0            [ 8] 2119 	ld	a, #0xc0
     000009F5 20 02            [12] 2120 	jr	NZ, 00311$
-    000009F7 3E 14            [ 8] 2121 	ld	a, #0x14
+    000009F7 3E 40            [ 8] 2121 	ld	a, #0x40
     000009F9                       2122 00311$:
     000009F9 4F               [ 4] 2123 	ld	c, a
     000009FA 07               [ 4] 2124 	rlca

@@ -209,7 +209,7 @@
     00001090 00                     191 	.db #0x00	; 0
     00001091 00                     192 	.db #0x00	; 0
     00001092r00                     193 	.byte ___bank_jumper_map
-    00001093 8E                     194 	.db #0x8e	; 142
+    00001093 8D                     194 	.db #0x8d	; 141
     00001094r00r00                  195 	.dw _jumper_portals
     00001096                        196 _level_tm:
     00001096r0Cr11                  197 	.dw __str_7
@@ -262,8 +262,8 @@
     00001105 4A 55 4D 50 45 52      238 	.ascii "JUMPER"
     0000110B 00                     239 	.db 0x00
     0000110C                        240 __str_7:
-    0000110C 54 49 4D 45 20 4D 41   241 	.ascii "TIME MACHINE"
-             43 48 49 4E 45
-    00001118 00                     242 	.db 0x00
+    0000110C 42 52 4F 4B 45 20 4D   241 	.ascii "BROKE MACHINE"
+             41 43 48 49 4E 45
+    00001119 00                     242 	.db 0x00
                                     243 	.area _INITIALIZER
                                     244 	.area _CABS (ABS)

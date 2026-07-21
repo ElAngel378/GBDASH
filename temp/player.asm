@@ -1890,11 +1890,11 @@ _player_update::
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/player.c:150: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+;src/player.c:150: p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
 	or	a, a
-	ld	a, #0xec
+	ld	a, #0xc0
 	jr	NZ, 00289$
-	ld	a, #0x14
+	ld	a, #0x40
 00289$:
 	ld	c, a
 	rlca
@@ -2114,11 +2114,11 @@ _player_update::
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/player.c:161: p->vel_y = (p->gravity_flipped) ? -20 : 20;
+;src/player.c:161: p->vel_y = (p->gravity_flipped) ? -64 : 64; // Stronger snap
 	or	a, a
-	ld	a, #0xec
+	ld	a, #0xc0
 	jr	NZ, 00311$
-	ld	a, #0x14
+	ld	a, #0x40
 00311$:
 	ld	c, a
 	rlca
