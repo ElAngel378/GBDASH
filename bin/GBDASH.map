@@ -37,7 +37,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00000060  l__HEADER |    000000A2  l__DATA   |    000000AB  l__HEADER
      00000200  s__CODE   |    00000AF6  l__HOME   |    00000EBC  l__CODE_2
      00001000  ___size_c |    000016C4  l__CODE_2 |    000017BE  l__CODE_2
-     000018CE  l__CODE_2 |    000019D9  l__CODE_1 |    00001DDC  l__CODE_2
+     000018CE  l__CODE_2 |    000019DC  l__CODE_1 |    00001DDC  l__CODE_2
      00002000  _rROMB0   |    00002218  l__CODE_2 |    000029B0  l__CODE_2
      00002A2B  l__CODE   |    00002C2B  s__HOME   |    00003000  _rROMB1  
      00003450  ___size_c |    00003450  l__CODE_7 |    000034A0  ___size_d
@@ -404,7 +404,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_1                00014000    000019D9 =        6617. bytes (REL,CON)
+_CODE_1                00014000    000019DC =        6620. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    

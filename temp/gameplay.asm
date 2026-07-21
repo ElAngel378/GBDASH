@@ -911,15 +911,17 @@ _play_level::
 	ld	(hl), #0xff
 	jr	00138$
 00126$:
-;src/gameplay.c:183: else if (obj >= 10 && obj <= 13) target_bg_idx = obj;
+;src/gameplay.c:183: else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
 	ld	a, e
 	sub	a, #0x0a
 	jr	C, 00138$
 	ld	a, #0x0d
 	sub	a, e
 	jr	C, 00138$
+	ld	a, e
+	add	a, #0xf6
 	ldhl	sp,	#72
-	ld	(hl), e
+	ld	(hl), a
 00138$:
 ;src/gameplay.c:185: p_ptr++;
 	ldhl	sp,#88
