@@ -13,7 +13,7 @@
 #define GRAVITY           10
 #define JUMP_FORCE       -93
 #define MAGENTA_JUMP_FORCE -60
-#define PAD_JUMP_FORCE   -140
+#define PAD_JUMP_FORCE   -148
 #define MAX_FALL_SPEED    112
 
 #define MODE_CUBE         0
@@ -22,6 +22,13 @@
 #define SHIP_THRUST       -8
 #define SHIP_GRAVITY       5
 #define SHIP_MAX_VEL       64
+
+#define MAX_ACTIVATIONS 8
+
+typedef struct {
+    uint16_t mx;
+    uint16_t my;
+} ActivatedTile;
 
 typedef struct {
     uint16_t world_x;
@@ -35,6 +42,9 @@ typedef struct {
     uint16_t anim_timer;
     uint8_t  last_joy;
     uint8_t  touching_orb;
+    ActivatedTile activated[MAX_ACTIVATIONS];
+    uint8_t activated_count;
+    uint8_t next_activated_slot;
 } Player;
 
 extern uint8_t player_noclip;
@@ -53,5 +63,8 @@ uint8_t player_update(
 
 // Returns player's Y position relative to the camera
 int16_t player_screen_y(const Player *p, uint16_t cam_py);
+
+uint8_t player_tile_activated(const Player *p, uint16_t mx, uint16_t my);
+void player_mark_activated(Player *p, uint16_t mx, uint16_t my);
 
 #endif // PLAYER_H

@@ -12,16 +12,19 @@ Symbol Table
     _col_at_end                                                     ******** GX
     _col_at_raw                                                     ******** GX
   0 _player_init                                                    00000000 GR
+  0 _player_mark_activated                                          000000C6 GR
   3 _player_noclip                                                  00000000 GR
-  0 _player_screen_y                                                0000004B GR
-  0 _player_update                                                  00000057 GR
+  0 _player_screen_y                                                0000012A GR
+  0 _player_tile_activated                                          00000057 GR
+  0 _player_update                                                  00000136 GR
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      C15   flags    0
+   0 _CODE                                      size      EED   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        1   flags    0
