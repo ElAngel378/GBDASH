@@ -40,11 +40,13 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name):
         sprites_firstgid + 1: 1, # Ship portal
         sprites_firstgid + 8: 8, # Normal gravity
         sprites_firstgid + 9: 9, # Inverted gravity
-        sprites_firstgid + 10: 10, # BG Color 0
-        sprites_firstgid + 11: 11, # BG Color 1
-        sprites_firstgid + 12: 12, # BG Color 2
-        sprites_firstgid + 13: 13  # BG Color 3
     }
+
+    # BG Color mappings:
+    portals_map[sprites_firstgid + 143] = 13  # Dark
+    for i in range(128, 141): portals_map[sprites_firstgid + i] = 12 # Dark grey
+    for i in range(144, 157): portals_map[sprites_firstgid + i] = 11 # Light grey
+    for i in range(160, 173): portals_map[sprites_firstgid + i] = 10 # Light
 
     portal_data = []
 

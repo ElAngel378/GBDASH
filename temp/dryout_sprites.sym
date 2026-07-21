@@ -15,7 +15,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size       14   flags    0
+   0 _CODE                                      size       88   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        0   flags    0

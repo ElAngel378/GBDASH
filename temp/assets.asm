@@ -9,6 +9,10 @@
 ;--------------------------------------------------------
 	.globl _MAX_LEVELS
 	.globl _game_levels
+	.globl _level_tm
+	.globl _level_ju
+	.globl _level_clg
+	.globl _level_bab
 	.globl _level_du
 	.globl _level_pg
 	.globl _level_bot
@@ -92,11 +96,19 @@ _level_songs:
 	.dw _backontrack
 	.dw _polargeist
 	.dw _dryout
+	.dw _baseafterbase
+	.dw _cantletgo
+	.dw _jumper
+	.dw _timemachine
 _song_bank:
-	.db #0x06	; 6
-	.db #0x09	; 9
-	.db #0x08	; 8
-	.db #0x07	; 7
+	.db #0xff	; 255
+	.db #0xfe	; 254
+	.db #0xfd	; 253
+	.db #0xfc	; 252
+	.db #0xfb	; 251
+	.db #0xfa	; 250
+	.db #0xf9	; 249
+	.db #0xf8	; 248
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
@@ -145,13 +157,65 @@ _level_du:
 	.byte ___bank_dryout_map
 	.db #0xb9	; 185
 	.dw _dryout_portals
+_level_bab:
+	.dw __str_4
+	.dw _chr_gb_tiles
+	.dw _baseafterbase_map
+	.dw #0x0100
+	.dw #0x0365
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_baseafterbase_map
+	.db #0xb7	; 183
+	.dw _baseafterbase_portals
+_level_clg:
+	.dw __str_5
+	.dw _chr_gb_tiles
+	.dw _cantletgo_map
+	.dw #0x0100
+	.dw #0x0345
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_cantletgo_map
+	.db #0xc4	; 196
+	.dw _cantletgo_portals
+_level_ju:
+	.dw __str_6
+	.dw _chr_gb_tiles
+	.dw _jumper_map
+	.dw #0x0100
+	.dw #0x0381
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_jumper_map
+	.db #0x8e	; 142
+	.dw _jumper_portals
+_level_tm:
+	.dw __str_7
+	.dw _chr_gb_tiles
+	.dw _timemachine_map
+	.dw #0x0100
+	.dw #0x03e5
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_timemachine_map
+	.db #0xc0	; 192
+	.dw _timemachine_portals
 _game_levels:
 	.dw _level_sm
 	.dw _level_bot
 	.dw _level_pg
 	.dw _level_du
+	.dw _level_bab
+	.dw _level_clg
+	.dw _level_ju
+	.dw _level_tm
 _MAX_LEVELS:
-	.db #0x04	; 4
+	.db #0x08	; 8
 __str_0:
 	.ascii "STEREO MADNESS"
 	.db 0x00
@@ -163,6 +227,18 @@ __str_2:
 	.db 0x00
 __str_3:
 	.ascii "DRY OUT"
+	.db 0x00
+__str_4:
+	.ascii "BASE AFTER BASE"
+	.db 0x00
+__str_5:
+	.ascii "CANT LET GO"
+	.db 0x00
+__str_6:
+	.ascii "JUMPER"
+	.db 0x00
+__str_7:
+	.ascii "TIME MACHINE"
 	.db 0x00
 	.area _INITIALIZER
 	.area _CABS (ABS)

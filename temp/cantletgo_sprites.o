@@ -1,0 +1,25 @@
+XL4
+H A areas 2 global symbols
+M cantletgo_sprites
+S .__.ABS. Def00000000
+A _CODE size 30 flags 0 addr 0
+S _cantletgo_portals Def00000000
+A _HRAM size 0 flags 0 addr 0
+A _DATA size 0 flags 0 addr 0
+A _INITIALIZED size 0 flags 0 addr 0
+A _DABS size 0 flags 8 addr 0
+A _HOME size 0 flags 0 addr 0
+A _GSINIT size 0 flags 0 addr 0
+A _GSFINAL size 0 flags 0 addr 0
+A _INITIALIZER size 0 flags 0 addr 0
+A _CABS size 0 flags 8 addr 0
+T 00 00 00 00
+R 00 00 00 00
+T 00 00 00 00 E2 00 0B 0B F4 00 11 0C F6 00 11 0D
+R 00 00 00 00
+T 0C 00 00 00 CE 02 13 08 DF 01 14 01 4D 02 15 00
+R 00 00 00 00
+T 18 00 00 00 4E 02 15 09 E2 00 18 0B D8 02 18 0C
+R 00 00 00 00
+T 24 00 00 00 DA 02 18 0B 81 00 19 0B FF FF 00 00
+R 00 00 00 00

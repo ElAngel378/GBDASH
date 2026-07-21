@@ -10,7 +10,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_7 size 1DDC flags 0 addr 0
+A _CODE_252 size 1DDC flags 0 addr 0
 S _dryout Def00001DC7
 A _INITIALIZER size 0 flags 0 addr 0
 A _CABS size 0 flags 8 addr 0

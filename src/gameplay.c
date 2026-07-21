@@ -88,10 +88,16 @@ void play_level(uint8_t idx) BANKED {
   int16_t py;
 
   uint8_t target_bg_idx = 0;
+//const uint8_t bg_pals[] = {
+//        0xE4, // 0: White BG, Normal Tileset
+//        0x19, // 1: Light Gray BG, Flipped Tileset
+//        0x1A, // 2: Dark Gray BG, Flipped Tileset
+//        0x1B  // 3: Black BG, Flipped Tileset
+//};
 const uint8_t bg_pals[] = {
         0xE4, // 0: White BG, Normal Tileset
-        0x19, // 1: Light Gray BG, Flipped Tileset
-        0x1A, // 2: Dark Gray BG, Flipped Tileset
+        0xE4, // 1: Light Gray BG, Flipped Tileset
+        0xE4, // 2: Dark Gray BG, Flipped Tileset
         0x1B  // 3: Black BG, Flipped Tileset
 };
 

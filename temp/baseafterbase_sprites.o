@@ -1,0 +1,29 @@
+XL4
+H A areas 2 global symbols
+M baseafterbase_sprites
+S .__.ABS. Def00000000
+A _CODE size 40 flags 0 addr 0
+S _baseafterbase_portals Def00000000
+A _HRAM size 0 flags 0 addr 0
+A _DATA size 0 flags 0 addr 0
+A _INITIALIZED size 0 flags 0 addr 0
+A _DABS size 0 flags 8 addr 0
+A _HOME size 0 flags 0 addr 0
+A _GSINIT size 0 flags 0 addr 0
+A _GSFINAL size 0 flags 0 addr 0
+A _INITIALIZER size 0 flags 0 addr 0
+A _CABS size 0 flags 8 addr 0
+T 00 00 00 00
+R 00 00 00 00
+T 00 00 00 00 57 02 13 00 60 02 13 0B 62 02 13 0A
+R 00 00 00 00
+T 0C 00 00 00 4F 00 14 0B 51 00 14 0B CB 01 14 01
+R 00 00 00 00
+T 18 00 00 00 67 02 14 09 D5 01 15 0C D7 01 15 0C
+R 00 00 00 00
+T 24 00 00 00 EC 02 15 0B EE 02 15 0B E2 02 17 08
+R 00 00 00 00
+T 30 00 00 00 97 00 19 0C 99 00 19 0C 36 01 19 0D
+R 00 00 00 00
+T 3C 00 00 00 FF FF 00 00
+R 00 00 00 00

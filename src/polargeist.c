@@ -1,4 +1,4 @@
-#pragma bank 8
+#pragma bank 253
 #include "hUGEDriver.h"
 #include <stddef.h>
 

@@ -12,7 +12,7 @@ LIBDIR = lib
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(TEMPDIR)/%.o, $(SRCS))
 
-LCCFLAGS = -I$(INCDIR) -Wa-I. -Wl-j -Wl-yt0x19 -Wl-yo16
+LCCFLAGS = -I$(INCDIR) -Wa-I. -Wl-j -Wl-yt0x19 -Wl-yo256
 LIBS = $(LIBDIR)/hUGEDriver.lib
 
 all: prepare $(BINDIR)/$(PROJECT_NAME).gb

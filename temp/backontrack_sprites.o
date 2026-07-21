@@ -2,7 +2,7 @@ XL4
 H A areas 2 global symbols
 M backontrack_sprites
 S .__.ABS. Def00000000
-A _CODE size C flags 0 addr 0
+A _CODE size 28 flags 0 addr 0
 S _backontrack_portals Def00000000
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -15,5 +15,11 @@ A _INITIALIZER size 0 flags 0 addr 0
 A _CABS size 0 flags 8 addr 0
 T 00 00 00 00
 R 00 00 00 00
-T 00 00 00 00 A5 01 14 01 2F 02 15 00 FF FF 00 00
+T 00 00 00 00 A5 01 14 01 2F 02 15 00 CA 02 15 0B
+R 00 00 00 00
+T 0C 00 00 00 C8 02 17 0B 91 01 18 0B 96 00 19 0B
+R 00 00 00 00
+T 18 00 00 00 AF 01 19 0B B1 01 19 0B 39 02 19 0B
+R 00 00 00 00
+T 24 00 00 00 FF FF 00 00
 R 00 00 00 00

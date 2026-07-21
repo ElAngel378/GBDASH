@@ -2,7 +2,7 @@ XL4
 H A areas 2 global symbols
 M polargeist_sprites
 S .__.ABS. Def00000000
-A _CODE size C flags 0 addr 0
+A _CODE size 48 flags 0 addr 0
 S _polargeist_portals Def00000000
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -15,5 +15,15 @@ A _INITIALIZER size 0 flags 0 addr 0
 A _CABS size 0 flags 8 addr 0
 T 00 00 00 00
 R 00 00 00 00
-T 00 00 00 00 41 01 14 01 BB 01 15 00 FF FF 00 00
+T 00 00 00 00 4C 01 13 0C 4E 01 13 0D CC 02 13 0A
+R 00 00 00 00
+T 0C 00 00 00 41 01 14 01 BB 01 15 00 E3 02 15 0B
+R 00 00 00 00
+T 18 00 00 00 F4 02 15 0C 56 00 19 0A B4 00 19 0A
+R 00 00 00 00
+T 24 00 00 00 C5 00 19 0A D1 00 19 0B B2 01 19 0C
+R 00 00 00 00
+T 30 00 00 00 BD 01 19 0B C5 01 19 0A 27 03 19 0C
+R 00 00 00 00
+T 3C 00 00 00 2E 03 19 0B 35 03 19 0A FF FF 00 00
 R 00 00 00 00
