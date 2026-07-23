@@ -94,7 +94,7 @@ _col_at_raw::
 	bit	7, h
 	jr	Z, 00102$
 	xor	a, a
-	jp	00114$
+	jp	00118$
 00102$:
 ;src/collision.c:26: uint16_t mx = world_px >> 4;
 	ldhl	sp,	#4
@@ -161,7 +161,7 @@ _col_at_raw::
 	jr	C, 00104$
 00103$:
 	ld	a, #0x07
-	jr	00114$
+	jr	00118$
 00104$:
 ;src/collision.c:32: col = famidash_metatile_collision[map[(uint16_t)my * map_w + mx]];
 	ldhl	sp,	#10
@@ -206,11 +206,11 @@ _col_at_raw::
 	or	a, b
 	jr	Z, 00107$
 	xor	a, a
-	jr	00114$
+	jr	00118$
 00107$:
 ;src/collision.c:36: return COL_DEATH;
 	ld	a, #0x08
-	jr	00114$
+	jr	00118$
 00109$:
 ;src/collision.c:38: if (col == COL_DEATH_BOTTOM_HALF) {
 	ld	a, c
@@ -220,26 +220,40 @@ _col_at_raw::
 	bit	0, b
 	jr	NZ, 00111$
 	xor	a, a
-	jr	00114$
+	jr	00118$
 00111$:
 ;src/collision.c:40: return COL_DEATH;
 	ld	a, #0x08
-	jr	00114$
+	jr	00118$
 00113$:
-;src/collision.c:43: return col;
+;src/collision.c:42: if (col == COL_PAD /* || add other pad colors here */) {
 	ld	a, c
-00114$:
-;src/collision.c:44: }
+;src/collision.c:44: if (((uint16_t)world_py & 0x0F) < 8) return COL_NONE;
+	sub	a, #0x0b
+	jr	NZ, 00117$
+	or	a, b
+	jr	Z, 00115$
+	xor	a, a
+	jr	00118$
+00115$:
+;src/collision.c:45: return col;
+	ld	a, c
+	jr	00118$
+00117$:
+;src/collision.c:48: return col;
+	ld	a, c
+00118$:
+;src/collision.c:49: }
 	add	sp, #6
 	pop	hl
 	add	sp, #6
 	jp	(hl)
-;src/collision.c:47: uint8_t col_at(
+;src/collision.c:52: uint8_t col_at(
 ;	---------------------------------
 ; Function col_at
 ; ---------------------------------
 _col_at::
-;src/collision.c:56: col_at_begin(map_bank);
+;src/collision.c:61: col_at_begin(map_bank);
 	push	bc
 	push	de
 	ldhl	sp,	#12
@@ -247,7 +261,7 @@ _col_at::
 	call	_col_at_begin
 	pop	de
 	pop	bc
-;src/collision.c:57: res = col_at_raw(world_px, world_py, map, map_w, map_h);
+;src/collision.c:62: res = col_at_raw(world_px, world_py, map, map_w, map_h);
 	ldhl	sp,	#6
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -265,32 +279,32 @@ _col_at::
 	push	hl
 	call	_col_at_raw
 	ld	c, a
-;src/collision.c:58: col_at_end();
+;src/collision.c:63: col_at_end();
 	push	bc
 	call	_col_at_end
 	pop	bc
-;src/collision.c:59: return res;
+;src/collision.c:64: return res;
 	ld	a, c
-;src/collision.c:60: }
+;src/collision.c:65: }
 	pop	hl
 	add	sp, #7
 	jp	(hl)
-;src/collision.c:64: void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
+;src/collision.c:69: void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
 ;	---------------------------------
 ; Function load_bkg_tileset
 ; ---------------------------------
 _load_bkg_tileset::
 	dec	sp
-;src/collision.c:65: uint8_t _prev = _current_bank;
+;src/collision.c:70: uint8_t _prev = _current_bank;
 	ldh	a, (__current_bank + 0)
 	ldhl	sp,	#0
 	ld	(hl), a
-;src/collision.c:66: SWITCH_ROM(bank);
+;src/collision.c:71: SWITCH_ROM(bank);
 	ldhl	sp,	#3
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	(#_rROMB0),a
-;src/collision.c:67: if (tile_count == 256u) {
+;src/collision.c:72: if (tile_count == 256u) {
 	ld	l, c
 	ld	h, b
 	ld	a, l
@@ -298,7 +312,7 @@ _load_bkg_tileset::
 	jr	NZ, 00102$
 	dec	h
 	jr	NZ, 00102$
-;src/collision.c:68: set_bkg_data(0, 128, tiles);
+;src/collision.c:73: set_bkg_data(0, 128, tiles);
 	push	de
 	push	de
 	ld	hl, #0x8000
@@ -306,7 +320,7 @@ _load_bkg_tileset::
 	call	_set_bkg_data
 	add	sp, #4
 	pop	de
-;src/collision.c:69: set_bkg_data(128, 128, tiles + (128u * 16u));
+;src/collision.c:74: set_bkg_data(128, 128, tiles + (128u * 16u));
 	ld	hl, #0x0800
 	add	hl, de
 	push	hl
@@ -316,7 +330,7 @@ _load_bkg_tileset::
 	add	sp, #4
 	jr	00103$
 00102$:
-;src/collision.c:71: set_bkg_data(0, (uint8_t)tile_count, tiles);
+;src/collision.c:76: set_bkg_data(0, (uint8_t)tile_count, tiles);
 	ld	a, c
 	push	de
 	ld	h, a
@@ -325,36 +339,36 @@ _load_bkg_tileset::
 	call	_set_bkg_data
 	add	sp, #4
 00103$:
-;src/collision.c:73: SWITCH_ROM(_prev);
+;src/collision.c:78: SWITCH_ROM(_prev);
 	ldhl	sp,	#0
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	a, (hl)
 	ld	(#_rROMB0),a
-;src/collision.c:74: }
+;src/collision.c:79: }
 	inc	sp
 	pop	hl
 	inc	sp
 	jp	(hl)
-;src/collision.c:76: void draw_mt_column(uint8_t ring_col, uint16_t map_col,
+;src/collision.c:81: void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 ;	---------------------------------
 ; Function draw_mt_column
 ; ---------------------------------
 _draw_mt_column::
 	add	sp, #-4
-;src/collision.c:80: uint8_t bx = ring_col << 1;
+;src/collision.c:85: uint8_t bx = ring_col << 1;
 	add	a, a
 	ldhl	sp,	#0
-;src/collision.c:82: uint8_t _prev = _current_bank;
+;src/collision.c:87: uint8_t _prev = _current_bank;
 	ld	(hl+), a
 	ldh	a, (__current_bank + 0)
 	ld	(hl), a
-;src/collision.c:83: SWITCH_ROM(map_bank);
+;src/collision.c:88: SWITCH_ROM(map_bank);
 	ldhl	sp,	#12
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	(#_rROMB0),a
-;src/collision.c:85: const uint8_t *map_ptr = &map[map_col];
+;src/collision.c:90: const uint8_t *map_ptr = &map[map_col];
 	ldhl	sp,	#6
 	ld	a,	(hl+)
 	ld	h, (hl)
@@ -362,7 +376,7 @@ _draw_mt_column::
 	add	hl, de
 	ld	c, l
 	ld	b, h
-;src/collision.c:86: for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
+;src/collision.c:91: for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
 	ldhl	sp,	#3
 	ld	(hl), #0x00
 00104$:
@@ -380,15 +394,15 @@ _draw_mt_column::
 	ld	a, (hl)
 	sub	a, #0x10
 	jr	NC, 00101$
-;src/collision.c:87: uint8_t mt = *map_ptr;
+;src/collision.c:92: uint8_t mt = *map_ptr;
 	ld	a, (bc)
 	ld	e, a
-;src/collision.c:88: uint8_t by = (r & (BKG_MT_H - 1)) << 1;
+;src/collision.c:93: uint8_t by = (r & (BKG_MT_H - 1)) << 1;
 	ld	a, (hl-)
 	and	a, #0x0f
 	add	a, a
 	ld	(hl), a
-;src/collision.c:90: set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
+;src/collision.c:95: set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
 	ld	l, e
 	ld	h, #0x00
 	add	hl, hl
@@ -412,7 +426,7 @@ _draw_mt_column::
 	call	_set_bkg_tiles
 	add	sp, #6
 	pop	de
-;src/collision.c:91: set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
+;src/collision.c:96: set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
 	ld	hl,#_metatiles + 1
 	add	hl,de
 	inc	hl
@@ -436,7 +450,7 @@ _draw_mt_column::
 	inc	sp
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/collision.c:92: map_ptr += map_w;
+;src/collision.c:97: map_ptr += map_w;
 	ldhl	sp,	#8
 	ld	a,	(hl+)
 	ld	h, (hl)
@@ -444,23 +458,23 @@ _draw_mt_column::
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;src/collision.c:86: for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
+;src/collision.c:91: for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
 	ldhl	sp,	#3
 	inc	(hl)
 	jr	00104$
 00101$:
-;src/collision.c:95: SWITCH_ROM(_prev);
+;src/collision.c:100: SWITCH_ROM(_prev);
 	ldhl	sp,	#1
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	a, (hl)
 	ld	(#_rROMB0),a
-;src/collision.c:96: }
+;src/collision.c:101: }
 	add	sp, #4
 	pop	hl
 	add	sp, #7
 	jp	(hl)
-;src/collision.c:98: void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint16_t map_h, uint8_t map_bank) {
+;src/collision.c:103: void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint16_t map_h, uint8_t map_bank) {
 ;	---------------------------------
 ; Function fill_scroll_bg
 ; ---------------------------------
@@ -470,7 +484,7 @@ _fill_scroll_bg::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-;src/collision.c:99: uint16_t cols = (map_w < 16) ? map_w : 16;
+;src/collision.c:104: uint16_t cols = (map_w < 16) ? map_w : 16;
 	ld	e, c
 	ld	d, b
 	ld	a, e
@@ -483,7 +497,7 @@ _fill_scroll_bg::
 	ldhl	sp,	#0
 	ld	a, e
 	ld	(hl+), a
-;src/collision.c:100: for (uint16_t c = 0; c < cols; c++) {
+;src/collision.c:105: for (uint16_t c = 0; c < cols; c++) {
 	ld	de, #0x0000
 	ld	(hl), e
 00103$:
@@ -494,7 +508,7 @@ _fill_scroll_bg::
 	ld	a, d
 	sbc	a, (hl)
 	jr	NC, 00105$
-;src/collision.c:101: draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_h, map_bank);
+;src/collision.c:106: draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_h, map_bank);
 	ld	a, e
 	and	a, #0x0f
 	push	bc
@@ -521,56 +535,56 @@ _fill_scroll_bg::
 	call	_draw_mt_column
 	pop	de
 	pop	bc
-;src/collision.c:100: for (uint16_t c = 0; c < cols; c++) {
+;src/collision.c:105: for (uint16_t c = 0; c < cols; c++) {
 	inc	de
 	jr	00103$
 00105$:
-;src/collision.c:103: }
+;src/collision.c:108: }
 	add	sp, #4
 	pop	hl
 	add	sp, #3
 	jp	(hl)
-;src/collision.c:109: void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
+;src/collision.c:114: void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
 ;	---------------------------------
 ; Function init_music_banked
 ; ---------------------------------
 _init_music_banked::
 	ld	c, a
-;src/collision.c:110: uint8_t _prev = _current_bank;
+;src/collision.c:115: uint8_t _prev = _current_bank;
 	ldh	a, (__current_bank + 0)
 	ld	b, a
-;src/collision.c:111: music_ready = 0;
+;src/collision.c:116: music_ready = 0;
 	xor	a, a
 	ld	(#_music_ready),a
-;src/collision.c:112: current_song_bank = bank;
+;src/collision.c:117: current_song_bank = bank;
 	ld	hl, #_current_song_bank
 	ld	(hl), c
-;src/collision.c:113: SWITCH_ROM(bank);
+;src/collision.c:118: SWITCH_ROM(bank);
 	ld	a, c
 	ldh	(__current_bank + 0), a
 	ld	hl, #_rROMB0
 	ld	(hl), c
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/collision.c:115: hUGE_init(song);
+;src/collision.c:120: hUGE_init(song);
 	push	bc
 	call	_hUGE_init
 	pop	bc
-;src/collision.c:116: TMA_REG = divider;
+;src/collision.c:121: TMA_REG = divider;
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ldh	(_TMA_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/collision.c:118: SWITCH_ROM(_prev);
+;src/collision.c:123: SWITCH_ROM(_prev);
 	ld	a, b
 	ldh	(__current_bank + 0), a
 	ld	hl, #_rROMB0
 	ld	(hl), b
-;src/collision.c:119: music_ready = 1;
+;src/collision.c:124: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
-;src/collision.c:120: }
+;src/collision.c:125: }
 	pop	hl
 	inc	sp
 	jp	(hl)

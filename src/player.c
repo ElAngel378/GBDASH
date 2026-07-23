@@ -158,9 +158,10 @@ uint8_t player_update(
     uint8_t hz_br = col_at_raw(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
 
     // --- Orbs and Pads: full 16x16 hitbox corners ---
-    uint8_t tl = col_at_raw(p->world_x,                  p->world_y,                  map, map_w, map_h);
-    uint8_t tr = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y,                  map, map_w, map_h);
-    uint8_t bl = col_at_raw(p->world_x,                  p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
+// Full 16x16 outer corner checks (no inset)
+    uint8_t tl = col_at_raw(p->world_x,                     p->world_y,                     map, map_w, map_h);
+    uint8_t tr = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y,                     map, map_w, map_h);
+    uint8_t bl = col_at_raw(p->world_x,                     p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
     uint8_t br = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
 
     uint8_t pad_l = (p->gravity_flipped) ? tl : bl;
@@ -192,9 +193,9 @@ uint8_t player_update(
     else if (joy & J_A) {
         struct { uint8_t col; uint16_t x; int16_t y; } corners[4] = {
             { tl, p->world_x,                  p->world_y },
-            { tr, p->world_x + PLAYER_SIZE - 1, p->world_y },
-            { bl, p->world_x,                  p->world_y + PLAYER_SIZE - 1 },
-            { br, p->world_x + PLAYER_SIZE - 1, p->world_y + PLAYER_SIZE - 1 },
+            { tr, p->world_x + PLAYER_SIZE-1, p->world_y },
+            { bl, p->world_x,                  p->world_y + PLAYER_SIZE-1},
+            { br, p->world_x + PLAYER_SIZE-1, p->world_y + PLAYER_SIZE-1},
         };
 
         for (uint8_t i = 0; i < 4; i++) {
@@ -214,7 +215,7 @@ uint8_t player_update(
                 p->gravity_flipped = !p->gravity_flipped;
                 p->vel_y = (p->gravity_flipped) ? -64 : 64;
             } else {
-                p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+7 : JUMP_FORCE-7;
+                p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+9 : JUMP_FORCE-9;
             }
             p->on_ground = 0;
             break; // only fire once per frame even if multiple corners overlap different orbs

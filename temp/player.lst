@@ -1939,7 +1939,7 @@
     000008DD CDr00r00         [24] 1939 	call	_col_at_raw
     000008E0 F8 29            [12] 1940 	ldhl	sp,	#41
     000008E2 77               [ 8] 1941 	ld	(hl), a
-                                   1942 ;src/player.c:161: uint8_t tl = col_at_raw(p->world_x,                  p->world_y,                  map, map_w, map_h);
+                                   1942 ;src/player.c:162: uint8_t tl = col_at_raw(p->world_x,                     p->world_y,                     map, map_w, map_h);
     000008E3 F8 20            [12] 1943 	ldhl	sp,#32
     000008E5 2A               [ 8] 1944 	ld	a, (hl+)
     000008E6 5F               [ 4] 1945 	ld	e, a
@@ -1981,7 +1981,7 @@
     0000090F CDr00r00         [24] 1981 	call	_col_at_raw
     00000912 F8 2A            [12] 1982 	ldhl	sp,	#42
     00000914 77               [ 8] 1983 	ld	(hl), a
-                                   1984 ;src/player.c:162: uint8_t tr = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y,                  map, map_w, map_h);
+                                   1984 ;src/player.c:163: uint8_t tr = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y,                     map, map_w, map_h);
     00000915 F8 20            [12] 1985 	ldhl	sp,#32
     00000917 2A               [ 8] 1986 	ld	a, (hl+)
     00000918 5F               [ 4] 1987 	ld	e, a
@@ -2022,7 +2022,7 @@
     00000940 CDr00r00         [24] 2022 	call	_col_at_raw
     00000943 F8 2B            [12] 2023 	ldhl	sp,	#43
     00000945 77               [ 8] 2024 	ld	(hl), a
-                                   2025 ;src/player.c:163: uint8_t bl = col_at_raw(p->world_x,                  p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
+                                   2025 ;src/player.c:164: uint8_t bl = col_at_raw(p->world_x,                     p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
     00000946 F8 20            [12] 2026 	ldhl	sp,#32
     00000948 2A               [ 8] 2027 	ld	a, (hl+)
     00000949 5F               [ 4] 2028 	ld	e, a
@@ -2068,7 +2068,7 @@
     00000979 CDr00r00         [24] 2068 	call	_col_at_raw
     0000097C F8 2C            [12] 2069 	ldhl	sp,	#44
     0000097E 77               [ 8] 2070 	ld	(hl), a
-                                   2071 ;src/player.c:164: uint8_t br = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
+                                   2071 ;src/player.c:165: uint8_t br = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
     0000097F F8 20            [12] 2072 	ldhl	sp,#32
     00000981 2A               [ 8] 2073 	ld	a, (hl+)
     00000982 5F               [ 4] 2074 	ld	e, a
@@ -2113,7 +2113,7 @@
     000009B1 CDr00r00         [24] 2113 	call	_col_at_raw
     000009B4 F8 2D            [12] 2114 	ldhl	sp,	#45
     000009B6 77               [ 8] 2115 	ld	(hl), a
-                                   2116 ;src/player.c:166: uint8_t pad_l = (p->gravity_flipped) ? tl : bl;
+                                   2116 ;src/player.c:167: uint8_t pad_l = (p->gravity_flipped) ? tl : bl;
     000009B7 F8 1C            [12] 2117 	ldhl	sp,#28
     000009B9 2A               [ 8] 2118 	ld	a, (hl+)
     000009BA 5F               [ 4] 2119 	ld	e, a
@@ -2131,7 +2131,7 @@
     000009CA 7E               [ 8] 2131 	ld	a, (hl)
     000009CB                       2132 00284$:
     000009CB F8 2F            [12] 2133 	ldhl	sp,	#47
-                                   2134 ;src/player.c:167: uint8_t pad_r = (p->gravity_flipped) ? tr : br;
+                                   2134 ;src/player.c:168: uint8_t pad_r = (p->gravity_flipped) ? tr : br;
     000009CD 32               [ 8] 2135 	ld	(hl-), a
     000009CE 7E               [ 8] 2136 	ld	a, (hl)
     000009CF B7               [ 4] 2137 	or	a, a
@@ -2144,7 +2144,7 @@
     000009D9 7E               [ 8] 2144 	ld	a, (hl)
     000009DA                       2145 00286$:
     000009DA F8 30            [12] 2146 	ldhl	sp,	#48
-                                   2147 ;src/player.c:170: if (IS_PAD(pad_l) || IS_PAD(pad_r)) {
+                                   2147 ;src/player.c:171: if (IS_PAD(pad_l) || IS_PAD(pad_r)) {
     000009DC 32               [ 8] 2148 	ld	(hl-), a
     000009DD 7E               [ 8] 2149 	ld	a, (hl)
     000009DE D6 0B            [ 8] 2150 	sub	a, #0x0b
@@ -2190,7 +2190,7 @@
     00000A14 22               [ 8] 2190 	ld	(hl+), a
     00000A15 13               [ 8] 2191 	inc	de
     00000A16 1A               [ 8] 2192 	ld	a, (de)
-                                   2193 ;src/player.c:173: int16_t hy = (p->gravity_flipped) ? p->world_y : (p->world_y + PLAYER_SIZE - 1);
+                                   2193 ;src/player.c:174: int16_t hy = (p->gravity_flipped) ? p->world_y : (p->world_y + PLAYER_SIZE - 1);
     00000A17 22               [ 8] 2194 	ld	(hl+), a
     00000A18 7E               [ 8] 2195 	ld	a, (hl)
     00000A19 B7               [ 4] 2196 	or	a, a
@@ -2240,7 +2240,7 @@
     00000A4F 13               [ 8] 2240 	inc	de
     00000A50 1A               [ 8] 2241 	ld	a, (de)
     00000A51 77               [ 8] 2242 	ld	(hl), a
-                                   2243 ;src/player.c:174: if (IS_PAD(pad_l)) { hit = pad_l; hx = p->world_x; }
+                                   2243 ;src/player.c:175: if (IS_PAD(pad_l)) { hit = pad_l; hx = p->world_x; }
     00000A52 F8 31            [12] 2244 	ldhl	sp,	#49
     00000A54 7E               [ 8] 2245 	ld	a, (hl)
     00000A55 B7               [ 4] 2246 	or	a, a
@@ -2264,7 +2264,7 @@
     00000A6E 77               [ 8] 2264 	ld	(hl), a
     00000A6F 18 15            [12] 2265 	jr	00185$
     00000A71                       2266 00184$:
-                                   2267 ;src/player.c:175: else               { hit = pad_r; hx = p->world_x + PLAYER_SIZE - 1; }
+                                   2267 ;src/player.c:176: else               { hit = pad_r; hx = p->world_x + PLAYER_SIZE - 1; }
     00000A71 F8 30            [12] 2268 	ldhl	sp,	#48
     00000A73 2A               [ 8] 2269 	ld	a, (hl+)
     00000A74 23               [ 8] 2270 	inc	hl
@@ -2282,7 +2282,7 @@
     00000A84 23               [ 8] 2282 	inc	hl
     00000A85 77               [ 8] 2283 	ld	(hl), a
     00000A86                       2284 00185$:
-                                   2285 ;src/player.c:177: uint16_t pmx = (hx >> 4);
+                                   2285 ;src/player.c:178: uint16_t pmx = (hx >> 4);
     00000A86 F8 31            [12] 2286 	ldhl	sp,	#49
     00000A88 CB 3E            [16] 2287 	srl	(hl)
     00000A8A 2B               [ 8] 2288 	dec	hl
@@ -2299,7 +2299,7 @@
     00000A9A CB 3E            [16] 2299 	srl	(hl)
     00000A9C 2B               [ 8] 2300 	dec	hl
     00000A9D CB 1E            [16] 2301 	rr	(hl)
-                                   2302 ;src/player.c:178: uint16_t pmy = ((uint16_t)hy >> 4);
+                                   2302 ;src/player.c:179: uint16_t pmy = ((uint16_t)hy >> 4);
     00000A9F F8 2D            [12] 2303 	ldhl	sp,	#45
     00000AA1 7E               [ 8] 2304 	ld	a, (hl)
     00000AA2 F8 2A            [12] 2305 	ldhl	sp,	#42
@@ -2330,7 +2330,7 @@
     00000AC7 CB 3E            [16] 2330 	srl	(hl)
     00000AC9 2B               [ 8] 2331 	dec	hl
     00000ACA CB 1E            [16] 2332 	rr	(hl)
-                                   2333 ;src/player.c:180: if (!player_tile_activated(p, pmx, pmy)) {
+                                   2333 ;src/player.c:181: if (!player_tile_activated(p, pmx, pmy)) {
     00000ACC 2A               [ 8] 2334 	ld	a, (hl+)
     00000ACD 5F               [ 4] 2335 	ld	e, a
     00000ACE 2A               [ 8] 2336 	ld	a, (hl+)
@@ -2346,7 +2346,7 @@
     00000AD9 CDr57r00         [24] 2346 	call	_player_tile_activated
     00000ADC B7               [ 4] 2347 	or	a, a
     00000ADD C2rFCr0C         [16] 2348 	jp	NZ, 00210$
-                                   2349 ;src/player.c:181: player_mark_activated(p, pmx, pmy);
+                                   2349 ;src/player.c:182: player_mark_activated(p, pmx, pmy);
     00000AE0 F8 2E            [12] 2350 	ldhl	sp,	#46
     00000AE2 2A               [ 8] 2351 	ld	a, (hl+)
     00000AE3 5F               [ 4] 2352 	ld	e, a
@@ -2368,12 +2368,12 @@
     00000AF6 56               [ 8] 2368 	ld	d, (hl)
     00000AF7 1A               [ 8] 2369 	ld	a, (de)
     00000AF8 4F               [ 4] 2370 	ld	c, a
-                                   2371 ;src/player.c:182: if (hit == COL_PAD_BLUE) {
+                                   2371 ;src/player.c:183: if (hit == COL_PAD_BLUE) {
     00000AF9 F8 32            [12] 2372 	ldhl	sp,	#50
     00000AFB 7E               [ 8] 2373 	ld	a, (hl)
     00000AFC D6 0E            [ 8] 2374 	sub	a, #0x0e
     00000AFE 20 22            [12] 2375 	jr	NZ, 00188$
-                                   2376 ;src/player.c:183: p->gravity_flipped = !p->gravity_flipped;
+                                   2376 ;src/player.c:184: p->gravity_flipped = !p->gravity_flipped;
     00000B00 79               [ 4] 2377 	ld	a, c
     00000B01 D6 01            [ 8] 2378 	sub	a, #0x01
     00000B03 3E 00            [ 8] 2379 	ld	a, #0x00
@@ -2384,7 +2384,7 @@
     00000B0A 66               [ 8] 2384 	ld	h, (hl)
     00000B0B 6B               [ 4] 2385 	ld	l, e
     00000B0C 77               [ 8] 2386 	ld	(hl), a
-                                   2387 ;src/player.c:184: p->vel_y = (p->gravity_flipped) ? -64 : 64;
+                                   2387 ;src/player.c:185: p->vel_y = (p->gravity_flipped) ? -64 : 64;
     00000B0D B7               [ 4] 2388 	or	a, a
     00000B0E 3E C0            [ 8] 2389 	ld	a, #0xc0
     00000B10 20 02            [12] 2390 	jr	NZ, 00290$
@@ -2403,7 +2403,7 @@
     00000B1F 70               [ 8] 2403 	ld	(hl), b
     00000B20 18 16            [12] 2404 	jr	00189$
     00000B22                       2405 00188$:
-                                   2406 ;src/player.c:186: p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                                   2406 ;src/player.c:187: p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
     00000B22 79               [ 4] 2407 	ld	a, c
     00000B23 B7               [ 4] 2408 	or	a, a
     00000B24 28 05            [12] 2409 	jr	Z, 00291$
@@ -2422,7 +2422,7 @@
     00000B36 22               [ 8] 2422 	ld	(hl+), a
     00000B37 70               [ 8] 2423 	ld	(hl), b
     00000B38                       2424 00189$:
-                                   2425 ;src/player.c:188: p->on_ground = 0;
+                                   2425 ;src/player.c:189: p->on_ground = 0;
     00000B38 F8 1E            [12] 2426 	ldhl	sp,	#30
     00000B3A 2A               [ 8] 2427 	ld	a, (hl+)
     00000B3B 66               [ 8] 2428 	ld	h, (hl)
@@ -2430,12 +2430,12 @@
     00000B3D 36 00            [12] 2430 	ld	(hl), #0x00
     00000B3F C3rFCr0C         [16] 2431 	jp	00210$
     00000B42                       2432 00209$:
-                                   2433 ;src/player.c:192: else if (joy & J_A) {
+                                   2433 ;src/player.c:193: else if (joy & J_A) {
     00000B42 AF               [ 4] 2434 	xor	a, a
     00000B43 F8 18            [12] 2435 	ldhl	sp,	#24
     00000B45 B6               [ 8] 2436 	or	a, (hl)
     00000B46 CArFCr0C         [16] 2437 	jp	Z, 00210$
-                                   2438 ;src/player.c:193: struct { uint8_t col; uint16_t x; int16_t y; } corners[4] = {
+                                   2438 ;src/player.c:194: struct { uint8_t col; uint16_t x; int16_t y; } corners[4] = {
     00000B49 F8 2A            [12] 2439 	ldhl	sp,	#42
     00000B4B 7E               [ 8] 2440 	ld	a, (hl)
     00000B4C F8 02            [12] 2441 	ldhl	sp,	#2
@@ -2568,7 +2568,7 @@
     00000BE9 F8 14            [12] 2568 	ldhl	sp,	#20
     00000BEB 22               [ 8] 2569 	ld	(hl+), a
     00000BEC 71               [ 8] 2570 	ld	(hl), c
-                                   2571 ;src/player.c:200: for (uint8_t i = 0; i < 4; i++) {
+                                   2571 ;src/player.c:201: for (uint8_t i = 0; i < 4; i++) {
     00000BED F8 32            [12] 2572 	ldhl	sp,	#50
     00000BEF 36 00            [12] 2573 	ld	(hl), #0x00
     00000BF1                       2574 00262$:
@@ -2576,7 +2576,7 @@
     00000BF3 7E               [ 8] 2576 	ld	a, (hl)
     00000BF4 D6 04            [ 8] 2577 	sub	a, #0x04
     00000BF6 D2rFCr0C         [16] 2578 	jp	NC, 00210$
-                                   2579 ;src/player.c:201: if (!IS_ORB(corners[i].col)) continue;
+                                   2579 ;src/player.c:202: if (!IS_ORB(corners[i].col)) continue;
     00000BF9 4E               [ 8] 2580 	ld	c, (hl)
     00000BFA 06 00            [ 8] 2581 	ld	b, #0x00
     00000BFC 69               [ 4] 2582 	ld	l, c
@@ -2597,7 +2597,7 @@
     00000C11 D6 0D            [ 8] 2597 	sub	a, #0x0d
     00000C13 C2rF6r0C         [16] 2598 	jp	NZ, 00204$
     00000C16                       2599 00193$:
-                                   2600 ;src/player.c:203: uint16_t omx = (corners[i].x >> 4);
+                                   2600 ;src/player.c:204: uint16_t omx = (corners[i].x >> 4);
     00000C16 21 02 00         [12] 2601 	ld	hl, #2
     00000C19 39               [ 8] 2602 	add	hl, sp
     00000C1A 09               [ 8] 2603 	add	hl, bc
@@ -2624,7 +2624,7 @@
     00000C36 CB 19            [ 8] 2624 	rr	c
     00000C38 CB 38            [ 8] 2625 	srl	b
     00000C3A CB 19            [ 8] 2626 	rr	c
-                                   2627 ;src/player.c:204: uint16_t omy = ((uint16_t)corners[i].y >> 4);
+                                   2627 ;src/player.c:205: uint16_t omy = ((uint16_t)corners[i].y >> 4);
     00000C3C F8 30            [12] 2628 	ldhl	sp,	#48
     00000C3E 2A               [ 8] 2629 	ld	a, (hl+)
     00000C3F 66               [ 8] 2630 	ld	h, (hl)
@@ -2644,7 +2644,7 @@
     00000C52 CB 1B            [ 8] 2644 	rr	e
     00000C54 CB 3A            [ 8] 2645 	srl	d
     00000C56 CB 1B            [ 8] 2646 	rr	e
-                                   2647 ;src/player.c:206: if (player_tile_activated(p, omx, omy)) continue; // already used, skip entirely
+                                   2647 ;src/player.c:207: if (player_tile_activated(p, omx, omy)) continue; // already used, skip entirely
     00000C58 C5               [16] 2648 	push	bc
     00000C59 D5               [16] 2649 	push	de
     00000C5A D5               [16] 2650 	push	de
@@ -2657,14 +2657,14 @@
     00000C64 C1               [12] 2657 	pop	bc
     00000C65 B7               [ 4] 2658 	or	a, a
     00000C66 C2rF6r0C         [16] 2659 	jp	NZ, 00204$
-                                   2660 ;src/player.c:208: player_mark_activated(p, omx, omy);
+                                   2660 ;src/player.c:209: player_mark_activated(p, omx, omy);
     00000C69 D5               [16] 2661 	push	de
     00000C6A F8 36            [12] 2662 	ldhl	sp,	#54
     00000C6C 2A               [ 8] 2663 	ld	a, (hl+)
     00000C6D 5F               [ 4] 2664 	ld	e, a
     00000C6E 56               [ 8] 2665 	ld	d, (hl)
     00000C6F CDrC6r00         [24] 2666 	call	_player_mark_activated
-                                   2667 ;src/player.c:210: uint8_t hit = corners[i].col;
+                                   2667 ;src/player.c:211: uint8_t hit = corners[i].col;
     00000C72 F8 30            [12] 2668 	ldhl	sp,#48
     00000C74 2A               [ 8] 2669 	ld	a, (hl+)
     00000C75 5F               [ 4] 2670 	ld	e, a
@@ -2679,12 +2679,12 @@
     00000C7E 56               [ 8] 2679 	ld	d, (hl)
     00000C7F 1A               [ 8] 2680 	ld	a, (de)
     00000C80 F8 31            [12] 2681 	ldhl	sp,	#49
-                                   2682 ;src/player.c:211: if (hit == COL_ORB_MAGENTA) {
+                                   2682 ;src/player.c:212: if (hit == COL_ORB_MAGENTA) {
     00000C82 22               [ 8] 2683 	ld	(hl+), a
     00000C83 7E               [ 8] 2684 	ld	a, (hl)
     00000C84 D6 0D            [ 8] 2685 	sub	a, #0x0d
     00000C86 20 24            [12] 2686 	jr	NZ, 00202$
-                                   2687 ;src/player.c:212: p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+                                   2687 ;src/player.c:213: p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
     00000C88 F8 31            [12] 2688 	ldhl	sp,	#49
     00000C8A 7E               [ 8] 2689 	ld	a, (hl)
     00000C8B B7               [ 4] 2690 	or	a, a
@@ -2714,12 +2714,12 @@
     00000CA9 12               [ 8] 2714 	ld	(de), a
     00000CAA 18 41            [12] 2715 	jr	00203$
     00000CAC                       2716 00202$:
-                                   2717 ;src/player.c:213: } else if (hit == COL_ORB_BLUE) {
+                                   2717 ;src/player.c:214: } else if (hit == COL_ORB_BLUE) {
     00000CAC F8 32            [12] 2718 	ldhl	sp,	#50
     00000CAE 7E               [ 8] 2719 	ld	a, (hl)
     00000CAF D6 0C            [ 8] 2720 	sub	a, #0x0c
     00000CB1 20 24            [12] 2721 	jr	NZ, 00199$
-                                   2722 ;src/player.c:214: p->gravity_flipped = !p->gravity_flipped;
+                                   2722 ;src/player.c:215: p->gravity_flipped = !p->gravity_flipped;
     00000CB3 F8 31            [12] 2723 	ldhl	sp,	#49
     00000CB5 7E               [ 8] 2724 	ld	a, (hl)
     00000CB6 D6 01            [ 8] 2725 	sub	a, #0x01
@@ -2731,7 +2731,7 @@
     00000CBF 66               [ 8] 2731 	ld	h, (hl)
     00000CC0 6B               [ 4] 2732 	ld	l, e
     00000CC1 77               [ 8] 2733 	ld	(hl), a
-                                   2734 ;src/player.c:215: p->vel_y = (p->gravity_flipped) ? -64 : 64;
+                                   2734 ;src/player.c:216: p->vel_y = (p->gravity_flipped) ? -64 : 64;
     00000CC2 B7               [ 4] 2735 	or	a, a
     00000CC3 3E C0            [ 8] 2736 	ld	a, #0xc0
     00000CC5 20 02            [12] 2737 	jr	NZ, 00296$
@@ -2750,13 +2750,13 @@
     00000CD4 70               [ 8] 2750 	ld	(hl), b
     00000CD5 18 16            [12] 2751 	jr	00203$
     00000CD7                       2752 00199$:
-                                   2753 ;src/player.c:217: p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+7 : JUMP_FORCE-7;
+                                   2753 ;src/player.c:218: p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+9 : JUMP_FORCE-9;
     00000CD7 F8 31            [12] 2754 	ldhl	sp,	#49
     00000CD9 7E               [ 8] 2755 	ld	a, (hl)
     00000CDA B7               [ 4] 2756 	or	a, a
-    00000CDB 3E 64            [ 8] 2757 	ld	a, #0x64
+    00000CDB 3E 66            [ 8] 2757 	ld	a, #0x66
     00000CDD 20 02            [12] 2758 	jr	NZ, 00298$
-    00000CDF 3E 9C            [ 8] 2759 	ld	a, #0x9c
+    00000CDF 3E 9A            [ 8] 2759 	ld	a, #0x9a
     00000CE1                       2760 00298$:
     00000CE1 4F               [ 4] 2761 	ld	c, a
     00000CE2 07               [ 4] 2762 	rlca
@@ -2770,21 +2770,21 @@
     00000CEB 22               [ 8] 2770 	ld	(hl+), a
     00000CEC 70               [ 8] 2771 	ld	(hl), b
     00000CED                       2772 00203$:
-                                   2773 ;src/player.c:219: p->on_ground = 0;
+                                   2773 ;src/player.c:220: p->on_ground = 0;
     00000CED F8 1E            [12] 2774 	ldhl	sp,	#30
     00000CEF 2A               [ 8] 2775 	ld	a, (hl+)
     00000CF0 66               [ 8] 2776 	ld	h, (hl)
     00000CF1 6F               [ 4] 2777 	ld	l, a
     00000CF2 36 00            [12] 2778 	ld	(hl), #0x00
-                                   2779 ;src/player.c:220: break; // only fire once per frame even if multiple corners overlap different orbs
+                                   2779 ;src/player.c:221: break; // only fire once per frame even if multiple corners overlap different orbs
     00000CF4 18 06            [12] 2780 	jr	00210$
     00000CF6                       2781 00204$:
-                                   2782 ;src/player.c:200: for (uint8_t i = 0; i < 4; i++) {
+                                   2782 ;src/player.c:201: for (uint8_t i = 0; i < 4; i++) {
     00000CF6 F8 32            [12] 2783 	ldhl	sp,	#50
     00000CF8 34               [12] 2784 	inc	(hl)
     00000CF9 C3rF1r0B         [16] 2785 	jp	00262$
     00000CFC                       2786 00210$:
-                                   2787 ;src/player.c:225: if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
+                                   2787 ;src/player.c:226: if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
     00000CFC F8 24            [12] 2788 	ldhl	sp,	#36
     00000CFE 7E               [ 8] 2789 	ld	a, (hl)
     00000CFF D6 07            [ 8] 2790 	sub	a, #0x07
@@ -2817,7 +2817,7 @@
     00000D36 7E               [ 8] 2817 	ld	a, (hl)
     00000D37 D6 06            [ 8] 2818 	sub	a, #0x06
     00000D39 CAr05r0E         [16] 2819 	jp	Z, 00214$
-                                   2820 ;src/player.c:226: IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
+                                   2820 ;src/player.c:227: IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
     00000D3C F8 26            [12] 2821 	ldhl	sp,	#38
     00000D3E 7E               [ 8] 2822 	ld	a, (hl)
     00000D3F D6 08            [ 8] 2823 	sub	a, #0x08
@@ -2931,21 +2931,21 @@
     00000E01 D6 11            [ 8] 2931 	sub	a, #0x11
     00000E03 20 0F            [12] 2932 	jr	NZ, 00215$
     00000E05                       2933 00214$:
-                                   2934 ;src/player.c:227: p->dead = 1;
+                                   2934 ;src/player.c:228: p->dead = 1;
     00000E05 F8 16            [12] 2935 	ldhl	sp,	#22
     00000E07 2A               [ 8] 2936 	ld	a, (hl+)
     00000E08 66               [ 8] 2937 	ld	h, (hl)
     00000E09 6F               [ 4] 2938 	ld	l, a
     00000E0A 36 01            [12] 2939 	ld	(hl), #0x01
-                                   2940 ;src/player.c:228: col_at_end();
+                                   2940 ;src/player.c:229: col_at_end();
     00000E0C CDr00r00         [24] 2941 	call	_col_at_end
-                                   2942 ;src/player.c:229: return 1;
+                                   2942 ;src/player.c:230: return 1;
     00000E0F 3E 01            [ 8] 2943 	ld	a, #0x01
     00000E11 C3rE7r0E         [16] 2944 	jp	00263$
     00000E14                       2945 00215$:
-                                   2946 ;src/player.c:232: col_at_end();
+                                   2946 ;src/player.c:233: col_at_end();
     00000E14 CDr00r00         [24] 2947 	call	_col_at_end
-                                   2948 ;src/player.c:235: if (p->on_ground) {
+                                   2948 ;src/player.c:236: if (p->on_ground) {
     00000E17 F8 1E            [12] 2949 	ldhl	sp,#30
     00000E19 2A               [ 8] 2950 	ld	a, (hl+)
     00000E1A 5F               [ 4] 2951 	ld	e, a
@@ -2953,7 +2953,7 @@
     00000E1C 1A               [ 8] 2953 	ld	a, (de)
     00000E1D F8 32            [12] 2954 	ldhl	sp,	#50
     00000E1F 77               [ 8] 2955 	ld	(hl), a
-                                   2956 ;src/player.c:236: p->anim_timer = 0;
+                                   2956 ;src/player.c:237: p->anim_timer = 0;
     00000E20 F8 34            [12] 2957 	ldhl	sp,#52
     00000E22 2A               [ 8] 2958 	ld	a, (hl+)
     00000E23 5F               [ 4] 2959 	ld	e, a
@@ -2962,7 +2962,7 @@
     00000E28 19               [ 8] 2962 	add	hl, de
     00000E29 4D               [ 4] 2963 	ld	c, l
     00000E2A 44               [ 4] 2964 	ld	b, h
-                                   2965 ;src/player.c:237: p->anim_frame = 0;
+                                   2965 ;src/player.c:238: p->anim_frame = 0;
     00000E2B F8 34            [12] 2966 	ldhl	sp,#52
     00000E2D 2A               [ 8] 2967 	ld	a, (hl+)
     00000E2E 5F               [ 4] 2968 	ld	e, a
@@ -2976,13 +2976,13 @@
     00000E39 E1               [12] 2976 	pop	hl
     00000E3A 7C               [ 4] 2977 	ld	a, h
     00000E3B F8 31            [12] 2978 	ldhl	sp,	#49
-                                   2979 ;src/player.c:235: if (p->on_ground) {
+                                   2979 ;src/player.c:236: if (p->on_ground) {
     00000E3D 22               [ 8] 2980 	ld	(hl+), a
     00000E3E 7E               [ 8] 2981 	ld	a, (hl)
     00000E3F B7               [ 4] 2982 	or	a, a
     00000E40 28 0C            [12] 2983 	jr	Z, 00256$
-                                   2984 ;src/player.c:236: p->anim_timer = 0;
-                                   2985 ;src/player.c:237: p->anim_frame = 0;
+                                   2984 ;src/player.c:237: p->anim_timer = 0;
+                                   2985 ;src/player.c:238: p->anim_frame = 0;
     00000E42 2B               [ 8] 2986 	dec	hl
     00000E43 AF               [ 4] 2987 	xor	a, a
     00000E44 02               [ 8] 2988 	ld	(bc), a
@@ -2994,7 +2994,7 @@
     00000E4A 36 00            [12] 2994 	ld	(hl), #0x00
     00000E4C 18 40            [12] 2995 	jr	00257$
     00000E4E                       2996 00256$:
-                                   2997 ;src/player.c:239: p->anim_timer += 10;
+                                   2997 ;src/player.c:240: p->anim_timer += 10;
     00000E4E 69               [ 4] 2998 	ld	l, c
     00000E4F 60               [ 4] 2999 	ld	h, b
     00000E50 2A               [ 8] 3000 	ld	a,	(hl+)
@@ -3009,13 +3009,13 @@
     00000E5B 7B               [ 4] 3009 	ld	a, e
     00000E5C 22               [ 8] 3010 	ld	(hl+), a
     00000E5D 72               [ 8] 3011 	ld	(hl), d
-                                   3012 ;src/player.c:240: if (p->anim_timer >= 17) {
+                                   3012 ;src/player.c:241: if (p->anim_timer >= 17) {
     00000E5E 7B               [ 4] 3013 	ld	a, e
     00000E5F D6 11            [ 8] 3014 	sub	a, #0x11
     00000E61 7A               [ 4] 3015 	ld	a, d
     00000E62 DE 00            [ 8] 3016 	sbc	a, #0x00
     00000E64 38 28            [12] 3017 	jr	C, 00257$
-                                   3018 ;src/player.c:241: p->anim_timer -= 17;
+                                   3018 ;src/player.c:242: p->anim_timer -= 17;
     00000E66 69               [ 4] 3019 	ld	l, c
     00000E67 60               [ 4] 3020 	ld	h, b
     00000E68 2A               [ 8] 3021 	ld	a,	(hl+)
@@ -3030,7 +3030,7 @@
     00000E73 03               [ 8] 3030 	inc	bc
     00000E74 7A               [ 4] 3031 	ld	a, d
     00000E75 02               [ 8] 3032 	ld	(bc), a
-                                   3033 ;src/player.c:242: p->anim_frame++;
+                                   3033 ;src/player.c:243: p->anim_frame++;
     00000E76 F8 30            [12] 3034 	ldhl	sp,#48
     00000E78 2A               [ 8] 3035 	ld	a, (hl+)
     00000E79 5F               [ 4] 3036 	ld	e, a
@@ -3043,7 +3043,7 @@
     00000E80 66               [ 8] 3043 	ld	h, (hl)
     00000E81 6B               [ 4] 3044 	ld	l, e
     00000E82 77               [ 8] 3045 	ld	(hl), a
-                                   3046 ;src/player.c:243: if (p->anim_frame >= 24) p->anim_frame = 0;
+                                   3046 ;src/player.c:244: if (p->anim_frame >= 24) p->anim_frame = 0;
     00000E83 D6 18            [ 8] 3047 	sub	a, #0x18
     00000E85 38 07            [12] 3048 	jr	C, 00257$
     00000E87 F8 30            [12] 3049 	ldhl	sp,	#48
@@ -3052,7 +3052,7 @@
     00000E8B 6F               [ 4] 3052 	ld	l, a
     00000E8C 36 00            [12] 3053 	ld	(hl), #0x00
     00000E8E                       3054 00257$:
-                                   3055 ;src/player.c:248: if (p->world_y > (int16_t)((uint16_t)map_h << 4) || p->world_y < -32) {
+                                   3055 ;src/player.c:249: if (p->world_y > (int16_t)((uint16_t)map_h << 4) || p->world_y < -32) {
     00000E8E F8 20            [12] 3056 	ldhl	sp,#32
     00000E90 2A               [ 8] 3057 	ld	a, (hl+)
     00000E91 5F               [ 4] 3058 	ld	e, a
@@ -3102,17 +3102,17 @@
     00000EC9 DE 7F            [ 8] 3102 	sbc	a, #0x7f
     00000ECB 30 0A            [12] 3103 	jr	NC, 00259$
     00000ECD                       3104 00258$:
-                                   3105 ;src/player.c:249: p->dead = 1;
+                                   3105 ;src/player.c:250: p->dead = 1;
     00000ECD F8 16            [12] 3106 	ldhl	sp,	#22
     00000ECF 2A               [ 8] 3107 	ld	a, (hl+)
     00000ED0 66               [ 8] 3108 	ld	h, (hl)
     00000ED1 6F               [ 4] 3109 	ld	l, a
-                                   3110 ;src/player.c:250: return 1;
+                                   3110 ;src/player.c:251: return 1;
     00000ED2 3E 01            [ 8] 3111 	ld	a,#0x01
     00000ED4 77               [ 8] 3112 	ld	(hl),a
     00000ED5 18 10            [12] 3113 	jr	00263$
     00000ED7                       3114 00259$:
-                                   3115 ;src/player.c:253: p->last_joy = joy;
+                                   3115 ;src/player.c:254: p->last_joy = joy;
     00000ED7 F8 34            [12] 3116 	ldhl	sp,#52
     00000ED9 2A               [ 8] 3117 	ld	a, (hl+)
     00000EDA 5F               [ 4] 3118 	ld	e, a
@@ -3124,10 +3124,10 @@
     00000EE2 F8 33            [12] 3124 	ldhl	sp,	#51
     00000EE4 7E               [ 8] 3125 	ld	a, (hl)
     00000EE5 02               [ 8] 3126 	ld	(bc), a
-                                   3127 ;src/player.c:254: return 0;
+                                   3127 ;src/player.c:255: return 0;
     00000EE6 AF               [ 4] 3128 	xor	a, a
     00000EE7                       3129 00263$:
-                                   3130 ;src/player.c:255: }
+                                   3130 ;src/player.c:256: }
     00000EE7 E8 36            [16] 3131 	add	sp, #54
     00000EE9 E1               [12] 3132 	pop	hl
     00000EEA E8 07            [16] 3133 	add	sp, #7

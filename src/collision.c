@@ -39,6 +39,11 @@ uint8_t col_at_raw(
         if (((uint16_t)world_py & 0x0F) >= 8) return COL_NONE;
         return COL_DEATH;
     }
+    if (col == COL_PAD /* || add other pad colors here */) {
+        // If the player hits the top 8 pixels of the pad's tile (empty air), ignore it
+        if (((uint16_t)world_py & 0x0F) < 8) return COL_NONE;
+        return col;
+    }
 
     return col;
 }
