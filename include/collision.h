@@ -51,7 +51,6 @@ uint8_t col_at(
     int16_t  world_py,
     const uint8_t *map,
     uint16_t map_w,
-    uint16_t map_h,
     uint8_t  map_bank
 );
 
@@ -60,9 +59,11 @@ uint8_t col_at_raw(
     uint16_t world_px,
     int16_t  world_py,
     const uint8_t *map,
-    uint16_t map_w,
-    uint16_t map_h
+    uint16_t map_w
 );
+
+// Fast version using pre-calculated column pointer
+uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
 
 // Batch collision context: switches to the map bank once.
 void col_at_begin(uint8_t map_bank);
@@ -70,5 +71,12 @@ void col_at_end(void);
 
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
+
+void draw_mt_column(uint8_t ring_col, uint16_t map_col,
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank);
+
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank);
+
+void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 
 #endif // COLLISION_H

@@ -20,7 +20,7 @@
 #define VIEW_MT_H 9
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
-#define SCROLL_SPEED_FP 860
+#define SCROLL_SPEED_FP 715
 
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
@@ -113,7 +113,7 @@ const uint8_t bg_pals[] = {
   set_sprite_data(8, 4, ship_tiles);
 
   move_bkg(0, (uint8_t)cam_py);
-  fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
+  fill_scroll_bg(level_map, level_map_w, level_map_bank);
 
   BGP_REG = bg_pals[0];
   OBP0_REG = 0xE4;
@@ -162,27 +162,31 @@ const uint8_t bg_pals[] = {
     player.world_x = cam_px;
     // Dynamic Portal Logic
     uint16_t col = (player.world_x + 8) >> 4;
-    const PortalDef *p_ptr = l->portals;
-    while (p_ptr->x != 0xFFFF) {
-        if (col == p_ptr->x) {
-            uint8_t obj = p_ptr->obj;
-            if (obj == 0) player.mode = MODE_CUBE;
-            else if (obj == 1) player.mode = MODE_SHIP;
-            else if (obj == 8) {
-                if (player.gravity_flipped) {
-                    player.gravity_flipped = 0;
-                    player.vel_y = 20; // Snappy nudge down
+    static uint16_t last_col = 0xFFFF;
+    if (col != last_col) {
+        last_col = col;
+        const PortalDef *p_ptr = l->portals;
+        while (p_ptr->x != 0xFFFF) {
+            if (col == p_ptr->x) {
+                uint8_t obj = p_ptr->obj;
+                if (obj == 0) player.mode = MODE_CUBE;
+                else if (obj == 1) player.mode = MODE_SHIP;
+                else if (obj == 8) {
+                    if (player.gravity_flipped) {
+                        player.gravity_flipped = 0;
+                        player.vel_y = 20; // Snappy nudge down
+                    }
                 }
-            }
-            else if (obj == 9) {
-                if (!player.gravity_flipped) {
-                    player.gravity_flipped = 1;
-                    player.vel_y = -20; // Snappy nudge up
+                else if (obj == 9) {
+                    if (!player.gravity_flipped) {
+                        player.gravity_flipped = 1;
+                        player.vel_y = -20; // Snappy nudge up
+                    }
                 }
+                else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
             }
-            else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
+            p_ptr++;
         }
-        p_ptr++;
     }
 
 
@@ -216,7 +220,7 @@ const uint8_t bg_pals[] = {
 
     if (needs_render) {
       loaded_r = need_col;
-      draw_mt_column((uint8_t)(need_col % BKG_MT_W), need_col, level_map, level_map_w, level_map_h, level_map_bank);
+      draw_mt_column((uint8_t)(need_col % BKG_MT_W), need_col, level_map, level_map_w, level_map_bank);
     }
 
     if (player.mode == MODE_SHIP) {
@@ -266,7 +270,7 @@ const uint8_t bg_pals[] = {
       player_init(&player, 0, 240);
       move_bkg(0, (uint8_t)cam_py);
       BGP_REG = bg_pals[0];
-      fill_scroll_bg(level_map, level_map_w, level_map_h, level_map_bank);
+      fill_scroll_bg(level_map, level_map_w, level_map_bank);
 
       TAC_REG = 0x04;
       music_ready = 1;

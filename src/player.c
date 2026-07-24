@@ -45,6 +45,7 @@ uint8_t player_update(
     uint16_t map_h,
     uint8_t  map_bank
 ) {
+    (void)map_h;
     if (p->dead) return 1;
 
     col_at_begin(map_bank);
@@ -85,8 +86,26 @@ uint8_t player_update(
         p->on_ground = 0;
     }
 
+    // Pre-calculate column pointers for faster lookups
+    uint16_t px = p->world_x;
+    uint16_t py = p->world_y;
+    uint16_t mx0 = px >> 4;
+    const uint8_t *c0 = &map[mx0 << 4];
+    const uint8_t *c1 = (mx0 + 1 < map_w) ? c0 + 16 : c0;
+
+    uint8_t x_mod_16 = (uint8_t)px & 0x0F;
+    uint8_t threshold = 16 - x_mod_16;
+
+#define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
+#define GET_MX_FAST(off)  ((off) < threshold ? mx0 : mx0 + 1)
+
+#define COL_AT_PTR(col, y) ( \
+    (((uint16_t)(y)) & 0xFF00) ? ((((int16_t)(y)) < 0) ? COL_NONE : COL_ALL) : \
+    col_at_raw_cached(col, (uint16_t)(y)) \
+)
+
     // Check frontal collision for death before vertical snap to fix 1-tile wall bug.
-    uint8_t front_mid = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + 8, map, map_w, map_h);
+    uint8_t front_mid = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), py + 8);
 
     if (IS_SOLID(front_mid)) {
         p->dead = 1;
@@ -98,7 +117,7 @@ uint8_t player_update(
     int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
     int8_t pixels = (int8_t)(effective_vel >> 4);
     if (p->gravity_flipped) pixels = -pixels;
-    int16_t ny = p->world_y + pixels;
+    int16_t ny = py + pixels;
     p->on_ground = 0;
 
     // Vertical Collision logic
@@ -106,37 +125,37 @@ uint8_t player_update(
     int16_t check_y_head = (p->gravity_flipped) ? ny + PLAYER_SIZE : ny;
 
     // Check for "Ground" (Foot direction)
-    uint8_t cl = col_at_raw(p->world_x + 2, check_y_foot, map, map_w, map_h);
-    uint8_t cr = col_at_raw(p->world_x + PLAYER_SIZE - 2, check_y_foot, map, map_w, map_h);
+    uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
+    uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
 
     uint8_t falling = (p->gravity_flipped) ? (pixels <= 0) : (pixels >= 0);
 
     if (falling && (IS_SOLID(cl) || IS_SOLID(cr))) {
         if (p->gravity_flipped) {
-            p->world_y = ((ny >> 4) + 1) << 4;
+            py = ((ny >> 4) + 1) << 4;
         } else {
-            p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+            py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
         }
         p->vel_y = 0;
         p->on_ground = 1;
     } else {
         // Ceiling check
-        uint8_t hl = col_at_raw(p->world_x + 2, check_y_head, map, map_w, map_h);
-        uint8_t hr = col_at_raw(p->world_x + PLAYER_SIZE - 2, check_y_head, map, map_w, map_h);
+        uint8_t hl = COL_AT_PTR(GET_COL_FAST(2), check_y_head);
+        uint8_t hr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_head);
         if (IS_SOLID(hl) || IS_SOLID(hr)) {
             if (p->gravity_flipped) {
-                p->world_y = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
+                py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
             } else {
-                p->world_y = ((ny >> 4) + 1) << 4;
+                py = ((ny >> 4) + 1) << 4;
             }
             p->vel_y = 0;
         } else {
-            p->world_y = ny;
+            py = ny;
 
             // Sticky ground check
             int16_t sticky_y = (p->gravity_flipped) ? ny - 1 : ny + PLAYER_SIZE + 1;
-            uint8_t gl = col_at_raw(p->world_x + 2, sticky_y, map, map_w, map_h);
-            uint8_t gr = col_at_raw(p->world_x + PLAYER_SIZE - 2, sticky_y, map, map_w, map_h);
+            uint8_t gl = COL_AT_PTR(GET_COL_FAST(2), sticky_y);
+            uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
             if (IS_SOLID(gl) || IS_SOLID(gr)) {
                 p->on_ground = 1;
                 // Don't zero velocity in ship
@@ -146,23 +165,38 @@ uint8_t player_update(
             }
         }
     }
+    p->world_y = py;
 
     // Recalculate frontal points at NEW position for Orbs, Pads, and Hazards
-    uint8_t front_head = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_HBOX, map, map_w, map_h);
-    uint8_t front_foot = col_at_raw(p->world_x + PLAYER_SIZE, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
+    const uint8_t *c_front = GET_COL_FAST(PLAYER_SIZE);
+    uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
+    uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
 
     // Hazard Collision box
-    uint8_t hz_tl = col_at_raw(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h);
-    uint8_t hz_tr = col_at_raw(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_HBOX, map, map_w, map_h);
-    uint8_t hz_bl = col_at_raw(p->world_x + PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
-    uint8_t hz_br = col_at_raw(p->world_x + PLAYER_SIZE - PLAYER_HBOX, p->world_y + PLAYER_SIZE - PLAYER_HBOX, map, map_w, map_h);
+    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
+    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
+    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+
+    // Check death FIRST before pads/orbs
+    if (IS_SOLID(front_head) || IS_SOLID(front_foot)) {
+        p->dead = 1;
+        col_at_end();
+        return 1;
+    }
+    if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
+        p->dead = 1;
+        col_at_end();
+        return 1;
+    }
 
     // --- Orbs and Pads: full 16x16 hitbox corners ---
-// Full 16x16 outer corner checks (no inset)
-    uint8_t tl = col_at_raw(p->world_x,                     p->world_y,                     map, map_w, map_h);
-    uint8_t tr = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y,                     map, map_w, map_h);
-    uint8_t bl = col_at_raw(p->world_x,                     p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
-    uint8_t br = col_at_raw(p->world_x + PLAYER_SIZE - 1, p->world_y + PLAYER_SIZE - 1, map, map_w, map_h);
+    // Full 16x16 outer corner checks (no inset)
+    uint8_t tl = COL_AT_PTR(c0, py);
+    const uint8_t *c_right = GET_COL_FAST(PLAYER_SIZE - 1);
+    uint8_t tr = COL_AT_PTR(c_right, py);
+    uint8_t bl = COL_AT_PTR(c0, py + PLAYER_SIZE - 1);
+    uint8_t br = COL_AT_PTR(c_right, py + PLAYER_SIZE - 1);
 
     uint8_t pad_l = (p->gravity_flipped) ? tl : bl;
     uint8_t pad_r = (p->gravity_flipped) ? tr : br;
@@ -171,9 +205,9 @@ uint8_t player_update(
     if (IS_PAD(pad_l) || IS_PAD(pad_r)) {
         uint8_t hit;
         uint16_t hx;
-        int16_t hy = (p->gravity_flipped) ? p->world_y : (p->world_y + PLAYER_SIZE - 1);
-        if (IS_PAD(pad_l)) { hit = pad_l; hx = p->world_x; }
-        else               { hit = pad_r; hx = p->world_x + PLAYER_SIZE - 1; }
+        int16_t hy = (p->gravity_flipped) ? py : (py + PLAYER_SIZE - 1);
+        if (IS_PAD(pad_l)) { hit = pad_l; hx = px; }
+        else               { hit = pad_r; hx = px + PLAYER_SIZE - 1; }
 
         uint16_t pmx = (hx >> 4);
         uint16_t pmy = ((uint16_t)hy >> 4);
@@ -191,45 +225,61 @@ uint8_t player_update(
     }
     // --- Orbs: check every corner independently, mark every orb tile touched ---
     else if (joy & J_A) {
-        struct { uint8_t col; uint16_t x; int16_t y; } corners[4] = {
-            { tl, p->world_x,                  p->world_y },
-            { tr, p->world_x + PLAYER_SIZE-1, p->world_y },
-            { bl, p->world_x,                  p->world_y + PLAYER_SIZE-1},
-            { br, p->world_x + PLAYER_SIZE-1, p->world_y + PLAYER_SIZE-1},
-        };
+        uint16_t omx, omy;
+        uint8_t hit;
 
-        for (uint8_t i = 0; i < 4; i++) {
-            if (!IS_ORB(corners[i].col)) continue;
-
-            uint16_t omx = (corners[i].x >> 4);
-            uint16_t omy = ((uint16_t)corners[i].y >> 4);
-
-            if (player_tile_activated(p, omx, omy)) continue; // already used, skip entirely
-
-            player_mark_activated(p, omx, omy);
-
-            uint8_t hit = corners[i].col;
-            if (hit == COL_ORB_MAGENTA) {
-                p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
-            } else if (hit == COL_ORB_BLUE) {
-                p->gravity_flipped = !p->gravity_flipped;
-                p->vel_y = (p->gravity_flipped) ? -64 : 64;
-            } else {
-                p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+9 : JUMP_FORCE-9;
+        // Check 4 corners manually to avoid expensive struct array on stack and loop overhead
+        // TL
+        if (IS_ORB(tl)) {
+            omx = mx0; omy = py >> 4;
+            if (!player_tile_activated(p, omx, omy)) {
+                player_mark_activated(p, omx, omy);
+                hit = tl; goto orb_hit;
             }
-            p->on_ground = 0;
-            break; // only fire once per frame even if multiple corners overlap different orbs
         }
+        // TR
+        if (IS_ORB(tr)) {
+            omx = GET_MX_FAST(PLAYER_SIZE - 1); omy = py >> 4;
+            if (!player_tile_activated(p, omx, omy)) {
+                player_mark_activated(p, omx, omy);
+                hit = tr; goto orb_hit;
+            }
+        }
+        // BL
+        if (IS_ORB(bl)) {
+            omx = mx0; omy = (py + PLAYER_SIZE - 1) >> 4;
+            if (!player_tile_activated(p, omx, omy)) {
+                player_mark_activated(p, omx, omy);
+                hit = bl; goto orb_hit;
+            }
+        }
+        // BR
+        if (IS_ORB(br)) {
+            omx = GET_MX_FAST(PLAYER_SIZE - 1); omy = (py + PLAYER_SIZE - 1) >> 4;
+            if (!player_tile_activated(p, omx, omy)) {
+                player_mark_activated(p, omx, omy);
+                hit = br; goto orb_hit;
+            }
+        }
+        goto orb_done;
+
+orb_hit:
+        if (hit == COL_ORB_MAGENTA) {
+            p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+        } else if (hit == COL_ORB_BLUE) {
+            p->gravity_flipped = !p->gravity_flipped;
+            p->vel_y = (p->gravity_flipped) ? -64 : 64;
+        } else {
+            p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+9 : JUMP_FORCE-9;
+        }
+        p->on_ground = 0;
+
+orb_done: ;
     }
 
     // Death logic
-    if (IS_SOLID(front_head) || IS_SOLID(front_foot) ||
-        IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
-        p->dead = 1;
-        col_at_end();
-        return 1;
-    }
-
+    // (Removed, moved up before pads/orbs)
+    
     col_at_end();
 
     // Cube animation (1.7 frames per step)
@@ -238,8 +288,8 @@ uint8_t player_update(
         p->anim_frame = 0;
     } else {
         p->anim_timer += 10;
-        if (p->anim_timer >= 17) {
-            p->anim_timer -= 17;
+        if (p->anim_timer >= 19) {
+            p->anim_timer -= 19;
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }

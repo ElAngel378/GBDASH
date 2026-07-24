@@ -15,11 +15,11 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 
 // Renders a single vertical slice of metatiles
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
-    const uint8_t* map, uint16_t map_w, uint16_t map_h,
+    const uint8_t* map, uint16_t map_w,
     uint8_t map_bank);
 
 // Fills the visible background area from the map data
-void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint16_t map_h, uint8_t map_bank);
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank);
 
 void draw_menu(void) BANKED;
 

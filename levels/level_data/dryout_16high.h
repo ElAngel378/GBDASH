@@ -1,0 +1,13 @@
+#ifndef DRYOUT_16HIGH_H
+#define DRYOUT_16HIGH_H
+
+#include <stdint.h>
+
+#define DRYOUT_16HIGH_WIDTH 842
+#define DRYOUT_16HIGH_HEIGHT 16
+#define DRYOUT_16HIGH_TILE_WIDTH (DRYOUT_16HIGH_WIDTH * 2)
+#define DRYOUT_16HIGH_TILE_HEIGHT (DRYOUT_16HIGH_HEIGHT * 2)
+
+extern const uint8_t level_map[];
+
+#endif /* DRYOUT_16HIGH_H */

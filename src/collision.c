@@ -7,42 +7,51 @@
 static uint8_t _prev_map_bank;
 
 void col_at_begin(uint8_t map_bank) {
+    if (_current_bank == map_bank) {
+        _prev_map_bank = 0xFF;
+        return;
+    }
     _prev_map_bank = _current_bank;
     SWITCH_ROM(map_bank);
 }
 
 void col_at_end(void) {
-    SWITCH_ROM(_prev_map_bank);
+    if (_prev_map_bank != 0xFF) {
+        SWITCH_ROM(_prev_map_bank);
+    }
 }
 
 uint8_t col_at_raw(
     uint16_t world_px,
     int16_t  world_py,
     const uint8_t *map,
-    uint16_t map_w,
-    uint16_t map_h
+    uint16_t map_w
 ) {
-    if (world_py < 0) return COL_NONE;
+    if ((uint16_t)world_py >= 256u) {
+        return (world_py < 0) ? COL_NONE : COL_ALL;
+    }
     uint16_t mx = world_px >> 4;
-    uint16_t my = (uint16_t)world_py >> 4;
+    if (mx >= map_w) return COL_ALL;
 
-    if (mx >= map_w || my >= map_h) return COL_ALL;
+    return col_at_raw_cached(&map[mx << 4], (uint16_t)world_py);
+}
 
-    uint8_t col;
-    col = famidash_metatile_collision[map[(uint16_t)my * map_w + mx]];
+uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
+    uint8_t py8 = (uint8_t)world_py;
+    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
 
-    if (col == COL_DEATH_TOP_HALF) {
-        if (((uint16_t)world_py & 0x0F) < 8) return COL_NONE;
-        return COL_DEATH;
+    if (col >= 0x10) {
+        if (col == COL_DEATH_TOP_HALF) {
+            if ((py8 & 0x0F) < 8) return COL_NONE;
+            return COL_DEATH;
+        }
+        if (col == COL_DEATH_BOTTOM_HALF) {
+            if ((py8 & 0x0F) >= 8) return COL_NONE;
+            return COL_DEATH;
+        }
     }
-    if (col == COL_DEATH_BOTTOM_HALF) {
-        if (((uint16_t)world_py & 0x0F) >= 8) return COL_NONE;
-        return COL_DEATH;
-    }
-    if (col == COL_PAD /* || add other pad colors here */) {
-        // If the player hits the top 8 pixels of the pad's tile (empty air), ignore it
-        if (((uint16_t)world_py & 0x0F) < 8) return COL_NONE;
-        return col;
+    if (col == COL_PAD) {
+        if ((py8 & 0x0F) < 8) return COL_NONE;
     }
 
     return col;
@@ -54,12 +63,11 @@ uint8_t col_at(
     int16_t  world_py,
     const uint8_t *map,
     uint16_t map_w,
-    uint16_t map_h,
     uint8_t  map_bank
 ) {
     uint8_t res;
     col_at_begin(map_bank);
-    res = col_at_raw(world_px, world_py, map, map_w, map_h);
+    res = col_at_raw(world_px, world_py, map, map_w);
     col_at_end();
     return res;
 }
@@ -79,31 +87,29 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
 }
 
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
-  const uint8_t* map, uint16_t map_w, uint16_t map_h,
-  uint8_t map_bank) {
-
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank) {
+  (void)map_w;
   uint8_t bx = ring_col << 1;
 
   uint8_t _prev = _current_bank;
   SWITCH_ROM(map_bank);
 
-  const uint8_t *map_ptr = &map[map_col];
-  for (uint8_t r = 0; r < map_h && r < BKG_MT_H; r++) {
-    uint8_t mt = *map_ptr;
+  const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
+  for (uint8_t r = 0; r < BKG_MT_H; r++) {
+    uint8_t mt = *map_ptr++;
     uint8_t by = (r & (BKG_MT_H - 1)) << 1;
 
     set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
     set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
-    map_ptr += map_w;
   }
 
   SWITCH_ROM(_prev);
 }
 
-void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint16_t map_h, uint8_t map_bank) {
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank) {
   uint16_t cols = (map_w < 16) ? map_w : 16;
   for (uint16_t c = 0; c < cols; c++) {
-    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_h, map_bank);
+    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank);
   }
 }
 

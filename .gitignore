@@ -1,0 +1,27 @@
+# Build outputs and compiled objects
+*.o
+*.obj
+*.lst
+*.map
+*.ihx
+*.sym
+*.asm
+*.cdb
+*.adb
+*.rst
+*.noi
+*.lk
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Exclude famidash-main
+famidash-main/

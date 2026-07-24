@@ -181,7 +181,15 @@ def write_outputs(rows, name, array_name, out_dir):
     source_path = out_dir / f"{stem}.c"
     binary_path = out_dir / f"{stem}.bin"
 
-    flat = [value for row in rows for value in row]
+    flat = []
+    if height == 16:
+        # Column-major for height 16
+        for x in range(width):
+            for y in range(16):
+                flat.append(rows[y][x])
+    else:
+        # Row-major fallback
+        flat = [value for row in rows for value in row]
 
     with header_path.open("w", newline="\n") as header:
         header.write(f"#ifndef {guard}\n")
