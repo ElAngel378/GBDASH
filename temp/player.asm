@@ -481,10 +481,10 @@ _player_update::
 	ld	a, c
 	or	a, a
 	jr	Z, 00282$
-	ld	hl, #0x0008
+	ld	hl, #0x000c
 	jr	00283$
 00282$:
-	ld	hl, #0xfff8
+	ld	hl, #0xfff4
 00283$:
 	add	hl, de
 	ld	c, l
@@ -502,10 +502,10 @@ _player_update::
 	ld	a, c
 	or	a, a
 	jr	Z, 00284$
-	ld	hl, #0xfffb
+	ld	hl, #0xfffd
 	jr	00285$
 00284$:
-	ld	hl, #0x0005
+	ld	hl, #0x0003
 00285$:
 	add	hl, de
 	ld	c, l
@@ -530,7 +530,7 @@ _player_update::
 	ld	b, a
 	ld	e, b
 	ld	d, #0x00
-	ld	a, #0x40
+	ld	a, #0x44
 	cp	a, c
 	ld	a, #0x00
 	sbc	a, b
@@ -550,7 +550,7 @@ _player_update::
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-	ld	a, #0x40
+	ld	a, #0x44
 	ld	(hl+), a
 	ld	(hl), #0x00
 00107$:
@@ -565,7 +565,7 @@ _player_update::
 	ld	a, (de)
 	ld	b, a
 	ld	a, c
-	sub	a, #0xc0
+	sub	a, #0xbc
 	ld	a, b
 	rla
 	ccf
@@ -575,7 +575,7 @@ _player_update::
 	ld	a, (hl-)
 	ld	l, (hl)
 	ld	h, a
-	ld	a, #0xc0
+	ld	a, #0xbc
 	ld	(hl+), a
 	ld	(hl), #0xff
 	jr	00121$
@@ -628,7 +628,7 @@ _player_update::
 	ld	(hl), b
 ;src/player.c:67: if (p->vel_y < -MAX_FALL_SPEED) p->vel_y = -MAX_FALL_SPEED;
 	ld	a, c
-	sub	a, #0x90
+	sub	a, #0xa0
 	ld	a, b
 	rla
 	ccf
@@ -639,7 +639,7 @@ _player_update::
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-	ld	a, #0x90
+	ld	a, #0xa0
 	ld	(hl+), a
 	ld	(hl), #0xff
 	jr	00121$
@@ -659,7 +659,7 @@ _player_update::
 ;src/player.c:70: if (p->vel_y > MAX_FALL_SPEED) p->vel_y = MAX_FALL_SPEED;
 	ld	e, b
 	ld	d, #0x00
-	ld	a, #0x70
+	ld	a, #0x60
 	cp	a, c
 	ld	a, #0x00
 	sbc	a, b
@@ -679,7 +679,7 @@ _player_update::
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-	ld	a, #0x70
+	ld	a, #0x60
 	ld	(hl+), a
 	ld	(hl), #0x00
 00121$:
@@ -2962,9 +2962,9 @@ _player_update::
 ;src/player.c:221: p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
 	ld	a, c
 	or	a, a
-	ld	a, #0x78
+	ld	a, #0x7d
 	jr	NZ, 00405$
-	ld	a, #0x88
+	ld	a, #0x83
 00405$:
 	ld	c, a
 	rlca
@@ -3448,18 +3448,18 @@ _player_update::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-;src/player.c:291: if (p->anim_timer >= 19) {
+;src/player.c:291: if (p->anim_timer >= 20) {
 	ld	a, e
-	sub	a, #0x13
+	sub	a, #0x14
 	ld	a, d
 	sbc	a, #0x00
 	jr	C, 00276$
-;src/player.c:292: p->anim_timer -= 19;
+;src/player.c:292: p->anim_timer -= 20;
 	ld	l, c
 	ld	h, b
 	ld	a,	(hl+)
 	ld	h, (hl)
-	add	a, #0xed
+	add	a, #0xec
 	ld	e, a
 	ld	a, h
 	adc	a, #0xff

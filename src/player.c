@@ -288,8 +288,8 @@ orb_done: ;
         p->anim_frame = 0;
     } else {
         p->anim_timer += 10;
-        if (p->anim_timer >= 19) {
-            p->anim_timer -= 19;
+        if (p->anim_timer >= 20) {
+            p->anim_timer -= 20;
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }

@@ -13,15 +13,15 @@
 #define GRAVITY           7
 #define JUMP_FORCE       -77
 #define MAGENTA_JUMP_FORCE -60
-#define PAD_JUMP_FORCE   -120
-#define MAX_FALL_SPEED    112
+#define PAD_JUMP_FORCE   -125
+#define MAX_FALL_SPEED    96
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 
-#define SHIP_THRUST       -8
-#define SHIP_GRAVITY       5
-#define SHIP_MAX_VEL       64
+#define SHIP_THRUST       -6
+#define SHIP_GRAVITY       3
+#define SHIP_MAX_VEL       68
 
 #define MAX_ACTIVATIONS 8
 
