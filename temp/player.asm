@@ -481,10 +481,10 @@ _player_update::
 	ld	a, c
 	or	a, a
 	jr	Z, 00282$
-	ld	hl, #0x000c
+	ld	hl, #0x0004
 	jr	00283$
 00282$:
-	ld	hl, #0xfff4
+	ld	hl, #0xfffc
 00283$:
 	add	hl, de
 	ld	c, l
@@ -530,7 +530,7 @@ _player_update::
 	ld	b, a
 	ld	e, b
 	ld	d, #0x00
-	ld	a, #0x44
+	ld	a, #0x3c
 	cp	a, c
 	ld	a, #0x00
 	sbc	a, b
@@ -550,7 +550,7 @@ _player_update::
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
-	ld	a, #0x44
+	ld	a, #0x3c
 	ld	(hl+), a
 	ld	(hl), #0x00
 00107$:
@@ -565,7 +565,7 @@ _player_update::
 	ld	a, (de)
 	ld	b, a
 	ld	a, c
-	sub	a, #0xbc
+	sub	a, #0xc4
 	ld	a, b
 	rla
 	ccf
@@ -575,7 +575,7 @@ _player_update::
 	ld	a, (hl-)
 	ld	l, (hl)
 	ld	h, a
-	ld	a, #0xbc
+	ld	a, #0xc4
 	ld	(hl+), a
 	ld	(hl), #0xff
 	jr	00121$

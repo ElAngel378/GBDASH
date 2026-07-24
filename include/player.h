@@ -19,9 +19,9 @@
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 
-#define SHIP_THRUST       -6
+#define SHIP_THRUST       -4
 #define SHIP_GRAVITY       3
-#define SHIP_MAX_VEL       68
+#define SHIP_MAX_VEL       60
 
 #define MAX_ACTIVATIONS 8
 
