@@ -2,9 +2,9 @@
 
 uint8_t player_noclip = 0;
 
-void player_init(Player *p, uint16_t start_x, int16_t start_y) {
+void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->world_x = start_x;
-    p->world_y = start_y;
+    p->world_y = (uint16_t)start_y << 8;
     p->vel_y = 0;
     p->on_ground = 0;
     p->dead = 0;
@@ -18,14 +18,14 @@ void player_init(Player *p, uint16_t start_x, int16_t start_y) {
     p->next_activated_slot = 0;
 }
 
-uint8_t player_tile_activated(const Player *p, uint16_t mx, uint16_t my) {
+uint8_t player_tile_activated(const Player* p, uint16_t mx, uint16_t my) {
     for (uint8_t i = 0; i < p->activated_count; i++) {
         if (p->activated[i].mx == mx && p->activated[i].my == my) return 1;
     }
     return 0;
 }
 
-void player_mark_activated(Player *p, uint16_t mx, uint16_t my) {
+void player_mark_activated(Player* p, uint16_t mx, uint16_t my) {
     p->activated[p->next_activated_slot].mx = mx;
     p->activated[p->next_activated_slot].my = my;
     p->next_activated_slot++;
@@ -33,14 +33,14 @@ void player_mark_activated(Player *p, uint16_t mx, uint16_t my) {
     if (p->activated_count < MAX_ACTIVATIONS) p->activated_count++;
 }
 
-int16_t player_screen_y(const Player *p, uint16_t cam_y) {
-    return (int16_t)p->world_y - (int16_t)cam_y;
+int16_t player_screen_y(const Player* p, uint16_t cam_y) {
+    return (int16_t)(p->world_y >> 8) - (int16_t)cam_y;
 }
 
 uint8_t player_update(
-    Player *p,
+    Player* p,
     uint8_t joy,
-    const uint8_t *map,
+    const uint8_t* map,
     uint16_t map_w,
     uint16_t map_h,
     uint8_t  map_bank
@@ -54,18 +54,23 @@ uint8_t player_update(
     if (p->mode == MODE_SHIP) {
         if (joy & J_A) {
             p->vel_y += (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
-        } else {
+        }
+        else {
             p->vel_y += (p->gravity_flipped) ? -SHIP_GRAVITY : SHIP_GRAVITY;
         }
-        if (p->vel_y > SHIP_MAX_VEL) p->vel_y = SHIP_MAX_VEL;
-        if (p->vel_y < -SHIP_MAX_VEL) p->vel_y = -SHIP_MAX_VEL;
-    } else {
+        if (p->vel_y > (p->gravity_flipped ? SHIP_MAX_VEL_UP : SHIP_MAX_VEL_DOWN))
+            p->vel_y = (p->gravity_flipped ? SHIP_MAX_VEL_UP : SHIP_MAX_VEL_DOWN);
+        if (p->vel_y < (p->gravity_flipped ? -SHIP_MAX_VEL_DOWN : -SHIP_MAX_VEL_UP))
+            p->vel_y = (p->gravity_flipped ? -SHIP_MAX_VEL_DOWN : -SHIP_MAX_VEL_UP);
+    }
+    else {
         // Cube Physics
         if (!p->on_ground) {
             if (p->gravity_flipped) {
                 p->vel_y -= GRAVITY;
                 if (p->vel_y < -MAX_FALL_SPEED) p->vel_y = -MAX_FALL_SPEED;
-            } else {
+            }
+            else {
                 p->vel_y += GRAVITY;
                 if (p->vel_y > MAX_FALL_SPEED) p->vel_y = MAX_FALL_SPEED;
             }
@@ -75,7 +80,7 @@ uint8_t player_update(
     // Noclip handling
     if (player_noclip) {
         if (joy & J_A) p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
-        p->world_y += (int8_t)(p->vel_y >> 4);
+        p->world_y += p->vel_y;
         col_at_end();
         return 0;
     }
@@ -88,10 +93,10 @@ uint8_t player_update(
 
     // Pre-calculate column pointers for faster lookups
     uint16_t px = p->world_x;
-    uint16_t py = p->world_y;
+    uint16_t py = p->world_y >> 8;
     uint16_t mx0 = px >> 4;
-    const uint8_t *c0 = &map[mx0 << 4];
-    const uint8_t *c1 = (mx0 + 1 < map_w) ? c0 + 16 : c0;
+    const uint8_t* c0 = &map[mx0 << 4];
+    const uint8_t* c1 = (mx0 + 1 < map_w) ? c0 + 16 : c0;
 
     uint8_t x_mod_16 = (uint8_t)px & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
@@ -114,10 +119,8 @@ uint8_t player_update(
     }
 
     // Calculate vertical movement
-    int16_t effective_vel = p->gravity_flipped ? -p->vel_y : p->vel_y;
-    int8_t pixels = (int8_t)(effective_vel >> 4);
-    if (p->gravity_flipped) pixels = -pixels;
-    int16_t ny = py + pixels;
+    p->world_y += p->vel_y;
+    uint16_t ny = p->world_y >> 8;
     p->on_ground = 0;
 
     // Vertical Collision logic
@@ -128,28 +131,34 @@ uint8_t player_update(
     uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
     uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
 
-    uint8_t falling = (p->gravity_flipped) ? (pixels <= 0) : (pixels >= 0);
+    uint8_t falling = (p->gravity_flipped) ? (p->vel_y <= 0) : (p->vel_y >= 0);
 
     if (falling && (IS_SOLID(cl) || IS_SOLID(cr))) {
         if (p->gravity_flipped) {
             py = ((ny >> 4) + 1) << 4;
-        } else {
+        }
+        else {
             py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
         }
+        p->world_y = py << 8;
         p->vel_y = 0;
         p->on_ground = 1;
-    } else {
+    }
+    else {
         // Ceiling check
         uint8_t hl = COL_AT_PTR(GET_COL_FAST(2), check_y_head);
         uint8_t hr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_head);
         if (IS_SOLID(hl) || IS_SOLID(hr)) {
             if (p->gravity_flipped) {
                 py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
-            } else {
+            }
+            else {
                 py = ((ny >> 4) + 1) << 4;
             }
+            p->world_y = py << 8;
             p->vel_y = 0;
-        } else {
+        }
+        else {
             py = ny;
 
             // Sticky ground check
@@ -165,10 +174,9 @@ uint8_t player_update(
             }
         }
     }
-    p->world_y = py;
 
     // Recalculate frontal points at NEW position for Orbs, Pads, and Hazards
-    const uint8_t *c_front = GET_COL_FAST(PLAYER_SIZE);
+    const uint8_t* c_front = GET_COL_FAST(PLAYER_SIZE);
     uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
     uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
 
@@ -193,7 +201,7 @@ uint8_t player_update(
     // --- Orbs and Pads: full 16x16 hitbox corners ---
     // Full 16x16 outer corner checks (no inset)
     uint8_t tl = COL_AT_PTR(c0, py);
-    const uint8_t *c_right = GET_COL_FAST(PLAYER_SIZE - 1);
+    const uint8_t* c_right = GET_COL_FAST(PLAYER_SIZE - 1);
     uint8_t tr = COL_AT_PTR(c_right, py);
     uint8_t bl = COL_AT_PTR(c0, py + PLAYER_SIZE - 1);
     uint8_t br = COL_AT_PTR(c_right, py + PLAYER_SIZE - 1);
@@ -205,9 +213,9 @@ uint8_t player_update(
     if (IS_PAD(pad_l) || IS_PAD(pad_r)) {
         uint8_t hit;
         uint16_t hx;
-        int16_t hy = (p->gravity_flipped) ? py : (py + PLAYER_SIZE - 1);
+        int16_t hy = (p->gravity_flipped) ? (int16_t)(p->world_y >> 8) : (int16_t)(p->world_y >> 8) + PLAYER_SIZE - 1;
         if (IS_PAD(pad_l)) { hit = pad_l; hx = px; }
-        else               { hit = pad_r; hx = px + PLAYER_SIZE - 1; }
+        else { hit = pad_r; hx = px + PLAYER_SIZE - 1; }
 
         uint16_t pmx = (hx >> 4);
         uint16_t pmy = ((uint16_t)hy >> 4);
@@ -216,8 +224,12 @@ uint8_t player_update(
             player_mark_activated(p, pmx, pmy);
             if (hit == COL_PAD_BLUE) {
                 p->gravity_flipped = !p->gravity_flipped;
-                p->vel_y = (p->gravity_flipped) ? -64 : 64;
-            } else {
+                p->vel_y = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+            }
+            else if (hit == COL_PAD_MAGENTA) {
+                p->vel_y = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
+            }
+            else {
                 p->vel_y = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
             }
             p->on_ground = 0;
@@ -263,30 +275,33 @@ uint8_t player_update(
         }
         goto orb_done;
 
-orb_hit:
+    orb_hit:
         if (hit == COL_ORB_MAGENTA) {
             p->vel_y = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
-        } else if (hit == COL_ORB_BLUE) {
+        }
+        else if (hit == COL_ORB_BLUE) {
             p->gravity_flipped = !p->gravity_flipped;
-            p->vel_y = (p->gravity_flipped) ? -64 : 64;
-        } else {
-            p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE+9 : JUMP_FORCE-9;
+            p->vel_y = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
+        }
+        else {
+            p->vel_y = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         }
         p->on_ground = 0;
 
-orb_done: ;
+    orb_done:;
     }
 
     // Death logic
     // (Removed, moved up before pads/orbs)
-    
+
     col_at_end();
 
     // Cube animation (1.7 frames per step)
     if (p->on_ground) {
         p->anim_timer = 0;
         p->anim_frame = 0;
-    } else {
+    }
+    else {
         p->anim_timer += 10;
         if (p->anim_timer >= 20) {
             p->anim_timer -= 20;
@@ -296,7 +311,7 @@ orb_done: ;
     }
 
     // Out of bounds
-    if (p->world_y > (int16_t)((uint16_t)map_h << 4) || p->world_y < -32) {
+    if ((p->world_y >> 8) > (uint16_t)(map_h << 4) || (int16_t)(p->world_y >> 8) < -32) {
         p->dead = 1;
         return 1;
     }

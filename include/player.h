@@ -9,19 +9,23 @@
 #define PLAYER_SIZE       15    // Box size for wall/floor collision
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 
-// Physics constants using 4.4 fixed-point (16 units = 1 pixel)
-#define GRAVITY           7
-#define JUMP_FORCE       -77
-#define MAGENTA_JUMP_FORCE -60
-#define PAD_JUMP_FORCE   -125
-#define MAX_FALL_SPEED    96
+// Physics constants using 8.8 fixed-point (256 units = 1 pixel)
+#define GRAVITY           107   // Famidash 0x006B
+#define JUMP_FORCE       -1296  // Famidash 0xFA70
+#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
+#define PAD_JUMP_FORCE   -1984  // Famidash 0xF840 (Yellow Pad)
+#define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
+#define BLUE_PAD_FORCE     928   // Famidash 0x03A0
+#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (ORB_BALL_HEIGHT_BLUE)
+#define MAX_FALL_SPEED    1536  // Famidash 0x0600
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 
-#define SHIP_THRUST       -4
-#define SHIP_GRAVITY       3
-#define SHIP_MAX_VEL       60
+#define SHIP_THRUST       -52   // Famidash SHIP_GRAVITY_BASE
+#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY
+#define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
+#define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
 
 #define MAX_ACTIVATIONS 8
 
@@ -32,8 +36,8 @@ typedef struct {
 
 typedef struct {
     uint16_t world_x;
-    int16_t  world_y;
-    int16_t  vel_y;
+    uint16_t world_y; // 8.8 fixed point
+    int16_t  vel_y;   // 8.8 fixed point
     uint8_t  on_ground;
     uint8_t  dead;
     uint8_t  gravity_flipped;
@@ -50,21 +54,21 @@ typedef struct {
 extern uint8_t player_noclip;
 
 // Reset player state to starting position
-void player_init(Player *p, uint16_t start_x, int16_t start_y);
+void player_init(Player* p, uint16_t start_x, int16_t start_y);
 
 uint8_t player_update(
-    Player *p,
+    Player* p,
     uint8_t joy,
-    const uint8_t *map,
+    const uint8_t* map,
     uint16_t map_w,
     uint16_t map_h,
     uint8_t map_bank
 );
 
 // Returns player's Y position relative to the camera
-int16_t player_screen_y(const Player *p, uint16_t cam_py);
+int16_t player_screen_y(const Player* p, uint16_t cam_py);
 
-uint8_t player_tile_activated(const Player *p, uint16_t mx, uint16_t my);
-void player_mark_activated(Player *p, uint16_t mx, uint16_t my);
+uint8_t player_tile_activated(const Player* p, uint16_t mx, uint16_t my);
+void player_mark_activated(Player* p, uint16_t mx, uint16_t my);
 
 #endif // PLAYER_H
