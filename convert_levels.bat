@@ -1,24 +1,23 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM This script converts all _bg.csv files in levels/level_data to GBDK-compatible level files.
+REM This script converts all .tmx files in levels/chr_data/tmx to GBDK-compatible level files.
 
 pushd "%~dp0"
 
-for %%f in (levels\level_data\*_bg.csv) do (
-    set "full_filename=%%~nf"
-    set "name=!full_filename:_bg=!"
-    echo Converting %%f to !name!_16high...
-
-    python tools\csv2level.py "%%f" -o levels\level_data\ -n !name!_16high --no-gid-offset --crop-height 16
-)
+set /a bank=128
 
 for %%f in (levels\chr_data\tmx\*.tmx) do (
-    set "full_filename=%%~nf"
-    set "name=!full_filename!"
-    echo Converting %%f to !name!_sprites...
+    set "name=%%~nf"
+    echo Processing !name! into bank !bank!...
 
-    python tools\tmx2sprites.py "%%f" -o levels\level_data\ -n !name!
+    REM 1. Extract background tile map (16 metatiles high, bottom-aligned, column-major bin)
+    python tools\csv2level.py "%%f" -o levels\level_data\ -n !name!_16high --crop-height 16 --bottom --no-c --no-h
+
+    REM 2. Extract sprites and portals into C source
+    python tools\tmx2sprites.py "%%f" -o src\ -n !name! -b !bank!
+
+    set /a bank-=1
 )
 
 popd

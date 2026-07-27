@@ -8,23 +8,23 @@
                                       8 ; Public variables in this module
                                       9 ;--------------------------------------------------------
                                      10 	.globl _main
-                                     11 	.globl b_play_level
-                                     12 	.globl _play_level
-                                     13 	.globl b_draw_menu
-                                     14 	.globl _draw_menu
-                                     15 	.globl b_setup_menu_font
-                                     16 	.globl _setup_menu_font
-                                     17 	.globl _hUGE_dosound
-                                     18 	.globl _wait_vbl_done
-                                     19 	.globl _set_interrupts
-                                     20 	.globl _waitpadup
-                                     21 	.globl _joypad
-                                     22 	.globl _add_TIM
-                                     23 	.globl _current_song_bank
-                                     24 	.globl _selected
-                                     25 	.globl _redraw
-                                     26 	.globl _music_ready
-                                     27 	.globl _play_music_safe
+                                     11 	.globl _play_music_safe
+                                     12 	.globl b_play_level
+                                     13 	.globl _play_level
+                                     14 	.globl b_draw_menu
+                                     15 	.globl _draw_menu
+                                     16 	.globl b_setup_menu_font
+                                     17 	.globl _setup_menu_font
+                                     18 	.globl _hUGE_dosound
+                                     19 	.globl _wait_vbl_done
+                                     20 	.globl _set_interrupts
+                                     21 	.globl _waitpadup
+                                     22 	.globl _joypad
+                                     23 	.globl _add_TIM
+                                     24 	.globl _current_song_bank
+                                     25 	.globl _selected
+                                     26 	.globl _redraw
+                                     27 	.globl _music_ready
                                      28 ;--------------------------------------------------------
                                      29 ; special function registers
                                      30 ;--------------------------------------------------------

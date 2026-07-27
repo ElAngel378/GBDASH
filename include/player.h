@@ -34,7 +34,7 @@ typedef struct {
     uint16_t my;
 } ActivatedTile;
 
-typedef struct {
+typedef struct Player {
     uint16_t world_x;
     uint16_t world_y; // 8.8 fixed point
     int16_t  vel_y;   // 8.8 fixed point
@@ -46,6 +46,7 @@ typedef struct {
     uint16_t anim_timer;
     uint8_t  last_joy;
     uint8_t  touching_orb;
+    uint16_t portal_idx;
     ActivatedTile activated[MAX_ACTIVATIONS];
     uint8_t activated_count;
     uint8_t next_activated_slot;

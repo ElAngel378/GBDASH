@@ -14,6 +14,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->mode = MODE_CUBE;
     p->last_joy = 0;
     p->touching_orb = 0;
+    p->portal_idx = 0;
     p->activated_count = 0;
     p->next_activated_slot = 0;
 }

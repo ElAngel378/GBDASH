@@ -36,13 +36,21 @@ BANKREF_EXTERN(timemachine_map)
 extern const uint8_t timemachine_map[];
 
 extern const PortalDef stereomadness_portals[];
+BANKREF_EXTERN(stereomadness_portals)
 extern const PortalDef backontrack_portals[];
+BANKREF_EXTERN(backontrack_portals)
 extern const PortalDef polargeist_portals[];
+BANKREF_EXTERN(polargeist_portals)
 extern const PortalDef dryout_portals[];
+BANKREF_EXTERN(dryout_portals)
 extern const PortalDef baseafterbase_portals[];
+BANKREF_EXTERN(baseafterbase_portals)
 extern const PortalDef cantletgo_portals[];
+BANKREF_EXTERN(cantletgo_portals)
 extern const PortalDef jumper_portals[];
+BANKREF_EXTERN(jumper_portals)
 extern const PortalDef timemachine_portals[];
+BANKREF_EXTERN(timemachine_portals)
 
 // Music songs
 extern const hUGESong_t stereomadness;
@@ -88,7 +96,8 @@ const Level level_sm = {
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
   192,
-  stereomadness_portals
+  stereomadness_portals,
+  BANK(stereomadness_portals)
 };
 
 const Level level_bot = {
@@ -98,7 +107,8 @@ const Level level_bot = {
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
   184,
-  backontrack_portals
+  backontrack_portals,
+  BANK(backontrack_portals)
 };
 
 const Level level_pg = {
@@ -108,7 +118,8 @@ const Level level_pg = {
   chr_gb_TILE_COUNT, 934, 16, 0, 0,
   BANK(polargeist_map),
   193,
-  polargeist_portals
+  polargeist_portals,
+  BANK(polargeist_portals)
 };
 
 const Level level_du = {
@@ -118,7 +129,8 @@ const Level level_du = {
   chr_gb_TILE_COUNT, 842, 16, 0, 0,
   BANK(dryout_map),
   185,
-  dryout_portals
+  dryout_portals,
+  BANK(dryout_portals)
 };
 
 const Level level_bab = {
@@ -128,7 +140,8 @@ const Level level_bab = {
   chr_gb_TILE_COUNT, 869, 16, 0, 0,
   BANK(baseafterbase_map),
   183,
-  baseafterbase_portals
+  baseafterbase_portals,
+  BANK(baseafterbase_portals)
 };
 
 const Level level_clg = {
@@ -138,7 +151,8 @@ const Level level_clg = {
   chr_gb_TILE_COUNT, 837, 16, 0, 0,
   BANK(cantletgo_map),
   196,
-  cantletgo_portals
+  cantletgo_portals,
+  BANK(cantletgo_portals)
 };
 
 const Level level_ju = {
@@ -148,7 +162,8 @@ const Level level_ju = {
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
   141,
-  jumper_portals
+  jumper_portals,
+  BANK(jumper_portals)
 };
 
 const Level level_tm = {
@@ -158,7 +173,8 @@ const Level level_tm = {
   chr_gb_TILE_COUNT, 997, 16, 0, 0,
   BANK(timemachine_map),
   192,
-  timemachine_portals
+  timemachine_portals,
+  BANK(timemachine_portals)
 };
 
 // Global level list used by the menu and gameplay systems

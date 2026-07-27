@@ -128,7 +128,7 @@
     00001016 F9                     110 	.db #0xf9	; 249
     00001017 F8                     111 	.db #0xf8	; 248
     00001018                        112 _level_sm:
-    00001018rB9r10                  113 	.dw __str_0
+    00001018rC1r10                  113 	.dw __str_0
     0000101Ar00r00                  114 	.dw _chr_gb_tiles
     0000101Cr00r00                  115 	.dw _stereomadness_map
     0000101E 00 01                  116 	.dw #0x0100
@@ -139,131 +139,139 @@
     00001026r00                     121 	.byte ___bank_stereomadness_map
     00001027 C0                     122 	.db #0xc0	; 192
     00001028r00r00                  123 	.dw _stereomadness_portals
-    0000102A                        124 _level_bot:
-    0000102ArC8r10                  125 	.dw __str_1
-    0000102Cr00r00                  126 	.dw _chr_gb_tiles
-    0000102Er00r00                  127 	.dw _backontrack_map
-    00001030 00 01                  128 	.dw #0x0100
-    00001032 4E 03                  129 	.dw #0x034e
-    00001034 10 00                  130 	.dw #0x0010
-    00001036 00                     131 	.db #0x00	; 0
+    0000102Ar00                     124 	.byte ___bank_stereomadness_portals
+    0000102B                        125 _level_bot:
+    0000102BrD0r10                  126 	.dw __str_1
+    0000102Dr00r00                  127 	.dw _chr_gb_tiles
+    0000102Fr00r00                  128 	.dw _backontrack_map
+    00001031 00 01                  129 	.dw #0x0100
+    00001033 4E 03                  130 	.dw #0x034e
+    00001035 10 00                  131 	.dw #0x0010
     00001037 00                     132 	.db #0x00	; 0
-    00001038r00                     133 	.byte ___bank_backontrack_map
-    00001039 B8                     134 	.db #0xb8	; 184
-    0000103Ar00r00                  135 	.dw _backontrack_portals
-    0000103C                        136 _level_pg:
-    0000103CrD6r10                  137 	.dw __str_2
-    0000103Er00r00                  138 	.dw _chr_gb_tiles
-    00001040r00r00                  139 	.dw _polargeist_map
-    00001042 00 01                  140 	.dw #0x0100
-    00001044 A6 03                  141 	.dw #0x03a6
-    00001046 10 00                  142 	.dw #0x0010
-    00001048 00                     143 	.db #0x00	; 0
-    00001049 00                     144 	.db #0x00	; 0
-    0000104Ar00                     145 	.byte ___bank_polargeist_map
-    0000104B C1                     146 	.db #0xc1	; 193
-    0000104Cr00r00                  147 	.dw _polargeist_portals
-    0000104E                        148 _level_du:
-    0000104ErE1r10                  149 	.dw __str_3
-    00001050r00r00                  150 	.dw _chr_gb_tiles
-    00001052r00r00                  151 	.dw _dryout_map
-    00001054 00 01                  152 	.dw #0x0100
-    00001056 4A 03                  153 	.dw #0x034a
-    00001058 10 00                  154 	.dw #0x0010
-    0000105A 00                     155 	.db #0x00	; 0
-    0000105B 00                     156 	.db #0x00	; 0
-    0000105Cr00                     157 	.byte ___bank_dryout_map
-    0000105D B9                     158 	.db #0xb9	; 185
-    0000105Er00r00                  159 	.dw _dryout_portals
-    00001060                        160 _level_bab:
-    00001060rE9r10                  161 	.dw __str_4
-    00001062r00r00                  162 	.dw _chr_gb_tiles
-    00001064r00r00                  163 	.dw _baseafterbase_map
-    00001066 00 01                  164 	.dw #0x0100
-    00001068 65 03                  165 	.dw #0x0365
-    0000106A 10 00                  166 	.dw #0x0010
-    0000106C 00                     167 	.db #0x00	; 0
-    0000106D 00                     168 	.db #0x00	; 0
-    0000106Er00                     169 	.byte ___bank_baseafterbase_map
-    0000106F B7                     170 	.db #0xb7	; 183
-    00001070r00r00                  171 	.dw _baseafterbase_portals
-    00001072                        172 _level_clg:
-    00001072rF9r10                  173 	.dw __str_5
-    00001074r00r00                  174 	.dw _chr_gb_tiles
-    00001076r00r00                  175 	.dw _cantletgo_map
-    00001078 00 01                  176 	.dw #0x0100
-    0000107A 45 03                  177 	.dw #0x0345
-    0000107C 10 00                  178 	.dw #0x0010
-    0000107E 00                     179 	.db #0x00	; 0
-    0000107F 00                     180 	.db #0x00	; 0
-    00001080r00                     181 	.byte ___bank_cantletgo_map
-    00001081 C4                     182 	.db #0xc4	; 196
-    00001082r00r00                  183 	.dw _cantletgo_portals
-    00001084                        184 _level_ju:
-    00001084r05r11                  185 	.dw __str_6
-    00001086r00r00                  186 	.dw _chr_gb_tiles
-    00001088r00r00                  187 	.dw _jumper_map
-    0000108A 00 01                  188 	.dw #0x0100
-    0000108C 81 03                  189 	.dw #0x0381
-    0000108E 10 00                  190 	.dw #0x0010
-    00001090 00                     191 	.db #0x00	; 0
-    00001091 00                     192 	.db #0x00	; 0
-    00001092r00                     193 	.byte ___bank_jumper_map
-    00001093 8D                     194 	.db #0x8d	; 141
-    00001094r00r00                  195 	.dw _jumper_portals
-    00001096                        196 _level_tm:
-    00001096r0Cr11                  197 	.dw __str_7
-    00001098r00r00                  198 	.dw _chr_gb_tiles
-    0000109Ar00r00                  199 	.dw _timemachine_map
-    0000109C 00 01                  200 	.dw #0x0100
-    0000109E E5 03                  201 	.dw #0x03e5
-    000010A0 10 00                  202 	.dw #0x0010
-    000010A2 00                     203 	.db #0x00	; 0
-    000010A3 00                     204 	.db #0x00	; 0
-    000010A4r00                     205 	.byte ___bank_timemachine_map
-    000010A5 C0                     206 	.db #0xc0	; 192
-    000010A6r00r00                  207 	.dw _timemachine_portals
-    000010A8                        208 _game_levels:
-    000010A8r18r10                  209 	.dw _level_sm
-    000010AAr2Ar10                  210 	.dw _level_bot
-    000010ACr3Cr10                  211 	.dw _level_pg
-    000010AEr4Er10                  212 	.dw _level_du
-    000010B0r60r10                  213 	.dw _level_bab
-    000010B2r72r10                  214 	.dw _level_clg
-    000010B4r84r10                  215 	.dw _level_ju
-    000010B6r96r10                  216 	.dw _level_tm
-    000010B8                        217 _MAX_LEVELS:
-    000010B8 08                     218 	.db #0x08	; 8
-    000010B9                        219 __str_0:
-    000010B9 53 54 45 52 45 4F 20   220 	.ascii "STEREO MADNESS"
+    00001038 00                     133 	.db #0x00	; 0
+    00001039r00                     134 	.byte ___bank_backontrack_map
+    0000103A B8                     135 	.db #0xb8	; 184
+    0000103Br00r00                  136 	.dw _backontrack_portals
+    0000103Dr00                     137 	.byte ___bank_backontrack_portals
+    0000103E                        138 _level_pg:
+    0000103ErDEr10                  139 	.dw __str_2
+    00001040r00r00                  140 	.dw _chr_gb_tiles
+    00001042r00r00                  141 	.dw _polargeist_map
+    00001044 00 01                  142 	.dw #0x0100
+    00001046 A6 03                  143 	.dw #0x03a6
+    00001048 10 00                  144 	.dw #0x0010
+    0000104A 00                     145 	.db #0x00	; 0
+    0000104B 00                     146 	.db #0x00	; 0
+    0000104Cr00                     147 	.byte ___bank_polargeist_map
+    0000104D C1                     148 	.db #0xc1	; 193
+    0000104Er00r00                  149 	.dw _polargeist_portals
+    00001050r00                     150 	.byte ___bank_polargeist_portals
+    00001051                        151 _level_du:
+    00001051rE9r10                  152 	.dw __str_3
+    00001053r00r00                  153 	.dw _chr_gb_tiles
+    00001055r00r00                  154 	.dw _dryout_map
+    00001057 00 01                  155 	.dw #0x0100
+    00001059 4A 03                  156 	.dw #0x034a
+    0000105B 10 00                  157 	.dw #0x0010
+    0000105D 00                     158 	.db #0x00	; 0
+    0000105E 00                     159 	.db #0x00	; 0
+    0000105Fr00                     160 	.byte ___bank_dryout_map
+    00001060 B9                     161 	.db #0xb9	; 185
+    00001061r00r00                  162 	.dw _dryout_portals
+    00001063r00                     163 	.byte ___bank_dryout_portals
+    00001064                        164 _level_bab:
+    00001064rF1r10                  165 	.dw __str_4
+    00001066r00r00                  166 	.dw _chr_gb_tiles
+    00001068r00r00                  167 	.dw _baseafterbase_map
+    0000106A 00 01                  168 	.dw #0x0100
+    0000106C 65 03                  169 	.dw #0x0365
+    0000106E 10 00                  170 	.dw #0x0010
+    00001070 00                     171 	.db #0x00	; 0
+    00001071 00                     172 	.db #0x00	; 0
+    00001072r00                     173 	.byte ___bank_baseafterbase_map
+    00001073 B7                     174 	.db #0xb7	; 183
+    00001074r00r00                  175 	.dw _baseafterbase_portals
+    00001076r00                     176 	.byte ___bank_baseafterbase_portals
+    00001077                        177 _level_clg:
+    00001077r01r11                  178 	.dw __str_5
+    00001079r00r00                  179 	.dw _chr_gb_tiles
+    0000107Br00r00                  180 	.dw _cantletgo_map
+    0000107D 00 01                  181 	.dw #0x0100
+    0000107F 45 03                  182 	.dw #0x0345
+    00001081 10 00                  183 	.dw #0x0010
+    00001083 00                     184 	.db #0x00	; 0
+    00001084 00                     185 	.db #0x00	; 0
+    00001085r00                     186 	.byte ___bank_cantletgo_map
+    00001086 C4                     187 	.db #0xc4	; 196
+    00001087r00r00                  188 	.dw _cantletgo_portals
+    00001089r00                     189 	.byte ___bank_cantletgo_portals
+    0000108A                        190 _level_ju:
+    0000108Ar0Dr11                  191 	.dw __str_6
+    0000108Cr00r00                  192 	.dw _chr_gb_tiles
+    0000108Er00r00                  193 	.dw _jumper_map
+    00001090 00 01                  194 	.dw #0x0100
+    00001092 81 03                  195 	.dw #0x0381
+    00001094 10 00                  196 	.dw #0x0010
+    00001096 00                     197 	.db #0x00	; 0
+    00001097 00                     198 	.db #0x00	; 0
+    00001098r00                     199 	.byte ___bank_jumper_map
+    00001099 8D                     200 	.db #0x8d	; 141
+    0000109Ar00r00                  201 	.dw _jumper_portals
+    0000109Cr00                     202 	.byte ___bank_jumper_portals
+    0000109D                        203 _level_tm:
+    0000109Dr14r11                  204 	.dw __str_7
+    0000109Fr00r00                  205 	.dw _chr_gb_tiles
+    000010A1r00r00                  206 	.dw _timemachine_map
+    000010A3 00 01                  207 	.dw #0x0100
+    000010A5 E5 03                  208 	.dw #0x03e5
+    000010A7 10 00                  209 	.dw #0x0010
+    000010A9 00                     210 	.db #0x00	; 0
+    000010AA 00                     211 	.db #0x00	; 0
+    000010ABr00                     212 	.byte ___bank_timemachine_map
+    000010AC C0                     213 	.db #0xc0	; 192
+    000010ADr00r00                  214 	.dw _timemachine_portals
+    000010AFr00                     215 	.byte ___bank_timemachine_portals
+    000010B0                        216 _game_levels:
+    000010B0r18r10                  217 	.dw _level_sm
+    000010B2r2Br10                  218 	.dw _level_bot
+    000010B4r3Er10                  219 	.dw _level_pg
+    000010B6r51r10                  220 	.dw _level_du
+    000010B8r64r10                  221 	.dw _level_bab
+    000010BAr77r10                  222 	.dw _level_clg
+    000010BCr8Ar10                  223 	.dw _level_ju
+    000010BEr9Dr10                  224 	.dw _level_tm
+    000010C0                        225 _MAX_LEVELS:
+    000010C0 08                     226 	.db #0x08	; 8
+    000010C1                        227 __str_0:
+    000010C1 53 54 45 52 45 4F 20   228 	.ascii "STEREO MADNESS"
              4D 41 44 4E 45 53 53
-    000010C7 00                     221 	.db 0x00
-    000010C8                        222 __str_1:
-    000010C8 42 41 43 4B 20 4F 4E   223 	.ascii "BACK ON TRACK"
+    000010CF 00                     229 	.db 0x00
+    000010D0                        230 __str_1:
+    000010D0 42 41 43 4B 20 4F 4E   231 	.ascii "BACK ON TRACK"
              20 54 52 41 43 4B
-    000010D5 00                     224 	.db 0x00
-    000010D6                        225 __str_2:
-    000010D6 50 4F 4C 41 52 47 45   226 	.ascii "POLARGEIST"
+    000010DD 00                     232 	.db 0x00
+    000010DE                        233 __str_2:
+    000010DE 50 4F 4C 41 52 47 45   234 	.ascii "POLARGEIST"
              49 53 54
-    000010E0 00                     227 	.db 0x00
-    000010E1                        228 __str_3:
-    000010E1 44 52 59 20 4F 55 54   229 	.ascii "DRY OUT"
-    000010E8 00                     230 	.db 0x00
-    000010E9                        231 __str_4:
-    000010E9 42 41 53 45 20 41 46   232 	.ascii "BASE AFTER BASE"
+    000010E8 00                     235 	.db 0x00
+    000010E9                        236 __str_3:
+    000010E9 44 52 59 20 4F 55 54   237 	.ascii "DRY OUT"
+    000010F0 00                     238 	.db 0x00
+    000010F1                        239 __str_4:
+    000010F1 42 41 53 45 20 41 46   240 	.ascii "BASE AFTER BASE"
              54 45 52 20 42 41 53
              45
-    000010F8 00                     233 	.db 0x00
-    000010F9                        234 __str_5:
-    000010F9 43 41 4E 54 20 4C 45   235 	.ascii "CANT LET GO"
+    00001100 00                     241 	.db 0x00
+    00001101                        242 __str_5:
+    00001101 43 41 4E 54 20 4C 45   243 	.ascii "CANT LET GO"
              54 20 47 4F
-    00001104 00                     236 	.db 0x00
-    00001105                        237 __str_6:
-    00001105 4A 55 4D 50 45 52      238 	.ascii "JUMPER"
-    0000110B 00                     239 	.db 0x00
-    0000110C                        240 __str_7:
-    0000110C 42 52 4F 4B 45 20 4D   241 	.ascii "BROKE MACHINE"
+    0000110C 00                     244 	.db 0x00
+    0000110D                        245 __str_6:
+    0000110D 4A 55 4D 50 45 52      246 	.ascii "JUMPER"
+    00001113 00                     247 	.db 0x00
+    00001114                        248 __str_7:
+    00001114 42 52 4F 4B 45 20 4D   249 	.ascii "BROKE MACHINE"
              41 43 48 49 4E 45
-    00001119 00                     242 	.db 0x00
-                                    243 	.area _INITIALIZER
-                                    244 	.area _CABS (ABS)
+    00001121 00                     250 	.db 0x00
+                                    251 	.area _INITIALIZER
+                                    252 	.area _CABS (ABS)

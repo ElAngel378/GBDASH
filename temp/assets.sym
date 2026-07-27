@@ -7,30 +7,38 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  8 _MAX_LEVELS                                                     000010B8 GR
+  8 _MAX_LEVELS                                                     000010C0 GR
     ___bank_backontrack_map                                         ******** GX
+    ___bank_backontrack_portals                                     ******** GX
     ___bank_baseafterbase_map                                       ******** GX
+    ___bank_baseafterbase_portals                                   ******** GX
     ___bank_cantletgo_map                                           ******** GX
+    ___bank_cantletgo_portals                                       ******** GX
     ___bank_chr_gb                                              =   00000001 G
     ___bank_chr_gb_tiles                                        =   00000001 G
     ___bank_dryout_map                                              ******** GX
+    ___bank_dryout_portals                                          ******** GX
     ___bank_game_levels                                         =   00000001 G
     ___bank_jumper_map                                              ******** GX
+    ___bank_jumper_portals                                          ******** GX
     ___bank_polargeist_map                                          ******** GX
+    ___bank_polargeist_portals                                      ******** GX
     ___bank_stereomadness_map                                       ******** GX
+    ___bank_stereomadness_portals                                   ******** GX
     ___bank_timemachine_map                                         ******** GX
+    ___bank_timemachine_portals                                     ******** GX
   8 ___func_chr_gb                                                  00000000 GR
   8 ___func_chr_gb_tiles                                            00000000 GR
   8 ___func_game_levels                                             00000000 GR
     ___size_chr_gb_tiles                                        =   00001000 G
-  8 __str_0                                                         000010B9 R
-  8 __str_1                                                         000010C8 R
-  8 __str_2                                                         000010D6 R
-  8 __str_3                                                         000010E1 R
-  8 __str_4                                                         000010E9 R
-  8 __str_5                                                         000010F9 R
-  8 __str_6                                                         00001105 R
-  8 __str_7                                                         0000110C R
+  8 __str_0                                                         000010C1 R
+  8 __str_1                                                         000010D0 R
+  8 __str_2                                                         000010DE R
+  8 __str_3                                                         000010E9 R
+  8 __str_4                                                         000010F1 R
+  8 __str_5                                                         00001101 R
+  8 __str_6                                                         0000110D R
+  8 __str_7                                                         00001114 R
     _backontrack                                                    ******** GX
     _backontrack_map                                                ******** GX
     _backontrack_portals                                            ******** GX
@@ -44,25 +52,25 @@ Symbol Table
     _dryout                                                         ******** GX
     _dryout_map                                                     ******** GX
     _dryout_portals                                                 ******** GX
-  8 _game_levels                                                    000010A8 GR
+  8 _game_levels                                                    000010B0 GR
     _jumper                                                         ******** GX
     _jumper_map                                                     ******** GX
     _jumper_portals                                                 ******** GX
-  8 _level_bab                                                      00001060 GR
-  8 _level_bot                                                      0000102A GR
-  8 _level_clg                                                      00001072 GR
-  8 _level_du                                                       0000104E GR
-  8 _level_ju                                                       00001084 GR
-  8 _level_pg                                                       0000103C GR
-  8 _level_sm                                                       00001018 GR
-  8 _level_songs                                                    00001000 GR
-  8 _level_tm                                                       00001096 GR
-    _polargeist                                                     ******** GX
+  8 _level_bab                                                      00001064 GR
+  8 _level_bot                                                      0000102B GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+  8 _level_clg                                                      00001077 GR
+  8 _level_du                                                       00001051 GR
+  8 _level_ju                                                       0000108A GR
+  8 _level_pg                                                       0000103E GR
+  8 _level_sm                                                       00001018 GR
+  8 _level_songs                                                    00001000 GR
+  8 _level_tm                                                       0000109D GR
+    _polargeist                                                     ******** GX
     _polargeist_map                                                 ******** GX
     _polargeist_portals                                             ******** GX
   8 _song_bank                                                      00001010 GR
@@ -75,7 +83,6 @@ Symbol Table
     b___func_chr_gb                                             =   00000001 L
     b___func_chr_gb_tiles                                       =   00000001 L
     b___func_game_levels                                        =   00000001 L
-
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
@@ -90,7 +97,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size     111A   flags    0
+   8 _CODE_1                                    size     1122   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

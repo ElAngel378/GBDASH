@@ -41,15 +41,21 @@ def parse_tmx(path, layer_name):
     if not tileset_firstgids:
         raise ValueError(f"{path}: TMX contains no tilesets")
 
+    all_layers = root.findall("layer")
+    if not all_layers:
+        raise ValueError(f"{path}: TMX contains no tile layers")
+
     selected_layer = None
-    for layer in root.findall("layer"):
-        if layer.attrib.get("name", "") == layer_name:
-            selected_layer = layer
-            break
+    if layer_name == "":
+        selected_layer = all_layers[0]
+    else:
+        for layer in all_layers:
+            if layer.attrib.get("name", "") == layer_name:
+                selected_layer = layer
+                break
 
     if selected_layer is None:
-        label = "(blank unnamed layer)" if layer_name == "" else layer_name
-        raise ValueError(f"{path}: could not find layer {label}")
+        raise ValueError(f"{path}: could not find layer {layer_name}")
 
     data = selected_layer.find("data")
     if data is None or data.attrib.get("encoding") != "csv":
@@ -75,10 +81,15 @@ def parse_tmx(path, layer_name):
     for row in rows:
         local_row = []
         for gid in row:
+            # TMX files use 0 for empty.
             if gid == 0:
                 local_row.append(0)
                 continue
 
+            # Identify which tileset this GID belongs to.
+            # (Assumes standard Tiled behavior where firstgid 1 is often the first tileset).
+            # The user noted TMX GIDs are +1 compared to their desired CSV values.
+            # gid - firstgid handles this mapping.
             firstgid = tileset_firstgids[0]
             for candidate in tileset_firstgids:
                 if candidate <= gid:
@@ -96,7 +107,10 @@ def normalize_tiles(rows, firstgid):
     for row in rows:
         out_row = []
         for tile_id in row:
-            if tile_id == 0:
+            # Tiled CSV export often uses -1 for empty.
+            # User wants -1 to become 0, and others to stay the same if firstgid is 0,
+            # or offset them if firstgid is > 0.
+            if tile_id == -1 or tile_id == 0:
                 out_row.append(0)
             else:
                 out_row.append(tile_id - firstgid)
@@ -117,20 +131,29 @@ def count_nonzero_tiles(rows):
     return sum(1 for row in rows for value in row if value != 0)
 
 
-def crop_rows(rows, width, height, x, y):
-    if width is None and height is None and x == 0 and y == 0:
+def crop_rows(rows, width, height, x, y, bottom=False):
+    if width is None and height is None and x == 0 and y == 0 and not bottom:
         return rows
 
-    crop_height = height if height is not None else len(rows)
-    crop_width = width if width is not None else len(rows[0])
+    map_height = len(rows)
+    map_width = len(rows[0])
+
+    crop_height = height if height is not None else map_height
+    crop_width = width if width is not None else map_width
+
     if crop_width <= 0 or crop_height <= 0 or x < 0 or y < 0:
         raise ValueError("crop dimensions must be positive and offsets must be non-negative")
-    if y + crop_height > len(rows) or x + crop_width > len(rows[0]):
+
+    actual_y = y
+    if bottom:
+        actual_y = max(0, map_height - crop_height)
+
+    if actual_y + crop_height > map_height or x + crop_width > map_width:
         raise ValueError(
-            f"crop {crop_width}x{crop_height} at {x},{y} is outside map {len(rows[0])}x{len(rows)}"
+            f"crop {crop_width}x{crop_height} at {x},{actual_y} is outside map {map_width}x{map_height}"
         )
 
-    return [row[x:x + crop_width] for row in rows[y:y + crop_height]]
+    return [row[x:x + crop_width] for row in rows[actual_y:actual_y + crop_height]]
 
 
 def find_first_nonempty_crop(rows, crop_width, crop_height):
@@ -169,7 +192,7 @@ def c_identifier(name):
     return result
 
 
-def write_outputs(rows, name, array_name, out_dir):
+def write_outputs(rows, name, array_name, out_dir, skip_c=False, skip_h=False):
     width = len(rows[0])
     height = len(rows)
     stem = c_identifier(name)
@@ -191,25 +214,27 @@ def write_outputs(rows, name, array_name, out_dir):
         # Row-major fallback
         flat = [value for row in rows for value in row]
 
-    with header_path.open("w", newline="\n") as header:
-        header.write(f"#ifndef {guard}\n")
-        header.write(f"#define {guard}\n\n")
-        header.write("#include <stdint.h>\n\n")
-        header.write(f"#define {macro}_WIDTH {width}\n")
-        header.write(f"#define {macro}_HEIGHT {height}\n")
-        header.write(f"#define {macro}_TILE_WIDTH ({macro}_WIDTH * 2)\n")
-        header.write(f"#define {macro}_TILE_HEIGHT ({macro}_HEIGHT * 2)\n\n")
-        header.write(f"extern const uint8_t {array_name}[];\n\n")
-        header.write(f"#endif /* {guard} */\n")
+    if not skip_h:
+        with header_path.open("w", newline="\n") as header:
+            header.write(f"#ifndef {guard}\n")
+            header.write(f"#define {guard}\n\n")
+            header.write("#include <stdint.h>\n\n")
+            header.write(f"#define {macro}_WIDTH {width}\n")
+            header.write(f"#define {macro}_HEIGHT {height}\n")
+            header.write(f"#define {macro}_TILE_WIDTH ({macro}_WIDTH * 2)\n")
+            header.write(f"#define {macro}_TILE_HEIGHT ({macro}_HEIGHT * 2)\n\n")
+            header.write(f"extern const uint8_t {array_name}[];\n\n")
+            header.write(f"#endif /* {guard} */\n")
 
-    with source_path.open("w", newline="\n") as source:
-        source.write(f'#include "{stem}.h"\n\n')
-        source.write(f"const uint8_t {array_name}[] = {{\n")
-        for index in range(0, len(flat), 16):
-            line = flat[index:index + 16]
-            source.write("    " + ", ".join(str(value) for value in line))
-            source.write(",\n" if index + 16 < len(flat) else "\n")
-        source.write("};\n")
+    if not skip_c:
+        with source_path.open("w", newline="\n") as source:
+            source.write(f'#include "{stem}.h"\n\n')
+            source.write(f"const uint8_t {array_name}[] = {{\n")
+            for index in range(0, len(flat), 16):
+                line = flat[index:index + 16]
+                source.write("    " + ", ".join(str(value) for value in line))
+                source.write(",\n" if index + 16 < len(flat) else "\n")
+            source.write("};\n")
 
     binary_path.write_bytes(bytes(flat))
 
@@ -242,8 +267,8 @@ def main():
     parser.add_argument(
         "--firstgid",
         type=int,
-        default=1,
-        help="Tiled firstgid to subtract from non-zero tile IDs",
+        default=0,
+        help="Offset to subtract from non-zero tile IDs (default 0 for CSV pass-through, TMX uses tileset firstgid)",
     )
     parser.add_argument(
         "--no-gid-offset",
@@ -278,9 +303,24 @@ def main():
         help="Optional output crop Y offset in metatiles",
     )
     parser.add_argument(
+        "--bottom",
+        action="store_true",
+        help="When cropping, take the bottom N rows instead of the top",
+    )
+    parser.add_argument(
         "--auto-crop-to-nonempty",
         action="store_true",
         help="Scan for the first non-empty crop of the requested size",
+    )
+    parser.add_argument(
+        "--no-c",
+        action="store_true",
+        help="Skip generating .c source file",
+    )
+    parser.add_argument(
+        "--no-h",
+        action="store_true",
+        help="Skip generating .h header file",
     )
 
     args = parser.parse_args()
@@ -295,7 +335,9 @@ def main():
 
     crop_x = args.crop_x
     crop_y = args.crop_y
-    if args.auto_crop_to_nonempty:
+
+    # Scan for the first non-empty crop if requested
+    if getattr(args, "auto_crop_to_nonempty", False):
         found = find_first_nonempty_crop(rows, args.crop_width, args.crop_height)
         if found is None:
             raise ValueError(
@@ -304,7 +346,7 @@ def main():
         crop_x, crop_y = found
         print(f"auto-crop selected non-empty viewport at {crop_x},{crop_y}")
 
-    rows = crop_rows(rows, args.crop_width, args.crop_height, crop_x, crop_y)
+    rows = crop_rows(rows, args.crop_width, args.crop_height, crop_x, crop_y, bottom=args.bottom)
     validate_byte_values(rows)
 
     nonzero_tiles = count_nonzero_tiles(rows)
@@ -312,12 +354,12 @@ def main():
         print(f"warning: cropped level is empty ({len(rows[0])}x{len(rows)})")
 
     name = args.name if args.name else args.input.stem
-    outputs = write_outputs(rows, name, args.array_name, args.out_dir)
+    outputs = write_outputs(rows, name, args.array_name, args.out_dir, skip_c=args.no_c, skip_h=args.no_h)
     header_path, source_path, binary_path, width, height = outputs
 
     print(f"Generated {width}x{height} level:")
-    print(f"- {header_path}")
-    print(f"- {source_path}")
+    if not args.no_h: print(f"- {header_path}")
+    if not args.no_c: print(f"- {source_path}")
     print(f"- {binary_path}")
 
 

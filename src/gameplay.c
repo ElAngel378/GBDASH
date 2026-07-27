@@ -165,28 +165,7 @@ void play_level(uint8_t idx) BANKED {
         static uint16_t last_col = 0xFFFF;
         if (col != last_col) {
             last_col = col;
-            const PortalDef* p_ptr = l->portals;
-            while (p_ptr->x != 0xFFFF) {
-                if (col == p_ptr->x) {
-                    uint8_t obj = p_ptr->obj;
-                    if (obj == 0) player.mode = MODE_CUBE;
-                    else if (obj == 1) player.mode = MODE_SHIP;
-                    else if (obj == 8) {
-                        if (player.gravity_flipped) {
-                            player.gravity_flipped = 0;
-                            player.vel_y = 320; // Snappy nudge down (8.8)
-                        }
-                    }
-                    else if (obj == 9) {
-                        if (!player.gravity_flipped) {
-                            player.gravity_flipped = 1;
-                            player.vel_y = -320; // Snappy nudge up (8.8)
-                        }
-                    }
-                    else if (obj >= 10 && obj <= 13) target_bg_idx = obj - 10;
-                }
-                p_ptr++;
-            }
+            check_portals_banked(l, col, &player, &target_bg_idx);
         }
 
 

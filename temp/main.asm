@@ -8,6 +8,7 @@
 ; Public variables in this module
 ;--------------------------------------------------------
 	.globl _main
+	.globl _play_music_safe
 	.globl b_play_level
 	.globl _play_level
 	.globl b_draw_menu
@@ -24,7 +25,6 @@
 	.globl _selected
 	.globl _redraw
 	.globl _music_ready
-	.globl _play_music_safe
 ;--------------------------------------------------------
 ; special function registers
 ;--------------------------------------------------------
