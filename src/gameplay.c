@@ -201,7 +201,8 @@ void play_level(uint8_t idx) BANKED {
 
         if (needs_render) {
             loaded_r = need_col;
-            draw_mt_column((uint8_t)(need_col % BKG_MT_W), need_col, level_map, level_map_w, level_map_bank);
+            // Use bitwise AND (& 15) instead of modulo (% 16). This executes in 1 CPU cycle. (Aight lets see mr gemini)
+            draw_mt_column((uint8_t)(need_col & 15), need_col, level_map, level_map_w, level_map_bank);
         }
 
         if (player.mode == MODE_SHIP) {

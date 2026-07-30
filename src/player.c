@@ -114,7 +114,14 @@ uint8_t player_update(
     p->on_ground = 0;
 
     int16_t check_y_foot = (p->gravity_flipped) ? ny : ny + PLAYER_SIZE;
-    int16_t check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE - PLAYER_HBOX) : (ny + PLAYER_HBOX);
+
+    // Split head check: Ship gets strict bounds, Cube gets forgiving HBOX inset
+    int16_t check_y_head;
+    if (p->mode == MODE_SHIP) {
+        check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE) : ny;
+    } else {
+        check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE - PLAYER_HBOX) : (ny + PLAYER_HBOX);
+    }
 
     uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
     uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
