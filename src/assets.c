@@ -71,7 +71,7 @@ const hUGESong_t * const level_songs[] = {
   &baseafterbase,// level_bab
   &cantletgo,    // level_clg
   &jumper,       // level_ju
-  &timemachine   // level_tm
+  &stereomadness // level_tm
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -84,7 +84,7 @@ const uint8_t song_bank[] = {
   251u, // level_bab — baseafterbase.c
   250u, // level_clg — cantletgo.c
   249u, // level_ju — jumper.c
-  248u, // level_tm — timemachine.c
+  255, // level_tm — timemachine.c
 };
 
 // Level definitions with dimensions and bank info
@@ -95,7 +95,7 @@ const Level level_sm = {
   stereomadness_map,
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
-  192,
+  191,
   stereomadness_portals,
   BANK(stereomadness_portals)
 };
@@ -106,7 +106,7 @@ const Level level_bot = {
   backontrack_map,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
-  184,
+  183,
   backontrack_portals,
   BANK(backontrack_portals)
 };

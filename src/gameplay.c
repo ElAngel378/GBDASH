@@ -35,12 +35,13 @@ void setup_menu_font(void) BANKED {
 void draw_menu(void) BANKED {
     fill_bkg_rect(0, 0, 20, 18, 0x00);
     gotoxy(0, 0);
-    printf("GBDASH DEMO 01\n\n");
+    printf("GBDASH DEMO 01\n");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
         gotoxy(1, 2 + i);
         if (i == selected) printf("0 %s", game_levels[i]->name);
-        else printf(" %s", game_levels[i]->name);
+        else printf("  %s", game_levels[i]->name);
     }
+    printf("\n\n\n\n\n\n\n\nSotospro24");
     SHOW_BKG;
     redraw = 0;
 }
@@ -174,13 +175,13 @@ void play_level(uint8_t idx) BANKED {
         // Simple camera Y following math
         py = player_screen_y(&player, cam_py);
         if (py < CAM_Y_TOP_ZONE) {
-            int16_t target_cam_py = (player.world_y >> 8) - CAM_Y_TOP_ZONE;
+            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
             if (target_cam_py < 0) target_cam_py = 0;
             if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
             cam_py = (uint16_t)target_cam_py;
         }
         else if (py > CAM_Y_BOTTOM_ZONE) {
-            int16_t target_cam_py = (player.world_y >> 8) - CAM_Y_BOTTOM_ZONE;
+            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
             if (target_cam_py < 0) target_cam_py = 0;
             if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
             cam_py = (uint16_t)target_cam_py;

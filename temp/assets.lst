@@ -117,7 +117,7 @@
     00001008r00r00                   99 	.dw _baseafterbase
     0000100Ar00r00                  100 	.dw _cantletgo
     0000100Cr00r00                  101 	.dw _jumper
-    0000100Er00r00                  102 	.dw _timemachine
+    0000100Er00r00                  102 	.dw _stereomadness
     00001010                        103 _song_bank:
     00001010 FF                     104 	.db #0xff	; 255
     00001011 FE                     105 	.db #0xfe	; 254
@@ -126,7 +126,7 @@
     00001014 FB                     108 	.db #0xfb	; 251
     00001015 FA                     109 	.db #0xfa	; 250
     00001016 F9                     110 	.db #0xf9	; 249
-    00001017 F8                     111 	.db #0xf8	; 248
+    00001017 FF                     111 	.db #0xff	; 255
     00001018                        112 _level_sm:
     00001018rC1r10                  113 	.dw __str_0
     0000101Ar00r00                  114 	.dw _chr_gb_tiles
@@ -137,7 +137,7 @@
     00001024 00                     119 	.db #0x00	; 0
     00001025 00                     120 	.db #0x00	; 0
     00001026r00                     121 	.byte ___bank_stereomadness_map
-    00001027 C0                     122 	.db #0xc0	; 192
+    00001027 BF                     122 	.db #0xbf	; 191
     00001028r00r00                  123 	.dw _stereomadness_portals
     0000102Ar00                     124 	.byte ___bank_stereomadness_portals
     0000102B                        125 _level_bot:
@@ -150,7 +150,7 @@
     00001037 00                     132 	.db #0x00	; 0
     00001038 00                     133 	.db #0x00	; 0
     00001039r00                     134 	.byte ___bank_backontrack_map
-    0000103A B8                     135 	.db #0xb8	; 184
+    0000103A B7                     135 	.db #0xb7	; 183
     0000103Br00r00                  136 	.dw _backontrack_portals
     0000103Dr00                     137 	.byte ___bank_backontrack_portals
     0000103E                        138 _level_pg:

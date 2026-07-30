@@ -12,11 +12,11 @@ Symbol Table
     _col_at_end                                                     ******** GX
     _col_at_raw_cached                                              ******** GX
   0 _player_init                                                    00000000 GR
-  0 _player_mark_activated                                          000000DE GR
+  0 _player_mark_activated                                          000000D7 GR
   3 _player_noclip                                                  00000000 GR
-  0 _player_screen_y                                                00000142 GR
+  0 _player_screen_y                                                0000013E GR
   0 _player_tile_activated                                          0000006F GR
-  0 _player_update                                                  0000014E GR
+  0 _player_update                                                  00000148 GR
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
@@ -24,7 +24,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size     1237   flags    0
+   0 _CODE                                      size     10EC   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        1   flags    0

@@ -33,13 +33,13 @@ void check_portals_banked(const Level* l, uint16_t col, Player* p, uint8_t* targ
         else if (obj == 8) {
             if (p->gravity_flipped) {
                 p->gravity_flipped = 0;
-                p->vel_y = 320;
+                p->vel_y.w = 320;
             }
         }
         else if (obj == 9) {
             if (!p->gravity_flipped) {
                 p->gravity_flipped = 1;
-                p->vel_y = -320;
+                p->vel_y.w = -320;
             }
         }
         else if (obj >= 100 && obj <= 103) {

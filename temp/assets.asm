@@ -99,7 +99,7 @@ _level_songs:
 	.dw _baseafterbase
 	.dw _cantletgo
 	.dw _jumper
-	.dw _timemachine
+	.dw _stereomadness
 _song_bank:
 	.db #0xff	; 255
 	.db #0xfe	; 254
@@ -108,7 +108,7 @@ _song_bank:
 	.db #0xfb	; 251
 	.db #0xfa	; 250
 	.db #0xf9	; 249
-	.db #0xf8	; 248
+	.db #0xff	; 255
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
@@ -119,7 +119,7 @@ _level_sm:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.byte ___bank_stereomadness_map
-	.db #0xc0	; 192
+	.db #0xbf	; 191
 	.dw _stereomadness_portals
 	.byte ___bank_stereomadness_portals
 _level_bot:
@@ -132,7 +132,7 @@ _level_bot:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.byte ___bank_backontrack_map
-	.db #0xb8	; 184
+	.db #0xb7	; 183
 	.dw _backontrack_portals
 	.byte ___bank_backontrack_portals
 _level_pg:

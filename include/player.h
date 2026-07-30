@@ -29,15 +29,31 @@
 
 #define MAX_ACTIVATIONS 8
 
+typedef union {
+    uint16_t w;
+    struct {
+        uint8_t l;
+        uint8_t h;
+    } b;
+} fixed16_t;
+
+typedef union {
+    int16_t w;
+    struct {
+        uint8_t l;
+        int8_t h;
+    } b;
+} sfixed16_t;
+
 typedef struct {
     uint16_t mx;
-    uint16_t my;
+    uint8_t my;
 } ActivatedTile;
 
 typedef struct Player {
     uint16_t world_x;
-    uint16_t world_y; // 8.8 fixed point
-    int16_t  vel_y;   // 8.8 fixed point
+    fixed16_t world_y; // 8.8 fixed point
+    sfixed16_t vel_y;   // 8.8 fixed point
     uint8_t  on_ground;
     uint8_t  dead;
     uint8_t  gravity_flipped;
@@ -69,7 +85,7 @@ uint8_t player_update(
 // Returns player's Y position relative to the camera
 int16_t player_screen_y(const Player* p, uint16_t cam_py);
 
-uint8_t player_tile_activated(const Player* p, uint16_t mx, uint16_t my);
-void player_mark_activated(Player* p, uint16_t mx, uint16_t my);
+uint8_t player_tile_activated(const Player* p, uint16_t mx, uint8_t my);
+void player_mark_activated(Player* p, uint16_t mx, uint8_t my);
 
 #endif // PLAYER_H
