@@ -9,24 +9,24 @@ Symbol Table
     .__.H$L.                                                    =   00000000 L
   8 _MAX_LEVELS                                                     000010C0 GR
     ___bank_backontrack_map                                         ******** GX
-    ___bank_backontrack_portals                                     ******** GX
+    ___bank_backontrack_sp                                          ******** GX
     ___bank_baseafterbase_map                                       ******** GX
-    ___bank_baseafterbase_portals                                   ******** GX
+    ___bank_baseafterbase_sp                                        ******** GX
     ___bank_cantletgo_map                                           ******** GX
-    ___bank_cantletgo_portals                                       ******** GX
+    ___bank_cantletgo_sp                                            ******** GX
     ___bank_chr_gb                                              =   00000001 G
     ___bank_chr_gb_tiles                                        =   00000001 G
     ___bank_dryout_map                                              ******** GX
-    ___bank_dryout_portals                                          ******** GX
+    ___bank_dryout_sp                                               ******** GX
     ___bank_game_levels                                         =   00000001 G
     ___bank_jumper_map                                              ******** GX
-    ___bank_jumper_portals                                          ******** GX
+    ___bank_jumper_sp                                               ******** GX
     ___bank_polargeist_map                                          ******** GX
-    ___bank_polargeist_portals                                      ******** GX
+    ___bank_polargeist_sp                                           ******** GX
     ___bank_stereomadness_map                                       ******** GX
-    ___bank_stereomadness_portals                                   ******** GX
+    ___bank_stereomadness_sp                                        ******** GX
     ___bank_timemachine_map                                         ******** GX
-    ___bank_timemachine_portals                                     ******** GX
+    ___bank_timemachine_sp                                          ******** GX
   8 ___func_chr_gb                                                  00000000 GR
   8 ___func_chr_gb_tiles                                            00000000 GR
   8 ___func_game_levels                                             00000000 GR
@@ -41,21 +41,21 @@ Symbol Table
   8 __str_7                                                         00001114 R
     _backontrack                                                    ******** GX
     _backontrack_map                                                ******** GX
-    _backontrack_portals                                            ******** GX
+    _backontrack_sp                                                 ******** GX
     _baseafterbase                                                  ******** GX
     _baseafterbase_map                                              ******** GX
-    _baseafterbase_portals                                          ******** GX
+    _baseafterbase_sp                                               ******** GX
     _cantletgo                                                      ******** GX
     _cantletgo_map                                                  ******** GX
-    _cantletgo_portals                                              ******** GX
+    _cantletgo_sp                                                   ******** GX
   8 _chr_gb_tiles                                                   00000000 GR
     _dryout                                                         ******** GX
     _dryout_map                                                     ******** GX
-    _dryout_portals                                                 ******** GX
+    _dryout_sp                                                      ******** GX
   8 _game_levels                                                    000010B0 GR
     _jumper                                                         ******** GX
     _jumper_map                                                     ******** GX
-    _jumper_portals                                                 ******** GX
+    _jumper_sp                                                      ******** GX
   8 _level_bab                                                      00001064 GR
   8 _level_bot                                                      0000102B GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
@@ -72,13 +72,13 @@ Symbol Table
   8 _level_tm                                                       0000109D GR
     _polargeist                                                     ******** GX
     _polargeist_map                                                 ******** GX
-    _polargeist_portals                                             ******** GX
+    _polargeist_sp                                                  ******** GX
   8 _song_bank                                                      00001010 GR
     _stereomadness                                                  ******** GX
     _stereomadness_map                                              ******** GX
-    _stereomadness_portals                                          ******** GX
+    _stereomadness_sp                                               ******** GX
     _timemachine_map                                                ******** GX
-    _timemachine_portals                                            ******** GX
+    _timemachine_sp                                                 ******** GX
     b___func_chr_gb                                             =   00000001 L
     b___func_chr_gb_tiles                                       =   00000001 L
     b___func_game_levels                                        =   00000001 L

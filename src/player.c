@@ -14,7 +14,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->mode = MODE_CUBE;
     p->last_joy = 0;
     p->touching_orb = 0;
-    p->portal_idx = 0;
+    p->sp_idx = 0;
     p->activated_count = 0;
     p->next_activated_slot = 0;
 }
@@ -198,85 +198,8 @@ uint8_t player_update(
         return 1;
     }
 
-    uint8_t tl = COL_AT_PTR(c0, py);
-    const uint8_t* c_right = GET_COL_FAST(PLAYER_SIZE - 1);
-    uint8_t tr = COL_AT_PTR(c_right, py);
-    uint8_t bl = COL_AT_PTR(c0, py + PLAYER_SIZE - 1);
-    uint8_t br = COL_AT_PTR(c_right, py + PLAYER_SIZE - 1);
-
-    uint8_t pad_l = (p->gravity_flipped) ? tl : bl;
-    uint8_t pad_r = (p->gravity_flipped) ? tr : br;
-
-    if (IS_PAD(pad_l) || IS_PAD(pad_r)) {
-        uint8_t hit;
-        uint16_t hx;
-        int16_t hy = (p->gravity_flipped) ? (int16_t)(p->world_y.b.h) : (int16_t)(p->world_y.b.h) + PLAYER_SIZE - 1;
-
-        if (IS_PAD(pad_l)) { hit = pad_l; hx = px; }
-        else { hit = pad_r; hx = px + PLAYER_SIZE - 1; }
-
-        uint8_t pmx = (hx >> 4);
-        uint8_t pmy = ((uint16_t)hy >> 4);
-
-        if (!player_tile_activated(p, pmx, pmy)) {
-            player_mark_activated(p, pmx, pmy);
-            if (hit == COL_PAD_BLUE) {
-                p->gravity_flipped = !p->gravity_flipped;
-                p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
-            } else if (hit == COL_PAD_MAGENTA) {
-                p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
-            } else {
-                p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
-            }
-            p->on_ground = 0;
-        }
-    } else if (joy & J_A) {
-        uint8_t omx, omy;
-        uint8_t hit;
-
-        if (IS_ORB(tl)) {
-            omx = mx0; omy = py >> 4;
-            if (!player_tile_activated(p, omx, omy)) {
-                player_mark_activated(p, omx, omy);
-                hit = tl; goto orb_hit;
-            }
-        }
-        if (IS_ORB(tr)) {
-            omx = GET_MX_FAST(PLAYER_SIZE - 1); omy = py >> 4;
-            if (!player_tile_activated(p, omx, omy)) {
-                player_mark_activated(p, omx, omy);
-                hit = tr; goto orb_hit;
-            }
-        }
-        if (IS_ORB(bl)) {
-            omx = mx0; omy = (py + PLAYER_SIZE - 1) >> 4;
-            if (!player_tile_activated(p, omx, omy)) {
-                player_mark_activated(p, omx, omy);
-                hit = bl; goto orb_hit;
-            }
-        }
-        if (IS_ORB(br)) {
-            omx = GET_MX_FAST(PLAYER_SIZE - 1); omy = (py + PLAYER_SIZE - 1) >> 4;
-            if (!player_tile_activated(p, omx, omy)) {
-                player_mark_activated(p, omx, omy);
-                hit = br; goto orb_hit;
-            }
-        }
-        goto orb_done;
-
-        orb_hit:
-        if (hit == COL_ORB_MAGENTA) {
-            p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
-        } else if (hit == COL_ORB_BLUE) {
-            p->gravity_flipped = !p->gravity_flipped;
-            p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
-        } else {
-            p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 144 : JUMP_FORCE - 144;
-        }
-        p->on_ground = 0;
-
-        orb_done:;
-    }
+    // Pads and Orbs are now handled by process_sp_objects in the SP layer.
+    // Tile-based collision for these is removed to save CPU cycles.
     col_at_end();
 
     if (p->on_ground) {

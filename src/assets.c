@@ -35,22 +35,22 @@ extern const uint8_t jumper_map[];
 BANKREF_EXTERN(timemachine_map)
 extern const uint8_t timemachine_map[];
 
-extern const PortalDef stereomadness_portals[];
-BANKREF_EXTERN(stereomadness_portals)
-extern const PortalDef backontrack_portals[];
-BANKREF_EXTERN(backontrack_portals)
-extern const PortalDef polargeist_portals[];
-BANKREF_EXTERN(polargeist_portals)
-extern const PortalDef dryout_portals[];
-BANKREF_EXTERN(dryout_portals)
-extern const PortalDef baseafterbase_portals[];
-BANKREF_EXTERN(baseafterbase_portals)
-extern const PortalDef cantletgo_portals[];
-BANKREF_EXTERN(cantletgo_portals)
-extern const PortalDef jumper_portals[];
-BANKREF_EXTERN(jumper_portals)
-extern const PortalDef timemachine_portals[];
-BANKREF_EXTERN(timemachine_portals)
+extern const SpDef stereomadness_sp[];
+BANKREF_EXTERN(stereomadness_sp)
+extern const SpDef backontrack_sp[];
+BANKREF_EXTERN(backontrack_sp)
+extern const SpDef polargeist_sp[];
+BANKREF_EXTERN(polargeist_sp)
+extern const SpDef dryout_sp[];
+BANKREF_EXTERN(dryout_sp)
+extern const SpDef baseafterbase_sp[];
+BANKREF_EXTERN(baseafterbase_sp)
+extern const SpDef cantletgo_sp[];
+BANKREF_EXTERN(cantletgo_sp)
+extern const SpDef jumper_sp[];
+BANKREF_EXTERN(jumper_sp)
+extern const SpDef timemachine_sp[];
+BANKREF_EXTERN(timemachine_sp)
 
 // Music songs
 extern const hUGESong_t stereomadness;
@@ -96,8 +96,8 @@ const Level level_sm = {
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
   191,
-  stereomadness_portals,
-  BANK(stereomadness_portals)
+  stereomadness_sp,
+  BANK(stereomadness_sp)
 };
 
 const Level level_bot = {
@@ -107,8 +107,8 @@ const Level level_bot = {
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
   183,
-  backontrack_portals,
-  BANK(backontrack_portals)
+  backontrack_sp,
+  BANK(backontrack_sp)
 };
 
 const Level level_pg = {
@@ -118,8 +118,8 @@ const Level level_pg = {
   chr_gb_TILE_COUNT, 934, 16, 0, 0,
   BANK(polargeist_map),
   193,
-  polargeist_portals,
-  BANK(polargeist_portals)
+  polargeist_sp,
+  BANK(polargeist_sp)
 };
 
 const Level level_du = {
@@ -129,8 +129,8 @@ const Level level_du = {
   chr_gb_TILE_COUNT, 842, 16, 0, 0,
   BANK(dryout_map),
   185,
-  dryout_portals,
-  BANK(dryout_portals)
+  dryout_sp,
+  BANK(dryout_sp)
 };
 
 const Level level_bab = {
@@ -140,8 +140,8 @@ const Level level_bab = {
   chr_gb_TILE_COUNT, 869, 16, 0, 0,
   BANK(baseafterbase_map),
   183,
-  baseafterbase_portals,
-  BANK(baseafterbase_portals)
+  baseafterbase_sp,
+  BANK(baseafterbase_sp)
 };
 
 const Level level_clg = {
@@ -151,8 +151,8 @@ const Level level_clg = {
   chr_gb_TILE_COUNT, 837, 16, 0, 0,
   BANK(cantletgo_map),
   196,
-  cantletgo_portals,
-  BANK(cantletgo_portals)
+  cantletgo_sp,
+  BANK(cantletgo_sp)
 };
 
 const Level level_ju = {
@@ -162,8 +162,8 @@ const Level level_ju = {
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
   141,
-  jumper_portals,
-  BANK(jumper_portals)
+  jumper_sp,
+  BANK(jumper_sp)
 };
 
 const Level level_tm = {
@@ -173,8 +173,8 @@ const Level level_tm = {
   chr_gb_TILE_COUNT, 997, 16, 0, 0,
   BANK(timemachine_map),
   192,
-  timemachine_portals,
-  BANK(timemachine_portals)
+  timemachine_sp,
+  BANK(timemachine_sp)
 };
 
 // Global level list used by the menu and gameplay systems

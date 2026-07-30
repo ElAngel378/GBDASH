@@ -13,7 +13,7 @@
 #define GRAVITY           107   // Famidash 0x006B
 #define JUMP_FORCE       -1296  // Famidash 0xFA70
 #define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
-#define PAD_JUMP_FORCE   -1984  // Famidash 0xF840 (Yellow Pad)
+#define PAD_JUMP_FORCE   -2030  // Famidash 0xF840 (Yellow Pad)
 #define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
 #define BLUE_PAD_FORCE     928   // Famidash 0x03A0
 #define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (ORB_BALL_HEIGHT_BLUE)
@@ -62,7 +62,7 @@ typedef struct Player {
     uint16_t anim_timer;
     uint8_t  last_joy;
     uint8_t  touching_orb;
-    uint16_t portal_idx;
+    uint16_t sp_idx;
     ActivatedTile activated[MAX_ACTIVATIONS];
     uint8_t activated_count;
     uint8_t next_activated_slot;

@@ -161,13 +161,9 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-        // Dynamic Portal Logic
-        uint16_t col = (player.world_x + 8) >> 4;
-        static uint16_t last_col = 0xFFFF;
-        if (col != last_col) {
-            last_col = col;
-            check_portals_banked(l, col, &player, &target_bg_idx);
-        }
+
+        // Process interactive objects (Portals, Pads, Orbs, Triggers)
+        process_sp_objects(l, &player, joy, &target_bg_idx);
 
 
         died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
@@ -189,7 +185,7 @@ void play_level(uint8_t idx) BANKED {
 
         // Calculate final positions
         uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-        uint8_t sprite_x = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+        uint8_t sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
         int16_t final_py = player_screen_y(&player, cam_py);
 
         // WAIT FOR VBLANK
@@ -207,18 +203,18 @@ void play_level(uint8_t idx) BANKED {
 
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
-                move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x + 8, final_py + 16);
+                move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
             }
             else {
-                move_metasprite(ship_metasprites[0], 0, 0, sprite_x + 8, final_py + 16);
+                move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
             }
         }
         else {
             if (player.gravity_flipped) {
-                move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 22, final_py + 16);
+                move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
             }
             else {
-                move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x + 8, final_py + 16);
+                move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
             }
         }
 

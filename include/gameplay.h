@@ -16,7 +16,7 @@ void setup_menu_font(void) BANKED;
 void draw_menu(void) BANKED;
 void play_level(uint8_t idx) BANKED;
 
-// Bank-safe portal checking (resides in Bank 0)
-void check_portals_banked(const Level* l, uint16_t col, struct Player* p, uint8_t* target_bg_idx);
+// Bank-safe SP object processing (resides in Bank 0)
+void process_sp_objects(const Level* l, struct Player* p, uint8_t joy, uint8_t* target_bg_idx);
 
 #endif

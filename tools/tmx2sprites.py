@@ -17,10 +17,11 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sys.exit(1)
 
     # Get the map dimensions
-    if 'width' not in root.attrib:
-        print(f"Error: TMX file {tmx_filepath} is missing the 'width' attribute.")
+    if 'width' not in root.attrib or 'height' not in root.attrib:
+        print(f"Error: TMX file {tmx_filepath} is missing width or height attributes.")
         sys.exit(1)
     map_width = int(root.attrib['width'])
+    map_height = int(root.attrib['height'])
 
     # Find the 'sprites' tileset to dynamically get its starting ID (firstgid)
     sprites_firstgid = None
@@ -36,19 +37,26 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         print(f"Error: Could not find a tileset named 'sprites' in {tmx_filepath}.")
         sys.exit(1)
 
-    # Map the TMX Global IDs to your desired engine IDs
+    # Map the TMX Global IDs to your desired engine IDs.
+    # Confirmed against the actual sprites.png sheet: everything used lives in row 0
+    # (local ids 0-14), read left to right:
+    #   0=Cube portal   1=Ship portal
+    #   5=Blue orb (gravity)   6=Pink orb
+    #   8=Normal gravity trigger   9=Inverted gravity trigger
+    #   10=Yellow pad   11=Yellow orb   12=Yellow pad (upside down)
+    #   13=Blue pad     14=Blue pad (upside down)
     portals_map = {
-        sprites_firstgid + 0: 0, # Cube portal
-        sprites_firstgid + 1: 1, # Ship portal
-        sprites_firstgid + 8: 8, # Normal gravity
-        sprites_firstgid + 9: 9, # Inverted gravity
-
-        # Pads and Orbs
-        sprites_firstgid + 44: 10, # Normal pad
-        sprites_firstgid + 45: 11, # Normal orb
-        sprites_firstgid + 46: 12, # Flipped normal jump pad
-        sprites_firstgid + 47: 13, # Blue Pad
-        sprites_firstgid + 48: 14, # Flipped Blue Pad
+        sprites_firstgid + 0:  0,   # Cube portal
+        sprites_firstgid + 1:  1,   # Ship portal
+        sprites_firstgid + 5:  5,   # Blue Orb (Gravity)
+        sprites_firstgid + 6:  6,   # Pink Orb
+        sprites_firstgid + 8:  8,   # Normal gravity trigger
+        sprites_firstgid + 9:  9,   # Inverted gravity trigger
+        sprites_firstgid + 10: 10,  # Yellow Pad
+        sprites_firstgid + 11: 11,  # Yellow Orb
+        sprites_firstgid + 12: 12,  # Yellow Pad (upside down)
+        sprites_firstgid + 13: 13,  # Blue Pad
+        sprites_firstgid + 14: 14,  # Blue Pad (upside down)
     }
 
     # BG Color mappings:
@@ -84,9 +92,11 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
 
                     # If this tile is one of our portals, extract it
                     if tile_id in portals_map:
-                        # Calculate X and Y coordinates
+                        # Calculate X and Y coordinates (Flipping Y: Tiled 0 is Top, Engine 0 is Bottom)
                         x = index % map_width
-                        y = index // map_width
+                        y_tiled = index // map_width
+                        # Flip Y based on map height (e.g., if height is 27, Tiled 26 becomes Engine 0)
+                        y = (map_height - 1) - y_tiled
                         obj_id = portals_map[tile_id]
 
                         portal_data.append((x, y, obj_id))
@@ -109,10 +119,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
             f.write('#include "assets.h"\n\n')
 
             if bank is not None:
-                f.write(f'BANKREF({c_var_name}_portals)\n\n')
+                f.write(f'BANKREF({c_var_name}_sp)\n\n')
 
-            f.write(f"// Extracted {len(portal_data)} portals from SP layer\n")
-            f.write(f"const PortalDef {c_var_name}_portals[] = {{\n")
+            f.write(f"// Extracted {len(portal_data)} objects from SP layer\n")
+            f.write(f"const SpDef {c_var_name}_sp[] = {{\n")
 
             # Write all extracted portals
             for x, y, obj in portal_data:

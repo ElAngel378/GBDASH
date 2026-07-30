@@ -120,8 +120,8 @@ _level_sm:
 	.db #0x00	; 0
 	.byte ___bank_stereomadness_map
 	.db #0xbf	; 191
-	.dw _stereomadness_portals
-	.byte ___bank_stereomadness_portals
+	.dw _stereomadness_sp
+	.byte ___bank_stereomadness_sp
 _level_bot:
 	.dw __str_1
 	.dw _chr_gb_tiles
@@ -133,8 +133,8 @@ _level_bot:
 	.db #0x00	; 0
 	.byte ___bank_backontrack_map
 	.db #0xb7	; 183
-	.dw _backontrack_portals
-	.byte ___bank_backontrack_portals
+	.dw _backontrack_sp
+	.byte ___bank_backontrack_sp
 _level_pg:
 	.dw __str_2
 	.dw _chr_gb_tiles
@@ -146,8 +146,8 @@ _level_pg:
 	.db #0x00	; 0
 	.byte ___bank_polargeist_map
 	.db #0xc1	; 193
-	.dw _polargeist_portals
-	.byte ___bank_polargeist_portals
+	.dw _polargeist_sp
+	.byte ___bank_polargeist_sp
 _level_du:
 	.dw __str_3
 	.dw _chr_gb_tiles
@@ -159,8 +159,8 @@ _level_du:
 	.db #0x00	; 0
 	.byte ___bank_dryout_map
 	.db #0xb9	; 185
-	.dw _dryout_portals
-	.byte ___bank_dryout_portals
+	.dw _dryout_sp
+	.byte ___bank_dryout_sp
 _level_bab:
 	.dw __str_4
 	.dw _chr_gb_tiles
@@ -172,8 +172,8 @@ _level_bab:
 	.db #0x00	; 0
 	.byte ___bank_baseafterbase_map
 	.db #0xb7	; 183
-	.dw _baseafterbase_portals
-	.byte ___bank_baseafterbase_portals
+	.dw _baseafterbase_sp
+	.byte ___bank_baseafterbase_sp
 _level_clg:
 	.dw __str_5
 	.dw _chr_gb_tiles
@@ -185,8 +185,8 @@ _level_clg:
 	.db #0x00	; 0
 	.byte ___bank_cantletgo_map
 	.db #0xc4	; 196
-	.dw _cantletgo_portals
-	.byte ___bank_cantletgo_portals
+	.dw _cantletgo_sp
+	.byte ___bank_cantletgo_sp
 _level_ju:
 	.dw __str_6
 	.dw _chr_gb_tiles
@@ -198,8 +198,8 @@ _level_ju:
 	.db #0x00	; 0
 	.byte ___bank_jumper_map
 	.db #0x8d	; 141
-	.dw _jumper_portals
-	.byte ___bank_jumper_portals
+	.dw _jumper_sp
+	.byte ___bank_jumper_sp
 _level_tm:
 	.dw __str_7
 	.dw _chr_gb_tiles
@@ -211,8 +211,8 @@ _level_tm:
 	.db #0x00	; 0
 	.byte ___bank_timemachine_map
 	.db #0xc0	; 192
-	.dw _timemachine_portals
-	.byte ___bank_timemachine_portals
+	.dw _timemachine_sp
+	.byte ___bank_timemachine_sp
 _game_levels:
 	.dw _level_sm
 	.dw _level_bot
