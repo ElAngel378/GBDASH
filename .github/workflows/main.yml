@@ -29,7 +29,9 @@ jobs:
           /opt/gbdk/bin/lcc -v
 
       - name: Build ROM
-        run: make
+        run: |
+          make clean
+          make
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
