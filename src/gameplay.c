@@ -203,7 +203,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
-                move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+                move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
             }
             else {
                 move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);

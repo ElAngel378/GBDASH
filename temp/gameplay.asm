@@ -745,11 +745,11 @@ _play_level::
 ;src/gameplay.c:154: if (px_curr != px_prev) {
 	ld	a, e
 	sub	a, c
-	jr	NZ, 00363$
+	jr	NZ, 00372$
 	ld	a, d
 	sub	a, b
 	jr	Z, 00117$
-00363$:
+00372$:
 ;src/gameplay.c:155: uint16_t need = px_curr + VIEW_MT_W;
 	ld	hl, #0x000a
 	add	hl, de
@@ -866,16 +866,16 @@ _play_level::
 	ld	d, (hl)
 	ld	a, #0x00
 	bit	7,a
-	jr	Z, 00364$
+	jr	Z, 00373$
 	bit	7, d
-	jr	NZ, 00365$
+	jr	NZ, 00374$
 	cp	a, a
-	jr	00365$
-00364$:
+	jr	00374$
+00373$:
 	bit	7, d
-	jr	Z, 00365$
+	jr	Z, 00374$
 	scf
-00365$:
+00374$:
 	jr	NC, 00129$
 ;src/gameplay.c:174: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
 	ldhl	sp,	#8
@@ -998,6 +998,8 @@ _play_level::
 	sbc	a, #0x00
 	jr	NC, 00171$
 	ldhl	sp,	#79
+	ld	a, (hl-)
+	ld	(hl), a
 	ld	a, (hl)
 	jr	00172$
 00171$:
@@ -1089,20 +1091,22 @@ _play_level::
 ;src/gameplay.c:204: if (player.mode == MODE_SHIP) {
 	ldhl	sp,	#14
 	ld	c, (hl)
-;src/gameplay.c:206: move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
 	ldhl	sp,	#77
-	ld	a, (hl-)
-	ld	b, a
 	ld	a, (hl+)
-	inc	hl
 	ld	(hl-), a
 	dec	hl
-	ld	a, b
-	add	a, #0x10
-	ld	(hl+), a
-	inc	hl
+	ld	a, (hl+)
+	ld	(hl), a
 	ld	a, (hl-)
+	dec	hl
 	add	a, #0x08
+	ld	(hl), a
+;src/gameplay.c:209: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#78
+	ld	a, (hl-)
+	dec	hl
+	add	a, #0x10
 	ld	(hl), a
 ;src/gameplay.c:204: if (player.mode == MODE_SHIP) {
 	dec	c
@@ -1112,39 +1116,49 @@ _play_level::
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00134$
-;src/gameplay.c:206: move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#76
-	ld	a, (hl+)
-	ld	b, a
-	ld	c, (hl)
+;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+	ldhl	sp,	#78
+	ld	a, (hl)
+	add	a, #0x18
+	ld	c, a
+	ldhl	sp,	#75
+	ld	b, (hl)
 	ld	hl, #_ship_metasprites
 	ld	a,	(hl+)
 	ld	h, (hl)
-;c:\gbdk\include\gb\metasprites.h:209: __current_metasprite = metasprite;
+;c:\gbdk\include\gb\metasprites.h:250: __current_metasprite = metasprite;
 	ld	e, a
 	ld	d, h
 	ld	hl, #___current_metasprite
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-;c:\gbdk\include\gb\metasprites.h:210: __current_base_tile = base_tile;
-;c:\gbdk\include\gb\metasprites.h:211: __current_base_prop = 0;
+;c:\gbdk\include\gb\metasprites.h:251: __current_base_tile = base_tile;
+;c:\gbdk\include\gb\metasprites.h:252: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_tile), a
 	ld	(#___current_base_prop),a
-;c:\gbdk\include\gb\metasprites.h:212: return __move_metasprite_vflip(base_sprite, (y << 8) | (uint8_t)(x - 8u));
-	ld	d, b
+;c:\gbdk\include\gb\metasprites.h:253: return __move_metasprite_hflip(base_sprite, ((y - ((LCDC_REG & LCDCF_OBJ16) ? 16u : 8u)) << 8) | x);
+	ldh	a, (_LCDC_REG + 0)
+	bit	2, a
+	jr	Z, 00173$
+	ld	de, #0x0010
+	jr	00174$
+00173$:
+	ld	de, #0x0008
+00174$:
 	ld	a, c
-	add	a, #0xf8
-	ld	e, a
+	sub	a, e
+	ld	d, a
+	ld	e, b
 	xor	a, a
-	call	___move_metasprite_vflip
-;src/gameplay.c:206: move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+	call	___move_metasprite_hflip
+;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
 	jr	00141$
 00134$:
 ;src/gameplay.c:209: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
 	ldhl	sp,	#76
-	ld	a, (hl+)
+	ld	a, (hl-)
 	ld	b, a
 	ld	c, (hl)
 	ld	hl, #_ship_metasprites
@@ -1178,7 +1192,6 @@ _play_level::
 ;src/gameplay.c:214: move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
 	ldhl	sp,	#76
 	ld	a, (hl+)
-	inc	hl
 	ld	b, a
 	ld	a, (hl)
 	add	a, #0x16
@@ -1215,7 +1228,7 @@ _play_level::
 00137$:
 ;src/gameplay.c:217: move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
 	ldhl	sp,	#76
-	ld	a, (hl+)
+	ld	a, (hl-)
 	ld	b, a
 	ld	c, (hl)
 	ldhl	sp,	#15
@@ -1358,13 +1371,13 @@ _play_level::
 	ld	(hl), a
 ;src/gameplay.c:250: target_bg_idx = 0;
 	ldhl	sp,	#0
+	ld	(hl), #0x00
 ;src/gameplay.c:251: player_init(&player, 0, 240);
+	ld	hl, #5
+	add	hl, sp
 	ld	de, #0x00f0
-	ld	(hl), d
 	push	de
 	ld	bc, #0x0000
-	ld	hl, #7
-	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_init

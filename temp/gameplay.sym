@@ -26,6 +26,7 @@ Symbol Table
     ___current_base_tile                                            ******** GX
     ___current_metasprite                                           ******** GX
     ___move_metasprite                                              ******** GX
+    ___move_metasprite_hflip                                        ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
   8 ___str_1                                                        0000009B R
@@ -57,12 +58,12 @@ Symbol Table
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
     _printf                                                         ******** GX
-    _process_sp_objects                                             ******** GX
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _process_sp_objects                                             ******** GX
     _puts                                                           ******** GX
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
@@ -77,7 +78,6 @@ Symbol Table
     b_play_level                                                =   00000001 G
     b_setup_menu_font                                           =   00000001 G
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
@@ -91,7 +91,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size      6A0   flags    0
+   8 _CODE_1                                    size      6B5   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

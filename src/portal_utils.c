@@ -83,22 +83,28 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
             case OBJ_PAD_YELLOW:
             case OBJ_PAD_PINK:
             case OBJ_PAD_BLUE:
+            case OBJ_PAD_YELLOW_UP:
+            case OBJ_PAD_BLUE_UP:
             {
                 // Pad hitboxes (16x8)
-                // Normal Gravity: Pad is bottom 8px of tile (obj_y + 8 to 16).
-                // Flipped Gravity: Pad is top 8px of tile (obj_y to +8).
-                uint16_t pad_top = (p->gravity_flipped) ? obj_y : (obj_y + 8);
-                uint16_t pad_bot = (p->gravity_flipped) ? (obj_y + 8) : (obj_y + 16);
+                // Determine if this is a ceiling-mounted pad
+                uint8_t is_ceiling_pad = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+
+                // Ceiling Pad: Top 8px of tile (obj_y to +8)
+                // Floor Pad: Bottom 8px of tile (obj_y + 8 to 16)
+                uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 8);
+                uint16_t pad_bot = is_ceiling_pad ? (obj_y + 8) : (obj_y + 16);
 
                 if (py <= pad_bot && (py + PLAYER_SIZE) >= pad_top) {
                     player_mark_activated(p, check_ptr->c, check_ptr->r);
 
-                    if (obj == OBJ_PAD_BLUE) {
+                    if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
                         p->gravity_flipped = !p->gravity_flipped;
                         p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
                     } else if (obj == OBJ_PAD_PINK) {
                         p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
                     } else {
+                        // Yellow Pad logic: Launch away from the surface
                         p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
                     }
                     p->on_ground = 0;
