@@ -27,14 +27,15 @@ Symbol Table
     ___current_metasprite                                           ******** GX
     ___move_metasprite                                              ******** GX
     ___move_metasprite_hflip                                        ******** GX
+    ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
   8 ___str_1                                                        0000009B R
   8 ___str_2                                                        000000AA R
   8 ___str_3                                                        000000AF R
   8 ___str_4                                                        000000B4 R
-  8 ___str_5                                                        0000071B R
-  8 ___str_6                                                        0000072A R
+  8 ___str_5                                                        000008D3 R
+  8 ___str_6                                                        000008E2 R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
   8 _draw_menu                                                      00000011 GR
@@ -57,12 +58,12 @@ Symbol Table
   8 _play_level                                                     000000C7 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
-    _player_screen_y                                                ******** GX
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
     _printf                                                         ******** GX
     _process_sp_objects                                             ******** GX
@@ -80,7 +81,6 @@ Symbol Table
     b_play_level                                                =   00000001 G
     b_setup_menu_font                                           =   00000001 G
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
@@ -94,7 +94,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size      73A   flags    0
+   8 _CODE_1                                    size      8F2   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

@@ -56,7 +56,6 @@ void play_level(uint8_t idx) BANKED {
     uint8_t level_tiles_bank;
     uint8_t level_map_bank;
 
-    // game_levels is in Bank 1
     l = game_levels[idx];
     level_tiles = l->tiles;
     level_map = l->map;
@@ -66,12 +65,10 @@ void play_level(uint8_t idx) BANKED {
     level_tiles_bank = BANK(chr_gb);
     level_map_bank = l->map_bank;
 
-    // Power on sound
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
 
-    // Start level music if the level has a song
     if (level_songs[idx]) {
         init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
         current_song_bank = song_bank[idx];
@@ -89,45 +86,31 @@ void play_level(uint8_t idx) BANKED {
     int16_t py;
 
     uint8_t target_bg_idx = 0;
-    //const uint8_t bg_pals[] = {
-    //        0xE4, // 0: White BG, Normal Tileset
-    //        0x19, // 1: Light Gray BG, Flipped Tileset
-    //        0x1A, // 2: Dark Gray BG, Flipped Tileset
-    //        0x1B  // 3: Black BG, Flipped Tileset
-    //};
     const uint8_t bg_pals[] = {
-            0xE4, // 0: White BG, Normal Tileset
-            0xE4, // 1: Light Gray BG, Flipped Tileset
-            0xE4, // 2: Dark Gray BG, Flipped Tileset
-            0x1B  // 3: Black BG, Flipped Tileset
+            0xE4, // 0: White BG
+            0xE4, // 1: Light Gray BG
+            0xE4, // 2: Dark Gray BG
+            0x1B  // 3: Black BG
     };
 
     Player player;
     player_init(&player, 0, 240);
 
-    // Setup GBDK graphics state
     disable_interrupts();
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
-
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank);
-
     BGP_REG = bg_pals[0];
     OBP0_REG = 0xE4;
     SPRITES_8x16;
-
     SHOW_BKG;
     SHOW_SPRITES;
     DISPLAY_ON;
-
-    TAC_REG = 0x04; // Start the timer metronome
+    TAC_REG = 0x04;
     enable_interrupts();
-
-    //waitpadup();
 
     uint16_t scroll_acc = 0;
     uint8_t prev_joy = 0;
@@ -136,40 +119,29 @@ void play_level(uint8_t idx) BANKED {
         if (joy & J_START) break;
 
         if ((joy & J_UP) || player.level_complete) {
-//            music_ready = 0;
-//            TAC_REG = 0x00;   // Stop music timer
-//            NR52_REG = 0x00; // Silence
-
             HIDE_SPRITES;
             move_bkg(0, 0);
             disable_interrupts();
             setup_menu_font();
             enable_interrupts();
-
             fill_bkg_rect(0, 0, 20, 18, 0x00);
             gotoxy(3, 6);
             printf("LEVEL COMPLETE");
             gotoxy(3, 12);
             printf("Press A to exit");
-
             waitpadup();
-            while (!(joypad() & J_A)) {
-                wait_vbl_done();
-            }
+            while (!(joypad() & J_A)) wait_vbl_done();
             break;
         }
 
-        // Toggle noclip on B press
-        if ((joy & J_B) && !(prev_joy & J_B)) {
-            player_noclip = !player_noclip;
-        }
+        if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
         prev_joy = joy;
 
-        //  Physics and Scroll calculation
         uint16_t px_prev = cam_px >> 4;
         uint8_t needs_render = 0;
         uint16_t need_col = 0;
 
+        // PROGRESS FORWARD through the level map
         if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
@@ -185,14 +157,9 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-
-        // Process interactive objects (Portals, Pads, Orbs, Triggers)
         process_sp_objects(l, &player, joy, &target_bg_idx);
-
-
         died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
 
-        // Simple camera Y following math
         py = player_screen_y(&player, cam_py);
         if (py < CAM_Y_TOP_ZONE) {
             int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
@@ -207,65 +174,66 @@ void play_level(uint8_t idx) BANKED {
             cam_py = (uint16_t)target_cam_py;
         }
 
-        // Calculate final positions
-        uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-        uint8_t sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+        uint16_t scroll_px;
+        uint8_t sprite_x_final;
+        if (player.reversed) {
+            // Mirror Mode: SCX decreases as we progress forward
+            scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
+            sprite_x_final = 128; // Mirrored player position
+        } else {
+            scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+            sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+        }
         int16_t final_py = player_screen_y(&player, cam_py);
 
-        // WAIT FOR VBLANK
         wait_vbl_done();
-
-        // UPDATE
         BGP_REG = bg_pals[target_bg_idx];
         move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
         if (needs_render) {
             loaded_r = need_col;
-            // Use bitwise AND (& 15) instead of modulo (% 16). This executes in 1 CPU cycle. (Aight lets see mr gemini)
-            draw_mt_column((uint8_t)(need_col & 15), need_col, level_map, level_map_w, level_map_bank);
+            uint8_t vram_slot = (uint8_t)(need_col & 15);
+            // Reverse tile mapping in VRAM ring buffer to create mirrored level layout
+            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+            draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank);
         }
 
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
-                move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+                if (player.reversed) move_metasprite_hvflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 24);
+                else move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+            } else {
+                if (player.reversed) move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 16);
+                else move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
             }
-            else {
-                move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
-            }
-        }
-        else {
+        } else {
             if (player.gravity_flipped) {
-                move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
-            }
-            else {
-                move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
+                if (player.reversed) move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+                else move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+            } else {
+                if (player.reversed) move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+                else move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
             }
         }
 
         if (died) {
-            TAC_REG = 0x00;   // Stop music timer immediately
-
-            NR52_REG = 0x00; // Silence
-
-            NR52_REG = 0x80; // Turn sound back ON
-            NR51_REG = 0xFF; // Route all channels to left and right
-            NR50_REG = 0x77; // Set master volume to max
-
-            NR41_REG = 0x00; // Length
-            NR42_REG = 0xF2; // Volume
-            NR43_REG = 0x43; // Note
-            NR44_REG = 0x80; // Trigger
-
+            TAC_REG = 0x00;
+            NR52_REG = 0x00;
+            NR52_REG = 0x80;
+            NR51_REG = 0xFF;
+            NR50_REG = 0x77;
+            NR41_REG = 0x00;
+            NR42_REG = 0xF2;
+            NR43_REG = 0x43;
+            NR44_REG = 0x80;
             for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
             NR52_REG = 0x80;
             NR51_REG = 0xFF;
             NR50_REG = 0x77;
-
             if (level_songs[idx]) {
                 init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
                 current_song_bank = song_bank[idx];
             }
-
             disable_interrupts();
             cam_px = 0;
             cam_py = 112;
@@ -276,11 +244,9 @@ void play_level(uint8_t idx) BANKED {
             move_bkg(0, (uint8_t)cam_py);
             BGP_REG = bg_pals[0];
             fill_scroll_bg(level_map, level_map_w, level_map_bank);
-
             TAC_REG = 0x04;
             music_ready = 1;
             enable_interrupts();
-            //waitpadup();
         }
     }
 

@@ -98,6 +98,9 @@ _baseafterbase_sp:
 	.dw #0x0136
 	.db #0x01	; 1
 	.db #0x67	; 103	'g'
+	.dw #0x01a4
+	.db #0x10	; 16
+	.db #0x11	; 17
 	.dw #0x01ba
 	.db #0x06	; 6
 	.db #0x0a	; 10

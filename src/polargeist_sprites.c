@@ -3,7 +3,7 @@
 
 BANKREF(polargeist_sp)
 
-// Extracted 55 objects from SP layer
+// Extracted 56 objects from SP layer
 const SpDef polargeist_sp[] = {
     {17, 1, 11},
     {32, 1, 11},
@@ -45,6 +45,7 @@ const SpDef polargeist_sp[] = {
     {656, 4, 10},
     {687, 2, 11},
     {708, 0, 13},
+    {711, 12, 16},
     {716, 10, 11},
     {716, 7, 100},
     {717, 3, 10},

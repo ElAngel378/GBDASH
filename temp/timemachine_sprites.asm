@@ -104,6 +104,9 @@ _timemachine_sp:
 	.dw #0x011b
 	.db #0x03	; 3
 	.db #0x0b	; 11
+	.dw #0x0126
+	.db #0x04	; 4
+	.db #0x10	; 16
 	.dw #0x012d
 	.db #0x05	; 5
 	.db #0x65	; 101	'e'
@@ -203,6 +206,9 @@ _timemachine_sp:
 	.dw #0x02aa
 	.db #0x03	; 3
 	.db #0x08	; 8
+	.dw #0x02ab
+	.db #0x0f	; 15
+	.db #0x10	; 16
 	.dw #0x02ab
 	.db #0x05	; 5
 	.db #0x66	; 102	'f'

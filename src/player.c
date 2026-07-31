@@ -12,6 +12,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->anim_frame = 0;
     p->gravity_flipped = 0;
     p->mode = MODE_CUBE;
+    p->reversed = 0;
     p->last_joy = 0;
     p->touching_orb = 0;
     p->level_complete = 0;
@@ -108,7 +109,7 @@ uint8_t player_update(
     col_at_raw_cached(col, (uint16_t)(y)) \
 )
 
-    uint8_t front_mid = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), py + 8);
+    uint8_t front_mid = COL_AT_PTR(p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE), py + 8);
 
     if (IS_SOLID(front_mid)) {
         p->dead = 1;
@@ -184,7 +185,7 @@ uint8_t player_update(
         }
     }
 
-    const uint8_t* c_front = GET_COL_FAST(PLAYER_SIZE);
+    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE);
     uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
     uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
 

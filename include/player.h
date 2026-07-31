@@ -58,6 +58,7 @@ typedef struct Player {
     uint8_t  dead;
     uint8_t  gravity_flipped;
     uint8_t  mode;
+    uint8_t  reversed;
     uint8_t  anim_frame;
     uint16_t anim_timer;
     uint8_t  last_joy;
