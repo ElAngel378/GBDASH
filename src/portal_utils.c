@@ -58,7 +58,7 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
 
         if (obj == OBJ_LEVEL_END) {
             // Trigger 10 blocks early (160 pixels)
-            if (px >= (obj_x - 180)) {
+                if (px >= (obj_x - 180)) {
                 p->level_complete = 1;
             }
             check_ptr++;

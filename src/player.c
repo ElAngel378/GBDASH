@@ -56,6 +56,11 @@ uint8_t player_update(
 ) {
     if (p->dead) return 1;
 
+    // FIX: If the level is complete, act exactly like noclip to ignore the end-of-level walls!
+    if (p->level_complete) {
+        return 0;
+    }
+
     col_at_begin(map_bank);
 
     if (p->mode == MODE_SHIP) {
