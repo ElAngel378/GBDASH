@@ -44,39 +44,41 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
         }
     }
 
-    // 2. PROCESS OVERLAPPING OBJECTS
+
+// 2. PROCESS OVERLAPPING OBJECTS
     const SpDef* check_ptr = sp_ptr;
     while (check_ptr->c != 0xFFFF) {
         uint16_t obj_x = check_ptr->c << 4;
         if (obj_x > px + 15) break;
 
+        // Base Y coordinate
         uint16_t obj_y = (uint16_t)(map_h - 1 - check_ptr->r) << 4;
         uint8_t obj = check_ptr->obj;
-
-        if (player_tile_activated(p, check_ptr->c, check_ptr->r)) {
-            check_ptr++;
-            continue;
-        }
 
         switch (obj) {
             case OBJ_CUBE_PORTAL:
             case OBJ_SHIP_PORTAL:
-                // Expanded hitbox: 48px tall (16px above and 16px below the tile)
-                if (py <= obj_y + 32 && (py + PLAYER_SIZE) >= (obj_y - 16)) {
-                    p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
-                    player_mark_activated(p, check_ptr->c, check_ptr->r);
+                // Algebra fix: added 16 to the left side to prevent obj_y underflow
+                if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                    if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
+                        p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
+                        player_mark_activated(p, check_ptr->c, check_ptr->r);
+                    }
                 }
                 break;
 
             case OBJ_GRAVITY_DOWN:
-            case OBJ_GRAVITY_UP:// Expanded hitbox: 48px tall (16px above and 16px below the tile)
-                if (py <= obj_y + 32 && (py + PLAYER_SIZE) >= (obj_y - 16)) {
-                    uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
-                    if (p->gravity_flipped != target_flipped) {
-                        p->gravity_flipped = target_flipped;
-                        p->vel_y.w = (int16_t)(((int32_t)p->vel_y.w * 171) >> 8);
+            case OBJ_GRAVITY_UP:
+                if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                    if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
+                        uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
+                        if (p->gravity_flipped != target_flipped) {
+                            p->gravity_flipped = target_flipped;
+                            // Replaced 32-bit math with fast 16-bit bitwise approximation (~0.625 dampening)
+                            p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                        }
+                        player_mark_activated(p, check_ptr->c, check_ptr->r);
                     }
-                    player_mark_activated(p, check_ptr->c, check_ptr->r);
                 }
                 break;
 
@@ -86,28 +88,24 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
             case OBJ_PAD_YELLOW_UP:
             case OBJ_PAD_BLUE_UP:
             {
-                // Pad hitboxes (16x8)
-                // Determine if this is a ceiling-mounted pad
                 uint8_t is_ceiling_pad = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-
-                // Ceiling Pad: Top 8px of tile (obj_y to +8)
-                // Floor Pad: Bottom 8px of tile (obj_y + 8 to 16)
                 uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 8);
                 uint16_t pad_bot = is_ceiling_pad ? (obj_y + 8) : (obj_y + 16);
 
                 if (py <= pad_bot && (py + PLAYER_SIZE) >= pad_top) {
-                    player_mark_activated(p, check_ptr->c, check_ptr->r);
+                    if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
+                        player_mark_activated(p, check_ptr->c, check_ptr->r);
 
-                    if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
-                        p->gravity_flipped = !p->gravity_flipped;
-                        p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
-                    } else if (obj == OBJ_PAD_PINK) {
-                        p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
-                    } else {
-                        // Yellow Pad logic: Launch away from the surface
-                        p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                        if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
+                            p->gravity_flipped = !p->gravity_flipped;
+                            p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+                        } else if (obj == OBJ_PAD_PINK) {
+                            p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
+                        } else {
+                            p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                        }
+                        p->on_ground = 0;
                     }
-                    p->on_ground = 0;
                 }
                 break;
             }
@@ -118,25 +116,30 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
             {
                 if (joy & J_A) {
                     if (py <= obj_y + 16 && (py + PLAYER_SIZE) >= obj_y) {
-                        player_mark_activated(p, check_ptr->c, check_ptr->r);
+                        if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
+                            player_mark_activated(p, check_ptr->c, check_ptr->r);
 
-                        if (obj == OBJ_ORB_BLUE) {
-                            p->gravity_flipped = !p->gravity_flipped;
-                            p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
-                        } else if (obj == OBJ_ORB_PINK) {
-                            p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
-                        } else {
-                            p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 144 : JUMP_FORCE - 144;
+                            if (obj == OBJ_ORB_BLUE) {
+                                p->gravity_flipped = !p->gravity_flipped;
+                                p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
+                            } else if (obj == OBJ_ORB_PINK) {
+                                p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+                            } else {
+                                p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 144 : JUMP_FORCE - 144;
+                            }
+                            p->on_ground = 0;
                         }
-                        p->on_ground = 0;
                     }
                 }
                 break;
             }
 
             case 100: case 101: case 102: case 103:
-                *target_bg_idx = obj - 100;
-                player_mark_activated(p, check_ptr->c, check_ptr->r);
+                // Background triggers cover the whole column, so no Y check needed.
+                if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
+                    *target_bg_idx = obj - 100;
+                    player_mark_activated(p, check_ptr->c, check_ptr->r);
+                }
                 break;
         }
 

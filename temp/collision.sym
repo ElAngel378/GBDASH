@@ -10,18 +10,18 @@ Symbol Table
     _TMA_REG                                                        ******** GX
     __current_bank                                                  ******** GX
   2 __prev_map_bank                                                 00000000 R
-  0 _col_at                                                         000000C8 GR
+  0 _col_at                                                         000000BF GR
   0 _col_at_begin                                                   00000000 GR
   0 _col_at_end                                                     00000019 GR
   0 _col_at_raw                                                     00000027 GR
   0 _col_at_raw_cached                                              00000083 GR
     _current_song_bank                                              ******** GX
-  0 _draw_mt_column                                                 00000137 GR
+  0 _draw_mt_column                                                 0000012E GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 000001C7 GR
+  0 _fill_scroll_bg                                                 000001BC GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              0000020B GR
-  0 _load_bkg_tileset                                               000000EC GR
+  0 _init_music_banked                                              00000200 GR
+  0 _load_bkg_tileset                                               000000E3 GR
     _metatiles                                                      ******** GX
     _music_ready                                                    ******** GX
     _rROMB0                                                         ******** GX
@@ -33,7 +33,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      239   flags    0
+   0 _CODE                                      size      22E   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        1   flags    0
    3 _INITIALIZED                               size        0   flags    0

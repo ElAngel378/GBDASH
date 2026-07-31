@@ -50,9 +50,7 @@ uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
             return COL_DEATH;
         }
     }
-    if (col == COL_PAD) {
-        if ((py8 & 0x0F) < 8) return COL_NONE;
-    }
+
 
     return col;
 }
@@ -97,7 +95,7 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
   for (uint8_t r = 0; r < BKG_MT_H; r++) {
     uint8_t mt = *map_ptr++;
-    uint8_t by = (r & (BKG_MT_H - 1)) << 1;
+    uint8_t by = r << 1;
 
     set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
     set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
