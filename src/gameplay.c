@@ -201,17 +201,17 @@ void play_level(uint8_t idx) BANKED {
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
                 if (player.reversed) move_metasprite_hvflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 24);
-                else move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+                else move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 32);
             } else {
-                if (player.reversed) move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 16);
+                if (player.reversed) move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 16);
                 else move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
             }
         } else {
             if (player.gravity_flipped) {
-                if (player.reversed) move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+                if (player.reversed) move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 32);
                 else move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
             } else {
-                if (player.reversed) move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+                if (player.reversed) move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 32);
                 else move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
             }
         }

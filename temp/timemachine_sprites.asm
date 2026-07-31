@@ -106,7 +106,10 @@ _timemachine_sp:
 	.db #0x0b	; 11
 	.dw #0x0126
 	.db #0x04	; 4
-	.db #0x10	; 16
+	.db #0x7e	; 126
+	.dw #0x012a
+	.db #0x0b	; 11
+	.db #0x79	; 121	'y'
 	.dw #0x012d
 	.db #0x05	; 5
 	.db #0x65	; 101	'e'
@@ -191,6 +194,9 @@ _timemachine_sp:
 	.dw #0x0239
 	.db #0x06	; 6
 	.db #0x67	; 103	'g'
+	.dw #0x023b
+	.db #0x05	; 5
+	.db #0x79	; 121	'y'
 	.dw #0x0270
 	.db #0x02	; 2
 	.db #0x0a	; 10
@@ -207,9 +213,6 @@ _timemachine_sp:
 	.db #0x03	; 3
 	.db #0x08	; 8
 	.dw #0x02ab
-	.db #0x0f	; 15
-	.db #0x10	; 16
-	.dw #0x02ab
 	.db #0x05	; 5
 	.db #0x66	; 102	'f'
 	.dw #0x02b1
@@ -221,6 +224,9 @@ _timemachine_sp:
 	.dw #0x02c3
 	.db #0x00	; 0
 	.db #0x0a	; 10
+	.dw #0x02c7
+	.db #0x04	; 4
+	.db #0x7e	; 126
 	.dw #0x02d0
 	.db #0x01	; 1
 	.db #0x65	; 101	'e'
@@ -233,6 +239,9 @@ _timemachine_sp:
 	.dw #0x030a
 	.db #0x00	; 0
 	.db #0x0a	; 10
+	.dw #0x030d
+	.db #0x04	; 4
+	.db #0x79	; 121	'y'
 	.dw #0x0316
 	.db #0x05	; 5
 	.db #0x65	; 101	'e'
@@ -248,6 +257,9 @@ _timemachine_sp:
 	.dw #0x034e
 	.db #0x03	; 3
 	.db #0x0a	; 10
+	.dw #0x0351
+	.db #0x08	; 8
+	.db #0x7e	; 126
 	.dw #0x0352
 	.db #0x08	; 8
 	.db #0x09	; 9
@@ -263,6 +275,9 @@ _timemachine_sp:
 	.dw #0x0375
 	.db #0x06	; 6
 	.db #0x0c	; 12
+	.dw #0x0377
+	.db #0x03	; 3
+	.db #0x79	; 121	'y'
 	.dw #0x0381
 	.db #0x03	; 3
 	.db #0x65	; 101	'e'

@@ -16,8 +16,8 @@
 #define OBJ_PAD_BLUE_UP   14
 #define OBJ_PAD_PINK      37
 #define OBJ_LEVEL_END     15
-#define OBJ_MIRROR_PORTAL 16
-#define OBJ_MIRROR_EXIT   17
+#define OBJ_MIRROR_PORTAL 126
+#define OBJ_MIRROR_EXIT   121
 
 void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_bg_idx) {
     // CRITICAL: Capture pointers FROM BANK 1 before we switch banks!
@@ -55,6 +55,15 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
         if (obj_x > px + 160) break;
 
         uint8_t obj = check_ptr->obj;
+
+        if (obj == OBJ_LEVEL_END) {
+            // Trigger 10 blocks early (160 pixels)
+            if (px >= (obj_x - 180)) {
+                p->level_complete = 1;
+            }
+            check_ptr++;
+            continue;
+        }
 
         // For all other objects, only process if they are within 1 block of the player
         if (obj_x > px + 15) {
@@ -149,13 +158,6 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
                 if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
                     *target_bg_idx = obj - 100;
                     player_mark_activated(p, check_ptr->c, check_ptr->r);
-                }
-                break;
-
-            case OBJ_LEVEL_END:
-                // Trigger 10 blocks early (160 pixels)
-                if (px >= (obj_x - 165)) {
-                    p->level_complete = 1;
                 }
                 break;
 
