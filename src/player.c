@@ -14,14 +14,21 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->mode = MODE_CUBE;
     p->last_joy = 0;
     p->touching_orb = 0;
+    p->level_complete = 0;
     p->sp_idx = 0;
     p->activated_count = 0;
     p->next_activated_slot = 0;
 }
 
 uint8_t player_tile_activated(const Player* p, uint16_t mx, uint8_t my) {
+    if (p->activated_count == 0) return 0;
+
+    uint8_t idx = p->next_activated_slot;
     for (uint8_t i = 0; i < p->activated_count; i++) {
-        if (p->activated[i].mx == mx && p->activated[i].my == my) return 1;
+        if (idx == 0) idx = MAX_ACTIVATIONS;
+        idx--;
+
+        if (p->activated[idx].mx == mx && p->activated[idx].my == my) return 1;
     }
     return 0;
 }

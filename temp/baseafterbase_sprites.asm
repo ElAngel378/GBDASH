@@ -137,6 +137,9 @@ _baseafterbase_sp:
 	.dw #0x02ee
 	.db #0x05	; 5
 	.db #0x65	; 101	'e'
+	.dw #0x0363
+	.db #0x05	; 5
+	.db #0x0f	; 15
 	.dw #0xffff
 	.db #0x00	; 0
 	.db #0x00	; 0

@@ -62,6 +62,8 @@ typedef struct Player {
     uint16_t anim_timer;
     uint8_t  last_joy;
     uint8_t  touching_orb;
+    uint8_t  level_complete;
+    uint16_t level_end_x;
     uint16_t sp_idx;
     ActivatedTile activated[MAX_ACTIVATIONS];
     uint8_t activated_count;

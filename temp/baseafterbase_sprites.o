@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_127 size 74 flags 0 addr 0
+A _CODE_127 size 78 flags 0 addr 0
 S _baseafterbase_sp Def00000000
 S ___func_baseafterbase_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -38,5 +38,5 @@ T 54 00 00 00 57 02 07 00 60 02 07 65 62 02 07 64
 R 00 00 08 00
 T 60 00 00 00 67 02 06 09 E2 02 03 08 EC 02 05 65
 R 00 00 08 00
-T 6C 00 00 00 EE 02 05 65 FF FF 00 00
+T 6C 00 00 00 EE 02 05 65 63 03 05 0F FF FF 00 00
 R 00 00 08 00

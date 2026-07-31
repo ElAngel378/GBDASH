@@ -200,8 +200,14 @@
     000000C0 1F 03                  200 	.dw #0x031f
     000000C2 03                     201 	.db #0x03	; 3
     000000C3 0B                     202 	.db #0x0b	; 11
-    000000C4 FF FF                  203 	.dw #0xffff
-    000000C6 00                     204 	.db #0x00	; 0
-    000000C7 00                     205 	.db #0x00	; 0
-                                    206 	.area _INITIALIZER
-                                    207 	.area _CABS (ABS)
+    000000C4 43 03                  203 	.dw #0x0343
+    000000C6 0B                     204 	.db #0x0b	; 11
+    000000C7 0F                     205 	.db #0x0f	; 15
+    000000C8 43 03                  206 	.dw #0x0343
+    000000CA 05                     207 	.db #0x05	; 5
+    000000CB 0F                     208 	.db #0x0f	; 15
+    000000CC FF FF                  209 	.dw #0xffff
+    000000CE 00                     210 	.db #0x00	; 0
+    000000CF 00                     211 	.db #0x00	; 0
+                                    212 	.area _INITIALIZER
+                                    213 	.area _CABS (ABS)

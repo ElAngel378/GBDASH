@@ -3,7 +3,7 @@
 
 BANKREF(jumper_sp)
 
-// Extracted 61 objects from SP layer
+// Extracted 62 objects from SP layer
 const SpDef jumper_sp[] = {
     {49, 0, 10},
     {76, 1, 101},
@@ -66,5 +66,6 @@ const SpDef jumper_sp[] = {
     {878, 0, 100},
     {886, 0, 101},
     {893, 0, 102},
+    {895, 5, 15},
     {0xFFFF, 0, 0}
 };

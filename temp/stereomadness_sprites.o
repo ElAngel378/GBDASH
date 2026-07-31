@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_122 size 50 flags 0 addr 0
+A _CODE_122 size 54 flags 0 addr 0
 S _stereomadness_sp Def00000000
 S ___func_stereomadness_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -32,5 +32,5 @@ T 30 00 00 00 0B 02 01 65 FC 02 05 01 06 03 01 65
 R 00 00 08 00
 T 3C 00 00 00 08 03 01 65 1C 03 0B 01 2E 03 0D 65
 R 00 00 08 00
-T 48 00 00 00 30 03 0D 65 FF FF 00 00
+T 48 00 00 00 30 03 0D 65 7D 03 08 0F FF FF 00 00
 R 00 00 08 00

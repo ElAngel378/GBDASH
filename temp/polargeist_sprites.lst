@@ -215,8 +215,11 @@
     000000D4 78 03                  215 	.dw #0x0378
     000000D6 01                     216 	.db #0x01	; 1
     000000D7 0B                     217 	.db #0x0b	; 11
-    000000D8 FF FF                  218 	.dw #0xffff
-    000000DA 00                     219 	.db #0x00	; 0
-    000000DB 00                     220 	.db #0x00	; 0
-                                    221 	.area _INITIALIZER
-                                    222 	.area _CABS (ABS)
+    000000D8 A5 03                  218 	.dw #0x03a5
+    000000DA 05                     219 	.db #0x05	; 5
+    000000DB 0F                     220 	.db #0x0f	; 15
+    000000DC FF FF                  221 	.dw #0xffff
+    000000DE 00                     222 	.db #0x00	; 0
+    000000DF 00                     223 	.db #0x00	; 0
+                                    224 	.area _INITIALIZER
+                                    225 	.area _CABS (ABS)

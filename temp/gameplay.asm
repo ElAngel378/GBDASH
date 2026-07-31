@@ -221,15 +221,15 @@ ___str_4:
 ; ---------------------------------
 	b_play_level	= 1
 _play_level::
-	add	sp, #-81
+	add	sp, #-84
 ;src/gameplay.c:60: l = game_levels[idx];
 	ld	bc, #_game_levels+0
-	ldhl	sp,	#87
+	ldhl	sp,	#90
 	ld	e, (hl)
 	xor	a, a
 	sla	e
 	adc	a, a
-	ldhl	sp,	#79
+	ldhl	sp,	#82
 	ld	(hl), e
 	inc	hl
 	ld	(hl-), a
@@ -242,7 +242,7 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#48
+	ldhl	sp,	#51
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
@@ -256,13 +256,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#74
+	ldhl	sp,	#77
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:62: level_map = l->map;
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -273,7 +273,7 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#50
+	ldhl	sp,	#53
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
@@ -291,13 +291,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#76
+	ldhl	sp,	#79
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:64: level_map_w = l->map_width;
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -308,13 +308,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#52
+	ldhl	sp,	#55
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:65: level_map_h = l->map_height;
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -325,16 +325,16 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#54
+	ldhl	sp,	#57
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:66: level_tiles_bank = BANK(chr_gb);
-	ldhl	sp,	#78
+	ldhl	sp,	#81
 	ld	(hl), #<(___bank_chr_gb)
 ;src/gameplay.c:67: level_map_bank = l->map_bank;
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -343,7 +343,7 @@ _play_level::
 	ld	c, l
 	ld	b, h
 	ld	a, (bc)
-	ldhl	sp,	#56
+	ldhl	sp,	#59
 	ld	(hl), a
 ;src/gameplay.c:70: NR52_REG = 0x80;
 	ld	a, #0x80
@@ -356,18 +356,18 @@ _play_level::
 	ldh	(_NR50_REG + 0), a
 ;src/gameplay.c:75: if (level_songs[idx]) {
 	ld	de, #_level_songs
-	ldhl	sp,	#79
+	ldhl	sp,	#82
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#59
+	ldhl	sp,	#62
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#58
+	ldhl	sp,	#61
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -380,7 +380,7 @@ _play_level::
 	or	a, c
 	jr	Z, 00102$
 ;src/gameplay.c:76: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -389,10 +389,10 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	ld	a, (de)
-	ldhl	sp,	#80
+	ldhl	sp,	#83
 	ld	(hl), a
 	ld	de, #_song_bank+0
-	ldhl	sp,	#87
+	ldhl	sp,	#90
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
@@ -400,7 +400,7 @@ _play_level::
 	ld	d, h
 	ld	a, (de)
 	push	de
-	ldhl	sp,	#82
+	ldhl	sp,	#85
 	ld	h, (hl)
 	push	hl
 	inc	sp
@@ -417,17 +417,17 @@ _play_level::
 00102$:
 ;src/gameplay.c:81: uint16_t cam_px = 0;
 	xor	a, a
-	ldhl	sp,	#79
+	ldhl	sp,	#82
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:82: uint16_t cam_py = 112;
-	ldhl	sp,	#59
+	ldhl	sp,	#62
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
 ;src/gameplay.c:83: uint16_t cam_py_max = (level_map_h << 4);
-	ldhl	sp,	#54
+	ldhl	sp,	#57
 	ld	a, (hl+)
 	ld	c, (hl)
 	add	a, a
@@ -439,7 +439,7 @@ _play_level::
 	add	a, a
 	rl	c
 ;src/gameplay.c:84: if (cam_py_max > 144u) cam_py_max -= 144u;
-	ldhl	sp,	#72
+	ldhl	sp,	#75
 	ld	(hl+), a
 	ld	a, c
 	ld	(hl-), a
@@ -449,7 +449,7 @@ _play_level::
 	ld	a, #0x00
 	sbc	a, (hl)
 	jr	NC, 00104$
-	ldhl	sp,#72
+	ldhl	sp,#75
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -460,7 +460,7 @@ _play_level::
 	ld	a, d
 	sbc	a, h
 	ld	c, e
-	ldhl	sp,	#61
+	ldhl	sp,	#64
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
@@ -468,12 +468,12 @@ _play_level::
 00104$:
 ;src/gameplay.c:85: else cam_py_max = 0;
 	xor	a, a
-	ldhl	sp,	#61
+	ldhl	sp,	#64
 	ld	(hl+), a
 	ld	(hl), a
 00105$:
 ;src/gameplay.c:86: uint16_t loaded_r = BKG_MT_W - 1;
-	ldhl	sp,	#63
+	ldhl	sp,	#66
 	ld	a, #0x0f
 	ld	(hl+), a
 	xor	a, a
@@ -503,7 +503,7 @@ _play_level::
 ;src/gameplay.c:110: DISPLAY_OFF;
 	call	_display_off
 ;src/gameplay.c:111: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-	ldhl	sp,	#78
+	ldhl	sp,	#81
 	ld	a, (hl-)
 	dec	hl
 	push	af
@@ -511,7 +511,7 @@ _play_level::
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#75
+	ldhl	sp,	#78
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -536,15 +536,15 @@ _play_level::
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
 ;src/gameplay.c:117: fill_scroll_bg(level_map, level_map_w, level_map_bank);
-	ldhl	sp,	#56
+	ldhl	sp,	#59
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#53
+	ldhl	sp,	#56
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#51
+	ldhl	sp,	#54
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -578,13 +578,13 @@ _play_level::
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
 ;src/gameplay.c:132: uint16_t scroll_acc = 0;
-	ldhl	sp,	#65
+	ldhl	sp,	#68
 ;src/gameplay.c:133: uint8_t prev_joy = 0;
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:134: while (1) {
-	ldhl	sp,#48
+	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -592,62 +592,135 @@ _play_level::
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#69
+	ldhl	sp,	#72
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#68
+	ldhl	sp,	#71
 	ld	(hl), a
 	ld	de, #_song_bank
-	ldhl	sp,	#87
+	ldhl	sp,	#90
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#71
+	ldhl	sp,	#74
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#70
+	ldhl	sp,	#73
 	ld	(hl), a
-00148$:
+00154$:
 ;src/gameplay.c:135: uint8_t joy = joypad();
 	call	_joypad
-	ldhl	sp,	#76
+	ldhl	sp,	#79
 	ld	(hl), a
 ;src/gameplay.c:136: if (joy & J_START) break;
 	push	hl
-	ldhl	sp,	#78
+	ldhl	sp,	#81
 	bit	7, (hl)
 	pop	hl
-	jp	NZ, 00149$
-;src/gameplay.c:139: if ((joy & J_B) && !(prev_joy & J_B)) {
+	jp	NZ, 00155$
+;src/gameplay.c:138: if ((joy & J_UP) || player.level_complete) {
 	push	hl
-	ldhl	sp,	#78
+	ldhl	sp,	#81
+	bit	2, (hl)
+	pop	hl
+	jr	NZ, 00111$
+	ldhl	sp,	#20
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00112$
+00111$:
+;src/gameplay.c:143: HIDE_SPRITES;
+	ldh	a, (_LCDC_REG + 0)
+	and	a, #0xfd
+	ldh	(_LCDC_REG + 0), a
+;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
+	ld	a, #0x00
+	ldh	(_SCX_REG + 0), a
+	ld	a, #0x00
+	ldh	(_SCY_REG + 0), a
+;c:\gbdk\include\gb\gb.h:811: __asm__("di");
+	di
+;src/gameplay.c:146: setup_menu_font();
+	ld	e, #b_setup_menu_font
+	ld	hl, #_setup_menu_font
+	call	___sdcc_bcall_ehl
+;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
+	ei
+;src/gameplay.c:149: fill_bkg_rect(0, 0, 20, 18, 0x00);
+	xor	a, a
+	ld	h, a
+	ld	l, #0x12
+	push	hl
+	ld	a, #0x14
+	push	af
+	inc	sp
+	xor	a, a
+	rrca
+	push	af
+	call	_fill_bkg_rect
+	add	sp, #5
+;src/gameplay.c:150: gotoxy(3, 6);
+	ld	hl, #0x603
+	push	hl
+	call	_gotoxy
+	pop	hl
+;src/gameplay.c:151: printf("LEVEL COMPLETE");
+	ld	de, #___str_5
+	push	de
+	call	_printf
+	pop	hl
+;src/gameplay.c:152: gotoxy(3, 12);
+	ld	hl, #0xc03
+	push	hl
+	call	_gotoxy
+	pop	hl
+;src/gameplay.c:153: printf("Press A to exit");
+	ld	de, #___str_6
+	push	de
+	call	_printf
+	pop	de
+;src/gameplay.c:155: waitpadup();
+	call	_waitpadup
+;src/gameplay.c:156: while (!(joypad() & J_A)) {
+00108$:
+	call	_joypad
+	bit	4, a
+	jp	NZ, 00155$
+;src/gameplay.c:157: wait_vbl_done();
+	call	_wait_vbl_done
+	jr	00108$
+;src/gameplay.c:159: break;
+00112$:
+;src/gameplay.c:163: if ((joy & J_B) && !(prev_joy & J_B)) {
+	push	hl
+	ldhl	sp,	#81
 	bit	5, (hl)
 	pop	hl
-	jr	Z, 00109$
+	jr	Z, 00115$
 	push	hl
-	ldhl	sp,	#68
+	ldhl	sp,	#71
 	bit	5, (hl)
 	pop	hl
-	jr	NZ, 00109$
-;src/gameplay.c:140: player_noclip = !player_noclip;
+	jr	NZ, 00115$
+;src/gameplay.c:164: player_noclip = !player_noclip;
 	ld	hl, #_player_noclip
 	ld	a, (hl)
 	sub	a, #0x01
 	ld	a, #0x00
 	rla
 	ld	(hl), a
-00109$:
-;src/gameplay.c:142: prev_joy = joy;
-	ldhl	sp,	#76
+00115$:
+;src/gameplay.c:166: prev_joy = joy;
+	ldhl	sp,	#79
 	ld	a, (hl)
-	ldhl	sp,	#66
+	ldhl	sp,	#69
 	ld	(hl), a
-;src/gameplay.c:145: uint16_t px_prev = cam_px >> 4;
-	ldhl	sp,#79
+;src/gameplay.c:169: uint16_t px_prev = cam_px >> 4;
+	ldhl	sp,#82
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
@@ -659,15 +732,15 @@ _play_level::
 	rr	c
 	srl	b
 	rr	c
-;src/gameplay.c:146: uint8_t needs_render = 0;
-	ldhl	sp,	#71
-;src/gameplay.c:147: uint16_t need_col = 0;
+;src/gameplay.c:170: uint8_t needs_render = 0;
+	ldhl	sp,	#74
+;src/gameplay.c:171: uint16_t need_col = 0;
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:149: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
-	ldhl	sp,	#52
+;src/gameplay.c:173: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+	ldhl	sp,	#55
 	ld	a, (hl+)
 	ld	e, (hl)
 	add	a, #0xf6
@@ -681,11 +754,11 @@ _play_level::
 	add	hl, hl
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#79
+	ldhl	sp,	#82
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
-	ldhl	sp,	#80
+	ldhl	sp,	#83
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl-), a
@@ -693,17 +766,17 @@ _play_level::
 	sub	a, e
 	ld	a, (hl)
 	sbc	a, d
-	jr	NC, 00117$
-;src/gameplay.c:150: scroll_acc += SCROLL_SPEED_FP;
-	ldhl	sp,	#65
+	jr	NC, 00123$
+;src/gameplay.c:174: scroll_acc += SCROLL_SPEED_FP;
+	ldhl	sp,	#68
 	ld	e, (hl)
 	ld	d, #0x00
 	ld	hl, #0x02c4
 	add	hl, de
 	ld	e, l
 	ld	d, h
-;src/gameplay.c:151: cam_px += scroll_acc >> 8;
-	ldhl	sp,	#77
+;src/gameplay.c:175: cam_px += scroll_acc >> 8;
+	ldhl	sp,	#80
 	ld	a, d
 	ld	(hl+), a
 	xor	a, a
@@ -720,17 +793,17 @@ _play_level::
 	pop	de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#81
+	ldhl	sp,	#84
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#80
+	ldhl	sp,	#83
 	ld	(hl), a
-;src/gameplay.c:152: scroll_acc &= 0xFF;
-	ldhl	sp,	#65
+;src/gameplay.c:176: scroll_acc &= 0xFF;
+	ldhl	sp,	#68
 	ld	(hl), e
-;src/gameplay.c:153: uint16_t px_curr = cam_px >> 4;
-	ldhl	sp,#79
+;src/gameplay.c:177: uint16_t px_curr = cam_px >> 4;
+	ldhl	sp,#82
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -742,57 +815,57 @@ _play_level::
 	rr	e
 	srl	d
 	rr	e
-;src/gameplay.c:154: if (px_curr != px_prev) {
+;src/gameplay.c:178: if (px_curr != px_prev) {
 	ld	a, e
 	sub	a, c
-	jr	NZ, 00372$
+	jr	NZ, 00406$
 	ld	a, d
 	sub	a, b
-	jr	Z, 00117$
-00372$:
-;src/gameplay.c:155: uint16_t need = px_curr + VIEW_MT_W;
+	jr	Z, 00123$
+00406$:
+;src/gameplay.c:179: uint16_t need = px_curr + VIEW_MT_W;
 	ld	hl, #0x000a
 	add	hl, de
 	ld	c, l
 	ld	b, h
-;src/gameplay.c:156: if (need > loaded_r && need < level_map_w) {
-	ldhl	sp,	#63
+;src/gameplay.c:180: if (need > loaded_r && need < level_map_w) {
+	ldhl	sp,	#66
 	ld	a, (hl+)
 	sub	a, c
 	ld	a, (hl)
 	sbc	a, b
-	jr	NC, 00117$
-	ldhl	sp,	#52
+	jr	NC, 00123$
+	ldhl	sp,	#55
 	ld	a, c
 	sub	a, (hl)
 	inc	hl
 	ld	a, b
 	sbc	a, (hl)
-	jr	NC, 00117$
-;src/gameplay.c:157: needs_render = 1;
-	ldhl	sp,	#71
-;src/gameplay.c:158: need_col = need;
+	jr	NC, 00123$
+;src/gameplay.c:181: needs_render = 1;
+	ldhl	sp,	#74
+;src/gameplay.c:182: need_col = need;
 	ld	a, #0x01
 	ld	(hl+), a
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-00117$:
-;src/gameplay.c:163: player.world_x = cam_px;
-	ldhl	sp,	#79
+00123$:
+;src/gameplay.c:187: player.world_x = cam_px;
+	ldhl	sp,	#82
 	ld	a, (hl)
 	ldhl	sp,	#5
 	ld	(hl), a
-	ldhl	sp,	#80
+	ldhl	sp,	#83
 	ld	a, (hl)
 	ldhl	sp,	#6
 	ld	(hl), a
-;src/gameplay.c:166: process_sp_objects(l, &player, joy, &target_bg_idx);
+;src/gameplay.c:190: process_sp_objects(l, &player, joy, &target_bg_idx);
 	ldhl	sp,	#0
 ;src/gameplay.c:106: player_init(&player, 0, 240);
-;src/gameplay.c:166: process_sp_objects(l, &player, joy, &target_bg_idx);
+;src/gameplay.c:190: process_sp_objects(l, &player, joy, &target_bg_idx);
 	push	hl
-	ldhl	sp,	#78
+	ldhl	sp,	#81
 	ld	a, (hl)
 	push	af
 	inc	sp
@@ -800,13 +873,13 @@ _play_level::
 	add	hl, sp
 	ld	c, l
 	ld	b, h
-	ldhl	sp,	#51
+	ldhl	sp,	#54
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	call	_process_sp_objects
-;src/gameplay.c:169: died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
-	ldhl	sp,	#56
+;src/gameplay.c:193: died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
+	ldhl	sp,	#59
 	ld	a, (hl-)
 	dec	hl
 	push	af
@@ -815,27 +888,27 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#55
+	ldhl	sp,	#58
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#55
+	ldhl	sp,	#58
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#83
+	ldhl	sp,	#86
 	ld	a, (hl)
 	ld	hl, #12
 	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_update
-	ldhl	sp,	#74
+	ldhl	sp,	#77
 	ld	(hl), a
-;src/gameplay.c:172: py = player_screen_y(&player, cam_py);
-	ldhl	sp,	#59
+;src/gameplay.c:196: py = player_screen_y(&player, cam_py);
+	ldhl	sp,	#62
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
@@ -844,20 +917,20 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_player_screen_y
-;src/gameplay.c:173: if (py < CAM_Y_TOP_ZONE) {
-	ldhl	sp,	#77
+;src/gameplay.c:197: if (py < CAM_Y_TOP_ZONE) {
+	ldhl	sp,	#80
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:176: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-	ldhl	sp,	#61
+;src/gameplay.c:200: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+	ldhl	sp,	#64
 	ld	a, (hl)
-	ldhl	sp,	#75
+	ldhl	sp,	#78
 	ld	(hl), a
-	ldhl	sp,	#62
+	ldhl	sp,	#65
 	ld	a, (hl)
-	ldhl	sp,	#76
-;src/gameplay.c:173: if (py < CAM_Y_TOP_ZONE) {
+	ldhl	sp,	#79
+;src/gameplay.c:197: if (py < CAM_Y_TOP_ZONE) {
 	ld	(hl+), a
 	ld	a, (hl+)
 	sub	a, #0x14
@@ -866,18 +939,18 @@ _play_level::
 	ld	d, (hl)
 	ld	a, #0x00
 	bit	7,a
-	jr	Z, 00373$
+	jr	Z, 00407$
 	bit	7, d
-	jr	NZ, 00374$
+	jr	NZ, 00408$
 	cp	a, a
-	jr	00374$
-00373$:
+	jr	00408$
+00407$:
 	bit	7, d
-	jr	Z, 00374$
+	jr	Z, 00408$
 	scf
-00374$:
-	jr	NC, 00129$
-;src/gameplay.c:174: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+00408$:
+	jr	NC, 00135$
+;src/gameplay.c:198: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
 	ldhl	sp,	#8
 	ld	a, (hl)
 	ld	b, #0x00
@@ -885,58 +958,58 @@ _play_level::
 	ld	c, a
 	ld	a, b
 	adc	a, #0xff
-	ldhl	sp,	#77
+	ldhl	sp,	#80
 	ld	(hl), c
 	inc	hl
-;src/gameplay.c:175: if (target_cam_py < 0) target_cam_py = 0;
+;src/gameplay.c:199: if (target_cam_py < 0) target_cam_py = 0;
 	ld	(hl-), a
 	ld	a, (hl+)
 	bit	7, (hl)
-	jr	Z, 00119$
+	jr	Z, 00125$
 	dec	hl
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl), a
-00119$:
-;src/gameplay.c:176: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-	ldhl	sp,	#77
+00125$:
+;src/gameplay.c:200: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#61
+	ldhl	sp,	#64
 	ld	a, (hl+)
 	sub	a, c
 	ld	a, (hl)
 	sbc	a, b
-	jr	NC, 00121$
-	ldhl	sp,	#75
+	jr	NC, 00127$
+	ldhl	sp,	#78
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl-), a
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl), a
-00121$:
-;src/gameplay.c:177: cam_py = (uint16_t)target_cam_py;
-	ldhl	sp,	#77
+00127$:
+;src/gameplay.c:201: cam_py = (uint16_t)target_cam_py;
+	ldhl	sp,	#80
 	ld	a, (hl)
-	ldhl	sp,	#59
+	ldhl	sp,	#62
 	ld	(hl), a
-	ldhl	sp,	#78
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ldhl	sp,	#60
+	ldhl	sp,	#63
 	ld	(hl), a
-	jr	00130$
-00129$:
-;src/gameplay.c:179: else if (py > CAM_Y_BOTTOM_ZONE) {
-	ldhl	sp,	#77
+	jr	00136$
+00135$:
+;src/gameplay.c:203: else if (py > CAM_Y_BOTTOM_ZONE) {
+	ldhl	sp,	#80
 	ld	a, #0x64
 	sub	a, (hl)
 	inc	hl
 	ld	a, #0x00
 	sbc	a, (hl)
-	jr	NC, 00130$
-;src/gameplay.c:180: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
+	jr	NC, 00136$
+;src/gameplay.c:204: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
 	ldhl	sp,	#8
 	ld	a, (hl)
 	ld	b, #0x00
@@ -945,70 +1018,70 @@ _play_level::
 	ld	a, b
 	adc	a, #0xff
 	ld	b, a
-;src/gameplay.c:181: if (target_cam_py < 0) target_cam_py = 0;
+;src/gameplay.c:205: if (target_cam_py < 0) target_cam_py = 0;
 	ld	h, b
 	bit	7, h
-	jr	Z, 00123$
+	jr	Z, 00129$
 	ld	bc, #0x0000
-00123$:
-;src/gameplay.c:182: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+00129$:
+;src/gameplay.c:206: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
 	ld	e, c
 	ld	d, b
-	ldhl	sp,	#61
+	ldhl	sp,	#64
 	ld	a, (hl+)
 	sub	a, e
 	ld	a, (hl)
 	sbc	a, d
-	jr	NC, 00125$
-	ldhl	sp,	#75
+	jr	NC, 00131$
+	ldhl	sp,	#78
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-00125$:
-;src/gameplay.c:183: cam_py = (uint16_t)target_cam_py;
-	ldhl	sp,	#59
+00131$:
+;src/gameplay.c:207: cam_py = (uint16_t)target_cam_py;
+	ldhl	sp,	#62
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-00130$:
-;src/gameplay.c:149: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
-	ldhl	sp,	#79
+00136$:
+;src/gameplay.c:173: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+	ldhl	sp,	#82
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-;src/gameplay.c:187: uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+;src/gameplay.c:211: uint16_t scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
 	ld	a, #0x20
 	cp	a, c
 	ld	a, #0x00
 	sbc	a, b
-	jr	NC, 00169$
+	jr	NC, 00178$
 	ld	a, c
 	add	a, #0xe0
 	ld	e, a
-	jr	00170$
-00169$:
+	jr	00179$
+00178$:
 	ld	e, #0x00
-00170$:
-	ldhl	sp,	#75
+00179$:
+	ldhl	sp,	#78
 	ld	(hl), e
-;src/gameplay.c:188: uint8_t sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+;src/gameplay.c:212: uint8_t sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
 	ld	a, c
 	sub	a, #0x20
 	ld	a, b
 	sbc	a, #0x00
-	jr	NC, 00171$
-	ldhl	sp,	#79
+	jr	NC, 00180$
+	ldhl	sp,	#82
 	ld	a, (hl-)
 	ld	(hl), a
 	ld	a, (hl)
-	jr	00172$
-00171$:
+	jr	00181$
+00180$:
 	ld	a, #0x20
-00172$:
-	ldhl	sp,	#76
+00181$:
+	ldhl	sp,	#79
 	ld	(hl), a
-;src/gameplay.c:189: int16_t final_py = player_screen_y(&player, cam_py);
-	ldhl	sp,	#59
+;src/gameplay.c:213: int16_t final_py = player_screen_y(&player, cam_py);
+	ldhl	sp,	#62
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
@@ -1017,13 +1090,13 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_player_screen_y
-	ldhl	sp,	#77
+	ldhl	sp,	#80
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:192: wait_vbl_done();
+;src/gameplay.c:216: wait_vbl_done();
 	call	_wait_vbl_done
-;src/gameplay.c:195: BGP_REG = bg_pals[target_bg_idx];
+;src/gameplay.c:219: BGP_REG = bg_pals[target_bg_idx];
 	push	hl
 	ld	hl, #3
 	add	hl, sp
@@ -1038,61 +1111,61 @@ _play_level::
 	ld	b, h
 	ld	a, (bc)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:196: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-	ldhl	sp,	#59
+;src/gameplay.c:220: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+	ldhl	sp,	#62
 	ld	c, (hl)
-	ldhl	sp,	#75
+	ldhl	sp,	#78
 	ld	a, (hl)
 	ldh	(_SCX_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
 	ld	a, c
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:198: if (needs_render) {
-	ldhl	sp,	#71
+;src/gameplay.c:222: if (needs_render) {
+	ldhl	sp,	#74
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00132$
-;src/gameplay.c:199: loaded_r = need_col;
+	jr	Z, 00138$
+;src/gameplay.c:223: loaded_r = need_col;
 	inc	hl
 	ld	a, (hl)
-	ldhl	sp,	#63
+	ldhl	sp,	#66
 	ld	(hl), a
-	ldhl	sp,	#73
+	ldhl	sp,	#76
 	ld	a, (hl)
-	ldhl	sp,	#64
+	ldhl	sp,	#67
 	ld	(hl), a
-;src/gameplay.c:201: draw_mt_column((uint8_t)(need_col & 15), need_col, level_map, level_map_w, level_map_bank);
-	ldhl	sp,	#72
-	ld	a, (hl)
+;src/gameplay.c:225: draw_mt_column((uint8_t)(need_col & 15), need_col, level_map, level_map_w, level_map_bank);
 	ldhl	sp,	#75
+	ld	a, (hl)
+	ldhl	sp,	#78
 	ld	(hl), a
 	ld	a, (hl)
 	and	a, #0x0f
-	ldhl	sp,	#56
+	ldhl	sp,	#59
 	ld	h, (hl)
 	push	hl
 	inc	sp
-	ldhl	sp,	#53
+	ldhl	sp,	#56
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#53
+	ldhl	sp,	#56
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#77
+	ldhl	sp,	#80
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
 	call	_draw_mt_column
-00132$:
-;src/gameplay.c:204: if (player.mode == MODE_SHIP) {
+00138$:
+;src/gameplay.c:228: if (player.mode == MODE_SHIP) {
 	ldhl	sp,	#14
 	ld	c, (hl)
-;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
-	ldhl	sp,	#77
+;src/gameplay.c:230: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	(hl-), a
 	dec	hl
@@ -1102,26 +1175,26 @@ _play_level::
 	dec	hl
 	add	a, #0x08
 	ld	(hl), a
-;src/gameplay.c:209: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#78
+;src/gameplay.c:233: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#81
 	ld	a, (hl-)
 	dec	hl
 	add	a, #0x10
 	ld	(hl), a
-;src/gameplay.c:204: if (player.mode == MODE_SHIP) {
+;src/gameplay.c:228: if (player.mode == MODE_SHIP) {
 	dec	c
-	jr	NZ, 00140$
-;src/gameplay.c:205: if (player.gravity_flipped) {
+	jr	NZ, 00146$
+;src/gameplay.c:229: if (player.gravity_flipped) {
 	ldhl	sp,	#13
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00134$
-;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
-	ldhl	sp,	#78
+	jr	Z, 00140$
+;src/gameplay.c:230: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+	ldhl	sp,	#81
 	ld	a, (hl)
 	add	a, #0x18
 	ld	c, a
-	ldhl	sp,	#75
+	ldhl	sp,	#78
 	ld	b, (hl)
 	ld	hl, #_ship_metasprites
 	ld	a,	(hl+)
@@ -1141,23 +1214,23 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:253: return __move_metasprite_hflip(base_sprite, ((y - ((LCDC_REG & LCDCF_OBJ16) ? 16u : 8u)) << 8) | x);
 	ldh	a, (_LCDC_REG + 0)
 	bit	2, a
-	jr	Z, 00173$
+	jr	Z, 00182$
 	ld	de, #0x0010
-	jr	00174$
-00173$:
+	jr	00183$
+00182$:
 	ld	de, #0x0008
-00174$:
+00183$:
 	ld	a, c
 	sub	a, e
 	ld	d, a
 	ld	e, b
 	xor	a, a
 	call	___move_metasprite_hflip
-;src/gameplay.c:206: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
-	jr	00141$
-00134$:
-;src/gameplay.c:209: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#76
+;src/gameplay.c:230: move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 24);
+	jr	00147$
+00140$:
+;src/gameplay.c:233: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#79
 	ld	a, (hl-)
 	ld	b, a
 	ld	c, (hl)
@@ -1181,16 +1254,16 @@ _play_level::
 	ld	e, c
 	xor	a, a
 	call	___move_metasprite
-;src/gameplay.c:209: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
-	jr	00141$
-00140$:
-;src/gameplay.c:213: if (player.gravity_flipped) {
+;src/gameplay.c:233: move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+	jr	00147$
+00146$:
+;src/gameplay.c:237: if (player.gravity_flipped) {
 	ldhl	sp,	#13
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00137$
-;src/gameplay.c:214: move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
-	ldhl	sp,	#76
+	jr	Z, 00143$
+;src/gameplay.c:238: move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+	ldhl	sp,	#79
 	ld	a, (hl+)
 	ld	b, a
 	ld	a, (hl)
@@ -1223,11 +1296,11 @@ _play_level::
 	ld	e, a
 	xor	a, a
 	call	___move_metasprite_vflip
-;src/gameplay.c:214: move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
-	jr	00141$
-00137$:
-;src/gameplay.c:217: move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#76
+;src/gameplay.c:238: move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+	jr	00147$
+00143$:
+;src/gameplay.c:241: move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#79
 	ld	a, (hl-)
 	ld	b, a
 	ld	c, (hl)
@@ -1256,61 +1329,61 @@ _play_level::
 	ld	e, c
 	xor	a, a
 	call	___move_metasprite
-;src/gameplay.c:217: move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
-00141$:
-;src/gameplay.c:221: if (died) {
-	ldhl	sp,	#74
+;src/gameplay.c:241: move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
+00147$:
+;src/gameplay.c:245: if (died) {
+	ldhl	sp,	#77
 	ld	a, (hl)
 	or	a, a
-	jp	Z, 00148$
-;src/gameplay.c:222: TAC_REG = 0x00;   // Stop music timer immediately
+	jp	Z, 00154$
+;src/gameplay.c:246: TAC_REG = 0x00;   // Stop music timer immediately
 	xor	a, a
 	ldh	(_TAC_REG + 0), a
-;src/gameplay.c:224: NR52_REG = 0x00; // Silence
+;src/gameplay.c:248: NR52_REG = 0x00; // Silence
 	xor	a, a
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:226: NR52_REG = 0x80; // Turn sound back ON
+;src/gameplay.c:250: NR52_REG = 0x80; // Turn sound back ON
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:227: NR51_REG = 0xFF; // Route all channels to left and right
+;src/gameplay.c:251: NR51_REG = 0xFF; // Route all channels to left and right
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/gameplay.c:228: NR50_REG = 0x77; // Set master volume to max
+;src/gameplay.c:252: NR50_REG = 0x77; // Set master volume to max
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/gameplay.c:230: NR41_REG = 0x00; // Length
+;src/gameplay.c:254: NR41_REG = 0x00; // Length
 	xor	a, a
 	ldh	(_NR41_REG + 0), a
-;src/gameplay.c:231: NR42_REG = 0xF2; // Volume
+;src/gameplay.c:255: NR42_REG = 0xF2; // Volume
 	ld	a, #0xf2
 	ldh	(_NR42_REG + 0), a
-;src/gameplay.c:232: NR43_REG = 0x43; // Note
+;src/gameplay.c:256: NR43_REG = 0x43; // Note
 	ld	a, #0x43
 	ldh	(_NR43_REG + 0), a
-;src/gameplay.c:233: NR44_REG = 0x80; // Trigger
+;src/gameplay.c:257: NR44_REG = 0x80; // Trigger
 	ld	a, #0x80
 	ldh	(_NR44_REG + 0), a
-;src/gameplay.c:235: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
+;src/gameplay.c:259: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
 	ld	c, #0x00
-00165$:
+00174$:
 	ld	a, c
 	sub	a, #0x3c
-	jr	NC, 00142$
+	jr	NC, 00148$
 	call	_wait_vbl_done
 	inc	c
-	jr	00165$
-00142$:
-;src/gameplay.c:236: NR52_REG = 0x80;
+	jr	00174$
+00148$:
+;src/gameplay.c:260: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:237: NR51_REG = 0xFF;
+;src/gameplay.c:261: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/gameplay.c:238: NR50_REG = 0x77;
+;src/gameplay.c:262: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/gameplay.c:240: if (level_songs[idx]) {
-	ldhl	sp,#57
+;src/gameplay.c:264: if (level_songs[idx]) {
+	ldhl	sp,#60
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -1320,9 +1393,9 @@ _play_level::
 	ld	a, (de)
 	ld	b, a
 	or	a, c
-	jr	Z, 00144$
-;src/gameplay.c:241: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-	ldhl	sp,#67
+	jr	Z, 00150$
+;src/gameplay.c:265: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+	ldhl	sp,#70
 	ld	a, (hl+)
 	ld	e, a
 	ld	a, (hl+)
@@ -1337,31 +1410,31 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	call	_init_music_banked
-;src/gameplay.c:242: current_song_bank = song_bank[idx];
-	ldhl	sp,#69
+;src/gameplay.c:266: current_song_bank = song_bank[idx];
+	ldhl	sp,#72
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	a, (de)
 	ld	hl, #_current_song_bank
 	ld	(hl), a
-00144$:
+00150$:
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:246: cam_px = 0;
+;src/gameplay.c:270: cam_px = 0;
 	xor	a, a
-	ldhl	sp,	#79
+	ldhl	sp,	#82
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:247: cam_py = 112;
-	ldhl	sp,	#59
+;src/gameplay.c:271: cam_py = 112;
+	ldhl	sp,	#62
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:248: scroll_acc = 0;
-	ldhl	sp,	#65
-;src/gameplay.c:249: loaded_r = BKG_MT_W - 1;
+;src/gameplay.c:272: scroll_acc = 0;
+	ldhl	sp,	#68
+;src/gameplay.c:273: loaded_r = BKG_MT_W - 1;
 	xor	a, a
 	ld	(hl-), a
 	dec	hl
@@ -1369,15 +1442,15 @@ _play_level::
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:250: target_bg_idx = 0;
+;src/gameplay.c:274: target_bg_idx = 0;
 	ldhl	sp,	#0
-	ld	(hl), #0x00
-;src/gameplay.c:251: player_init(&player, 0, 240);
-	ld	hl, #5
-	add	hl, sp
+;src/gameplay.c:275: player_init(&player, 0, 240);
 	ld	de, #0x00f0
+	ld	(hl), d
 	push	de
 	ld	bc, #0x0000
+	ld	hl, #7
+	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_init
@@ -1386,36 +1459,36 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:253: BGP_REG = bg_pals[0];
+;src/gameplay.c:277: BGP_REG = bg_pals[0];
 	ldhl	sp,	#1
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:254: fill_scroll_bg(level_map, level_map_w, level_map_bank);
-	ldhl	sp,	#56
+;src/gameplay.c:278: fill_scroll_bg(level_map, level_map_w, level_map_bank);
+	ldhl	sp,	#59
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#53
+	ldhl	sp,	#56
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#51
+	ldhl	sp,	#54
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	call	_fill_scroll_bg
-;src/gameplay.c:256: TAC_REG = 0x04;
+;src/gameplay.c:280: TAC_REG = 0x04;
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
-;src/gameplay.c:257: music_ready = 1;
+;src/gameplay.c:281: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:258: enable_interrupts();
-	jp	00148$
-00149$:
-;src/gameplay.c:263: HIDE_SPRITES;
+;src/gameplay.c:282: enable_interrupts();
+	jp	00154$
+00155$:
+;src/gameplay.c:287: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -1424,22 +1497,28 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	xor	a, a
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:265: waitpadup();
+;src/gameplay.c:289: waitpadup();
 	call	_waitpadup
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:267: setup_menu_font();
+;src/gameplay.c:291: setup_menu_font();
 	ld	e, #b_setup_menu_font
 	ld	hl, #_setup_menu_font
 	call	___sdcc_bcall_ehl
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:269: redraw = 1;
+;src/gameplay.c:293: redraw = 1;
 	ld	hl, #_redraw
 	ld	(hl), #0x01
-;src/gameplay.c:270: }
-	add	sp, #81
+;src/gameplay.c:294: }
+	add	sp, #84
 	ret
+___str_5:
+	.ascii "LEVEL COMPLETE"
+	.db 0x00
+___str_6:
+	.ascii "Press A to exit"
+	.db 0x00
 	.area _CODE_1
 	.area _INITIALIZER
 	.area _CABS (ABS)

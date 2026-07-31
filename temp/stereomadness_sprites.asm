@@ -110,6 +110,9 @@ _stereomadness_sp:
 	.dw #0x0330
 	.db #0x0d	; 13
 	.db #0x65	; 101	'e'
+	.dw #0x037d
+	.db #0x08	; 8
+	.db #0x0f	; 15
 	.dw #0xffff
 	.db #0x00	; 0
 	.db #0x00	; 0

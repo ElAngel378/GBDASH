@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_123 size DC flags 0 addr 0
+A _CODE_123 size E0 flags 0 addr 0
 S _polargeist_sp Def00000000
 S ___func_polargeist_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -56,5 +56,5 @@ T C0 00 00 00 2E 03 01 65 35 03 01 64 3C 03 01 0B
 R 00 00 08 00
 T CC 00 00 00 60 03 01 0A 74 03 01 0B 78 03 01 0B
 R 00 00 08 00
-T D8 00 00 00 FF FF 00 00
+T D8 00 00 00 A5 03 05 0F FF FF 00 00
 R 00 00 08 00

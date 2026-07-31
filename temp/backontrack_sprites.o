@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_128 size 78 flags 0 addr 0
+A _CODE_128 size 7C flags 0 addr 0
 S _backontrack_sp Def00000000
 S ___func_backontrack_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -38,5 +38,7 @@ T 54 00 00 00 51 02 01 0A 64 02 02 0A 6B 02 01 0A
 R 00 00 08 00
 T 60 00 00 00 7B 02 01 0A C7 02 00 0A C8 02 03 65
 R 00 00 08 00
-T 6C 00 00 00 CA 02 05 65 3F 03 01 0A FF FF 00 00
+T 6C 00 00 00 CA 02 05 65 3F 03 01 0A 4D 03 05 0F
+R 00 00 08 00
+T 78 00 00 00 FF FF 00 00
 R 00 00 08 00

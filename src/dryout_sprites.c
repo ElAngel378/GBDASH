@@ -3,7 +3,7 @@
 
 BANKREF(dryout_sp)
 
-// Extracted 40 objects from SP layer
+// Extracted 41 objects from SP layer
 const SpDef dryout_sp[] = {
     {46, 0, 102},
     {97, 1, 102},
@@ -45,5 +45,6 @@ const SpDef dryout_sp[] = {
     {773, 2, 10},
     {822, 1, 101},
     {825, 1, 10},
+    {841, 5, 15},
     {0xFFFF, 0, 0}
 };

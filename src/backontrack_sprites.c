@@ -3,7 +3,7 @@
 
 BANKREF(backontrack_sp)
 
-// Extracted 29 objects from SP layer
+// Extracted 30 objects from SP layer
 const SpDef backontrack_sp[] = {
     {13, 0, 10},
     {48, 0, 10},
@@ -34,5 +34,6 @@ const SpDef backontrack_sp[] = {
     {712, 3, 101},
     {714, 5, 101},
     {831, 1, 10},
+    {845, 5, 15},
     {0xFFFF, 0, 0}
 };

@@ -173,8 +173,11 @@
     0000009C 39 03                  173 	.dw #0x0339
     0000009E 01                     174 	.db #0x01	; 1
     0000009F 0A                     175 	.db #0x0a	; 10
-    000000A0 FF FF                  176 	.dw #0xffff
-    000000A2 00                     177 	.db #0x00	; 0
-    000000A3 00                     178 	.db #0x00	; 0
-                                    179 	.area _INITIALIZER
-                                    180 	.area _CABS (ABS)
+    000000A0 49 03                  176 	.dw #0x0349
+    000000A2 05                     177 	.db #0x05	; 5
+    000000A3 0F                     178 	.db #0x0f	; 15
+    000000A4 FF FF                  179 	.dw #0xffff
+    000000A6 00                     180 	.db #0x00	; 0
+    000000A7 00                     181 	.db #0x00	; 0
+                                    182 	.area _INITIALIZER
+                                    183 	.area _CABS (ABS)

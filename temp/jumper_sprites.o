@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_124 size F8 flags 0 addr 0
+A _CODE_124 size FC flags 0 addr 0
 S _jumper_sp Def00000000
 S ___func_jumper_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -60,5 +60,5 @@ T D8 00 00 00 44 03 00 64 46 03 03 08 52 03 00 64
 R 00 00 08 00
 T E4 00 00 00 60 03 00 64 6E 03 00 64 76 03 00 65
 R 00 00 08 00
-T F0 00 00 00 7D 03 00 66 FF FF 00 00
+T F0 00 00 00 7D 03 00 66 7F 03 05 0F FF FF 00 00
 R 00 00 08 00

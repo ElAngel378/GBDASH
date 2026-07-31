@@ -3,7 +3,7 @@
 
 BANKREF(baseafterbase_sp)
 
-// Extracted 28 objects from SP layer
+// Extracted 29 objects from SP layer
 const SpDef baseafterbase_sp[] = {
     {79, 6, 101},
     {81, 6, 101},
@@ -33,5 +33,6 @@ const SpDef baseafterbase_sp[] = {
     {738, 3, 8},
     {748, 5, 101},
     {750, 5, 101},
+    {867, 5, 15},
     {0xFFFF, 0, 0}
 };

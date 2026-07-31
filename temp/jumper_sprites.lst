@@ -236,8 +236,11 @@
     000000F0 7D 03                  236 	.dw #0x037d
     000000F2 00                     237 	.db #0x00	; 0
     000000F3 66                     238 	.db #0x66	; 102	'f'
-    000000F4 FF FF                  239 	.dw #0xffff
-    000000F6 00                     240 	.db #0x00	; 0
-    000000F7 00                     241 	.db #0x00	; 0
-                                    242 	.area _INITIALIZER
-                                    243 	.area _CABS (ABS)
+    000000F4 7F 03                  239 	.dw #0x037f
+    000000F6 05                     240 	.db #0x05	; 5
+    000000F7 0F                     241 	.db #0x0f	; 15
+    000000F8 FF FF                  242 	.dw #0xffff
+    000000FA 00                     243 	.db #0x00	; 0
+    000000FB 00                     244 	.db #0x00	; 0
+                                    245 	.area _INITIALIZER
+                                    246 	.area _CABS (ABS)

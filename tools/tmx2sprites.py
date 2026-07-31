@@ -57,6 +57,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sprites_firstgid + 12: 12,  # Yellow Pad (upside down)
         sprites_firstgid + 13: 13,  # Blue Pad
         sprites_firstgid + 14: 14,  # Blue Pad (upside down)
+        sprites_firstgid + 15: 15,  # Level end
     }
 
     # BG Color mappings:

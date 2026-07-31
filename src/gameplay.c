@@ -135,6 +135,30 @@ void play_level(uint8_t idx) BANKED {
         uint8_t joy = joypad();
         if (joy & J_START) break;
 
+        if ((joy & J_UP) || player.level_complete) {
+//            music_ready = 0;
+//            TAC_REG = 0x00;   // Stop music timer
+//            NR52_REG = 0x00; // Silence
+
+            HIDE_SPRITES;
+            move_bkg(0, 0);
+            disable_interrupts();
+            setup_menu_font();
+            enable_interrupts();
+
+            fill_bkg_rect(0, 0, 20, 18, 0x00);
+            gotoxy(3, 6);
+            printf("LEVEL COMPLETE");
+            gotoxy(3, 12);
+            printf("Press A to exit");
+
+            waitpadup();
+            while (!(joypad() & J_A)) {
+                wait_vbl_done();
+            }
+            break;
+        }
+
         // Toggle noclip on B press
         if ((joy & J_B) && !(prev_joy & J_B)) {
             player_noclip = !player_noclip;

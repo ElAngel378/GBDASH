@@ -281,6 +281,9 @@ _timemachine_sp:
 	.dw #0x03d2
 	.db #0x01	; 1
 	.db #0x65	; 101	'e'
+	.dw #0x03e3
+	.db #0x07	; 7
+	.db #0x0f	; 15
 	.dw #0xffff
 	.db #0x00	; 0
 	.db #0x00	; 0

@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_126 size C8 flags 0 addr 0
+A _CODE_126 size D0 flags 0 addr 0
 S _cantletgo_sp Def00000000
 S ___func_cantletgo_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -52,5 +52,7 @@ T A8 00 00 00 CE 02 07 08 D8 02 02 66 DA 02 02 65
 R 00 00 08 00
 T B4 00 00 00 DE 02 02 0A 07 03 01 0B 0B 03 02 0B
 R 00 00 08 00
-T C0 00 00 00 1F 03 03 0B FF FF 00 00
+T C0 00 00 00 1F 03 03 0B 43 03 0B 0F 43 03 05 0F
+R 00 00 08 00
+T CC 00 00 00 FF FF 00 00
 R 00 00 08 00

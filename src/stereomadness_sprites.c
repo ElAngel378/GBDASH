@@ -3,7 +3,7 @@
 
 BANKREF(stereomadness_sp)
 
-// Extracted 19 objects from SP layer
+// Extracted 20 objects from SP layer
 const SpDef stereomadness_sp[] = {
     {60, 1, 101},
     {107, 1, 101},
@@ -24,5 +24,6 @@ const SpDef stereomadness_sp[] = {
     {796, 11, 1},
     {814, 13, 101},
     {816, 13, 101},
+    {893, 8, 15},
     {0xFFFF, 0, 0}
 };

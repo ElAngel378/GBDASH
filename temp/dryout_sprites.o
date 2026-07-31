@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_125 size A4 flags 0 addr 0
+A _CODE_125 size A8 flags 0 addr 0
 S _dryout_sp Def00000000
 S ___func_dryout_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
@@ -46,5 +46,5 @@ T 84 00 00 00 B9 02 00 64 C3 02 05 00 CD 02 01 65
 R 00 00 08 00
 T 90 00 00 00 CF 02 01 65 05 03 02 0A 36 03 01 65
 R 00 00 08 00
-T 9C 00 00 00 39 03 01 0A FF FF 00 00
+T 9C 00 00 00 39 03 01 0A 49 03 05 0F FF FF 00 00
 R 00 00 08 00
