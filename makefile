@@ -48,7 +48,6 @@ LDFLAGS := \
 	-I$(SRC_DIR) \
 	-I$(INSTRUMENT_DIR) \
 	-I$(STREAM_DIR) \
-	-Wl-lhugedriver/gbdk/hUGEDriver.lib \
 	-Wl-yt19 \
 	-Wl-yo8 \
 	-debug
@@ -56,8 +55,6 @@ LDFLAGS := \
 
 # Sources
 SRC_SOURCES := $(wildcard $(SRC_DIR)/*.c)
-INSTRUMENT_SOURCES := $(wildcard $(INSTRUMENT_DIR)/*.c)
-STREAM_SOURCES := $(wildcard $(STREAM_DIR)/*.c)
 
 SOURCES := \
 	$(SRC_SOURCES) \
