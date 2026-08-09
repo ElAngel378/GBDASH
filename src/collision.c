@@ -94,25 +94,24 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
 
-  if (reversed) {
-      for (uint8_t r = 0; r < BKG_MT_H; r++) {
-          uint8_t mt = *map_ptr++;
-          uint8_t by = r << 1;
-          uint8_t t[2];
-          // Mirroring: Swap tile indices horizontally within the 2x2 metatile
-          t[0] = metatiles[mt][1]; t[1] = metatiles[mt][0];
-          set_bkg_tiles(bx, by, 2, 1, t);
-          t[0] = metatiles[mt][3]; t[1] = metatiles[mt][2];
-          set_bkg_tiles(bx, by + 1, 2, 1, t);
-      }
-  } else {
-      for (uint8_t r = 0; r < BKG_MT_H; r++) {
-          uint8_t mt = *map_ptr++;
-          uint8_t by = r << 1;
-          set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
-          set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
-      }
-  }
+    if (reversed) {
+        for (uint8_t r = 0; r < BKG_MT_H; r++) {
+            uint8_t mt = *map_ptr++;
+            uint8_t by = r << 1;
+
+            // Point directly to the pre-swapped ROM data!
+            // +0 gets the Top row, +2 gets the Bottom row
+            set_bkg_tiles(bx, by, 2, 1, metatiles_rev[mt]);
+            set_bkg_tiles(bx, by + 1, 2, 1, metatiles_rev[mt] + 2);
+        }
+    } else {
+        for (uint8_t r = 0; r < BKG_MT_H; r++) {
+            uint8_t mt = *map_ptr++;
+            uint8_t by = r << 1;
+            set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
+            set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
+        }
+    }
 
   SWITCH_ROM(_prev);
 }
