@@ -56,7 +56,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_1 size 2132 flags 0 addr 0
+A _CODE_1 size 2131 flags 0 addr 0
 S _level_songs Def00002000
 S _chr_gb_tiles Def00000000
 S _level_clg Def00002081
@@ -1589,7 +1589,7 @@ T 1D 21 00 00 4A 55 4D 50 45 52 00
 R 00 00 08 00
 T 24 21 00 00
 R 00 00 08 00
-T 24 21 00 00 42 52 4F 4B 45 20 4D 41 43 48 49 4E
+T 24 21 00 00 54 49 4D 45 20 4D 41 43 48 49 4E 45
 R 00 00 08 00
-T 30 21 00 00 45 00
+T 30 21 00 00 00
 R 00 00 08 00

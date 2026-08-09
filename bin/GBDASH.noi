@@ -113,7 +113,7 @@ DEF _rROMB0 0x2000
 DEF l__CODE_251 0x2218
 DEF l__CODE_248 0x2766
 DEF l__CODE_253 0x29B0
-DEF l__CODE_1 0x2BBE
+DEF l__CODE_1 0x2B11
 DEF _rROMB1 0x3000
 DEF l__CODE 0x3142
 DEF s__HOME 0x3342
@@ -463,9 +463,9 @@ DEF _level_ju 0x16096
 DEF _level_tm 0x160AB
 DEF _game_levels 0x160C0
 DEF _MAX_LEVELS 0x160D0
-DEF _setup_menu_font 0x16132
-DEF _draw_menu 0x16143
-DEF _play_level 0x161F9
+DEF _setup_menu_font 0x16131
+DEF _draw_menu 0x16142
+DEF _play_level 0x161F8
 DEF _backontrack 0xFE57A9
 DEF ___func_backontrack_sp 0x804000
 DEF _backontrack_sp 0x804000

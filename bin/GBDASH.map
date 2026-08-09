@@ -45,7 +45,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00001000  ___size_c |    00001000  ___size_c |    000016C4  l__CODE_2
      000017BE  l__CODE_2 |    000018CE  l__CODE_2 |    00001DDC  l__CODE_2
      00002000  _rROMB0   |    00002218  l__CODE_2 |    00002766  l__CODE_2
-     000029B0  l__CODE_2 |    00002BBE  l__CODE_1 |    00003000  _rROMB1  
+     000029B0  l__CODE_2 |    00002B11  l__CODE_1 |    00003000  _rROMB1  
      00003142  l__CODE   |    00003342  s__HOME   |    00003450  ___size_c
      00003450  l__CODE_7 |    000034A0  ___size_d |    000034A0  l__CODE_4
      000034E0  ___size_b |    000034E0  l__CODE_3 |    00003650  ___size_b
@@ -410,7 +410,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_1                00014000    00002BBE =       11198. bytes (REL,CON)
+_CODE_1                00014000    00002B11 =       11025. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -420,7 +420,7 @@ _CODE_1                00014000    00002BBE =       11198. bytes (REL,CON)
      0001602D  _level_bo |    00016042  _level_pg |    00016057  _level_du
      0001606C  _level_ba |    00016081  _level_cl |    00016096  _level_ju
      000160AB  _level_tm |    000160C0  _game_lev |    000160D0  _MAX_LEVE
-     00016132  _setup_me |    00016143  _draw_men |    000161F9  _play_lev
+     00016131  _setup_me |    00016142  _draw_men |    000161F8  _play_lev
 ASxxxx Linker V03.00/V05.40 + sdld,  page 30.
 Hexadecimal  [32-Bits]
 

@@ -271,7 +271,7 @@ __str_6:
 	.ascii "JUMPER"
 	.db 0x00
 __str_7:
-	.ascii "BROKE MACHINE"
+	.ascii "TIME MACHINE"
 	.db 0x00
 	.area _INITIALIZER
 	.area _CABS (ABS)

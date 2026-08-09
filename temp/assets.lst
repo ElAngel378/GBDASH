@@ -313,8 +313,8 @@
     0000211D 4A 55 4D 50 45 52      271 	.ascii "JUMPER"
     00002123 00                     272 	.db 0x00
     00002124                        273 __str_7:
-    00002124 42 52 4F 4B 45 20 4D   274 	.ascii "BROKE MACHINE"
-             41 43 48 49 4E 45
-    00002131 00                     275 	.db 0x00
+    00002124 54 49 4D 45 20 4D 41   274 	.ascii "TIME MACHINE"
+             43 48 49 4E 45
+    00002130 00                     275 	.db 0x00
                                     276 	.area _INITIALIZER
                                     277 	.area _CABS (ABS)
