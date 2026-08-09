@@ -71,7 +71,7 @@ const hUGESong_t * const level_songs[] = {
   &baseafterbase,// level_bab
   &cantletgo,    // level_clg
   &jumper,       // level_ju
-  &stereomadness // level_tm
+  &timemachine // level_tm
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -84,7 +84,7 @@ const uint8_t song_bank[] = {
   251u, // level_bab — baseafterbase.c
   250u, // level_clg — cantletgo.c
   249u, // level_ju — jumper.c
-  255, // level_tm — timemachine.c
+  248u, // level_tm — timemachine.c
 };
 
 // Level definitions with dimensions and bank info
@@ -172,7 +172,7 @@ const Level level_tm = {
   timemachine_map,
   chr_gb_TILE_COUNT, 997, 16, 0, 0,
   BANK(timemachine_map),
-  192,
+  41,
   timemachine_sp,
   BANK(timemachine_sp)
 };

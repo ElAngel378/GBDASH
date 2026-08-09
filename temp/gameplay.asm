@@ -770,7 +770,7 @@ _play_level::
 	ldhl	sp,	#75
 	ld	e, (hl)
 	ld	d, #0x00
-	ld	hl, #0x02c4
+	ld	hl, #0x02ca
 	add	hl, de
 	ld	e, l
 	ld	d, h

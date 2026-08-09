@@ -77,12 +77,12 @@ Symbol Table
     _stereomadness                                                  ******** GX
     _stereomadness_map                                              ******** GX
     _stereomadness_sp                                               ******** GX
+    _timemachine                                                    ******** GX
     _timemachine_map                                                ******** GX
     _timemachine_sp                                                 ******** GX
     b___func_chr_gb                                             =   00000001 L
     b___func_chr_gb_tiles                                       =   00000001 L
     b___func_game_levels                                        =   00000001 L
-
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]

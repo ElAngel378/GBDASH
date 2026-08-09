@@ -190,7 +190,7 @@ uint8_t player_update(
         }
     }
 
-    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE);
+    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
     uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
     uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
 

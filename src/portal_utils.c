@@ -38,7 +38,7 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
 
     // 1. SLIDING WINDOW OPTIMIZATION
     while (sp_ptr->c != 0xFFFF) {
-        uint16_t obj_x = sp_ptr->c << 4;
+        uint16_t obj_x = (sp_ptr->c + 1) << 4;
         if (obj_x + 16 < px) {
             p->sp_idx++;
             sp_ptr++;
@@ -61,6 +61,7 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
                 if (px >= (obj_x - 180)) {
                 p->level_complete = 1;
             }
+            uint16_t obj_x = (check_ptr->c + 1) << 4;
             check_ptr++;
             continue;
         }
@@ -108,8 +109,8 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
             case OBJ_PAD_BLUE_UP:
             {
                 uint8_t is_ceiling_pad = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 8);
-                uint16_t pad_bot = is_ceiling_pad ? (obj_y + 8) : (obj_y + 16);
+                uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 12);
+                uint16_t pad_bot = is_ceiling_pad ? (obj_y + 4) : (obj_y + 16);
 
                 if (py <= pad_bot && (py + PLAYER_SIZE) >= pad_top) {
                     if (!player_tile_activated(p, check_ptr->c, check_ptr->r)) {
@@ -144,7 +145,7 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
                             } else if (obj == OBJ_ORB_PINK) {
                                 p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
                             } else {
-                                p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 144 : JUMP_FORCE - 144;
+                                p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 120 : JUMP_FORCE - 120;
                             }
                             p->on_ground = 0;
                         }

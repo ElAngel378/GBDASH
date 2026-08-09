@@ -68,8 +68,8 @@
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
              00 00
-    00003A60                         53 2$:
-                         00003A60    54 	___size_polargeist_map = (2$-1$) 
+    00003A70                         53 2$:
+                         00003A70    54 	___size_polargeist_map = (2$-1$) 
                                      55 	.globl ___size_polargeist_map 
                                      56 	.local b___func_polargeist_map 
                          00000005    57 	___bank_polargeist_map = b___func_polargeist_map 

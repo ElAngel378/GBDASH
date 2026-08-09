@@ -117,7 +117,7 @@
     00001008r00r00                   99 	.dw _baseafterbase
     0000100Ar00r00                  100 	.dw _cantletgo
     0000100Cr00r00                  101 	.dw _jumper
-    0000100Er00r00                  102 	.dw _stereomadness
+    0000100Er00r00                  102 	.dw _timemachine
     00001010                        103 _song_bank:
     00001010 FF                     104 	.db #0xff	; 255
     00001011 FE                     105 	.db #0xfe	; 254
@@ -126,7 +126,7 @@
     00001014 FB                     108 	.db #0xfb	; 251
     00001015 FA                     109 	.db #0xfa	; 250
     00001016 F9                     110 	.db #0xf9	; 249
-    00001017 FF                     111 	.db #0xff	; 255
+    00001017 F8                     111 	.db #0xf8	; 248
     00001018                        112 _level_sm:
     00001018rC1r10                  113 	.dw __str_0
     0000101Ar00r00                  114 	.dw _chr_gb_tiles
@@ -228,7 +228,7 @@
     000010A9 00                     210 	.db #0x00	; 0
     000010AA 00                     211 	.db #0x00	; 0
     000010ABr00                     212 	.byte ___bank_timemachine_map
-    000010AC C0                     213 	.db #0xc0	; 192
+    000010AC 29                     213 	.db #0x29	; 41
     000010ADr00r00                  214 	.dw _timemachine_sp
     000010AFr00                     215 	.byte ___bank_timemachine_sp
     000010B0                        216 _game_levels:

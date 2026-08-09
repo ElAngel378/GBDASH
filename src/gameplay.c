@@ -20,7 +20,7 @@
 #define VIEW_MT_H 9
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
-#define SCROLL_SPEED_FP 708
+#define SCROLL_SPEED_FP 714
 
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100

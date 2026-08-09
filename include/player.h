@@ -10,10 +10,10 @@
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 
 // Physics constants using 8.8 fixed-point (256 units = 1 pixel)
-#define GRAVITY           107   // Famidash 0x006B
-#define JUMP_FORCE       -1296  // Famidash 0xFA70
+#define GRAVITY           103   // Famidash 0x006B
+#define JUMP_FORCE       -1276  // Famidash 0xFA70
 #define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
-#define PAD_JUMP_FORCE   -2030  // Famidash 0xF840 (Yellow Pad)
+#define PAD_JUMP_FORCE   -1890  // Famidash 0xF840 (Yellow Pad)
 #define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
 #define BLUE_PAD_FORCE     928   // Famidash 0x03A0
 #define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (ORB_BALL_HEIGHT_BLUE)

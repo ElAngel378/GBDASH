@@ -8,18 +8,77 @@ Symbol Table
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
   8 _P0                                                             00000001 R
-  8 _duty_instruments                                               0000000C R
-  8 _noise_instruments                                              00000018 R
-  8 _order1                                                         00000004 R
-  8 _order2                                                         00000006 R
-  8 _order3                                                         00000008 R
-  8 _order4                                                         0000000A R
-  8 _order_cnt                                                      00000000 R
-  8 _timemachine                                                    0000001F GR
-  8 _wave_instruments                                               00000012 R
-  8 _waves                                                          0000001E R
-
+  8 _P1                                                             000000C1 R
+  8 _P10                                                            00000781 R
+  8 _P11                                                            00000841 R
+  8 _P12                                                            00000901 R
+  8 _P13                                                            000009C1 R
+  8 _P14                                                            00000A81 R
+  8 _P15                                                            00000B41 R
+  8 _P16                                                            00000C01 R
+  8 _P17                                                            00000CC1 R
+  8 _P18                                                            00000D81 R
+  8 _P19                                                            00000E41 R
+  8 _P2                                                             00000181 R
+  8 _P20                                                            00000F01 R
+  8 _P21                                                            00000FC1 R
+  8 _P22                                                            00001081 R
+  8 _P23                                                            00001141 R
+  8 _P24                                                            00001201 R
+  8 _P25                                                            000012C1 R
+  8 _P26                                                            00001381 R
+  8 _P27                                                            00001441 R
+  8 _P28                                                            00001501 R
+  8 _P29                                                            000015C1 R
+  8 _P3                                                             00000241 R
+  8 _P30                                                            00001681 R
+  8 _P31                                                            00001741 R
+  8 _P32                                                            00001801 R
+  8 _P33                                                            000018C1 R
+  8 _P34                                                            00001B01 R
+  8 _P35                                                            00001981 R
+  8 _P36                                                            00001A41 R
+  8 _P37                                                            00001BC1 R
+  8 _P38                                                            00001C81 R
+  8 _P39                                                            00001D41 R
+  8 _P4                                                             00000301 R
+  8 _P40                                                            00001E01 R
+  8 _P41                                                            00001EC1 R
+  8 _P42                                                            00001F81 R
+  8 _P43                                                            00002041 R
+  8 _P44                                                            00002101 R
+  8 _P5                                                             000003C1 R
+  8 _P6                                                             00000481 R
+  8 _P7                                                             00000541 R
+  8 _P8                                                             00000601 R
+  8 _P9                                                             000006C1 R
+  8 _duty_instruments                                               00002601 R
+  8 _itNoiseSP1                                                     00002461 R
+  8 _itNoiseSP2                                                     000024C1 R
+  8 _itNoiseSP3                                                     00002521 R
+  8 _itSquareSP11                                                   000022E1 R
+  8 _itSquareSP12                                                   00002341 R
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
+Hexadecimal [32-Bits]
+
+Symbol Table
+
+  8 _itSquareSP14                                                   000023A1 R
+  8 _itSquareSP4                                                    000021C1 R
+  8 _itSquareSP6                                                    00002221 R
+  8 _itSquareSP9                                                    00002281 R
+  8 _itWaveSP4                                                      00002401 R
+  8 _noise_instruments                                              00002679 R
+  8 _order1                                                         00002581 R
+  8 _order2                                                         000025A1 R
+  8 _order3                                                         000025C1 R
+  8 _order4                                                         000025E1 R
+  8 _order_cnt                                                      00000000 R
+  8 _timemachine                                                    00002751 GR
+  8 _wave_instruments                                               00002655 R
+  8 _waves                                                          00002691 R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
 Area Table
@@ -32,7 +91,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_248                                  size       34   flags    0
+   8 _CODE_248                                  size     2766   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 
