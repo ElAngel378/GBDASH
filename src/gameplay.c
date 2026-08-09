@@ -140,6 +140,7 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_prev = cam_px >> 4;
         uint8_t needs_render = 0;
         uint16_t need_col = 0;
+        uint8_t prev_reversed = player.reversed;
 
         // PROGRESS FORWARD through the level map
         if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
@@ -158,6 +159,22 @@ void play_level(uint8_t idx) BANKED {
 
         player.world_x = cam_px;
         process_sp_objects(l, &player, joy, &target_bg_idx);
+
+        if (player.reversed != prev_reversed) {
+            // Redraw the entire current VRAM window (16 columns) to fix mirroring transition
+            uint16_t start_col = cam_px >> 4;
+            for (uint8_t i = 0; i < 16; i++) {
+                uint16_t curr_col = start_col + i;
+                if (curr_col < level_map_w) {
+                    uint8_t vram_slot = (uint8_t)(curr_col & 15);
+                    if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+                    draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank);
+                }
+            }
+            // Reset loaded_r to match the last column we just drew
+            loaded_r = start_col + 15;
+        }
+
         died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
 
         py = player_screen_y(&player, cam_py);
