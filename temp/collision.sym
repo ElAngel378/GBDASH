@@ -18,9 +18,9 @@ Symbol Table
     _current_song_bank                                              ******** GX
   0 _draw_mt_column                                                 0000012E GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 000001BC GR
+  0 _fill_scroll_bg                                                 0000024B GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              00000200 GR
+  0 _init_music_banked                                              00000294 GR
   0 _load_bkg_tileset                                               000000E3 GR
     _metatiles                                                      ******** GX
     _music_ready                                                    ******** GX
@@ -33,7 +33,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      22E   flags    0
+   0 _CODE                                      size      2C2   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        1   flags    0
    3 _INITIALIZED                               size        0   flags    0

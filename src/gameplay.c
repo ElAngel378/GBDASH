@@ -18,6 +18,7 @@
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
+
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
 #define SCROLL_SPEED_FP 714
@@ -102,7 +103,7 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
     move_bkg(0, (uint8_t)cam_py);
-    fill_scroll_bg(level_map, level_map_w, level_map_bank);
+    fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     BGP_REG = bg_pals[0];
     OBP0_REG = 0xE4;
     SPRITES_8x16;
@@ -162,6 +163,11 @@ void play_level(uint8_t idx) BANKED {
 
         if (player.reversed != prev_reversed) {
             disable_interrupts();
+
+            // Swap tileset in VRAM to match mirror mode orientation
+            const uint8_t* target_tiles = player.reversed ? l->tiles_rev : l->tiles;
+            load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+
             // Instant redraw of the entire 16-column buffer
             uint16_t start_col = cam_px >> 4;
             for (uint8_t i = 0; i < 16; i++) {
@@ -169,7 +175,7 @@ void play_level(uint8_t idx) BANKED {
                 if (curr_col < level_map_w) {
                     uint8_t vram_slot = (uint8_t)(curr_col & 15);
                     if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-                    draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank);
+                    draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
                 }
             }
             enable_interrupts();
@@ -214,7 +220,7 @@ void play_level(uint8_t idx) BANKED {
             uint8_t vram_slot = (uint8_t)(need_col & 15);
             // Reverse tile mapping in VRAM ring buffer to create mirrored level layout
             if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-            draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank);
+            draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
         if (player.mode == MODE_SHIP) {
@@ -254,6 +260,9 @@ void play_level(uint8_t idx) BANKED {
                 current_song_bank = song_bank[idx];
             }
             disable_interrupts();
+            // Restore normal tileset on death
+            load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
+
             cam_px = 0;
             cam_py = 112;
             scroll_acc = 0;
@@ -262,7 +271,7 @@ void play_level(uint8_t idx) BANKED {
             player_init(&player, 0, 240);
             move_bkg(0, (uint8_t)cam_py);
             BGP_REG = bg_pals[0];
-            fill_scroll_bg(level_map, level_map_w, level_map_bank);
+            fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
             TAC_REG = 0x04;
             music_ready = 1;
             enable_interrupts();

@@ -85,7 +85,7 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
 }
 
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
-  const uint8_t* map, uint16_t map_w, uint8_t map_bank) {
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   (void)map_w;
   uint8_t bx = ring_col << 1;
 
@@ -93,21 +93,34 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   SWITCH_ROM(map_bank);
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
-  for (uint8_t r = 0; r < BKG_MT_H; r++) {
-    uint8_t mt = *map_ptr++;
-    uint8_t by = r << 1;
 
-    set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
-    set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
+  if (reversed) {
+      for (uint8_t r = 0; r < BKG_MT_H; r++) {
+          uint8_t mt = *map_ptr++;
+          uint8_t by = r << 1;
+          uint8_t t[2];
+          // Mirroring: Swap tile indices horizontally within the 2x2 metatile
+          t[0] = metatiles[mt][1]; t[1] = metatiles[mt][0];
+          set_bkg_tiles(bx, by, 2, 1, t);
+          t[0] = metatiles[mt][3]; t[1] = metatiles[mt][2];
+          set_bkg_tiles(bx, by + 1, 2, 1, t);
+      }
+  } else {
+      for (uint8_t r = 0; r < BKG_MT_H; r++) {
+          uint8_t mt = *map_ptr++;
+          uint8_t by = r << 1;
+          set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
+          set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
+      }
   }
 
   SWITCH_ROM(_prev);
 }
 
-void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank) {
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   uint16_t cols = (map_w < 16) ? map_w : 16;
   for (uint16_t c = 0; c < cols; c++) {
-    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank);
+    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank, reversed);
   }
 }
 

@@ -74,9 +74,9 @@ void col_at_end(void);
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
 
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
-  const uint8_t* map, uint16_t map_w, uint8_t map_bank);
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
 
-void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank);
+void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
 
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 

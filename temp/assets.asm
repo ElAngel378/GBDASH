@@ -92,7 +92,7 @@ _chr_gb_tiles::
 	.local b___func_chr_gb_tiles 
 	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
 	.globl ___bank_chr_gb_tiles 
-;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_tiles.bin")
+;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_flipped_tiles.bin")
 ;	---------------------------------
 ; Function __func_chr_gb_tiles_rev
 ; ---------------------------------
@@ -100,7 +100,7 @@ _chr_gb_tiles::
 ___func_chr_gb_tiles_rev::
 _chr_gb_tiles_rev::
 1$:
-	.incbin "levels/chr_data/chr_gb_tiles.bin" 
+	.incbin "levels/chr_data/chr_gb_flipped_tiles.bin" 
 2$:
 	___size_chr_gb_tiles_rev = (2$-1$) 
 	.globl ___size_chr_gb_tiles_rev 
