@@ -178,7 +178,7 @@ const Level level_ju = {
 };
 
 const Level level_tm = {
-  "BROKE MACHINE",
+  "TIME MACHINE",
   chr_gb_tiles,
   chr_gb_tiles_rev,
   timemachine_map,
