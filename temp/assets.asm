@@ -19,6 +19,8 @@
 	.globl _level_sm
 	.globl _song_bank
 	.globl _level_songs
+	.globl b___func_chr_gb_tiles_rev
+	.globl ___func_chr_gb_tiles_rev
 	.globl b___func_chr_gb_tiles
 	.globl ___func_chr_gb_tiles
 	.globl b___func_chr_gb
@@ -90,6 +92,21 @@ _chr_gb_tiles::
 	.local b___func_chr_gb_tiles 
 	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
 	.globl ___bank_chr_gb_tiles 
+;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_tiles.bin")
+;	---------------------------------
+; Function __func_chr_gb_tiles_rev
+; ---------------------------------
+	b___func_chr_gb_tiles_rev	= 1
+___func_chr_gb_tiles_rev::
+_chr_gb_tiles_rev::
+1$:
+	.incbin "levels/chr_data/chr_gb_tiles.bin" 
+2$:
+	___size_chr_gb_tiles_rev = (2$-1$) 
+	.globl ___size_chr_gb_tiles_rev 
+	.local b___func_chr_gb_tiles_rev 
+	___bank_chr_gb_tiles_rev = b___func_chr_gb_tiles_rev 
+	.globl ___bank_chr_gb_tiles_rev 
 	.area _CODE_1
 _level_songs:
 	.dw _stereomadness
@@ -112,6 +129,7 @@ _song_bank:
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _stereomadness_map
 	.dw #0x0100
 	.dw #0x037e
@@ -125,6 +143,7 @@ _level_sm:
 _level_bot:
 	.dw __str_1
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _backontrack_map
 	.dw #0x0100
 	.dw #0x034e
@@ -138,6 +157,7 @@ _level_bot:
 _level_pg:
 	.dw __str_2
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _polargeist_map
 	.dw #0x0100
 	.dw #0x03a6
@@ -151,6 +171,7 @@ _level_pg:
 _level_du:
 	.dw __str_3
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _dryout_map
 	.dw #0x0100
 	.dw #0x034a
@@ -164,6 +185,7 @@ _level_du:
 _level_bab:
 	.dw __str_4
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _baseafterbase_map
 	.dw #0x0100
 	.dw #0x0365
@@ -177,6 +199,7 @@ _level_bab:
 _level_clg:
 	.dw __str_5
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _cantletgo_map
 	.dw #0x0100
 	.dw #0x0345
@@ -190,6 +213,7 @@ _level_clg:
 _level_ju:
 	.dw __str_6
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _jumper_map
 	.dw #0x0100
 	.dw #0x0381
@@ -203,6 +227,7 @@ _level_ju:
 _level_tm:
 	.dw __str_7
 	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
 	.dw _timemachine_map
 	.dw #0x0100
 	.dw #0x03e5

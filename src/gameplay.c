@@ -161,7 +161,8 @@ void play_level(uint8_t idx) BANKED {
         process_sp_objects(l, &player, joy, &target_bg_idx);
 
         if (player.reversed != prev_reversed) {
-            // Redraw the entire current VRAM window (16 columns) to fix mirroring transition
+            disable_interrupts();
+            // Instant redraw of the entire 16-column buffer
             uint16_t start_col = cam_px >> 4;
             for (uint8_t i = 0; i < 16; i++) {
                 uint16_t curr_col = start_col + i;
@@ -171,6 +172,7 @@ void play_level(uint8_t idx) BANKED {
                     draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank);
                 }
             }
+            enable_interrupts();
             // Reset loaded_r to match the last column we just drew
             loaded_r = start_col + 15;
         }

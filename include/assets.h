@@ -17,9 +17,10 @@ typedef struct {
 // Structure defining a game level's data and metadata
 typedef struct {
   const char *name;
-  const uint8_t *tiles; // VRAM tile data
-  const uint8_t *map;   // Metatile map data
-  uint16_t tile_count;  // Total tiles in tileset
+  const uint8_t *tiles;     // VRAM tile data
+  const uint8_t *tiles_rev; // Flipped tileset for mirror mode
+  const uint8_t *map;       // Metatile map data
+  uint16_t tile_count;      // Total tiles in tileset
   uint16_t map_width;   // Width in metatiles
   uint16_t map_height;  // Height in metatiles
   uint8_t tiles_are_compressed;

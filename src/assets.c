@@ -10,6 +10,10 @@ BANKREF(chr_gb)
 INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
 INCBIN_EXTERN(chr_gb_tiles)
 
+// Flipped tileset for mirror mode
+INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_tiles.bin")
+INCBIN_EXTERN(chr_gb_tiles_rev)
+
 // External map data definitions from level files
 BANKREF_EXTERN(stereomadness_map)
 extern const uint8_t stereomadness_map[];
@@ -92,6 +96,7 @@ const uint8_t song_bank[] = {
 const Level level_sm = {
   "STEREO MADNESS",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   stereomadness_map,
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
@@ -103,6 +108,7 @@ const Level level_sm = {
 const Level level_bot = {
   "BACK ON TRACK",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   backontrack_map,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
@@ -114,6 +120,7 @@ const Level level_bot = {
 const Level level_pg = {
   "POLARGEIST",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   polargeist_map,
   chr_gb_TILE_COUNT, 934, 16, 0, 0,
   BANK(polargeist_map),
@@ -125,6 +132,7 @@ const Level level_pg = {
 const Level level_du = {
   "DRY OUT",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   dryout_map,
   chr_gb_TILE_COUNT, 842, 16, 0, 0,
   BANK(dryout_map),
@@ -136,6 +144,7 @@ const Level level_du = {
 const Level level_bab = {
   "BASE AFTER BASE",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   baseafterbase_map,
   chr_gb_TILE_COUNT, 869, 16, 0, 0,
   BANK(baseafterbase_map),
@@ -147,6 +156,7 @@ const Level level_bab = {
 const Level level_clg = {
   "CANT LET GO",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   cantletgo_map,
   chr_gb_TILE_COUNT, 837, 16, 0, 0,
   BANK(cantletgo_map),
@@ -158,6 +168,7 @@ const Level level_clg = {
 const Level level_ju = {
   "JUMPER",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   jumper_map,
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
@@ -169,6 +180,7 @@ const Level level_ju = {
 const Level level_tm = {
   "BROKE MACHINE",
   chr_gb_tiles,
+  chr_gb_tiles_rev,
   timemachine_map,
   chr_gb_TILE_COUNT, 997, 16, 0, 0,
   BANK(timemachine_map),
