@@ -10,6 +10,7 @@
 #include "assets.h"
 #include "icon1.h"
 #include "ship1.h"
+#include "famidash_sprites.h"
 #include "../levels/chr_data/chr_gb.h"
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
@@ -27,6 +28,43 @@
 #define CAM_Y_BOTTOM_ZONE 100
 
 extern uint8_t music_ready;
+
+#define LEVEL_SPRITE_LIMIT 12
+
+static uint8_t level_sprite_cost(uint8_t object_id) {
+    return (object_id == 0 || object_id == 1 || object_id == 8 || object_id == 9) ? 9 : 2;
+}
+
+static uint8_t render_level_sprites(const Level *l, const Player *p,
+                                    uint16_t cam_px, uint16_t cam_py,
+                                    uint8_t reversed, uint8_t oam_start) {
+    SpDef visible[LEVEL_SPRITE_LIMIT];
+    uint8_t visible_count = collect_level_sprites(l->sp_list, l->sp_bank,
+                                                   p->sp_idx, cam_px, visible);
+    uint16_t map_height = l->map_height;
+
+    for (uint8_t i = 0; i < visible_count && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
+        const metasprite_t *sprite = famidash_sprite_for_object(visible[i].obj);
+        uint16_t object_x = visible[i].c << 4;
+        uint16_t object_y = (uint16_t)(map_height - 1u - visible[i].r) << 4;
+        int16_t screen_x = (int16_t)(object_x - cam_px) + 8;
+        int16_t screen_y = (int16_t)(object_y - cam_py) + 16;
+        uint8_t used;
+
+        if (oam_start + level_sprite_cost(visible[i].obj) > MAX_HARDWARE_SPRITES - 2) break;
+        if (reversed) screen_x = 160 - screen_x;
+        if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
+
+        if (reversed) used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                                    oam_start, (uint8_t)screen_x,
+                                                    (uint8_t)screen_y);
+        else used = move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                    oam_start, (uint8_t)screen_x,
+                                    (uint8_t)screen_y);
+        oam_start += used;
+    }
+    return oam_start;
+}
 
 void setup_menu_font(void) BANKED {
     font_init();
@@ -102,11 +140,13 @@ void play_level(uint8_t idx) BANKED {
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
+    set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     BGP_REG = bg_pals[0];
     OBP0_REG = 0xE4;
     SPRITES_8x16;
+    OBP1_REG = 0xE4;
     SHOW_BKG;
     SHOW_SPRITES;
     DISPLAY_ON;
@@ -223,23 +263,27 @@ void play_level(uint8_t idx) BANKED {
             draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
+        uint8_t oam_index = render_level_sprites(l, &player, cam_px, cam_py,
+                                                  player.reversed, 0);
+
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
-                if (player.reversed) move_metasprite_hvflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 24);
-                else move_metasprite_hflip(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 32);
+                if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+                else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
             } else {
-                if (player.reversed) move_metasprite_vflip(ship_metasprites[0], 0, 0, sprite_x_final + 24, final_py + 16);
-                else move_metasprite(ship_metasprites[0], 0, 0, sprite_x_final + 8, final_py + 16);
+                if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
             }
         } else {
             if (player.gravity_flipped) {
-                if (player.reversed) move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 24, final_py + 32);
-                else move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 22, final_py + 16);
+                if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+                else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
             } else {
-                if (player.reversed) move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 10, final_py + 32);
-                else move_metasprite(icon1_metasprites[player.anim_frame], 0, 0, sprite_x_final + 8, final_py + 16);
+                if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+                else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
             }
         }
+        hide_sprites_range(oam_index, MAX_HARDWARE_SPRITES);
 
         if (died) {
             TAC_REG = 0x00;

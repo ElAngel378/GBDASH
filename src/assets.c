@@ -7,11 +7,11 @@ BANKREF(game_levels)
 BANKREF(chr_gb)
 
 // Main tileset for the game levels
-INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
+INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
 INCBIN_EXTERN(chr_gb_tiles)
 
 // Flipped tileset for mirror mode
-INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_flipped_tiles.bin")
+INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
 INCBIN_EXTERN(chr_gb_tiles_rev)
 
 // External map data definitions from level files

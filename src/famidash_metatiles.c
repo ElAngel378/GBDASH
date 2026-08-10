@@ -1,3 +1,3 @@
 // Bank 0 (HOME)
 #include "famidash_metatiles.h"
-#include "../include/famidash_metatiles.c"
+#include "../include/famidash_metatiles_dmg.c"

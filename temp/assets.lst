@@ -77,7 +77,7 @@
                                      77 	.local b___func_chr_gb 
                          00000001    78 	___bank_chr_gb = b___func_chr_gb 
                                      79 	.globl ___bank_chr_gb 
-                                     80 ;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_tiles.bin")
+                                     80 ;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
                                      81 ;	---------------------------------
                                      82 ; Function __func_chr_gb_tiles
                                      83 ; ---------------------------------
@@ -85,24 +85,24 @@
     00000000                         85 ___func_chr_gb_tiles::
     00000000                         86 _chr_gb_tiles::
     00000000                         87 1$:
-    00000000 00 00 00 00 00 00 00    88 	.incbin "levels/chr_data/chr_gb_tiles.bin" 
+    00000000 00 00 00 00 00 00 00    88 	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
              00 00 00 00 00 00 00
-             00 00 00 00 FF FF 7F
-             7F 7F 7F 7F 7F 3F 3F
-             1F 1F 0E 0E 00 00 7F
-             7F 3F 3F 1F 1F 0F 0F
-             07 07 03 03 00 00 00
-             00 FF FF FF FF FF FF
-             FF FF FF FF 1F 1F 0E
-             0E 00 00 FE FE FC FC
-             F8 F8 F0 F0 C0 C0 00
-             00 00 00 00 7E 2A 7E
-             3C 3C 3C 3C 18 18 18
-             18 00 00 00 00 FF FF
-             FF FF 5B 5B 12 12 10
-             10 00 00 00 00 00 00
-             FF FF FF FF EE EE E4
-             E4 40 40 40 40 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
              00 00
     00001000                         89 2$:
                          00001000    90 	___size_chr_gb_tiles = (2$-1$) 
@@ -110,7 +110,7 @@
                                      92 	.local b___func_chr_gb_tiles 
                          00000001    93 	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
                                      94 	.globl ___bank_chr_gb_tiles 
-                                     95 ;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_flipped_tiles.bin")
+                                     95 ;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
                                      96 ;	---------------------------------
                                      97 ; Function __func_chr_gb_tiles_rev
                                      98 ; ---------------------------------
@@ -118,24 +118,24 @@
     00001000                        100 ___func_chr_gb_tiles_rev::
     00001000                        101 _chr_gb_tiles_rev::
     00001000                        102 1$:
-    00001000 00 00 00 00 00 00 00   103 	.incbin "levels/chr_data/chr_gb_flipped_tiles.bin" 
+    00001000 00 00 00 00 00 00 00   103 	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
              00 00 00 00 00 00 00
-             00 00 00 00 FF FF FE
-             FE FE FE FE FE FC FC
-             F8 F8 70 70 00 00 FE
-             FE FC FC F8 F8 F0 F0
-             E0 E0 C0 C0 00 00 00
-             00 FF FF FF FF FF FF
-             FF FF FF FF F8 F8 70
-             70 00 00 7F 7F 3F 3F
-             1F 1F 0F 0F 03 03 00
-             00 00 00 00 7E 54 7E
-             3C 3C 3C 3C 18 18 18
-             18 00 00 00 00 FF FF
-             FF FF DA DA 48 48 08
-             08 00 00 00 00 00 00
-             FF FF FF FF 77 77 27
-             27 02 02 02 02 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
              00 00
     00002000                        104 2$:
                          00001000   105 	___size_chr_gb_tiles_rev = (2$-1$) 
