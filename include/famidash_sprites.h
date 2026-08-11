@@ -22,10 +22,6 @@ extern const metasprite_t famidash_yellow_orb[];
 extern const metasprite_t famidash_blue_orb[];
 extern const metasprite_t famidash_pink_orb[];
 extern const metasprite_t famidash_pink_pad[];
-
-const metasprite_t *famidash_sprite_for_object(uint8_t object_id);
-uint8_t collect_level_sprites(const SpDef *sp_list, uint8_t sp_bank,
-                              uint8_t start_idx, uint16_t cam_px,
-                              SpDef *visible);
+extern const metasprite_t * const famidash_sprite_table[38];
 
 #endif

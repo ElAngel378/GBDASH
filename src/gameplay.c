@@ -31,20 +31,16 @@ extern uint8_t music_ready;
 
 #define LEVEL_SPRITE_LIMIT 12
 
-static uint8_t level_sprite_cost(uint8_t object_id) {
-    return (object_id == 0 || object_id == 1 || object_id == 8 || object_id == 9) ? 9 : 2;
-}
+static const uint8_t level_sprite_cost_table[38] = {
+    9, 9, 0, 0, 0, 2, 2, 0, 9, 9, 2, 2, 2, 2, 2,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    2
+};
 
-static uint8_t render_level_sprites(const Level *l, const Player *p,
-                                    uint16_t cam_px, uint16_t cam_py,
-                                    uint8_t reversed, uint8_t oam_start) {
-    SpDef visible[LEVEL_SPRITE_LIMIT];
-    uint8_t visible_count = collect_level_sprites(l->sp_list, l->sp_bank,
-                                                  p->sp_idx, cam_px, visible);
-    uint16_t map_height = l->map_height;
-
+static uint8_t render_level_sprites(const SpDef *visible, uint8_t visible_count,
+                                    uint16_t map_height, uint16_t cam_px, uint16_t cam_py,
+    uint8_t reversed, uint8_t oam_start) {
     for (uint8_t i = 0; i < visible_count && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        const metasprite_t *sprite = famidash_sprite_for_object(visible[i].obj);
         uint16_t object_x = visible[i].c << 4;
         uint16_t object_y = (uint16_t)(map_height - 1u - visible[i].r) << 4;
 
@@ -63,10 +59,13 @@ static uint8_t render_level_sprites(const Level *l, const Player *p,
         int16_t screen_y = (int16_t)(object_y - cam_py) + 16;
         uint8_t used;
 
-        if (oam_start + level_sprite_cost(visible[i].obj) > MAX_HARDWARE_SPRITES - 2) break;
-
         // Culling bounds check
         if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
+
+        uint8_t cost = level_sprite_cost_table[visible[i].obj];
+        if (oam_start + cost > MAX_HARDWARE_SPRITES - 2) break;
+
+        const metasprite_t *sprite = famidash_sprite_table[visible[i].obj];
 
         if (reversed) {
             used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
@@ -171,6 +170,11 @@ void play_level(uint8_t idx) BANKED {
 
     uint16_t scroll_acc = 0;
     uint8_t prev_joy = 0;
+    uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
+    SpDef visible_level_sprites[LEVEL_SPRITE_LIMIT];
+    uint8_t visible_level_sprite_count = 0;
+    uint8_t collision_columns[32];
+    uint16_t cached_collision_col = 0xFFFF;
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_START) break;
@@ -215,7 +219,8 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-        process_sp_objects(l, &player, joy, &target_bg_idx);
+        process_sp_objects(l, &player, joy, &target_bg_idx,
+                           visible_level_sprites, &visible_level_sprite_count);
 
         if (player.reversed != prev_reversed) {
             disable_interrupts();
@@ -239,7 +244,13 @@ void play_level(uint8_t idx) BANKED {
             loaded_r = start_col + 15;
         }
 
-        died = player_update(&player, joy, level_map, level_map_w, level_map_h, level_map_bank);
+        uint16_t collision_col = cam_px >> 4;
+        if (collision_col != cached_collision_col) {
+            load_collision_columns(collision_col, level_map, level_map_w,
+                                   level_map_bank, collision_columns);
+            cached_collision_col = collision_col;
+        }
+        died = player_update(&player, joy, collision_columns, level_map_h);
 
         py = player_screen_y(&player, cam_py);
         if (py < CAM_Y_TOP_ZONE) {
@@ -279,7 +290,9 @@ void play_level(uint8_t idx) BANKED {
             draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
-        uint8_t oam_index = render_level_sprites(l, &player, cam_px, cam_py,
+        uint8_t oam_index = render_level_sprites(visible_level_sprites,
+                                                  visible_level_sprite_count,
+                                                  l->map_height, cam_px, cam_py,
                                                   player.reversed, 0);
 
         if (player.mode == MODE_SHIP) {
@@ -299,7 +312,12 @@ void play_level(uint8_t idx) BANKED {
                 else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
             }
         }
-        hide_sprites_range(oam_index, MAX_HARDWARE_SPRITES);
+        // Only clear entries that were used by the previous frame but not by
+        // this one. Newly needed entries are overwritten below/above.
+        if (oam_index < previous_oam_index) {
+            hide_sprites_range(oam_index, previous_oam_index);
+        }
+        previous_oam_index = oam_index;
 
         if (died) {
             TAC_REG = 0x00;
@@ -329,6 +347,8 @@ void play_level(uint8_t idx) BANKED {
             loaded_r = BKG_MT_W - 1;
             target_bg_idx = 0;
             player_init(&player, 0, 240);
+            previous_oam_index = MAX_HARDWARE_SPRITES;
+            cached_collision_col = 0xFFFF;
             move_bkg(0, (uint8_t)cam_py);
             BGP_REG = bg_pals[0];
             fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);

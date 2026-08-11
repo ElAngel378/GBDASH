@@ -79,10 +79,8 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y);
 uint8_t player_update(
     Player* p,
     uint8_t joy,
-    const uint8_t* map,
-    uint16_t map_w,
-    uint16_t map_h,
-    uint8_t map_bank
+    const uint8_t* collision_columns,
+    uint16_t map_h
 );
 
 // Returns player's Y position relative to the camera

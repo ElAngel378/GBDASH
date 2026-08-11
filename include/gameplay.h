@@ -17,6 +17,8 @@ void draw_menu(void) BANKED;
 void play_level(uint8_t idx) BANKED;
 
 // Bank-safe SP object processing (resides in Bank 0)
-void process_sp_objects(const Level* l, struct Player* p, uint8_t joy, uint8_t* target_bg_idx);
+void process_sp_objects(const Level* l, struct Player* p, uint8_t joy,
+                        uint8_t* target_bg_idx, SpDef* visible,
+                        uint8_t* visible_count);
 
 #endif

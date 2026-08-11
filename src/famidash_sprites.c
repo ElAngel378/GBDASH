@@ -80,20 +80,12 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_blue_orb,      MT_99, MT_9B, P0,           P0 | S_FLIPX);
         TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P1,           P1 | S_FLIPX);
 
-        const metasprite_t *famidash_sprite_for_object(uint8_t object_id) {
-    switch (object_id) {
-        case 0: return famidash_cube_portal;
-        case 1: return famidash_ship_portal;
-        case 5: return famidash_blue_orb;
-        case 6: return famidash_pink_orb;
-        case 8: return famidash_gravity_down;
-        case 9: return famidash_gravity_up;
-        case 10: return famidash_yellow_pad;
-        case 11: return famidash_yellow_orb;
-        case 12: return famidash_yellow_pad_up;
-        case 13: return famidash_blue_pad;
-        case 14: return famidash_blue_pad_up;
-        case 37: return famidash_pink_pad;
-        default: return 0;
-    }
-}
+const metasprite_t * const famidash_sprite_table[38] = {
+    famidash_cube_portal, famidash_ship_portal, 0, 0, 0,
+    famidash_blue_orb, famidash_pink_orb, 0,
+    famidash_gravity_down, famidash_gravity_up,
+    famidash_yellow_pad, famidash_yellow_orb,
+    famidash_yellow_pad_up, famidash_blue_pad, famidash_blue_pad_up,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    famidash_pink_pad
+};

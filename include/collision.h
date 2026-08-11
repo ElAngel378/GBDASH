@@ -79,5 +79,8 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
 
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
+void load_collision_columns(uint16_t map_col, const uint8_t* map,
+                            uint16_t map_w, uint8_t map_bank,
+                            uint8_t* columns);
 
 #endif // COLLISION_H

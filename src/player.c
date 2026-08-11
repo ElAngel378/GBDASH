@@ -49,10 +49,8 @@ int16_t player_screen_y(const Player* p, uint16_t cam_y) {
 uint8_t player_update(
         Player* p,
         uint8_t joy,
-        const uint8_t* map,
-        uint16_t map_w,
-        uint16_t map_h,
-        uint8_t  map_bank
+        const uint8_t* collision_columns,
+        uint16_t map_h
 ) {
     if (p->dead) return 1;
 
@@ -60,8 +58,6 @@ uint8_t player_update(
     if (p->level_complete) {
         return 0;
     }
-
-    col_at_begin(map_bank);
 
     if (p->mode == MODE_SHIP) {
         if (joy & J_A) {
@@ -88,7 +84,6 @@ uint8_t player_update(
     if (player_noclip) {
         if (joy & J_A) p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         p->world_y.w += p->vel_y.w;
-        col_at_end();
         return 0;
     }
 
@@ -97,13 +92,11 @@ uint8_t player_update(
         p->on_ground = 0;
     }
 
-    uint16_t px = p->world_x;
     uint8_t py = p->world_y.b.h;
-    uint16_t mx0 = px >> 4;
-    const uint8_t* c0 = &map[mx0 << 4];
-    const uint8_t* c1 = (mx0 + 1 < map_w) ? c0 + 16 : c0;
+    const uint8_t* c0 = collision_columns;
+    const uint8_t* c1 = collision_columns + 16;
 
-    uint8_t x_mod_16 = (uint8_t)px & 0x0F;
+    uint8_t x_mod_16 = (uint8_t)p->world_x & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
@@ -118,7 +111,6 @@ uint8_t player_update(
 
     if (IS_SOLID(front_mid)) {
         p->dead = 1;
-        col_at_end();
         return 1;
     }
 
@@ -160,7 +152,6 @@ uint8_t player_update(
             if (p->mode == MODE_CUBE) {
                 // Cube mode: Hitting head kills player
                 p->dead = 1;
-                col_at_end();
                 return 1;
             } else {
                 // Ship mode: Solid ceiling behavior (snap position & stop vertical momentum)
@@ -201,20 +192,16 @@ uint8_t player_update(
 
     if (IS_SOLID(front_head) || IS_SOLID(front_foot)) {
         p->dead = 1;
-        col_at_end();
         return 1;
     }
 
     if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
         p->dead = 1;
-        col_at_end();
         return 1;
     }
 
     // Pads and Orbs are now handled by process_sp_objects in the SP layer.
     // Tile-based collision for these is removed to save CPU cycles.
-    col_at_end();
-
     if (p->on_ground) {
         p->anim_timer = 0;
         p->anim_frame = 0;

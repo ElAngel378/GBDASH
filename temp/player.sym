@@ -8,8 +8,6 @@ Symbol Table
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
   8 __xinit__player_noclip                                          00000000 R
-    _col_at_begin                                                   ******** GX
-    _col_at_end                                                     ******** GX
     _col_at_raw_cached                                              ******** GX
   0 _player_init                                                    00000000 GR
   0 _player_mark_activated                                          000000F8 GR
@@ -18,13 +16,12 @@ Symbol Table
   0 _player_tile_activated                                          0000007B GR
   0 _player_update                                                  00000169 GR
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      DF4   flags    0
+   0 _CODE                                      size      D50   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        1   flags    0

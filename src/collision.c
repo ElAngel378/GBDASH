@@ -5,6 +5,7 @@
 #define BKG_MT_H 16
 
 static uint8_t _prev_map_bank;
+static uint8_t metatile_column_tiles[BKG_MT_H * 4];
 
 void col_at_begin(uint8_t map_bank) {
     if (_current_bank == map_bank) {
@@ -84,6 +85,26 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   SWITCH_ROM(_prev);
 }
 
+// Player collision needs only the current map column and the one to its right.
+// Keeping those 32 bytes in WRAM removes a ROM-bank switch from every frame.
+void load_collision_columns(uint16_t map_col, const uint8_t* map,
+                            uint16_t map_w, uint8_t map_bank,
+                            uint8_t* columns) {
+  uint8_t _prev = _current_bank;
+  uint8_t i;
+  const uint8_t *left;
+  const uint8_t *right;
+
+  SWITCH_ROM(map_bank);
+  left = &map[map_col << 4];
+  right = (map_col + 1u < map_w) ? left + 16 : left;
+  for (i = 0; i < 16; i++) {
+    columns[i] = left[i];
+    columns[i + 16] = right[i];
+  }
+  SWITCH_ROM(_prev);
+}
+
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   (void)map_w;
@@ -94,26 +115,18 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
 
-    if (reversed) {
-        for (uint8_t r = 0; r < BKG_MT_H; r++) {
-            uint8_t mt = *map_ptr++;
-            uint8_t by = r << 1;
+    for (uint8_t r = 0; r < BKG_MT_H; r++) {
+        const uint8_t *tiles = reversed ? metatiles_rev[*map_ptr++] : metatiles[*map_ptr++];
+        uint8_t offset = r << 2;
 
-            // Point directly to the pre-swapped ROM data!
-            // +0 gets the Top row, +2 gets the Bottom row
-            set_bkg_tiles(bx, by, 2, 1, metatiles_rev[mt]);
-            set_bkg_tiles(bx, by + 1, 2, 1, metatiles_rev[mt] + 2);
-        }
-    } else {
-        for (uint8_t r = 0; r < BKG_MT_H; r++) {
-            uint8_t mt = *map_ptr++;
-            uint8_t by = r << 1;
-            set_bkg_tiles(bx, by, 2, 1, metatiles[mt]);
-            set_bkg_tiles(bx, by + 1, 2, 1, metatiles[mt] + 2);
-        }
+        metatile_column_tiles[offset] = tiles[0];
+        metatile_column_tiles[offset + 1] = tiles[1];
+        metatile_column_tiles[offset + 2] = tiles[2];
+        metatile_column_tiles[offset + 3] = tiles[3];
     }
 
   SWITCH_ROM(_prev);
+  set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
 }
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {

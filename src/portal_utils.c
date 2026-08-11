@@ -18,11 +18,21 @@
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
+#define LEVEL_SPRITE_LIMIT 12
 
-void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_bg_idx) {
+static const uint8_t rendered_sp_object[38] = {
+    1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0
+};
+
+void process_sp_objects(const Level* l, Player* p, uint8_t joy,
+                        uint8_t* target_bg_idx, SpDef* visible,
+                        uint8_t* visible_count) {
     // CRITICAL: Capture pointers FROM BANK 1 before we switch banks!
     // If we switch to sp_bank first, the 'l' pointer (in Bank 1) becomes garbage.
     uint8_t sp_bank = l->sp_bank;
+    *visible_count = 0;
     if (sp_bank == 0) return;
     uint16_t map_h = l->map_height;
 
@@ -52,9 +62,26 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy, uint8_t* target_
     const SpDef* check_ptr = sp_ptr;
     while (check_ptr->c != 0xFFFF) {
         uint16_t obj_x = check_ptr->c << 4;
-        if (obj_x > px + 160) break;
+        if (obj_x > px + 176) break;
 
         uint8_t obj = check_ptr->obj;
+
+        // Collect renderable objects while the SP bank is already selected.
+        // This avoids a second bank switch and a second scan every frame.
+        if (*visible_count < LEVEL_SPRITE_LIMIT && obj_x + 32u >= px &&
+            obj < 38 && rendered_sp_object[obj]) {
+            visible[*visible_count].c = check_ptr->c;
+            visible[*visible_count].r = check_ptr->r;
+            visible[*visible_count].obj = obj;
+            (*visible_count)++;
+        }
+
+        // Collision processing only needs objects close to the player. The
+        // wider loop above is solely for the sprite look-ahead window.
+        if (obj_x > px + 160) {
+            check_ptr++;
+            continue;
+        }
 
         if (obj == OBJ_LEVEL_END) {
             // Trigger 10 blocks early (160 pixels)
