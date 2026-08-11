@@ -23,7 +23,7 @@
 
 ---
 # About
-Experience the ultimate rage-inducing rhythm platformer, scaled down to 4 shades of green (or gray) and a crisp 160 x144 resolution! Built from scratch for original Game Boy hardware.
+Experience the ultimate rage-inducing rhythm platformer, scaled down to 4 shades of green (or gray) and a crisp 160x144 resolution! Built from scratch for original Game Boy hardware.
 
 Unlike GB Dash by TiTi, this one features a famidash style gameplay with the actual levels, and support for the original (DMG) gameboy!
 
