@@ -22,7 +22,7 @@
 </p>
 
 ---
-# About:
+# About
 Experience the ultimate rage-inducing rhythm platformer, scaled down to 4 shades of green (or gray) and a crisp 160 x144 resolution! Built from scratch for original Game Boy hardware.
 
 Unlike GB Dash by TiTi, this one features a famidash style gameplay with the actual levels, and support for the original (DMG) gameboy!
@@ -50,10 +50,10 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 | Contributor | Contribution |
 |---|---|
-|[Sotos_24](https://github.com/Soteris24) / [ElAngel378](https://github.com/ElAngel378)|Project creators and lead developers|
-|[Sotos_24](https://github.com/Soteris24) |Code (main code), Music, Graphics when i feel like it|
+|[**Sotos_24**](https://github.com/Soteris24) **and** [**ElAngel378**](https://github.com/ElAngel378)|**Project creators and lead developers**|
+|[Sotos_24](https://github.com/Soteris24) |Code (main code), Music, Graphics when I feel like it|
 |[ElAngel378](https://github.com/ElAngel378) |Code (optimise), Music, Graphics|
-|Crafty Jumper | Music, Graphics |
+|[Crafty Jumper](https://github.com/Crafty-Jumper) | Music, Graphics |
 |[Ziqiangao](https://github.com/ziqiangao/)| Tools, Music, Graphics|
 |Ranedom | Graphics |
 |PBaxx | Graphics |
@@ -62,10 +62,12 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 ---
 
-# To-Do
-- getting a test level working
-- add level compressor RLE
-- basically make the game lol
+# To-Do (for 1.0 release)
+- Add all objects, mechanics, levels up to 1.3
+- A proper menu and level select (font included)
+- Add Gameboy Color Support (palletes)
+- Decoration (not supported currently)
+- Graphical improvements
 
 ---
 
@@ -75,3 +77,8 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 1. Join the [Discord](https://discord.gg/cg8NRGxJTv)
 2. Pull Requests
 3. Contacting the main devs
+4. Do NOT open issues for a discussion.
+5. Any issues can be reported in the issues tab.
+
+# Thank you
+### To <a href="https://github.com/tfdsoft/famidash"><ins>TFDSoft</ins></a> , the Famidash team for assets (such as level files, graphics)
