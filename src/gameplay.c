@@ -40,27 +40,43 @@ static uint8_t render_level_sprites(const Level *l, const Player *p,
                                     uint8_t reversed, uint8_t oam_start) {
     SpDef visible[LEVEL_SPRITE_LIMIT];
     uint8_t visible_count = collect_level_sprites(l->sp_list, l->sp_bank,
-                                                   p->sp_idx, cam_px, visible);
+                                                  p->sp_idx, cam_px, visible);
     uint16_t map_height = l->map_height;
 
     for (uint8_t i = 0; i < visible_count && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         const metasprite_t *sprite = famidash_sprite_for_object(visible[i].obj);
         uint16_t object_x = visible[i].c << 4;
         uint16_t object_y = (uint16_t)(map_height - 1u - visible[i].r) << 4;
-        int16_t screen_x = (int16_t)(object_x - cam_px) + 8;
+
+        // 1. Calculate the object's relative distance from the player
+        int16_t screen_x = (int16_t)(object_x - cam_px);
+
+        // 2. Anchor to the player's screen position + Game Boy hardware offset (8)
+        if (reversed) {
+            // In mirror mode, the player anchors at 128 on the screen
+            screen_x = 128 - screen_x + 8;
+        } else {
+            // Normal mode anchors at PLAYER_SCREEN_X (32)
+            screen_x = screen_x + PLAYER_SCREEN_X + 8;
+        }
+
         int16_t screen_y = (int16_t)(object_y - cam_py) + 16;
         uint8_t used;
 
         if (oam_start + level_sprite_cost(visible[i].obj) > MAX_HARDWARE_SPRITES - 2) break;
-        if (reversed) screen_x = 160 - screen_x;
+
+        // Culling bounds check
         if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
 
-        if (reversed) used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
-                                                    oam_start, (uint8_t)screen_x,
-                                                    (uint8_t)screen_y);
-        else used = move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE,
-                                    oam_start, (uint8_t)screen_x,
-                                    (uint8_t)screen_y);
+        if (reversed) {
+            used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                         oam_start, (uint8_t)screen_x,
+                                         (uint8_t)screen_y);
+        } else {
+            used = move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                   oam_start, (uint8_t)screen_x,
+                                   (uint8_t)screen_y);
+        }
         oam_start += used;
     }
     return oam_start;
