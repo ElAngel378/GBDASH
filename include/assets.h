@@ -12,6 +12,14 @@ typedef struct {
     uint8_t  r;   // Row (Y coordinate >> 4)
     uint8_t  obj; // Object ID (0=Cube, 1=Ship, 10=Yellow Pad, etc.)
 } SpDef;
+
+#define MAX_ACTIVE_SP_OBJECTS 16
+
+/* Runtime copy of an SP entry. This keeps gameplay off the banked SP stream. */
+typedef struct {
+  SpDef def;
+  uint8_t active;
+} ActiveSp;
 #endif
 
 // Structure defining a game level's data and metadata

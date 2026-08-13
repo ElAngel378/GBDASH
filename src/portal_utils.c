@@ -18,84 +18,58 @@
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
-#define LEVEL_SPRITE_LIMIT 12
 
-static const uint8_t rendered_sp_object[38] = {
-    1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0
-};
-
-void process_sp_objects(const Level* l, Player* p, uint8_t joy,
-                        uint8_t* target_bg_idx, SpDef* visible,
-                        uint8_t* visible_count) {
-    // CRITICAL: Capture pointers FROM BANK 1 before we switch banks!
-    // If we switch to sp_bank first, the 'l' pointer (in Bank 1) becomes garbage.
-    uint8_t sp_bank = l->sp_bank;
-    *visible_count = 0;
-    if (sp_bank == 0) return;
-    uint16_t map_h = l->map_height;
-
-    const SpDef* sp_list = l->sp_list;
-
+/*
+ * This helper must stay in fixed Bank 0. It is the only code allowed to
+ * switch away from the bank containing the caller.
+ */
+void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
+                   ActiveSp *cache, uint16_t *stream_idx) {
+    uint8_t count = 0;
     uint8_t save_bank = _current_bank;
+
+    if (sp_bank == 0 || sp_list == 0) return;
     SWITCH_ROM(sp_bank);
+    while (count < MAX_ACTIVE_SP_OBJECTS && cache[count].active) count++;
+    while (count < MAX_ACTIVE_SP_OBJECTS && sp_list[*stream_idx].c != 0xFFFF) {
+        uint16_t object_x = (uint16_t)sp_list[*stream_idx].c << 4;
+        if (object_x > cam_px + 176u) break;
+        cache[count].def = sp_list[*stream_idx];
+        cache[count].active = 1;
+        count++;
+        (*stream_idx)++;
+    }
+    SWITCH_ROM(save_bank);
+}
 
-    const SpDef* sp_ptr = sp_list + p->sp_idx;
-
+void process_sp_objects(uint16_t map_h, Player* p, uint8_t joy,
+                        uint8_t* target_bg_idx, const ActiveSp *cache) {
+    uint8_t i;
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
 
-    // 1. SLIDING WINDOW OPTIMIZATION
-    while (sp_ptr->c != 0xFFFF) {
-        uint16_t obj_x = (sp_ptr->c + 1) << 4;
-        if (obj_x + 16 < px) {
-            p->sp_idx++;
-            sp_ptr++;
-        } else {
-            break;
-        }
-    }
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        uint16_t obj_x;
+        uint8_t obj;
+        const SpDef *check_ptr;
+        /* Cache entries are compacted and sorted by stream X coordinate. */
+        if (!cache[i].active) break;
+        check_ptr = &cache[i].def;
+        obj_x = (uint16_t)check_ptr->c << 4;
+        if (obj_x > px + 160u) break;
+        obj = check_ptr->obj;
 
-
-// 2. PROCESS OVERLAPPING OBJECTS
-    const SpDef* check_ptr = sp_ptr;
-    while (check_ptr->c != 0xFFFF) {
-        uint16_t obj_x = check_ptr->c << 4;
-        if (obj_x > px + 176) break;
-
-        uint8_t obj = check_ptr->obj;
-
-        // Collect renderable objects while the SP bank is already selected.
-        // This avoids a second bank switch and a second scan every frame.
-        if (*visible_count < LEVEL_SPRITE_LIMIT && obj_x + 32u >= px &&
-            obj < 38 && rendered_sp_object[obj]) {
-            visible[*visible_count].c = check_ptr->c;
-            visible[*visible_count].r = check_ptr->r;
-            visible[*visible_count].obj = obj;
-            (*visible_count)++;
-        }
-
-        // Collision processing only needs objects close to the player. The
-        // wider loop above is solely for the sprite look-ahead window.
-        if (obj_x > px + 160) {
-            check_ptr++;
-            continue;
-        }
-
+        // Collision processing only needs objects close to the player.
         if (obj == OBJ_LEVEL_END) {
             // Trigger 10 blocks early (160 pixels)
-                if (px >= (obj_x - 180)) {
+            if (px >= (obj_x - 180)) {
                 p->level_complete = 1;
             }
-            uint16_t obj_x = (check_ptr->c + 1) << 4;
-            check_ptr++;
             continue;
         }
 
         // For all other objects, only process if they are within 1 block of the player
         if (obj_x > px + 15) {
-            check_ptr++;
             continue;
         }
 
@@ -208,8 +182,5 @@ void process_sp_objects(const Level* l, Player* p, uint8_t joy,
                 break;
         }
 
-        check_ptr++;
     }
-
-    SWITCH_ROM(save_bank);
 }

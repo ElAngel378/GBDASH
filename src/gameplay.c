@@ -29,20 +29,59 @@
 
 extern uint8_t music_ready;
 
-#define LEVEL_SPRITE_LIMIT 12
-
 static const uint8_t level_sprite_cost_table[38] = {
     9, 9, 0, 0, 0, 2, 2, 0, 9, 9, 2, 2, 2, 2, 2,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     2
 };
 
-static uint8_t render_level_sprites(const SpDef *visible, uint8_t visible_count,
+void sp_cache_reset(ActiveSp *cache, uint16_t *stream_idx) {
+    uint8_t i;
+    *stream_idx = 0;
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache[i].active = 0;
+}
+
+void sp_cache_update(const Level *l, uint16_t cam_px,
+                     ActiveSp *cache, uint16_t *stream_idx) {
+    uint8_t i;
+    uint8_t count = 0;
+    uint8_t sp_bank = l->sp_bank;
+    const SpDef *sp_list = l->sp_list;
+
+    /* Retire entries that are behind the player's collision window. */
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        uint16_t object_x;
+        if (!cache[i].active) continue;
+        object_x = (uint16_t)cache[i].def.c << 4;
+        if (object_x + 32u < cam_px) cache[i].active = 0;
+    }
+
+    /* Compact in stream order so newly loaded entries remain ordered. */
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        if (cache[i].active) {
+            if (count != i) cache[count] = cache[i];
+            count++;
+        }
+    }
+    while (count < MAX_ACTIVE_SP_OBJECTS) cache[count++].active = 0;
+
+    sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx);
+}
+
+static uint8_t render_level_sprites(const ActiveSp *cache, uint8_t draw_offset,
                                     uint16_t map_height, uint16_t cam_px, uint16_t cam_py,
     uint8_t reversed, uint8_t oam_start) {
-    for (uint8_t i = 0; i < visible_count && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        uint16_t object_x = visible[i].c << 4;
-        uint16_t object_y = (uint16_t)(map_height - 1u - visible[i].r) << 4;
+    uint8_t i;
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
+        uint8_t slot = (draw_offset + i) & (MAX_ACTIVE_SP_OBJECTS - 1);
+        uint8_t obj;
+        uint16_t object_x;
+        uint16_t object_y;
+        if (!cache[slot].active) continue;
+        obj = cache[slot].def.obj;
+        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+        object_x = (uint16_t)cache[slot].def.c << 4;
+        object_y = (uint16_t)(map_height - 1u - cache[slot].def.r) << 4;
 
         // 1. Calculate the object's relative distance from the player
         int16_t screen_x = (int16_t)(object_x - cam_px);
@@ -62,10 +101,10 @@ static uint8_t render_level_sprites(const SpDef *visible, uint8_t visible_count,
         // Culling bounds check
         if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
 
-        uint8_t cost = level_sprite_cost_table[visible[i].obj];
+        uint8_t cost = level_sprite_cost_table[obj];
         if (oam_start + cost > MAX_HARDWARE_SPRITES - 2) break;
 
-        const metasprite_t *sprite = famidash_sprite_table[visible[i].obj];
+        const metasprite_t *sprite = famidash_sprite_table[obj];
 
         if (reversed) {
             used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
@@ -171,10 +210,13 @@ void play_level(uint8_t idx) BANKED {
     uint16_t scroll_acc = 0;
     uint8_t prev_joy = 0;
     uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
-    SpDef visible_level_sprites[LEVEL_SPRITE_LIMIT];
-    uint8_t visible_level_sprite_count = 0;
+    ActiveSp active_sp[MAX_ACTIVE_SP_OBJECTS];
+    uint16_t sp_stream_idx = 0;
+    uint8_t sp_draw_offset = 0;
+    uint16_t sp_cache_col = 0xFFFF;
     uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
+    sp_cache_reset(active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_START) break;
@@ -219,8 +261,13 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-        process_sp_objects(l, &player, joy, &target_bg_idx,
-                           visible_level_sprites, &visible_level_sprite_count);
+        /* SP entries are aligned to 16-pixel columns, so the cache only
+         * needs banked stream work when entering a new column. */
+        if ((cam_px >> 4) != sp_cache_col) {
+            sp_cache_update(l, cam_px, active_sp, &sp_stream_idx);
+            sp_cache_col = cam_px >> 4;
+        }
+        process_sp_objects(level_map_h, &player, joy, &target_bg_idx, active_sp);
 
         if (player.reversed != prev_reversed) {
             disable_interrupts();
@@ -290,8 +337,8 @@ void play_level(uint8_t idx) BANKED {
             draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
-        uint8_t oam_index = render_level_sprites(visible_level_sprites,
-                                                  visible_level_sprite_count,
+        sp_draw_offset = (sp_draw_offset + 9u) & (MAX_ACTIVE_SP_OBJECTS - 1u);
+        uint8_t oam_index = render_level_sprites(active_sp, sp_draw_offset,
                                                   l->map_height, cam_px, cam_py,
                                                   player.reversed, 0);
 
@@ -347,6 +394,9 @@ void play_level(uint8_t idx) BANKED {
             loaded_r = BKG_MT_W - 1;
             target_bg_idx = 0;
             player_init(&player, 0, 240);
+            sp_cache_reset(active_sp, &sp_stream_idx);
+            sp_draw_offset = 0;
+            sp_cache_col = 0xFFFF;
             previous_oam_index = MAX_HARDWARE_SPRITES;
             cached_collision_col = 0xFFFF;
             move_bkg(0, (uint8_t)cam_py);
