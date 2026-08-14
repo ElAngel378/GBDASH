@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
   SpDef def;
   uint8_t active;
+  uint8_t activated; // ADD THIS LINE
 } ActiveSp;
 #endif
 

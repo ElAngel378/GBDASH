@@ -1,4 +1,5 @@
 #include "player.h"
+#include "collision.h"
 
 uint8_t player_noclip = 0;
 
@@ -17,34 +18,18 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->touching_orb = 0;
     p->level_complete = 0;
     p->sp_idx = 0;
-    p->activated_count = 0;
-    p->next_activated_slot = 0;
-}
 
-uint8_t player_tile_activated(const Player* p, uint16_t mx, uint8_t my) {
-    if (p->activated_count == 0) return 0;
-
-    uint8_t idx = p->next_activated_slot;
-    for (uint8_t i = 0; i < p->activated_count; i++) {
-        if (idx == 0) idx = MAX_ACTIVATIONS;
-        idx--;
-
-        if (p->activated[idx].mx == mx && p->activated[idx].my == my) return 1;
-    }
-    return 0;
-}
-
-void player_mark_activated(Player* p, uint16_t mx, uint8_t my) {
-    p->activated[p->next_activated_slot].mx = mx;
-    p->activated[p->next_activated_slot].my = my;
-    p->next_activated_slot++;
-    if (p->next_activated_slot >= MAX_ACTIVATIONS) p->next_activated_slot = 0;
-    if (p->activated_count < MAX_ACTIVATIONS) p->activated_count++;
+    // The activated array and tracking variables have been removed!
 }
 
 int16_t player_screen_y(const Player* p, uint16_t cam_y) {
     return (int16_t)(p->world_y.b.h) - (int16_t)cam_y;
 }
+
+#define COL_AT_PTR(col, y) ( \
+    (((uint16_t)(y)) & 0xFF00) ? ((((int16_t)(y)) < 0) ? COL_NONE : COL_ALL) : \
+    col_at_raw_cached(col, (uint16_t)(y)) \
+)
 
 uint8_t player_update(
         Player* p,
@@ -54,7 +39,6 @@ uint8_t player_update(
 ) {
     if (p->dead) return 1;
 
-    // FIX: If the level is complete, act exactly like noclip to ignore the end-of-level walls!
     if (p->level_complete) {
         return 0;
     }
@@ -100,12 +84,6 @@ uint8_t player_update(
     uint8_t threshold = 16 - x_mod_16;
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
-#define GET_MX_FAST(off)  ((off) < threshold ? mx0 : mx0 + 1)
-
-#define COL_AT_PTR(col, y) ( \
-    (((uint16_t)(y)) & 0xFF00) ? ((((int16_t)(y)) < 0) ? COL_NONE : COL_ALL) : \
-    col_at_raw_cached(col, (uint16_t)(y)) \
-)
 
     uint8_t front_mid = COL_AT_PTR(p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE), py + 8);
 
@@ -119,21 +97,17 @@ uint8_t player_update(
     p->on_ground = 0;
 
     int16_t check_y_foot = (p->gravity_flipped) ? ny : ny + PLAYER_SIZE;
-
-    // Split head check: Ship gets strict bounds, Cube gets forgiving HBOX inset
-    int16_t check_y_head;
-    if (p->mode == MODE_SHIP) {
-        check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE) : ny;
-    } else {
-        check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE - PLAYER_HBOX) : (ny + PLAYER_HBOX);
-    }
-
-    uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
-    uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
-
     uint8_t falling = (p->gravity_flipped) ? (p->vel_y.w <= 0) : (p->vel_y.w >= 0);
 
-    if (falling && (IS_SOLID(cl) || IS_SOLID(cr))) {
+    // Defer the collision lookup to save CPU, but maintain the original logic path
+    uint8_t hit_foot = 0;
+    if (falling) {
+        uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
+        uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
+        if (IS_SOLID(cl) || IS_SOLID(cr)) hit_foot = 1;
+    }
+
+    if (hit_foot) {
         if (p->gravity_flipped) {
             py = ((ny >> 4) + 1) << 4;
         } else {
@@ -143,18 +117,23 @@ uint8_t player_update(
         p->world_y.b.l = 0;
         p->vel_y.w = 0;
         p->on_ground = 1;
-    }else {
-        // Head / Ceiling check
+    } else {
+        // Head / Ceiling check - always run this if we didn't hit the ground!
+        int16_t check_y_head;
+        if (p->mode == MODE_SHIP) {
+            check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE) : ny;
+        } else {
+            check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE - PLAYER_HBOX) : (ny + PLAYER_HBOX);
+        }
+
         uint8_t hl = COL_AT_PTR(GET_COL_FAST(2), check_y_head);
         uint8_t hr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_head);
 
         if (IS_SOLID(hl) || IS_SOLID(hr)) {
             if (p->mode == MODE_CUBE) {
-                // Cube mode: Hitting head kills player
                 p->dead = 1;
                 return 1;
             } else {
-                // Ship mode: Solid ceiling behavior (snap position & stop vertical momentum)
                 if (p->gravity_flipped) {
                     py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
                 } else {
@@ -185,23 +164,21 @@ uint8_t player_update(
     uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
     uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
 
-    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-
     if (IS_SOLID(front_head) || IS_SOLID(front_foot)) {
         p->dead = 1;
         return 1;
     }
+
+    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
+    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
+    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
 
     if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
         p->dead = 1;
         return 1;
     }
 
-    // Pads and Orbs are now handled by process_sp_objects in the SP layer.
-    // Tile-based collision for these is removed to save CPU cycles.
     if (p->on_ground) {
         p->anim_timer = 0;
         p->anim_frame = 0;

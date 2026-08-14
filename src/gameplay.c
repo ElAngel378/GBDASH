@@ -20,6 +20,23 @@
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
 
+// ID Mappings for SP Layer Logic
+#define OBJ_CUBE_PORTAL   0
+#define OBJ_SHIP_PORTAL   1
+#define OBJ_ORB_BLUE      5
+#define OBJ_ORB_PINK      6
+#define OBJ_GRAVITY_DOWN  8
+#define OBJ_GRAVITY_UP    9
+#define OBJ_PAD_YELLOW    10
+#define OBJ_ORB_YELLOW    11
+#define OBJ_PAD_YELLOW_UP 12
+#define OBJ_PAD_BLUE      13
+#define OBJ_PAD_BLUE_UP   14
+#define OBJ_PAD_PINK      37
+#define OBJ_LEVEL_END     15
+#define OBJ_MIRROR_PORTAL 126
+#define OBJ_MIRROR_EXIT   121
+
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
 #define SCROLL_SPEED_FP 714
@@ -68,37 +85,153 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx);
 }
 
-static uint8_t render_level_sprites(const ActiveSp *cache, uint8_t draw_offset,
-                                    uint16_t map_height, uint16_t cam_px, uint16_t cam_py,
-    uint8_t reversed, uint8_t oam_start) {
+static uint8_t process_and_draw_sprites(
+        ActiveSp *cache, uint16_t map_height, uint16_t cam_px, uint16_t cam_py,
+        Player* p, uint8_t joy, uint8_t* target_bg_idx, uint8_t oam_start
+) {
     uint8_t i;
+    uint16_t px = p->world_x;
+    uint16_t py = p->world_y.b.h;
+    uint8_t reversed = p->reversed;
+
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        uint8_t slot = (draw_offset + i) & (MAX_ACTIVE_SP_OBJECTS - 1);
-        uint8_t obj;
-        uint16_t object_x;
-        uint16_t object_y;
-        if (!cache[slot].active) continue;
-        obj = cache[slot].def.obj;
+        // EARLY OUT: Stop immediately if we hit an empty slot!
+        if (!cache[i].active) break;
+
+        uint16_t obj_x = (uint16_t)cache[i].def.c << 4;
+
+        // EARLY OUT: Stop if we are checking things way off screen!
+        if (obj_x > cam_px + 176u) break;
+
+        uint8_t obj = cache[i].def.obj;
+        uint16_t obj_y = (uint16_t)(map_height - 1u - cache[i].def.r) << 4;
+
+        // ==========================================
+        // 1. COLLISION & LOGIC
+        // ==========================================
+        if (obj == OBJ_LEVEL_END) {
+            if (px >= (obj_x - 180)) p->level_complete = 1;
+            continue; // End triggers aren't drawn
+        }
+
+        if (obj_x <= px + 15) { // Only process physics if touching horizontally
+            switch (obj) {
+                case OBJ_CUBE_PORTAL:
+                case OBJ_SHIP_PORTAL:
+                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                        if (!cache[i].activated) {
+                            p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
+                            cache[i].activated = 1;
+                        }
+                    }
+                    break;
+
+                case OBJ_GRAVITY_DOWN:
+                case OBJ_GRAVITY_UP:
+                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                        if (!cache[i].activated) {
+                            uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
+                            if (p->gravity_flipped != target_flipped) {
+                                p->gravity_flipped = target_flipped;
+                                p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                            }
+                            cache[i].activated = 1;
+                        }
+                    }
+                    break;
+
+                case OBJ_PAD_YELLOW:
+                case OBJ_PAD_PINK:
+                case OBJ_PAD_BLUE:
+                case OBJ_PAD_YELLOW_UP:
+                case OBJ_PAD_BLUE_UP:
+                {
+                    uint8_t is_ceiling_pad = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+                    uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 12);
+                    uint16_t pad_bot = is_ceiling_pad ? (obj_y + 4) : (obj_y + 16);
+
+                    if (py <= pad_bot && (py + PLAYER_SIZE) >= pad_top) {
+                        if (!cache[i].activated) {
+                            cache[i].activated = 1;
+                            if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
+                                p->gravity_flipped = !p->gravity_flipped;
+                                p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+                            } else if (obj == OBJ_PAD_PINK) {
+                                p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
+                            } else {
+                                p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                            }
+                            p->on_ground = 0;
+                        }
+                    }
+                    break;
+                }
+
+                case OBJ_ORB_YELLOW:
+                case OBJ_ORB_PINK:
+                case OBJ_ORB_BLUE:
+                {
+                    if (joy & J_A) {
+                        if (py <= obj_y + 16 && (py + PLAYER_SIZE) >= obj_y) {
+                            if (!cache[i].activated) {
+                                cache[i].activated = 1;
+                                if (obj == OBJ_ORB_BLUE) {
+                                    p->gravity_flipped = !p->gravity_flipped;
+                                    p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
+                                } else if (obj == OBJ_ORB_PINK) {
+                                    p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+                                } else {
+                                    p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 120 : JUMP_FORCE - 120;
+                                }
+                                p->on_ground = 0;
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                case 100: case 101: case 102: case 103:
+                    if (!cache[i].activated) {
+                        *target_bg_idx = obj - 100;
+                        cache[i].activated = 1;
+                    }
+                    continue; // Background triggers aren't drawn
+
+                case OBJ_MIRROR_PORTAL:
+                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                        if (!cache[i].activated) {
+                            p->reversed = 1;
+                            cache[i].activated = 1;
+                        }
+                    }
+                    break;
+
+                case OBJ_MIRROR_EXIT:
+                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
+                        if (!cache[i].activated) {
+                            p->reversed = 0;
+                            cache[i].activated = 1;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // ==========================================
+        // 2. RENDERING
+        // ==========================================
         if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
-        object_x = (uint16_t)cache[slot].def.c << 4;
-        object_y = (uint16_t)(map_height - 1u - cache[slot].def.r) << 4;
 
-        // 1. Calculate the object's relative distance from the player
-        int16_t screen_x = (int16_t)(object_x - cam_px);
-
-        // 2. Anchor to the player's screen position + Game Boy hardware offset (8)
+        int16_t screen_x = (int16_t)(obj_x - cam_px);
         if (reversed) {
-            // In mirror mode, the player anchors at 128 on the screen
             screen_x = 128 - screen_x + 8;
         } else {
-            // Normal mode anchors at PLAYER_SCREEN_X (32)
             screen_x = screen_x + PLAYER_SCREEN_X + 8;
         }
 
-        int16_t screen_y = (int16_t)(object_y - cam_py) + 16;
-        uint8_t used;
+        int16_t screen_y = (int16_t)(obj_y - cam_py) + 16;
 
-        // Culling bounds check
+        // Final Culling
         if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
 
         uint8_t cost = level_sprite_cost_table[obj];
@@ -107,15 +240,12 @@ static uint8_t render_level_sprites(const ActiveSp *cache, uint8_t draw_offset,
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
         if (reversed) {
-            used = move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
-                                         oam_start, (uint8_t)screen_x,
-                                         (uint8_t)screen_y);
+            oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                               oam_start, (uint8_t)screen_x, (uint8_t)screen_y);
         } else {
-            used = move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE,
-                                   oam_start, (uint8_t)screen_x,
-                                   (uint8_t)screen_y);
+            oam_start += move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE,
+                                         oam_start, (uint8_t)screen_x, (uint8_t)screen_y);
         }
-        oam_start += used;
     }
     return oam_start;
 }
@@ -212,7 +342,6 @@ void play_level(uint8_t idx) BANKED {
     uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
     ActiveSp active_sp[MAX_ACTIVE_SP_OBJECTS];
     uint16_t sp_stream_idx = 0;
-    uint8_t sp_draw_offset = 0;
     uint16_t sp_cache_col = 0xFFFF;
     uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
@@ -267,7 +396,6 @@ void play_level(uint8_t idx) BANKED {
             sp_cache_update(l, cam_px, active_sp, &sp_stream_idx);
             sp_cache_col = cam_px >> 4;
         }
-        process_sp_objects(level_map_h, &player, joy, &target_bg_idx, active_sp);
 
         if (player.reversed != prev_reversed) {
             disable_interrupts();
@@ -337,10 +465,10 @@ void play_level(uint8_t idx) BANKED {
             draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
-        sp_draw_offset = (sp_draw_offset + 9u) & (MAX_ACTIVE_SP_OBJECTS - 1u);
-        uint8_t oam_index = render_level_sprites(active_sp, sp_draw_offset,
-                                                  l->map_height, cam_px, cam_py,
-                                                  player.reversed, 0);
+        uint8_t oam_index = process_and_draw_sprites(
+            active_sp, l->map_height, cam_px, cam_py,
+            &player, joy, &target_bg_idx, 0
+        );
 
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
@@ -395,7 +523,6 @@ void play_level(uint8_t idx) BANKED {
             target_bg_idx = 0;
             player_init(&player, 0, 240);
             sp_cache_reset(active_sp, &sp_stream_idx);
-            sp_draw_offset = 0;
             sp_cache_col = 0xFFFF;
             previous_oam_index = MAX_HARDWARE_SPRITES;
             cached_collision_col = 0xFFFF;

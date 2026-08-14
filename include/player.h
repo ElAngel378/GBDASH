@@ -66,9 +66,6 @@ typedef struct Player {
     uint8_t  level_complete;
     uint16_t level_end_x;
     uint16_t sp_idx;
-    ActivatedTile activated[MAX_ACTIVATIONS];
-    uint8_t activated_count;
-    uint8_t next_activated_slot;
 } Player;
 
 extern uint8_t player_noclip;

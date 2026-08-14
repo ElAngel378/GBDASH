@@ -19,7 +19,7 @@ const uint8_t ship_tiles[] = {
 const metasprite_t ship_metasprite0[] = {
     { -1, -1, 8, 0 }, // Sprite 0: Tail at (-1, -1) relative to anchor
     { 0, 8, 10, 0 },  // Sprite 1: Nose at (8, 0) relative to Sprite 0
-    { 128 }           // METASPR_TERM
+    METASPR_TERM
 };
 
 const metasprite_t* const ship_metasprites[1] = {
