@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/artwork/logo.png" width="500">
+  <img src=".github/artwork/IMG_5761.jpeg" width="500">
 </p>
 
 # GB DASH
@@ -82,3 +82,4 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 # Thank you
 ### To <a href="https://github.com/tfdsoft/famidash"><ins>TFDSoft</ins></a> , the Famidash team for assets (such as level files, graphics)
+### And the game we all love of course, Geometry Dash by RobTop Games.
