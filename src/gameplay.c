@@ -222,17 +222,21 @@ static uint8_t process_and_draw_sprites(
         // ==========================================
         if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
 
-        int16_t screen_x = (int16_t)(obj_x - cam_px);
+        // OPTIMIZATION: We already know the object is within ~176 pixels.
+        // By casting to uint8_t, we skip 16-bit subtraction and bounds checking!
+        uint8_t screen_x;
         if (reversed) {
-            screen_x = 128 - screen_x + 8;
+            screen_x = 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8;
         } else {
-            screen_x = screen_x + PLAYER_SCREEN_X + 8;
+            screen_x = ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
         }
 
-        int16_t screen_y = (int16_t)(obj_y - cam_py) + 16;
+        uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
 
-        // Final Culling
-        if (screen_x < -24 || screen_x > 160 || screen_y < -48 || screen_y > 144) continue;
+        // Final Culling (Now using 8-bit wrapping logic: 255 wraps to -1)
+        // 160 is the right edge of the screen, 232 (-24) is off the left edge.
+        if (screen_x > 160 && screen_x < 232) continue;
+        if (screen_y > 160 && screen_y < 208) continue;
 
         uint8_t cost = level_sprite_cost_table[obj];
         if (oam_start + cost > MAX_HARDWARE_SPRITES - 2) break;

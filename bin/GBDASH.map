@@ -53,7 +53,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      0000377C  s__CODE_0 |    0000377C  s__INITIA |    0000377C  s__LIT   
      00003788  s__GSINIT |    00003794  s__GSFINA |    000037E0  ___size_s
      000037E0  l__CODE_2 |    00003810  ___size_j |    00003810  l__CODE_8
-     00003A70  ___size_p |    00003A70  l__CODE_5 |    00003BFB  l__CODE_1
+     00003A70  ___size_p |    00003A70  l__CODE_5 |    00003BA3  l__CODE_1
      00003E50  ___size_t |    00003E50  l__CODE_9 |    00004000  _rMBC7_SR
      00004000  _rRAMB    |    00008000  __VRAM    |    00008000  __VRAM800
      00008800  __VRAM880 |    00009000  __VRAM900 |    00009800  __SCRN0  
@@ -412,7 +412,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_1                00014000    00003BFB =       15355. bytes (REL,CON)
+_CODE_1                00014000    00003BA3 =       15267. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -427,8 +427,8 @@ _CODE_1                00014000    00003BFB =       15355. bytes (REL,CON)
      000163F9  _famidash |    00016405  _famidash |    00016411  _famidash
      0001641D  _famidash |    00016429  _famidash |    00016435  _famidash
      00016441  _famidash |    0001644D  _famidash |    00016459  _famidash
-     000164A5  _sp_cache |    000164F6  _sp_cache |    00016D65  _setup_me
-     00016D76  _draw_men |    00016E2C  _play_lev
+     000164A5  _sp_cache |    000164F6  _sp_cache |    00016D0D  _setup_me
+     00016D1E  _draw_men |    00016DD4  _play_lev
 ASxxxx Linker V03.00/V05.40 + sdld,  page 30.
 Hexadecimal  [32-Bits]
 

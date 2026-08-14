@@ -138,7 +138,7 @@ DEF ___size_jumper_map 0x3810
 DEF l__CODE_8 0x3810
 DEF ___size_polargeist_map 0x3A70
 DEF l__CODE_5 0x3A70
-DEF l__CODE_1 0x3BFB
+DEF l__CODE_1 0x3BA3
 DEF ___size_timemachine_map 0x3E50
 DEF l__CODE_9 0x3E50
 DEF _rMBC7_SRAM_ENABLE_2 0x4000
@@ -484,9 +484,9 @@ DEF _famidash_pink_orb 0x1644D
 DEF _famidash_sprite_table 0x16459
 DEF _sp_cache_reset 0x164A5
 DEF _sp_cache_update 0x164F6
-DEF _setup_menu_font 0x16D65
-DEF _draw_menu 0x16D76
-DEF _play_level 0x16E2C
+DEF _setup_menu_font 0x16D0D
+DEF _draw_menu 0x16D1E
+DEF _play_level 0x16DD4
 DEF _backontrack 0xFE57A9
 DEF ___func_backontrack_sp 0x804000
 DEF _backontrack_sp 0x804000
