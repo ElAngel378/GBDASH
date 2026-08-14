@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/artwork/logo.png" width="500">
+  <img src=".github/artwork/IMG_5761.jpeg" width="500">
 </p>
 
 # GB DASH
