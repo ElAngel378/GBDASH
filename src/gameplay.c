@@ -411,6 +411,7 @@ void play_level(uint8_t idx) BANKED {
     uint16_t sp_cache_col = 0xFFFF;
     uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
+    uint8_t prev_reversed = player.reversed;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
@@ -438,7 +439,6 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_prev = cam_px >> 4;
         uint8_t needs_render = 0;
         uint16_t need_col = 0;
-        uint8_t prev_reversed = player.reversed;
 
         // PROGRESS FORWARD through the level map
         if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
@@ -483,6 +483,7 @@ void play_level(uint8_t idx) BANKED {
             enable_interrupts();
             // Reset loaded_r to match the last column we just drew
             loaded_r = start_col + 15;
+            prev_reversed = player.reversed;
         }
 
         uint16_t collision_col = cam_px >> 4;
