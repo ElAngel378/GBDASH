@@ -15,10 +15,10 @@ void draw_menu(void) BANKED;
 void play_level(uint8_t idx) BANKED;
 
 // SP stream loading is bank-safe and only reads new entries as the camera advances.
-void sp_cache_reset(ActiveSp *cache, uint16_t *stream_idx);
+void sp_cache_reset(SpCache *cache, uint16_t *stream_idx);
 void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
-                   ActiveSp *cache, uint16_t *stream_idx);
+                   SpCache *cache, uint16_t *stream_idx, uint16_t map_h);
 void sp_cache_update(const Level *l, uint16_t cam_px,
-                     ActiveSp *cache, uint16_t *stream_idx);
+                     SpCache *cache, uint16_t *stream_idx);
 
 #endif

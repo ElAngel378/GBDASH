@@ -21,19 +21,23 @@
 #define OBJ_MIRROR_EXIT   121
 
 void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
-                   ActiveSp *cache, uint16_t *stream_idx) {
+                   SpCache *cache, uint16_t *stream_idx, uint16_t map_h) {
     uint8_t count = 0;
     uint8_t save_bank = _current_bank;
 
     if (sp_bank == 0 || sp_list == 0) return;
     SWITCH_ROM(sp_bank);
-    while (count < MAX_ACTIVE_SP_OBJECTS && cache[count].active) count++;
+    while (count < MAX_ACTIVE_SP_OBJECTS && cache->active[count]) count++;
     while (count < MAX_ACTIVE_SP_OBJECTS && sp_list[*stream_idx].c != 0xFFFF) {
         uint16_t object_x = (uint16_t)sp_list[*stream_idx].c << 4;
         if (object_x > cam_px + 176u) break;
-        cache[count].def = sp_list[*stream_idx];
-        cache[count].active = 1;
-        cache[count].activated = 0; // Initialize our O(1) tracker
+
+        cache->obj[count] = sp_list[*stream_idx].obj;
+        cache->px[count] = object_x;
+        cache->py[count] = (uint16_t)(map_h - 1u - sp_list[*stream_idx].r) << 4;
+        cache->active[count] = 1;
+        cache->activated[count] = 0;
+
         count++;
         (*stream_idx)++;
     }

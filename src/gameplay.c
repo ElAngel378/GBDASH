@@ -52,108 +52,106 @@ static const uint8_t level_sprite_cost_table[38] = {
     2
 };
 
-void sp_cache_reset(ActiveSp *cache, uint16_t *stream_idx) {
+void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
     uint8_t i;
     *stream_idx = 0;
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache[i].active = 0;
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 }
 
 void sp_cache_update(const Level *l, uint16_t cam_px,
-                     ActiveSp *cache, uint16_t *stream_idx) {
+                     SpCache *cache, uint16_t *stream_idx) {
     uint8_t i;
     uint8_t count = 0;
     uint8_t sp_bank = l->sp_bank;
     const SpDef *sp_list = l->sp_list;
 
-    /* Retire entries that are behind the player's collision window. */
+    /* Retire old entries */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
-        uint16_t object_x;
-        if (!cache[i].active) continue;
-        object_x = (uint16_t)cache[i].def.c << 4;
-        if (object_x + 32u < cam_px) cache[i].active = 0;
+        if (!cache->active[i]) continue;
+        if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
     }
 
-    /* Compact in stream order so newly loaded entries remain ordered. */
+    /* Compact arrays */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
-        if (cache[i].active) {
-            if (count != i) cache[count] = cache[i];
+        if (cache->active[i]) {
+            if (count != i) {
+                cache->obj[count] = cache->obj[i];
+                cache->px[count] = cache->px[i];
+                cache->py[count] = cache->py[i];
+                cache->active[count] = cache->active[i];
+                cache->activated[count] = cache->activated[i];
+            }
             count++;
         }
     }
-    while (count < MAX_ACTIVE_SP_OBJECTS) cache[count++].active = 0;
+    while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
 
-    sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx);
+    sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 }
 
-// Fast Writer: 2x1 Objects (Pads, Orbs) - Uses 2 Hardware Sprites
+// Fast Writer: 2x1 Objects (Pads, Orbs)
 static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t i = oam_idx;
     if (!reversed) {
-        shadow_OAM[oam_idx].y = sy;   shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;   shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props; oam_idx++;
+        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props;
     } else {
-        shadow_OAM[oam_idx].y = sy;   shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;   shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props ^ S_FLIPX; oam_idx++;
+        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX;
     }
     return 2;
 }
 
-// Fast Writer: 2x3 Objects (Gravity Portals) - Uses 6 Hardware Sprites
+// Fast Writer: 2x3 Objects (Gravity Portals)
 static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t i = oam_idx;
     if (!reversed) {
-        // Row 1
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props; oam_idx++;
-        // Row 2
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[2].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[2].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[3].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[3].props; oam_idx++;
-        // Row 3
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[4].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[4].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[5].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[5].props; oam_idx++;
+        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
+        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props;
     } else {
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props ^ S_FLIPX; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[2].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[2].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[3].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[3].props ^ S_FLIPX; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 8; shadow_OAM[oam_idx].tile = meta[4].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[4].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx;     shadow_OAM[oam_idx].tile = meta[5].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[5].props ^ S_FLIPX; oam_idx++;
+        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
+        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX;
     }
     return 6;
 }
 
-// Fast Writer: 3x3 Objects (Cube/Ship Portals) - Uses 9 Hardware Sprites
+// Fast Writer: 3x3 Objects (Cube/Ship Portals)
 static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t i = oam_idx;
     if (!reversed) {
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[2].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[2].props; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[3].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[3].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[4].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[4].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[5].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[5].props; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[6].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[6].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[7].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[7].props; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[8].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[8].props; oam_idx++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props;
     } else {
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[0].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[0].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[1].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[1].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy;    shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[2].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[2].props ^ S_FLIPX; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[3].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[3].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[4].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[4].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+16; shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[5].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[5].props ^ S_FLIPX; oam_idx++;
-
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 16; shadow_OAM[oam_idx].tile = meta[6].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[6].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx + 8;  shadow_OAM[oam_idx].tile = meta[7].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[7].props ^ S_FLIPX; oam_idx++;
-        shadow_OAM[oam_idx].y = sy+32; shadow_OAM[oam_idx].x = sx;      shadow_OAM[oam_idx].tile = meta[8].dtile + tile_base; shadow_OAM[oam_idx].prop = meta[8].props ^ S_FLIPX; oam_idx++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
+        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX;
     }
     return 9;
 }
 
 static uint8_t process_and_draw_sprites(
-        ActiveSp *cache, uint16_t map_height, uint16_t cam_px, uint16_t cam_py,
+        SpCache *cache, uint16_t cam_px, uint16_t cam_py,
         Player* p, uint8_t joy, uint8_t* target_bg_idx, uint8_t oam_start
 ) {
     uint8_t i;
@@ -161,48 +159,50 @@ static uint8_t process_and_draw_sprites(
     uint16_t py = p->world_y.b.h;
     uint8_t reversed = p->reversed;
 
+    // PRE-CALCULATE CONSTANTS OUTSIDE THE LOOP (Massive CPU saver)
+    uint16_t p_front = px + 15;
+    uint16_t p_bottom = py + PLAYER_SIZE + 16;
+    uint16_t p_feet = py + PLAYER_SIZE;
+
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        // EARLY OUT: Stop immediately if we hit an empty slot!
-        if (!cache[i].active) break;
+        if (!cache->active[i]) break; // Early out
 
-        uint16_t obj_x = (uint16_t)cache[i].def.c << 4;
-
-        // EARLY OUT: Stop if we are checking things way off screen!
+        uint16_t obj_x = cache->px[i];
         if (obj_x > cam_px + 176u) break;
 
-        uint8_t obj = cache[i].def.obj;
-        uint16_t obj_y = (uint16_t)(map_height - 1u - cache[i].def.r) << 4;
+        uint8_t obj = cache->obj[i];
+        uint16_t obj_y = cache->py[i];
 
         // ==========================================
         // 1. COLLISION & LOGIC
         // ==========================================
         if (obj == OBJ_LEVEL_END) {
             if (px >= (obj_x - 180)) p->level_complete = 1;
-            continue; // End triggers aren't drawn
+            continue;
         }
 
-        if (obj_x <= px + 15) { // Only process physics if touching horizontally
+        if (obj_x <= p_front) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
-                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
-                        if (!cache[i].activated) {
+                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                        if (!cache->activated[i]) {
                             p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
-                            cache[i].activated = 1;
+                            cache->activated[i] = 1;
                         }
                     }
                     break;
 
                 case OBJ_GRAVITY_DOWN:
                 case OBJ_GRAVITY_UP:
-                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
-                        if (!cache[i].activated) {
+                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                        if (!cache->activated[i]) {
                             uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
                             if (p->gravity_flipped != target_flipped) {
                                 p->gravity_flipped = target_flipped;
                                 p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
                             }
-                            cache[i].activated = 1;
+                            cache->activated[i] = 1;
                         }
                     }
                     break;
@@ -213,13 +213,13 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_PAD_YELLOW_UP:
                 case OBJ_PAD_BLUE_UP:
                 {
-                    uint8_t is_ceiling_pad = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling_pad ? obj_y : (obj_y + 12);
-                    uint16_t pad_bot = is_ceiling_pad ? (obj_y + 4) : (obj_y + 16);
+                    uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 12);
+                    uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
 
-                    if (py <= pad_bot && (py + PLAYER_SIZE) >= pad_top) {
-                        if (!cache[i].activated) {
-                            cache[i].activated = 1;
+                    if (py <= pad_bot && p_feet >= pad_top) {
+                        if (!cache->activated[i]) {
+                            cache->activated[i] = 1;
                             if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
                                 p->gravity_flipped = !p->gravity_flipped;
                                 p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
@@ -239,9 +239,9 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_ORB_BLUE:
                 {
                     if (joy & J_A) {
-                        if (py <= obj_y + 16 && (py + PLAYER_SIZE) >= obj_y) {
-                            if (!cache[i].activated) {
-                                cache[i].activated = 1;
+                        if (py <= obj_y + 16 && p_feet >= obj_y) {
+                            if (!cache->activated[i]) {
+                                cache->activated[i] = 1;
                                 if (obj == OBJ_ORB_BLUE) {
                                     p->gravity_flipped = !p->gravity_flipped;
                                     p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
@@ -258,26 +258,26 @@ static uint8_t process_and_draw_sprites(
                 }
 
                 case 100: case 101: case 102: case 103:
-                    if (!cache[i].activated) {
+                    if (!cache->activated[i]) {
                         *target_bg_idx = obj - 100;
-                        cache[i].activated = 1;
+                        cache->activated[i] = 1;
                     }
-                    continue; // Background triggers aren't drawn
+                    continue;
 
                 case OBJ_MIRROR_PORTAL:
-                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
-                        if (!cache[i].activated) {
+                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                        if (!cache->activated[i]) {
                             p->reversed = 1;
-                            cache[i].activated = 1;
+                            cache->activated[i] = 1;
                         }
                     }
                     break;
 
                 case OBJ_MIRROR_EXIT:
-                    if (py <= obj_y + 32 && (py + PLAYER_SIZE + 16) >= obj_y) {
-                        if (!cache[i].activated) {
+                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                        if (!cache->activated[i]) {
                             p->reversed = 0;
-                            cache[i].activated = 1;
+                            cache->activated[i] = 1;
                         }
                     }
                     break;
@@ -285,11 +285,10 @@ static uint8_t process_and_draw_sprites(
         }
 
         // ==========================================
-        // 2. RENDERING (CUSTOM OAM WRITER)
+        // 2. RENDERING
         // ==========================================
         if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
 
-        // Fast 8-bit Math Culling
         uint8_t screen_x;
         if (reversed) {
             screen_x = 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8;
@@ -299,16 +298,13 @@ static uint8_t process_and_draw_sprites(
 
         uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
 
-        // 8-bit wrapping check (160 is right screen edge, 232 is left edge)
         if (screen_x > 160 && screen_x < 232) continue;
         if (screen_y > 160 && screen_y < 208) continue;
 
-        // Prevent hardware sprite overflow
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
 
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
-        // Route to our new loop-less, hardcoded RAM writers!
         if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
@@ -410,12 +406,12 @@ void play_level(uint8_t idx) BANKED {
     uint16_t scroll_acc = 0;
     uint8_t prev_joy = 0;
     uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
-    ActiveSp active_sp[MAX_ACTIVE_SP_OBJECTS];
+    SpCache active_sp;
     uint16_t sp_stream_idx = 0;
     uint16_t sp_cache_col = 0xFFFF;
     uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
-    sp_cache_reset(active_sp, &sp_stream_idx);
+    sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_START) break;
@@ -463,7 +459,7 @@ void play_level(uint8_t idx) BANKED {
         /* SP entries are aligned to 16-pixel columns, so the cache only
          * needs banked stream work when entering a new column. */
         if ((cam_px >> 4) != sp_cache_col) {
-            sp_cache_update(l, cam_px, active_sp, &sp_stream_idx);
+            sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
             sp_cache_col = cam_px >> 4;
         }
 
@@ -536,7 +532,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         uint8_t oam_index = process_and_draw_sprites(
-            active_sp, l->map_height, cam_px, cam_py,
+            &active_sp, cam_px, cam_py,
             &player, joy, &target_bg_idx, 0
         );
 
@@ -592,7 +588,7 @@ void play_level(uint8_t idx) BANKED {
             loaded_r = BKG_MT_W - 1;
             target_bg_idx = 0;
             player_init(&player, 0, 240);
-            sp_cache_reset(active_sp, &sp_stream_idx);
+            sp_cache_reset(&active_sp, &sp_stream_idx);
             sp_cache_col = 0xFFFF;
             previous_oam_index = MAX_HARDWARE_SPRITES;
             cached_collision_col = 0xFFFF;

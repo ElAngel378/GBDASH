@@ -15,12 +15,14 @@ typedef struct {
 
 #define MAX_ACTIVE_SP_OBJECTS 16
 
-/* Runtime copy of an SP entry. This keeps gameplay off the banked SP stream. */
+/* SpCache: Struct of Arrays (SoA) for optimized Game Boy access */
 typedef struct {
-  SpDef def;
-  uint8_t active;
-  uint8_t activated; // ADD THIS LINE
-} ActiveSp;
+    uint8_t  obj[MAX_ACTIVE_SP_OBJECTS];
+    uint16_t px[MAX_ACTIVE_SP_OBJECTS];
+    uint16_t py[MAX_ACTIVE_SP_OBJECTS];
+    uint8_t  active[MAX_ACTIVE_SP_OBJECTS];
+    uint8_t  activated[MAX_ACTIVE_SP_OBJECTS];
+} SpCache;
 #endif
 
 // Structure defining a game level's data and metadata

@@ -199,3 +199,5 @@ uint8_t player_update(
     p->last_joy = joy;
     return 0;
 }
+
+#undef GET_COL_FAST
