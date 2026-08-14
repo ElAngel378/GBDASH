@@ -1,11 +1,8 @@
 XL4
-H A areas 4 global symbols
+H B areas 4 global symbols
 M ship1
 S .__.ABS. Def00000000
-A _CODE size 4E flags 0 addr 0
-S _ship_tiles Def00000000
-S _ship_metasprite0 Def00000040
-S _ship_metasprites Def0000004C
+A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
 A _INITIALIZED size 0 flags 0 addr 0
@@ -13,27 +10,31 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
+A _CODE_10 size 4E flags 0 addr 0
+S _ship_tiles Def00000000
+S _ship_metasprite0 Def00000040
+S _ship_metasprites Def0000004C
 A _INITIALIZER size 0 flags 0 addr 0
 A _CABS size 0 flags 8 addr 0
 T 00 00 00 00
-R 00 00 00 00
+R 00 00 08 00
 T 00 00 00 00 0F 0F 08 0F 3B 3F 3B 2E 3B 2E 3B 2F
-R 00 00 00 00
+R 00 00 08 00
 T 0C 00 00 00 78 6F 3F 2F 3F 30 2F 3F E2 FF E2 BF
-R 00 00 00 00
+R 00 00 08 00
 T 18 00 00 00 E2 BF E2 FF 27 3F 38 38 F0 F0 10 F0
-R 00 00 00 00
+R 00 00 08 00
 T 24 00 00 00 D0 F0 D0 70 D0 70 D0 F0 10 F0 F0 F0
-R 00 00 00 00
+R 00 00 08 00
 T 30 00 00 00 F8 00 FC FC 8A FE 89 FF 89 FF 8A FE
-R 00 00 00 00
+R 00 00 08 00
 T 3C 00 00 00 FC FC 00 00
-R 00 00 00 00
+R 00 00 08 00
 T 40 00 00 00
-R 00 00 00 00
+R 00 00 08 00
 T 40 00 00 00 FF FF 08 00 00 08 0A 00 80 00 00 00
-R 00 00 00 00
+R 00 00 08 00
 T 4C 00 00 00
-R 00 00 00 00
+R 00 00 08 00
 T 4C 00 00 00 40 00
-R 00 00 00 00 00 04 00 00
+R 00 00 08 00 00 04 08 00

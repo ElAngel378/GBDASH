@@ -7,9 +7,9 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  0 _ship_metasprite0                                               00000040 GR
-  0 _ship_metasprites                                               0000004C GR
-  0 _ship_tiles                                                     00000000 GR
+  8 _ship_metasprite0                                               00000040 GR
+  8 _ship_metasprites                                               0000004C GR
+  8 _ship_tiles                                                     00000000 GR
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
@@ -17,7 +17,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size       4E   flags    0
+   0 _CODE                                      size        0   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        0   flags    0
@@ -25,6 +25,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _INITIALIZER                               size        0   flags    0
-   9 _CABS                                      size        0   flags    8
+   8 _CODE_10                                   size       4E   flags    0
+   9 _INITIALIZER                               size        0   flags    0
+   A _CABS                                      size        0   flags    8
 

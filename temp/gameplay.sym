@@ -32,16 +32,19 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_1                                                        00000903 R
-  8 ___str_2                                                        00000912 R
-  8 ___str_3                                                        00000917 R
-  8 ___str_4                                                        0000091C R
-  8 ___str_5                                                        000016DF R
-  8 ___str_6                                                        000016EE R
+  8 ___str_1                                                        000014DE R
+  8 ___str_2                                                        000014ED R
+  8 ___str_3                                                        000014F2 R
+  8 ___str_4                                                        000014F7 R
+  8 ___str_5                                                        000022BA R
+  8 ___str_6                                                        000022C9 R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      00000879 GR
+  8 _draw_menu                                                      00001454 GR
     _draw_mt_column                                                 ******** GX
+  8 _draw_oam_2x1                                                   00000177 R
+  8 _draw_oam_2x3                                                   000002CD R
+  8 _draw_oam_3x3                                                   00000717 R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -55,30 +58,31 @@ Symbol Table
     _hide_sprites_range                                             ******** GX
     _icon1_metasprites                                              ******** GX
     _icon1_tiles                                                    ******** GX
-    _init_music_banked                                              ******** GX
-    _joypad                                                         ******** GX
-    _level_songs                                                    ******** GX
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _init_music_banked                                              ******** GX
+    _joypad                                                         ******** GX
+    _level_songs                                                    ******** GX
   8 _level_sprite_cost_table                                        0000002B R
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     0000092F GR
+  8 _play_level                                                     0000150A GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
     _printf                                                         ******** GX
-  8 _process_and_draw_sprites                                       00000177 R
+  8 _process_and_draw_sprites                                       00000D79 R
     _puts                                                           ******** GX
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                00000868 GR
+  8 _setup_menu_font                                                00001443 GR
+    _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
     _song_bank                                                      ******** GX
@@ -87,9 +91,9 @@ Symbol Table
   8 _sp_cache_update                                                00000051 GR
     _wait_vbl_done                                                  ******** GX
     _waitpadup                                                      ******** GX
-    b_draw_menu                                                 =   00000001 G
-    b_play_level                                                =   00000001 G
-    b_setup_menu_font                                           =   00000001 G
+    b_draw_menu                                                 =   0000000A G
+    b_play_level                                                =   0000000A G
+    b_setup_menu_font                                           =   0000000A G
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
@@ -105,7 +109,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_1                                    size     16FE   flags    0
+   8 _CODE_10                                   size     22D9   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

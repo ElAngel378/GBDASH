@@ -19,12 +19,6 @@
 	.globl _level_sm
 	.globl _song_bank
 	.globl _level_songs
-	.globl b___func_chr_gb_tiles_rev
-	.globl ___func_chr_gb_tiles_rev
-	.globl b___func_chr_gb_tiles
-	.globl ___func_chr_gb_tiles
-	.globl b___func_chr_gb
-	.globl ___func_chr_gb
 	.globl b___func_game_levels
 	.globl ___func_game_levels
 ;--------------------------------------------------------
@@ -58,56 +52,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_1
-;src/assets.c:6: BANKREF(game_levels)
+	.area _CODE
+;src/assets.c:5: BANKREF(game_levels)
 ;	---------------------------------
 ; Function __func_game_levels
 ; ---------------------------------
-	b___func_game_levels	= 1
+	b___func_game_levels	= 0
 ___func_game_levels::
 	.local b___func_game_levels 
 	___bank_game_levels = b___func_game_levels 
 	.globl ___bank_game_levels 
-;src/assets.c:7: BANKREF(chr_gb)
-;	---------------------------------
-; Function __func_chr_gb
-; ---------------------------------
-	b___func_chr_gb	= 1
-___func_chr_gb::
-	.local b___func_chr_gb 
-	___bank_chr_gb = b___func_chr_gb 
-	.globl ___bank_chr_gb 
-;src/assets.c:10: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
-;	---------------------------------
-; Function __func_chr_gb_tiles
-; ---------------------------------
-	b___func_chr_gb_tiles	= 1
-___func_chr_gb_tiles::
-_chr_gb_tiles::
-1$:
-	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
-2$:
-	___size_chr_gb_tiles = (2$-1$) 
-	.globl ___size_chr_gb_tiles 
-	.local b___func_chr_gb_tiles 
-	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
-	.globl ___bank_chr_gb_tiles 
-;src/assets.c:14: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
-;	---------------------------------
-; Function __func_chr_gb_tiles_rev
-; ---------------------------------
-	b___func_chr_gb_tiles_rev	= 1
-___func_chr_gb_tiles_rev::
-_chr_gb_tiles_rev::
-1$:
-	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
-2$:
-	___size_chr_gb_tiles_rev = (2$-1$) 
-	.globl ___size_chr_gb_tiles_rev 
-	.local b___func_chr_gb_tiles_rev 
-	___bank_chr_gb_tiles_rev = b___func_chr_gb_tiles_rev 
-	.globl ___bank_chr_gb_tiles_rev 
-	.area _CODE_1
+	.area _CODE
 _level_songs:
 	.dw _stereomadness
 	.dw _backontrack

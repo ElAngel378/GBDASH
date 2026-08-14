@@ -7,34 +7,34 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  0 _icon1_metasprite0                                              00000088 GR
-  0 _icon1_metasprite1                                              00000094 GR
-  0 _icon1_metasprite10                                             00000100 GR
-  0 _icon1_metasprite11                                             0000010C GR
-  0 _icon1_metasprite12                                             00000118 GR
-  0 _icon1_metasprite13                                             00000124 GR
-  0 _icon1_metasprite14                                             00000130 GR
-  0 _icon1_metasprite15                                             0000013C GR
-  0 _icon1_metasprite16                                             00000148 GR
-  0 _icon1_metasprite17                                             00000154 GR
-  0 _icon1_metasprite18                                             00000160 GR
-  0 _icon1_metasprite19                                             0000016C GR
-  0 _icon1_metasprite2                                              000000A0 GR
-  0 _icon1_metasprite20                                             00000178 GR
-  0 _icon1_metasprite21                                             00000184 GR
-  0 _icon1_metasprite22                                             00000190 GR
-  0 _icon1_metasprite23                                             0000019C GR
-  0 _icon1_metasprite24                                             000001A8 GR
-  0 _icon1_metasprite3                                              000000AC GR
-  0 _icon1_metasprite4                                              000000B8 GR
-  0 _icon1_metasprite5                                              000000C4 GR
-  0 _icon1_metasprite6                                              000000D0 GR
-  0 _icon1_metasprite7                                              000000DC GR
-  0 _icon1_metasprite8                                              000000E8 GR
-  0 _icon1_metasprite9                                              000000F4 GR
-  0 _icon1_metasprites                                              000001B4 GR
-  0 _icon1_palettes                                                 00000000 GR
-  0 _icon1_tiles                                                    00000008 GR
+  8 _icon1_metasprite0                                              00000088 GR
+  8 _icon1_metasprite1                                              00000094 GR
+  8 _icon1_metasprite10                                             00000100 GR
+  8 _icon1_metasprite11                                             0000010C GR
+  8 _icon1_metasprite12                                             00000118 GR
+  8 _icon1_metasprite13                                             00000124 GR
+  8 _icon1_metasprite14                                             00000130 GR
+  8 _icon1_metasprite15                                             0000013C GR
+  8 _icon1_metasprite16                                             00000148 GR
+  8 _icon1_metasprite17                                             00000154 GR
+  8 _icon1_metasprite18                                             00000160 GR
+  8 _icon1_metasprite19                                             0000016C GR
+  8 _icon1_metasprite2                                              000000A0 GR
+  8 _icon1_metasprite20                                             00000178 GR
+  8 _icon1_metasprite21                                             00000184 GR
+  8 _icon1_metasprite22                                             00000190 GR
+  8 _icon1_metasprite23                                             0000019C GR
+  8 _icon1_metasprite24                                             000001A8 GR
+  8 _icon1_metasprite3                                              000000AC GR
+  8 _icon1_metasprite4                                              000000B8 GR
+  8 _icon1_metasprite5                                              000000C4 GR
+  8 _icon1_metasprite6                                              000000D0 GR
+  8 _icon1_metasprite7                                              000000DC GR
+  8 _icon1_metasprite8                                              000000E8 GR
+  8 _icon1_metasprite9                                              000000F4 GR
+  8 _icon1_metasprites                                              000001B4 GR
+  8 _icon1_palettes                                                 00000000 GR
+  8 _icon1_tiles                                                    00000008 GR
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
@@ -42,7 +42,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      1E6   flags    0
+   0 _CODE                                      size        0   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        0   flags    0
@@ -50,6 +50,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _INITIALIZER                               size        0   flags    0
-   9 _CABS                                      size        0   flags    8
+   8 _CODE_10                                   size      1E6   flags    0
+   9 _INITIALIZER                               size        0   flags    0
+   A _CABS                                      size        0   flags    8
 

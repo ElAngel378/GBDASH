@@ -1,3 +1,4 @@
+#pragma bank 10
 #include <gb/gb.h>
 #include <gbdk/metasprites.h>
 
