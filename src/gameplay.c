@@ -150,6 +150,21 @@ static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 9;
 }
 
+static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
+                             uint8_t oam_idx, uint8_t sx, uint8_t sy,
+                             uint8_t reversed) {
+    uint8_t i;
+    for (i = 0; i < deco->count; i++) {
+        shadow_OAM[oam_idx + i].x = reversed
+            ? (uint8_t)(sx + deco->width - 8 - deco->x[i])
+            : (uint8_t)(sx + deco->x[i]);
+        shadow_OAM[oam_idx + i].y = (uint8_t)(sy + deco->y[i]);
+        shadow_OAM[oam_idx + i].tile = deco->tile[i] + tile_base;
+        shadow_OAM[oam_idx + i].prop = deco->props[i] ^ (reversed ? S_FLIPX : 0);
+    }
+    return deco->count;
+}
+
 static uint8_t process_and_draw_sprites(
         SpCache *cache, uint16_t cam_px, uint16_t cam_py,
         Player* p, uint8_t joy, uint8_t* target_bg_idx, uint8_t oam_start
@@ -287,7 +302,23 @@ static uint8_t process_and_draw_sprites(
         // ==========================================
         // 2. RENDERING
         // ==========================================
-        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+        if (obj >= 38) {
+            const FamidashDeco *deco = (obj < 64) ? famidash_deco_table[obj] : 0;
+            if (!deco) continue;
+            if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;
+
+            uint8_t deco_screen_x = reversed
+                ? 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8
+                : ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
+            uint8_t deco_screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
+            if (deco_screen_x > 160 && deco_screen_x < 232) continue;
+            if (deco_screen_y > 160 && deco_screen_y < 208) continue;
+            oam_start += draw_oam_deco(deco, FAMIDASH_SPRITE_TILE_BASE,
+                                       oam_start, deco_screen_x, deco_screen_y, reversed);
+            continue;
+        }
+
+        if (famidash_sprite_table[obj] == 0) continue;
 
         uint8_t screen_x;
         if (reversed) {
