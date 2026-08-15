@@ -89,87 +89,122 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 }
 
-// Fast Writer: 2x1 Objects (Pads, Orbs)
-static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t i = oam_idx;
-    if (!reversed) {
-        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props;
-    } else {
-        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX;
-    }
-    return 2;
-}
+// ==========================================
+// DECO HARDWARE WRITER MACROS
+// ==========================================
+#define DECO_1X1(t1, p1, dx, dy) do { \
+    if (!reversed) { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1); oam++; \
+    } else { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + 8 - (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1) ^ S_FLIPX; oam++; \
+    } \
+} while(0)
 
-// Fast Writer: 2x3 Objects (Gravity Portals)
-static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t i = oam_idx;
-    if (!reversed) {
-        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props; i++; meta++;
-        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props;
-    } else {
-        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy;    shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy+16; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx + 8; shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX; i++; meta++;
-        shadow_OAM[i].y = sy+32; shadow_OAM[i].x = sx;     shadow_OAM[i].tile = meta->dtile + tile_base; shadow_OAM[i].prop = meta->props ^ S_FLIPX;
-    }
-    return 6;
-}
+#define DECO_1X2(t1, t2, p1, p2, dx, dy1, dy2) do { \
+    uint8_t px_val = reversed ? (screen_x + 8 - (dx)) : (screen_x + (dx)); \
+    shadow_OAM[oam].y = screen_y + (dy1); shadow_OAM[oam].x = px_val; \
+    shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = reversed ? ((p1) ^ S_FLIPX) : (p1); oam++; \
+    shadow_OAM[oam].y = screen_y + (dy2); shadow_OAM[oam].x = px_val; \
+    shadow_OAM[oam].tile = (t2) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = reversed ? ((p2) ^ S_FLIPX) : (p2); oam++; \
+} while(0)
 
-// Fast Writer: 3x3 Objects (Cube/Ship Portals)
-static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t i = oam_idx;
-    if (!reversed) {
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props;
-    } else {
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy;    shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+16; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+16; shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx+8;  shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX; i++; meta++;
-        shadow_OAM[i].y=sy+32; shadow_OAM[i].x=sx;    shadow_OAM[i].tile=meta->dtile+tile_base; shadow_OAM[i].prop=meta->props^S_FLIPX;
-    }
-    return 9;
-}
+#define DECO_2X1(t1, t2, p1, p2, dx, dy) do { \
+    if (!reversed) { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1); oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx) + 8; \
+        shadow_OAM[oam].tile = (t2) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p2); oam++; \
+    } else { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + 8 - (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1) ^ S_FLIPX; oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x - (dx); \
+        shadow_OAM[oam].tile = (t2) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p2) ^ S_FLIPX; oam++; \
+    } \
+} while(0)
 
-static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
-                             uint8_t oam_idx, uint8_t sx, uint8_t sy,
-                             uint8_t reversed) {
-    uint8_t i;
-    for (i = 0; i < deco->count; i++) {
-        shadow_OAM[oam_idx + i].x = reversed
-            ? (uint8_t)(sx + deco->width - 8 - deco->x[i])
-            : (uint8_t)(sx + deco->x[i]);
-        shadow_OAM[oam_idx + i].y = (uint8_t)(sy + deco->y[i]);
-        shadow_OAM[oam_idx + i].tile = deco->tile[i] + tile_base;
-        shadow_OAM[oam_idx + i].prop = deco->props[i] ^ (reversed ? S_FLIPX : 0);
-    }
-    return deco->count;
-}
+#define DECO_3X1(t1, t2, t3, p1, p2, p3, dx, dy) do { \
+    if (!reversed) { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1); oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx) + 8; \
+        shadow_OAM[oam].tile = (t2) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p2); oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + (dx) + 16; \
+        shadow_OAM[oam].tile = (t3) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p3); oam++; \
+    } else { \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + 16 - (dx); \
+        shadow_OAM[oam].tile = (t1) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p1) ^ S_FLIPX; oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x + 8 - (dx); \
+        shadow_OAM[oam].tile = (t2) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p2) ^ S_FLIPX; oam++; \
+        shadow_OAM[oam].y = screen_y + (dy); shadow_OAM[oam].x = screen_x - (dx); \
+        shadow_OAM[oam].tile = (t3) + FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop = (p3) ^ S_FLIPX; oam++; \
+    } \
+} while(0)
+
+// ==========================================
+// GAMEPLAY SPRITE WRITER MACROS
+// ==========================================
+#define DRAW_META_2X1(meta) do { \
+    const metasprite_t* m = (meta); \
+    if (!reversed) { \
+        shadow_OAM[oam].y=screen_y; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; \
+    } else { \
+        shadow_OAM[oam].y=screen_y; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; \
+    } \
+} while(0)
+
+#define DRAW_META_2X3(meta) do { \
+    const metasprite_t* m = (meta); \
+    if (!reversed) { \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; \
+    } else { \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+8; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x;   shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; \
+    } \
+} while(0)
+
+#define DRAW_META_3X3(meta) do { \
+    const metasprite_t* m = (meta); \
+    if (!reversed) { \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props; oam++; \
+    } else { \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y;    shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+16; shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+16; shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x+8;  shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; m++; \
+        shadow_OAM[oam].y=screen_y+32; shadow_OAM[oam].x=screen_x;    shadow_OAM[oam].tile=m->dtile+FAMIDASH_SPRITE_TILE_BASE; shadow_OAM[oam].prop=m->props^S_FLIPX; oam++; \
+    } \
+} while(0)
 
 static uint8_t process_and_draw_sprites(
         SpCache *cache, uint16_t cam_px, uint16_t cam_py,
         Player* p, uint8_t joy, uint8_t* target_bg_idx, uint8_t oam_start
 ) {
-    uint8_t i;
+    uint8_t sp_idx; // Renamed to completely avoid shadowing!
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
     uint8_t reversed = p->reversed;
@@ -179,14 +214,14 @@ static uint8_t process_and_draw_sprites(
     uint16_t p_bottom = py + PLAYER_SIZE + 16;
     uint16_t p_feet = py + PLAYER_SIZE;
 
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        if (!cache->active[i]) break; // Early out
+    for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; sp_idx++) {
+        if (!cache->active[sp_idx]) break; // Early out
 
-        uint16_t obj_x = cache->px[i];
+        uint16_t obj_x = cache->px[sp_idx];
         if (obj_x > cam_px + 176u) break;
 
-        uint8_t obj = cache->obj[i];
-        uint16_t obj_y = cache->py[i];
+        uint8_t obj = cache->obj[sp_idx];
+        uint16_t obj_y = cache->py[sp_idx];
 
         // ==========================================
         // 1. COLLISION & LOGIC
@@ -201,9 +236,9 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
-                        if (!cache->activated[i]) {
+                        if (!cache->activated[sp_idx]) {
                             p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
-                            cache->activated[i] = 1;
+                            cache->activated[sp_idx] = 1;
                         }
                     }
                     break;
@@ -211,13 +246,13 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_GRAVITY_DOWN:
                 case OBJ_GRAVITY_UP:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
-                        if (!cache->activated[i]) {
+                        if (!cache->activated[sp_idx]) {
                             uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
                             if (p->gravity_flipped != target_flipped) {
                                 p->gravity_flipped = target_flipped;
                                 p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
                             }
-                            cache->activated[i] = 1;
+                            cache->activated[sp_idx] = 1;
                         }
                     }
                     break;
@@ -233,8 +268,8 @@ static uint8_t process_and_draw_sprites(
                     uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
 
                     if (py <= pad_bot && p_feet >= pad_top) {
-                        if (!cache->activated[i]) {
-                            cache->activated[i] = 1;
+                        if (!cache->activated[sp_idx]) {
+                            cache->activated[sp_idx] = 1;
                             if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
                                 p->gravity_flipped = !p->gravity_flipped;
                                 p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
@@ -255,8 +290,8 @@ static uint8_t process_and_draw_sprites(
                 {
                     if (joy & J_A) {
                         if (py <= obj_y + 16 && p_feet >= obj_y) {
-                            if (!cache->activated[i]) {
-                                cache->activated[i] = 1;
+                            if (!cache->activated[sp_idx]) {
+                                cache->activated[sp_idx] = 1;
                                 if (obj == OBJ_ORB_BLUE) {
                                     p->gravity_flipped = !p->gravity_flipped;
                                     p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
@@ -273,26 +308,26 @@ static uint8_t process_and_draw_sprites(
                 }
 
                 case 100: case 101: case 102: case 103:
-                    if (!cache->activated[i]) {
+                    if (!cache->activated[sp_idx]) {
                         *target_bg_idx = obj - 100;
-                        cache->activated[i] = 1;
+                        cache->activated[sp_idx] = 1;
                     }
                     continue;
 
                 case OBJ_MIRROR_PORTAL:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
-                        if (!cache->activated[i]) {
+                        if (!cache->activated[sp_idx]) {
                             p->reversed = 1;
-                            cache->activated[i] = 1;
+                            cache->activated[sp_idx] = 1;
                         }
                     }
                     break;
 
                 case OBJ_MIRROR_EXIT:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
-                        if (!cache->activated[i]) {
+                        if (!cache->activated[sp_idx]) {
                             p->reversed = 0;
-                            cache->activated[i] = 1;
+                            cache->activated[sp_idx] = 1;
                         }
                     }
                     break;
@@ -300,49 +335,71 @@ static uint8_t process_and_draw_sprites(
         }
 
         // ==========================================
-        // 2. RENDERING
+        // 2. RENDERING (100% INLINED JUMP TABLE)
         // ==========================================
-        if (obj >= 38) {
-            const FamidashDeco *deco = (obj < 64) ? famidash_deco_table[obj] : 0;
-            if (!deco) continue;
-            if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;
 
-            uint8_t deco_screen_x = reversed
-                ? 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8
-                : ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
-            uint8_t deco_screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
-            if (deco_screen_x > 160 && deco_screen_x < 232) continue;
-            if (deco_screen_y > 160 && deco_screen_y < 208) continue;
-            oam_start += draw_oam_deco(deco, FAMIDASH_SPRITE_TILE_BASE,
-                                       oam_start, deco_screen_x, deco_screen_y, reversed);
-            continue;
-        }
+        // Calculate relative X ONCE to save math
+        uint8_t rel_x = (uint8_t)obj_x - (uint8_t)cam_px;
 
-        if (famidash_sprite_table[obj] == 0) continue;
-
-        uint8_t screen_x;
-        if (reversed) {
-            screen_x = 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8;
-        } else {
-            screen_x = ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
-        }
-
+        uint8_t screen_x = reversed ? (136 - rel_x) : (rel_x + 40); // 40 is PLAYER_SCREEN_X (32) + 8
         uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
 
-        if (screen_x > 160 && screen_x < 232) continue;
-        if (screen_y > 160 && screen_y < 208) continue;
+        // FAST INTERVAL CULLING (Replaces slow && branches)
+        // 160 + 24 = 184. 160 + 48 = 208.
+        if ((uint8_t)(screen_x + 24u) > 184u) continue;
+        if ((uint8_t)(screen_y + 48u) > 208u) continue;
 
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
 
+        // Ensure we use 'oam' exclusively for the hardware array index!
+        uint8_t oam = oam_start;
+
+        if (obj >= 42 && obj <= 63) {
+            switch (obj) {
+                case 42: DECO_1X2(D_CF, D_C9, DP, DP, 4, 0, -16); break;
+                case 43: DECO_1X2(D_CF, D_CB, DP, DP, 4, 0, -16); break;
+                case 44: DECO_1X1(D_CD, DP, 4, 0); break;
+                case 45: DECO_1X2(D_D5, D_D7, DP, DP, 4, 0, -16); break;
+
+                // BUG FIXED: Spikes are flat (2x1), not tall (1x2)!
+                case 46: DECO_2X1(D_D9, D_DB, DP, DP, 0, -4); break;
+                case 47: DECO_2X1(D_D9, D_DB, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
+                case 48: DECO_2X1(D_DD, D_DF, DP, DP, 0, -4); break;
+                case 49: DECO_2X1(D_DD, D_DF, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
+
+                case 50: DECO_2X1(D_E1, D_E1, DP, DP|S_FLIPX, 0, 0); break;
+                case 51: DECO_1X1(D_E1, DP|S_FLIPX, 8, 0); break;
+                case 52: DECO_1X1(D_E3, DP, 4, 0); break;
+                case 53: DECO_1X1(D_E5, DP, 4, 0); break;
+                case 54: DECO_2X1(D_E7, D_E7, DP, DP|S_FLIPX, 0, 0); break;
+                case 55: DECO_2X1(D_ED, D_ED, DP, DP|S_FLIPX, 0, 0); break;
+                case 56: DECO_2X1(D_F1, D_F5, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
+                case 57: DECO_2X1(D_F5, D_F1, DP, DP, 0, -4); break;
+                case 58: DECO_1X2(D_CF, D_C9, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
+                case 59: DECO_1X2(D_CF, D_CB, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
+                case 60: DECO_1X1(D_CD, DP|S_FLIPY, 4, 0); break;
+                case 61: DECO_1X2(D_D7, D_D5, DP|S_FLIPY, DP|S_FLIPY, 4, 16, 0); break;
+                case 62: DECO_3X1(D_F1, D_F7, D_F5, DP|S_FLIPX, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
+                case 63: DECO_3X1(D_F1, D_F7, D_F5, DP, DP, DP, 0, -4); break;
+            }
+            oam_start = oam; // Save the updated index!
+            continue;
+        }
+
+        // --- GAMEPLAY METASPRITES (INLINED) ---
+        // BUG FIX: Prevent out-of-bounds array reads!
+        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
         if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
-            oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            DRAW_META_3X3(sprite);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
-            oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            DRAW_META_2X3(sprite);
         } else {
-            oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            DRAW_META_2X1(sprite);
         }
+
+        oam_start = oam; // Save the updated index!
     }
     return oam_start;
 }

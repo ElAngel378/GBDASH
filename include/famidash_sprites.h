@@ -24,15 +24,25 @@ extern const metasprite_t famidash_pink_orb[];
 extern const metasprite_t famidash_pink_pad[];
 extern const metasprite_t * const famidash_sprite_table[38];
 
-typedef struct {
-    uint8_t count;
-    uint8_t width;
-    int8_t x[3];
-    int8_t y[3];
-    uint8_t tile[3];
-    uint8_t props[3];
-} FamidashDeco;
-
-extern const FamidashDeco * const famidash_deco_table[64];
+#define DP S_PAL(3)
+/* Decoration tile pairs follow the 18 gameplay pairs in VRAM. */
+#define D_CF 36
+#define D_C9 38
+#define D_CB 40
+#define D_CD 42
+#define D_D5 44
+#define D_D7 46
+#define D_D9 48
+#define D_DB 50
+#define D_DD 52
+#define D_DF 54
+#define D_E1 56
+#define D_E3 58
+#define D_E5 60
+#define D_E7 62
+#define D_ED 64
+#define D_F5 66
+#define D_F1 68
+#define D_F7 70
 
 #endif

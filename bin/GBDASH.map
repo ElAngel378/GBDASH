@@ -47,14 +47,14 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000018CE  l__CODE_2 |    00001DDC  l__CODE_2 |    00002000  _rROMB0  
      00002000  l__CODE_2 |    00002218  l__CODE_2 |    00002766  l__CODE_2
      000029B0  l__CODE_2 |    00002A10  l__CODE   |    00002C10  s__HOME  
-     00002FAB  l__CODE_1 |    00003000  _rROMB1   |    00003450  ___size_c
-     00003450  l__CODE_7 |    000034A0  ___size_d |    000034A0  l__CODE_4
-     000034E0  ___size_b |    000034E0  l__CODE_3 |    00003650  ___size_b
-     00003650  l__CODE_6 |    00003706  s__BASE   |    00003706  s__CODE_0
-     00003706  s__INITIA |    00003706  s__LIT    |    00003712  s__GSINIT
-     0000371E  s__GSFINA |    000037E0  ___size_s |    000037E0  l__CODE_2
-     00003810  ___size_j |    00003810  l__CODE_8 |    00003A70  ___size_p
-     00003A70  l__CODE_5 |    00003E50  ___size_t |    00003E50  l__CODE_9
+     00003000  _rROMB1   |    00003450  ___size_c |    00003450  l__CODE_7
+     000034A0  ___size_d |    000034A0  l__CODE_4 |    000034E0  ___size_b
+     000034E0  l__CODE_3 |    00003650  ___size_b |    00003650  l__CODE_6
+     00003706  s__BASE   |    00003706  s__CODE_0 |    00003706  s__INITIA
+     00003706  s__LIT    |    00003712  s__GSINIT |    0000371E  s__GSFINA
+     000037E0  ___size_s |    000037E0  l__CODE_2 |    00003810  ___size_j
+     00003810  l__CODE_8 |    00003A70  ___size_p |    00003A70  l__CODE_5
+     00003C64  l__CODE_1 |    00003E50  ___size_t |    00003E50  l__CODE_9
      00004000  _rMBC7_SR |    00004000  _rRAMB    |    00008000  __VRAM   
      00008000  __VRAM800 |    00008800  __VRAM880 |    00009000  __VRAM900
 ASxxxx Linker V03.00/V05.40 + sdld,  page 2.
@@ -486,7 +486,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_10               000A4000    00002FAB =       12203. bytes (REL,CON)
+_CODE_10               000A4000    00003C64 =       15460. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -495,19 +495,18 @@ _CODE_10               000A4000    00002FAB =       12203. bytes (REL,CON)
      000A4508  _famidash |    000A4514  _famidash |    000A4520  _famidash
      000A452C  _famidash |    000A4538  _famidash |    000A4544  _famidash
      000A4550  _famidash |    000A455C  _famidash |    000A4568  _famidash
-     000A46E8  _famidash |    000A4768  _sp_cache |    000A47A7  _sp_cache
-     000A6008  _setup_me |    000A6019  _draw_men |    000A60CF  _play_lev
-     000A6D77  _icon1_pa |    000A6D7F  _icon1_ti |    000A6DFF  _icon1_me
-     000A6E0B  _icon1_me |    000A6E17  _icon1_me |    000A6E23  _icon1_me
-     000A6E2F  _icon1_me |    000A6E3B  _icon1_me |    000A6E47  _icon1_me
-     000A6E53  _icon1_me |    000A6E5F  _icon1_me |    000A6E6B  _icon1_me
-     000A6E77  _icon1_me |    000A6E83  _icon1_me |    000A6E8F  _icon1_me
-     000A6E9B  _icon1_me |    000A6EA7  _icon1_me |    000A6EB3  _icon1_me
-     000A6EBF  _icon1_me |    000A6ECB  _icon1_me |    000A6ED7  _icon1_me
-     000A6EE3  _icon1_me |    000A6EEF  _icon1_me |    000A6EFB  _icon1_me
-     000A6F07  _icon1_me |    000A6F13  _icon1_me |    000A6F1F  _icon1_me
-     000A6F2B  _icon1_me |    000A6F5D  _ship_til |    000A6F9D  _ship_met
-     000A6FA9  _ship_met
+     000A45B4  _sp_cache |    000A45F3  _sp_cache |    000A6CC1  _setup_me
+     000A6CD2  _draw_men |    000A6D88  _play_lev |    000A7A30  _icon1_pa
+     000A7A38  _icon1_ti |    000A7AB8  _icon1_me |    000A7AC4  _icon1_me
+     000A7AD0  _icon1_me |    000A7ADC  _icon1_me |    000A7AE8  _icon1_me
+     000A7AF4  _icon1_me |    000A7B00  _icon1_me |    000A7B0C  _icon1_me
+     000A7B18  _icon1_me |    000A7B24  _icon1_me |    000A7B30  _icon1_me
+     000A7B3C  _icon1_me |    000A7B48  _icon1_me |    000A7B54  _icon1_me
+     000A7B60  _icon1_me |    000A7B6C  _icon1_me |    000A7B78  _icon1_me
+     000A7B84  _icon1_me |    000A7B90  _icon1_me |    000A7B9C  _icon1_me
+     000A7BA8  _icon1_me |    000A7BB4  _icon1_me |    000A7BC0  _icon1_me
+     000A7BCC  _icon1_me |    000A7BD8  _icon1_me |    000A7BE4  _icon1_me
+     000A7C16  _ship_til |    000A7C56  _ship_met |    000A7C62  _ship_met
 ASxxxx Linker V03.00/V05.40 + sdld,  page 38.
 Hexadecimal  [32-Bits]
 
