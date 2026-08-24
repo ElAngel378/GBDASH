@@ -31,15 +31,15 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_1                                                        000027A8 R
-  8 ___str_2                                                        000027B7 R
-  8 ___str_3                                                        000027BC R
-  8 ___str_4                                                        000027C1 R
-  8 ___str_5                                                        0000345D R
-  8 ___str_6                                                        0000346C R
+  8 ___str_1                                                        000027E8 R
+  8 ___str_2                                                        000027F7 R
+  8 ___str_3                                                        000027FC R
+  8 ___str_4                                                        00002801 R
+  8 ___str_5                                                        0000349D R
+  8 ___str_6                                                        000034AC R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      0000271E GR
+  8 _draw_menu                                                      0000275E GR
     _draw_mt_column                                                 ******** GX
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
@@ -66,7 +66,7 @@ Symbol Table
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     000027D4 GR
+  8 _play_level                                                     00002814 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -77,7 +77,7 @@ Symbol Table
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                0000270D GR
+  8 _setup_menu_font                                                0000274D GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
@@ -105,7 +105,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     347C   flags    0
+   8 _CODE_10                                   size     34BC   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

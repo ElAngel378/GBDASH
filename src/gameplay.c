@@ -49,7 +49,7 @@
 // Level objects must never write into this range, otherwise the player
 // draw overflows past shadow_OAM[] and corrupts adjacent WRAM.
 #define PLAYER_OAM_SLOTS 4
-#define OBJ_OAM_MAX      (MAX_HARDWARE_SPRITES - PLAYER_OAM_SLOTS)
+#define OBJ_OAM_MAX      12
 
 extern uint8_t music_ready;
 
@@ -396,6 +396,14 @@ static uint8_t process_and_draw_sprites(
         // --- GAMEPLAY METASPRITES (INLINED) ---
         // BUG FIX: Prevent out-of-bounds array reads!
         if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+
+        // Temporary: Disable orb and pad graphics (but keep collision logic above)
+        if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
+            obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
+            obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
+            continue;
+        }
+
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
         if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
