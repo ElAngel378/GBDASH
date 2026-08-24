@@ -10,8 +10,8 @@
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 
 // Physics constants using 8.8 fixed-point (256 units = 1 pixel)
-#define GRAVITY           103   // Famidash 0x006B
-#define JUMP_FORCE       -1276  // Famidash 0xFA70
+#define GRAVITY           107   // Famidash 0x006B (60fps)
+#define JUMP_FORCE       -1424  // Famidash 0xFA70 (60fps)
 #define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
 #define PAD_JUMP_FORCE   -1890  // Famidash 0xF840 (Yellow Pad)
 #define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
@@ -23,13 +23,13 @@
 #define MODE_SHIP         1
 #define MODE_BALL         2
 
-#define SHIP_THRUST       -52   // Famidash SHIP_GRAVITY_BASE
-#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY
+#define SHIP_THRUST       -42   // Famidash 0x002A (60fps)
+#define SHIP_GRAVITY       34   // Famidash 0x0022 (60fps)
 #define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
 #define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
 
-#define BALL_GRAVITY      102   // Famidash 0x0066
-#define BALL_SWITCH_VEL   614   // Famidash 0x0266
+#define BALL_GRAVITY      71    // Famidash 0x0047 (60fps)
+#define BALL_SWITCH_VEL   512   // Famidash 0x0200 (60fps)
 
 #define MAX_ACTIVATIONS 8
 

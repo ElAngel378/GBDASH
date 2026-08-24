@@ -73,7 +73,7 @@
     0000000Ar00r00                   73 	.dw _cantletgo
     0000000Cr00r00                   74 	.dw _jumper
     0000000Er00r00                   75 	.dw _timemachine
-    00000010 00 00                   76 	.dw #0x0000
+    00000010r00r00                   76 	.dw _cycles
     00000012                         77 _song_bank:
     00000012 FF                      78 	.db #0xff	; 255
     00000013 FE                      79 	.db #0xfe	; 254
@@ -83,7 +83,7 @@
     00000017 FA                      83 	.db #0xfa	; 250
     00000018 F9                      84 	.db #0xf9	; 249
     00000019 F8                      85 	.db #0xf8	; 248
-    0000001A 00                      86 	.db #0x00	; 0
+    0000001A F7                      86 	.db #0xf7	; 247
     0000001B                         87 _level_sm:
     0000001BrEBr00                   88 	.dw __str_0
     0000001Dr00r00                   89 	.dw _chr_gb_tiles
@@ -207,7 +207,7 @@
     000000D1 00                     207 	.db #0x00	; 0
     000000D2 00                     208 	.db #0x00	; 0
     000000D3r00                     209 	.byte ___bank_cycles_map
-    000000D4 B4                     210 	.db #0xb4	; 180
+    000000D4 B7                     210 	.db #0xb7	; 183
     000000D5r00r00                  211 	.dw _cycles_sp
     000000D7r00                     212 	.byte ___bank_cycles_sp
     000000D8                        213 _game_levels:

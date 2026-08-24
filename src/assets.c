@@ -63,6 +63,7 @@ extern const hUGESong_t baseafterbase;
 extern const hUGESong_t cantletgo;
 extern const hUGESong_t jumper;
 extern const hUGESong_t timemachine;
+extern const hUGESong_t cycles;
 
 // level songs
 const hUGESong_t * const level_songs[] = {
@@ -74,7 +75,7 @@ const hUGESong_t * const level_songs[] = {
   &cantletgo,    // level_clg
   &jumper,       // level_ju
   &timemachine, // level_tm
-  NULL          // level_cy
+  &cycles // level_cy
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -88,7 +89,7 @@ const uint8_t song_bank[] = {
   250u, // level_clg — cantletgo.c
   249u, // level_ju — jumper.c
   248u, // level_tm — timemachine.c
-  0u,   // level_cy — silent
+  247u, // level_cy — cycles.c
 };
 
 // Level definitions with dimensions and bank info

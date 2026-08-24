@@ -73,7 +73,7 @@ _level_songs:
 	.dw _cantletgo
 	.dw _jumper
 	.dw _timemachine
-	.dw #0x0000
+	.dw _cycles
 _song_bank:
 	.db #0xff	; 255
 	.db #0xfe	; 254
@@ -83,7 +83,7 @@ _song_bank:
 	.db #0xfa	; 250
 	.db #0xf9	; 249
 	.db #0xf8	; 248
-	.db #0x00	; 0
+	.db #0xf7	; 247
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
@@ -207,7 +207,7 @@ _level_cy:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.byte ___bank_cycles_map
-	.db #0xb4	; 180
+	.db #0xb7	; 183
 	.dw _cycles_sp
 	.byte ___bank_cycles_sp
 _game_levels:

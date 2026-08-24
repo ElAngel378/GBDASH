@@ -48,6 +48,7 @@ Symbol Table
     _cantletgo_sp                                                   ******** GX
     _chr_gb_tiles                                                   ******** GX
     _chr_gb_tiles_rev                                               ******** GX
+    _cycles                                                         ******** GX
     _cycles_map                                                     ******** GX
     _cycles_sp                                                      ******** GX
     _dryout                                                         ******** GX
@@ -57,12 +58,12 @@ Symbol Table
     _jumper                                                         ******** GX
     _jumper_map                                                     ******** GX
     _jumper_sp                                                      ******** GX
-  0 _level_bab                                                      0000006F GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+  0 _level_bab                                                      0000006F GR
   0 _level_bot                                                      00000030 GR
   0 _level_clg                                                      00000084 GR
   0 _level_cy                                                       000000C3 GR
@@ -83,6 +84,7 @@ Symbol Table
     _timemachine_map                                                ******** GX
     _timemachine_sp                                                 ******** GX
     b___func_game_levels                                        =   00000000 L
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]

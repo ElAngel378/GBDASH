@@ -4337,10 +4337,10 @@ _process_and_draw_sprites:
 	ld	a, (de)
 	or	a, a
 	jr	Z, 00237$
-	ld	de, #0x0574
+	ld	de, #0x0608
 	jr	00238$
 00237$:
-	ld	de, #0xfa8c
+	ld	de, #0xf9f8
 00238$:
 	ld	a, e
 	ld	(bc), a
