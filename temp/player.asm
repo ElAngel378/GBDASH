@@ -2248,18 +2248,18 @@ _player_update::
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-;src/player.c:179: if (p->anim_timer >= 20) {
+;src/player.c:179: if (p->anim_timer >= 21) {
 	ld	a, e
-	sub	a, #0x14
+	sub	a, #0x15
 	ld	a, d
 	sbc	a, #0x00
 	jr	C, 00228$
-;src/player.c:180: p->anim_timer -= 20;
+;src/player.c:180: p->anim_timer -= 21;
 	ld	l, c
 	ld	h, b
 	ld	a,	(hl+)
 	ld	h, (hl)
-	add	a, #0xec
+	add	a, #0xeb
 	ld	e, a
 	ld	a, h
 	adc	a, #0xff

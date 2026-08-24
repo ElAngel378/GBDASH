@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_124
+	.area _CODE_123
 ;src/jumper_sprites.c:4: BANKREF(jumper_sp)
 ;	---------------------------------
 ; Function __func_jumper_sp
 ; ---------------------------------
-	b___func_jumper_sp	= 124
+	b___func_jumper_sp	= 123
 ___func_jumper_sp::
 	.local b___func_jumper_sp 
 	___bank_jumper_sp = b___func_jumper_sp 
 	.globl ___bank_jumper_sp 
-	.area _CODE_124
+	.area _CODE_123
 _jumper_sp:
 	.dw #0x0031
 	.db #0x00	; 0

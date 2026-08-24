@@ -37,6 +37,10 @@
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
+#define OBJ_PORTAL_DN_HORIZ_DN  16
+#define OBJ_PORTAL_DN_HORIZ_UP  17
+#define OBJ_PORTAL_UP_HORIZ_DN  18
+#define OBJ_PORTAL_UP_HORIZ_UP  19
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
@@ -178,7 +182,21 @@ static void process_sprite_logic(
             continue;
         }
 
-        if (obj_x + 2 <= p_front && px <= obj_x + 13) {
+        if (obj >= 16 && obj <= 19) {
+            // 48-pixel (3 tile) wide horizontal gravity portal
+            if (obj_x <= p_front && px <= obj_x + 48u) {
+                if (py <= obj_y + 14u && p_bottom >= obj_y) {
+                    if (!cache->activated[i]) {
+                        uint8_t target_flipped = (obj >= 18);
+                        if (p->gravity_flipped != target_flipped) {
+                            p->gravity_flipped = target_flipped;
+                            p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                        }
+                        cache->activated[i] = 1;
+                    }
+                }
+            }
+        } else if (obj_x + 2 <= p_front && px <= obj_x + 13) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:

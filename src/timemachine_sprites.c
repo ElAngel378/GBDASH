@@ -1,9 +1,9 @@
-#pragma bank 120
+#pragma bank 119
 #include "assets.h"
 
 BANKREF(timemachine_sp)
 
-// Extracted 84 objects from SP layer
+// Extracted 85 objects from SP layer
 const SpDef timemachine_sp[] = {
     {17, 1, 100},
     {28, 1, 100},
@@ -58,6 +58,7 @@ const SpDef timemachine_sp[] = {
     {663, 8, 12},
     {673, 6, 12},
     {682, 3, 8},
+    {683, 15, 16},
     {683, 5, 102},
     {689, 10, 6},
     {693, 8, 6},

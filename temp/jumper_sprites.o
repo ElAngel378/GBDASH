@@ -2,7 +2,7 @@ XL4
 H B areas 4 global symbols
 M jumper_sprites
 S .__.ABS. Def00000000
-S ___bank_jumper_sp Def0000007C
+S ___bank_jumper_sp Def0000007B
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_124 size FC flags 0 addr 0
+A _CODE_123 size FC flags 0 addr 0
 S _jumper_sp Def00000000
 S ___func_jumper_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

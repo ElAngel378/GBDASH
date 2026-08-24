@@ -2248,18 +2248,18 @@
     00000B1C 7B               [ 4] 2248 	ld	a, e
     00000B1D 22               [ 8] 2249 	ld	(hl+), a
     00000B1E 72               [ 8] 2250 	ld	(hl), d
-                                   2251 ;src/player.c:179: if (p->anim_timer >= 20) {
+                                   2251 ;src/player.c:179: if (p->anim_timer >= 21) {
     00000B1F 7B               [ 4] 2252 	ld	a, e
-    00000B20 D6 14            [ 8] 2253 	sub	a, #0x14
+    00000B20 D6 15            [ 8] 2253 	sub	a, #0x15
     00000B22 7A               [ 4] 2254 	ld	a, d
     00000B23 DE 00            [ 8] 2255 	sbc	a, #0x00
     00000B25 38 28            [12] 2256 	jr	C, 00228$
-                                   2257 ;src/player.c:180: p->anim_timer -= 20;
+                                   2257 ;src/player.c:180: p->anim_timer -= 21;
     00000B27 69               [ 4] 2258 	ld	l, c
     00000B28 60               [ 4] 2259 	ld	h, b
     00000B29 2A               [ 8] 2260 	ld	a,	(hl+)
     00000B2A 66               [ 8] 2261 	ld	h, (hl)
-    00000B2B C6 EC            [ 8] 2262 	add	a, #0xec
+    00000B2B C6 EB            [ 8] 2262 	add	a, #0xeb
     00000B2D 5F               [ 4] 2263 	ld	e, a
     00000B2E 7C               [ 4] 2264 	ld	a, h
     00000B2F CE FF            [ 8] 2265 	adc	a, #0xff
