@@ -906,7 +906,7 @@
     0000040A F8 22            [12]  906 	ldhl	sp,	#34
     0000040C 7E               [ 8]  907 	ld	a, (hl)
     0000040D F8 19            [12]  908 	ldhl	sp,	#25
-                                    909 ;src/player.c:105: uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(2), foot_y);
+                                    909 ;src/player.c:105: uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(4), foot_y);
     0000040F 32               [ 8]  910 	ld	(hl-), a
     00000410 7E               [ 8]  911 	ld	a, (hl)
     00000411 F8 1F            [12]  912 	ldhl	sp,	#31
@@ -920,7 +920,7 @@
     0000041C 2A               [ 8]  920 	ld	a, (hl+)
     0000041D 23               [ 8]  921 	inc	hl
     0000041E 77               [ 8]  922 	ld	(hl), a
-    0000041F 3E 02            [ 8]  923 	ld	a, #0x02
+    0000041F 3E 04            [ 8]  923 	ld	a, #0x04
     00000421 F8 17            [12]  924 	ldhl	sp,	#23
     00000423 96               [ 8]  925 	sub	a, (hl)
     00000424 3E 00            [ 8]  926 	ld	a, #0x00
@@ -969,8 +969,8 @@
     00000461                        969 00253$:
     00000461 F8 1B            [12]  970 	ldhl	sp,	#27
     00000463 77               [ 8]  971 	ld	(hl), a
-                                    972 ;src/player.c:106: uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
-    00000464 3E 0D            [ 8]  973 	ld	a, #0x0d
+                                    972 ;src/player.c:106: uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), foot_y);
+    00000464 3E 0B            [ 8]  973 	ld	a, #0x0b
     00000466 F8 17            [12]  974 	ldhl	sp,	#23
     00000468 96               [ 8]  975 	sub	a, (hl)
     00000469 3E 00            [ 8]  976 	ld	a, #0x00
@@ -1208,7 +1208,7 @@
     00000592 7E               [ 8] 1208 	ld	a, (hl)
     00000593 F8 20            [12] 1209 	ldhl	sp,	#32
     00000595 77               [ 8] 1210 	ld	(hl), a
-                                   1211 ;src/player.c:126: uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(2), head_y);
+                                   1211 ;src/player.c:126: uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(4), head_y);
     00000596 4E               [ 8] 1212 	ld	c, (hl)
     00000597 06 00            [ 8] 1213 	ld	b, #0x00
     00000599 F8 1A            [12] 1214 	ldhl	sp,	#26
@@ -1231,7 +1231,7 @@
     000005AF C1               [12] 1231 	pop	bc
     000005B0 F8 19            [12] 1232 	ldhl	sp,	#25
     000005B2 77               [ 8] 1233 	ld	(hl), a
-                                   1234 ;src/player.c:127: uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
+                                   1234 ;src/player.c:127: uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), head_y);
     000005B3 F8 1C            [12] 1235 	ldhl	sp,	#28
     000005B5 7E               [ 8] 1236 	ld	a, (hl)
     000005B6 B7               [ 4] 1237 	or	a, a
@@ -1486,7 +1486,7 @@
     000006EF F8 22            [12] 1486 	ldhl	sp,	#34
     000006F1 77               [ 8] 1487 	ld	(hl), a
     000006F2                       1488 00299$:
-                                   1489 ;src/player.c:148: uint8_t gl = COL_AT_PTR(GET_COL_FAST(2), sticky_y);
+                                   1489 ;src/player.c:148: uint8_t gl = COL_AT_PTR(GET_COL_FAST(4), sticky_y);
     000006F2 F8 21            [12] 1490 	ldhl	sp,	#33
     000006F4 7E               [ 8] 1491 	ld	a, (hl)
     000006F5 F8 1D            [12] 1492 	ldhl	sp,	#29
@@ -1553,7 +1553,7 @@
     00000745 CDr00r00         [24] 1553 	call	_col_at_raw_cached
     00000748                       1554 00301$:
     00000748 F8 21            [12] 1555 	ldhl	sp,	#33
-                                   1556 ;src/player.c:149: uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
+                                   1556 ;src/player.c:149: uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), sticky_y);
     0000074A 32               [ 8] 1557 	ld	(hl-), a
     0000074B 3A               [ 8] 1558 	ld	a, (hl-)
     0000074C B6               [ 8] 1559 	or	a, (hl)
@@ -1809,8 +1809,8 @@
     00000895 3E 01            [ 8] 1809 	ld	a, #0x01
     00000897 C3rFBr0B         [16] 1810 	jp	00242$
     0000089A                       1811 00183$:
-                                   1812 ;src/player.c:168: uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    0000089A 3E 06            [ 8] 1813 	ld	a, #0x06
+                                   1812 ;src/player.c:168: uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    0000089A 3E 07            [ 8] 1813 	ld	a, #0x07
     0000089C F8 17            [12] 1814 	ldhl	sp,	#23
     0000089E 96               [ 8] 1815 	sub	a, (hl)
     0000089F 3E 00            [ 8] 1816 	ld	a, #0x00
@@ -1867,8 +1867,8 @@
     000008E8                       1867 00325$:
     000008E8 F8 21            [12] 1868 	ldhl	sp,	#33
     000008EA 77               [ 8] 1869 	ld	(hl), a
-                                   1870 ;src/player.c:169: uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    000008EB 3E 09            [ 8] 1871 	ld	a, #0x09
+                                   1870 ;src/player.c:169: uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    000008EB 3E 0A            [ 8] 1871 	ld	a, #0x0a
     000008ED F8 17            [12] 1872 	ldhl	sp,	#23
     000008EF 96               [ 8] 1873 	sub	a, (hl)
     000008F0 3E 00            [ 8] 1874 	ld	a, #0x00
@@ -1924,7 +1924,7 @@
     00000934                       1924 00331$:
     00000934 F8 1B            [12] 1925 	ldhl	sp,	#27
     00000936 77               [ 8] 1926 	ld	(hl), a
-                                   1927 ;src/player.c:170: uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+                                   1927 ;src/player.c:170: uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
     00000937 F8 1F            [12] 1928 	ldhl	sp,	#31
     00000939 3A               [ 8] 1929 	ld	a, (hl-)
     0000093A B6               [ 8] 1930 	or	a, (hl)
@@ -1955,7 +1955,7 @@
     00000959 CDr00r00         [24] 1955 	call	_col_at_raw_cached
     0000095C                       1956 00337$:
     0000095C F8 20            [12] 1957 	ldhl	sp,	#32
-                                   1958 ;src/player.c:171: uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+                                   1958 ;src/player.c:171: uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
     0000095E 32               [ 8] 1959 	ld	(hl-), a
     0000095F 3A               [ 8] 1960 	ld	a, (hl-)
     00000960 B6               [ 8] 1961 	or	a, (hl)

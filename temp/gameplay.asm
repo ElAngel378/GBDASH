@@ -6389,7 +6389,7 @@ _play_level::
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-	ld	hl, #0x02c4
+	ld	hl, #0x02ca
 	add	hl, de
 	push	hl
 	ld	a, l

@@ -102,8 +102,8 @@ uint8_t player_update(
     // --- Vertical Ejection ---
     // Check Floor
     int16_t foot_y = py + PLAYER_SIZE;
-    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(2), foot_y);
-    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
+    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(4), foot_y);
+    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), foot_y);
     if (IS_SOLID(cl_f) || IS_SOLID(cr_f)) {
         if (!p->gravity_flipped || p->mode == MODE_SHIP) {
             uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : cr_f;
@@ -123,8 +123,8 @@ uint8_t player_update(
 
     // Check Ceiling
     int16_t head_y = py;
-    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(2), head_y);
-    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
+    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(4), head_y);
+    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), head_y);
     if (IS_SOLID(cl_h) || IS_SOLID(cr_h)) {
         if (p->gravity_flipped || p->mode == MODE_SHIP) {
             uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : cr_h;
@@ -145,8 +145,8 @@ uint8_t player_update(
     // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
     if (!p->on_ground) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
-        uint8_t gl = COL_AT_PTR(GET_COL_FAST(2), sticky_y);
-        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
+        uint8_t gl = COL_AT_PTR(GET_COL_FAST(4), sticky_y);
+        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), sticky_y);
         if (IS_SOLID(gl) || IS_SOLID(gr)) {
             p->on_ground = 1;
             p->vel_y.w = 0;
@@ -165,10 +165,10 @@ uint8_t player_update(
     }
 
     // --- Hazard Collision (Spikes) ---
-    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
+    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
     if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
         p->dead = 1;
         return 1;

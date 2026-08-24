@@ -906,7 +906,7 @@ _player_update::
 	ldhl	sp,	#34
 	ld	a, (hl)
 	ldhl	sp,	#25
-;src/player.c:105: uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(2), foot_y);
+;src/player.c:105: uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(4), foot_y);
 	ld	(hl-), a
 	ld	a, (hl)
 	ldhl	sp,	#31
@@ -920,7 +920,7 @@ _player_update::
 	ld	a, (hl+)
 	inc	hl
 	ld	(hl), a
-	ld	a, #0x02
+	ld	a, #0x04
 	ldhl	sp,	#23
 	sub	a, (hl)
 	ld	a, #0x00
@@ -969,8 +969,8 @@ _player_update::
 00253$:
 	ldhl	sp,	#27
 	ld	(hl), a
-;src/player.c:106: uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
-	ld	a, #0x0d
+;src/player.c:106: uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), foot_y);
+	ld	a, #0x0b
 	ldhl	sp,	#23
 	sub	a, (hl)
 	ld	a, #0x00
@@ -1208,7 +1208,7 @@ _player_update::
 	ld	a, (hl)
 	ldhl	sp,	#32
 	ld	(hl), a
-;src/player.c:126: uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(2), head_y);
+;src/player.c:126: uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(4), head_y);
 	ld	c, (hl)
 	ld	b, #0x00
 	ldhl	sp,	#26
@@ -1231,7 +1231,7 @@ _player_update::
 	pop	bc
 	ldhl	sp,	#25
 	ld	(hl), a
-;src/player.c:127: uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
+;src/player.c:127: uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), head_y);
 	ldhl	sp,	#28
 	ld	a, (hl)
 	or	a, a
@@ -1486,7 +1486,7 @@ _player_update::
 	ldhl	sp,	#34
 	ld	(hl), a
 00299$:
-;src/player.c:148: uint8_t gl = COL_AT_PTR(GET_COL_FAST(2), sticky_y);
+;src/player.c:148: uint8_t gl = COL_AT_PTR(GET_COL_FAST(4), sticky_y);
 	ldhl	sp,	#33
 	ld	a, (hl)
 	ldhl	sp,	#29
@@ -1553,7 +1553,7 @@ _player_update::
 	call	_col_at_raw_cached
 00301$:
 	ldhl	sp,	#33
-;src/player.c:149: uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
+;src/player.c:149: uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), sticky_y);
 	ld	(hl-), a
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1809,8 +1809,8 @@ _player_update::
 	ld	a, #0x01
 	jp	00242$
 00183$:
-;src/player.c:168: uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-	ld	a, #0x06
+;src/player.c:168: uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_HBOX);
+	ld	a, #0x07
 	ldhl	sp,	#23
 	sub	a, (hl)
 	ld	a, #0x00
@@ -1867,8 +1867,8 @@ _player_update::
 00325$:
 	ldhl	sp,	#33
 	ld	(hl), a
-;src/player.c:169: uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-	ld	a, #0x09
+;src/player.c:169: uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_HBOX);
+	ld	a, #0x0a
 	ldhl	sp,	#23
 	sub	a, (hl)
 	ld	a, #0x00
@@ -1924,7 +1924,7 @@ _player_update::
 00331$:
 	ldhl	sp,	#27
 	ld	(hl), a
-;src/player.c:170: uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+;src/player.c:170: uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
 	ldhl	sp,	#31
 	ld	a, (hl-)
 	or	a, (hl)
@@ -1955,7 +1955,7 @@ _player_update::
 	call	_col_at_raw_cached
 00337$:
 	ldhl	sp,	#32
-;src/player.c:171: uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+;src/player.c:171: uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
 	ld	(hl-), a
 	ld	a, (hl-)
 	or	a, (hl)
