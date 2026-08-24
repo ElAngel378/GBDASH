@@ -62,7 +62,7 @@ INCBIN_EXTERN(famidash_sprites_tiles)
 const metasprite_t name[] = { \
     METASPR_ITEM(0, 0, PT_4D, palette | flip_v), METASPR_ITEM(0, 8, PT_4F, palette | flip_v), METASPR_ITEM(0, 8, PT_51, palette | flip_v), \
     METASPR_ITEM(0, 8, PT_51, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_4F, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_4D, palette | flip_v | S_FLIPX), \
-    METASPR_ITEM(flip_v ? -16 : 16, -32, PT_53, palette | flip_v), METASPR_ITEM(0, 8, PT_55, palette | flip_v), \
+    METASPR_ITEM(flip_v ? 16 : -16, -40, PT_53, palette | flip_v), METASPR_ITEM(0, 8, PT_55, palette | flip_v), \
     METASPR_ITEM(0, 8, PT_55, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_53, palette | flip_v | S_FLIPX), \
     METASPR_TERM \
 }

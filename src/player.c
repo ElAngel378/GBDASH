@@ -70,6 +70,11 @@ uint8_t player_update(
         }
     }
 
+    // Orb Buffering Logic: Only allow buffering if pressed while mid-air
+    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
+        p->orb_buffered = 1;
+    }
+
     if (player_noclip) {
         if (joy & J_A) p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         p->world_y.w += p->vel_y.w;
@@ -104,7 +109,10 @@ uint8_t player_update(
             p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
             p->world_y.b.l = 0;
             p->vel_y.w = 0;
-            if (!p->gravity_flipped) p->on_ground = 1;
+            if (!p->gravity_flipped) {
+                p->on_ground = 1;
+                p->orb_buffered = 0;
+            }
         }
     }
 
@@ -117,7 +125,10 @@ uint8_t player_update(
             p->world_y.b.h = (head_y & ~15) + 16;
             p->world_y.b.l = 0;
             p->vel_y.w = 0;
-            if (p->gravity_flipped) p->on_ground = 1;
+            if (p->gravity_flipped) {
+                p->on_ground = 1;
+                p->orb_buffered = 0;
+            }
         }
     }
 
@@ -129,6 +140,7 @@ uint8_t player_update(
         if (IS_SOLID(gl) || IS_SOLID(gr)) {
             p->on_ground = 1;
             p->vel_y.w = 0;
+            p->orb_buffered = 0;
         }
     }
 

@@ -165,7 +165,7 @@ static void process_sprite_logic(
 
     // PRE-CALCULATE CONSTANTS OUTSIDE THE LOOP
     uint16_t p_front = px + 15;
-    uint16_t p_bottom = py + PLAYER_SIZE + 16;
+    uint16_t p_bottom = py + PLAYER_SIZE;
     uint16_t p_feet = py + PLAYER_SIZE;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
@@ -259,9 +259,10 @@ static void process_sprite_logic(
                 case OBJ_ORB_BLUE:
                 {
                     if (joy & J_A) {
-                        if (py <= obj_y + 16 && p_feet >= obj_y) {
+                        if ((!(p->last_joy & J_A) || p->orb_buffered) && py <= obj_y + 16 && p_feet >= obj_y) {
                             if (!cache->activated[i]) {
                                 cache->activated[i] = 1;
+                                p->orb_buffered = 0; // Clear buffer after hit
                                 if (obj == OBJ_ORB_BLUE) {
                                     p->gravity_flipped = !p->gravity_flipped;
                                     int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
