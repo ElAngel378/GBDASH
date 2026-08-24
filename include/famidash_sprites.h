@@ -5,13 +5,14 @@
 #include <gbdk/metasprites.h>
 #include "assets.h"
 
-#define FAMIDASH_SPRITE_TILE_BASE 88
-#define FAMIDASH_SPRITE_TILE_COUNT 72
+#define FAMIDASH_SPRITE_TILE_BASE 104
+#define FAMIDASH_SPRITE_TILE_COUNT 84
 
 extern const uint8_t famidash_sprites_tiles[1152];
 
 extern const metasprite_t famidash_cube_portal[];
 extern const metasprite_t famidash_ship_portal[];
+extern const metasprite_t famidash_ball_portal[];
 extern const metasprite_t famidash_gravity_down[];
 extern const metasprite_t famidash_gravity_up[];
 extern const metasprite_t famidash_yellow_pad[];

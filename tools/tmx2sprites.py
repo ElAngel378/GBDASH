@@ -48,6 +48,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
     portals_map = {
         sprites_firstgid + 0:  0,   # Cube portal
         sprites_firstgid + 1:  1,   # Ship portal
+        sprites_firstgid + 2:  2,   # Ball portal
         sprites_firstgid + 5:  5,   # Blue Orb (Gravity)
         sprites_firstgid + 6:  6,   # Pink Orb
         sprites_firstgid + 8:  8,   # Normal gravity trigger

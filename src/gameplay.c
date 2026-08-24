@@ -23,6 +23,7 @@
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
 #define OBJ_SHIP_PORTAL   1
+#define OBJ_BALL_PORTAL   2
 #define OBJ_ORB_BLUE      5
 #define OBJ_ORB_PINK      6
 #define OBJ_GRAVITY_DOWN  8
@@ -185,12 +186,15 @@ static uint8_t process_and_draw_sprites(
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
+                case OBJ_BALL_PORTAL:
                     /* // [GUARD DISABLED]
                     if (px > obj_x + 24) break;
                     */
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
                         if (!cache->activated[i]) {
-                            p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
+                            if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
+                            else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
+                            else p->mode = MODE_BALL;
                             cache->activated[i] = 1;
                         }
                     }
@@ -320,7 +324,7 @@ static uint8_t process_and_draw_sprites(
         // DECO RENDERING (DISABLED BY DEFAULT)
         /*
         #define DP S_PAL(3)
-        #define FAMIDASH_SPRITE_TILE_BASE 88
+        #define FAMIDASH_SPRITE_TILE_BASE 104
         if (obj >= 42 && obj <= 63) {
             uint8_t oam = oam_start;
             // ... (DECO macros) ...
@@ -340,7 +344,7 @@ static uint8_t process_and_draw_sprites(
 
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
-        if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
+        if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
             oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
@@ -365,7 +369,7 @@ void draw_menu(void) BANKED {
         if (i == selected) printf("0 %s", game_levels[i]->name);
         else printf("  %s", game_levels[i]->name);
     }
-    printf("\n\n\n\n\n\n\n\nSotospro24");
+    printf("\n\n\n\n\n\n\nSotospro24");
     SHOW_BKG;
     redraw = 0;
 }

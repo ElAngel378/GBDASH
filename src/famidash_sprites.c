@@ -17,18 +17,24 @@ INCBIN_EXTERN(famidash_sprites_tiles)
 #define PT_47 6
 #define PT_49 8
 #define PT_4B 10
-#define PT_6D 12
-#define PT_6F 14
-#define PT_73 16
-#define PT_75 18
-#define PT_79 20
-#define PT_7B 22
-#define MT_99 24
-#define MT_9B 26
-#define MT_B9 28
-#define MT_BB 30
-#define PT_59 32
-#define PT_5B 34
+#define PT_BALL_41 12
+#define PT_BALL_43 14
+#define PT_BALL_45 16
+#define PT_BALL_47 18
+#define PT_BALL_49 20
+#define PT_BALL_4B 22
+#define PT_6D 24
+#define PT_6F 26
+#define PT_73 28
+#define PT_75 30
+#define PT_79 32
+#define PT_7B 34
+#define MT_99 36
+#define MT_9B 38
+#define MT_B9 40
+#define MT_BB 42
+#define PT_59 44
+#define PT_5B 46
 
 // 3 columns wide (24px) x 3 rows tall.
 // Carriage return goes down 16 (dy=16) and back left 16 (dx=-16) to hit column 1.
@@ -43,6 +49,13 @@ INCBIN_EXTERN(famidash_sprites_tiles)
                 METASPR_ITEM(0, 0, PT_41, P1),   METASPR_ITEM(0, 8, PT_43, P1),   METASPR_ITEM(0, 8, PT_45, P1),
                 METASPR_ITEM(16, -16, PT_47, P1), METASPR_ITEM(0, 8, PT_49, P1),   METASPR_ITEM(0, 8, PT_4B, P1),
                 METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
+                METASPR_TERM
+        };
+
+        const metasprite_t famidash_ball_portal[] = {
+                METASPR_ITEM(0, 0, PT_BALL_41, P1),   METASPR_ITEM(0, 8, PT_BALL_43, P1),   METASPR_ITEM(0, 8, PT_BALL_45, P1),
+                METASPR_ITEM(16, -16, PT_BALL_47, P1), METASPR_ITEM(0, 8, PT_BALL_49, P1),   METASPR_ITEM(0, 8, PT_BALL_4B, P1),
+                METASPR_ITEM(16, -16, PT_BALL_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_BALL_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_BALL_45, P1 | S_FLIPY),
                 METASPR_TERM
         };
 
@@ -81,7 +94,7 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P1,           P1 | S_FLIPX);
 
 const metasprite_t * const famidash_sprite_table[38] = {
-    famidash_cube_portal, famidash_ship_portal, 0, 0, 0,
+    famidash_cube_portal, famidash_ship_portal, famidash_ball_portal, 0, 0,
     famidash_blue_orb, famidash_pink_orb, 0,
     famidash_gravity_down, famidash_gravity_up,
     famidash_yellow_pad, famidash_yellow_orb,

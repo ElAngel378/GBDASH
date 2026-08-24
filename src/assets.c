@@ -32,6 +32,9 @@ extern const uint8_t jumper_map[];
 BANKREF_EXTERN(timemachine_map)
 extern const uint8_t timemachine_map[];
 
+BANKREF_EXTERN(cycles_map)
+extern const uint8_t cycles_map[];
+
 extern const SpDef stereomadness_sp[];
 BANKREF_EXTERN(stereomadness_sp)
 extern const SpDef backontrack_sp[];
@@ -48,6 +51,8 @@ extern const SpDef jumper_sp[];
 BANKREF_EXTERN(jumper_sp)
 extern const SpDef timemachine_sp[];
 BANKREF_EXTERN(timemachine_sp)
+extern const SpDef cycles_sp[];
+BANKREF_EXTERN(cycles_sp)
 
 // Music songs
 extern const hUGESong_t stereomadness;
@@ -68,7 +73,8 @@ const hUGESong_t * const level_songs[] = {
   &baseafterbase,// level_bab
   &cantletgo,    // level_clg
   &jumper,       // level_ju
-  &timemachine // level_tm
+  &timemachine, // level_tm
+  NULL          // level_cy
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -82,6 +88,7 @@ const uint8_t song_bank[] = {
   250u, // level_clg — cantletgo.c
   249u, // level_ju — jumper.c
   248u, // level_tm — timemachine.c
+  0u,   // level_cy — silent
 };
 
 // Level definitions with dimensions and bank info
@@ -182,6 +189,18 @@ const Level level_tm = {
   BANK(timemachine_sp)
 };
 
+const Level level_cy = {
+  "CYCLES",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  cycles_map,
+  chr_gb_TILE_COUNT, 823, 16, 0, 0,
+  BANK(cycles_map),
+  183,
+  cycles_sp,
+  BANK(cycles_sp)
+};
+
 // Global level list used by the menu and gameplay systems
 const Level* const game_levels[] = {
   &level_sm,
@@ -191,6 +210,7 @@ const Level* const game_levels[] = {
   &level_bab,
   &level_clg,
   &level_ju,
-  &level_tm
+  &level_tm,
+  &level_cy
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);

@@ -15,6 +15,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->mode = MODE_CUBE;
     p->reversed = 0;
     p->last_joy = 0;
+    p->ball_switched = 0;
     p->touching_orb = 0;
     p->level_complete = 0;
     p->sp_idx = 0;
@@ -55,11 +56,12 @@ uint8_t player_update(
             p->vel_y.w = (p->gravity_flipped ? -SHIP_MAX_VEL_DOWN : -SHIP_MAX_VEL_UP);
     } else {
         if (!p->on_ground) {
+            uint16_t gravity_val = (p->mode == MODE_BALL) ? BALL_GRAVITY : GRAVITY;
             if (p->gravity_flipped) {
-                p->vel_y.w -= GRAVITY;
+                p->vel_y.w -= gravity_val;
                 if (p->vel_y.w < -MAX_FALL_SPEED) p->vel_y.w = -MAX_FALL_SPEED;
             } else {
-                p->vel_y.w += GRAVITY;
+                p->vel_y.w += gravity_val;
                 if (p->vel_y.w > MAX_FALL_SPEED) p->vel_y.w = MAX_FALL_SPEED;
             }
         }
@@ -74,6 +76,16 @@ uint8_t player_update(
     if (p->mode == MODE_CUBE && (joy & J_A) && p->on_ground) {
         p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
         p->on_ground = 0;
+    } else if (p->mode == MODE_BALL) {
+        if ((joy & J_A) && !p->ball_switched && p->on_ground) {
+            p->gravity_flipped = !p->gravity_flipped;
+            p->vel_y.w = (p->gravity_flipped) ? -BALL_SWITCH_VEL : BALL_SWITCH_VEL;
+            p->on_ground = 0;
+            p->ball_switched = 1;
+        }
+        if (!(joy & J_A)) {
+            p->ball_switched = 0;
+        }
     }
 
     uint8_t py = p->world_y.b.h;

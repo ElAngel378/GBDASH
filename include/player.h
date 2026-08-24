@@ -21,11 +21,15 @@
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
+#define MODE_BALL         2
 
 #define SHIP_THRUST       -52   // Famidash SHIP_GRAVITY_BASE
 #define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY
 #define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
 #define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
+
+#define BALL_GRAVITY      102   // Famidash 0x0066
+#define BALL_SWITCH_VEL   614   // Famidash 0x0266
 
 #define MAX_ACTIVATIONS 8
 
@@ -62,6 +66,7 @@ typedef struct Player {
     uint8_t  anim_frame;
     uint16_t anim_timer;
     uint8_t  last_joy;
+    uint8_t  ball_switched;
     uint8_t  touching_orb;
     uint8_t  level_complete;
     uint16_t level_end_x;

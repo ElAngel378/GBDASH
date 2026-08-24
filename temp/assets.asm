@@ -9,6 +9,7 @@
 ;--------------------------------------------------------
 	.globl _MAX_LEVELS
 	.globl _game_levels
+	.globl _level_cy
 	.globl _level_tm
 	.globl _level_ju
 	.globl _level_clg
@@ -72,6 +73,7 @@ _level_songs:
 	.dw _cantletgo
 	.dw _jumper
 	.dw _timemachine
+	.dw #0x0000
 _song_bank:
 	.db #0xff	; 255
 	.db #0xfe	; 254
@@ -81,6 +83,7 @@ _song_bank:
 	.db #0xfa	; 250
 	.db #0xf9	; 249
 	.db #0xf8	; 248
+	.db #0x00	; 0
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
@@ -193,6 +196,20 @@ _level_tm:
 	.db #0x29	; 41
 	.dw _timemachine_sp
 	.byte ___bank_timemachine_sp
+_level_cy:
+	.dw __str_8
+	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
+	.dw _cycles_map
+	.dw #0x0100
+	.dw #0x0337
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_cycles_map
+	.db #0xb4	; 180
+	.dw _cycles_sp
+	.byte ___bank_cycles_sp
 _game_levels:
 	.dw _level_sm
 	.dw _level_bot
@@ -202,8 +219,9 @@ _game_levels:
 	.dw _level_clg
 	.dw _level_ju
 	.dw _level_tm
+	.dw _level_cy
 _MAX_LEVELS:
-	.db #0x08	; 8
+	.db #0x09	; 9
 __str_0:
 	.ascii "STEREO MADNESS"
 	.db 0x00
@@ -227,6 +245,9 @@ __str_6:
 	.db 0x00
 __str_7:
 	.ascii "TIME MACHINE"
+	.db 0x00
+__str_8:
+	.ascii "CYCLES"
 	.db 0x00
 	.area _INITIALIZER
 	.area _CABS (ABS)
