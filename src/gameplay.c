@@ -178,7 +178,7 @@ static void process_sprite_logic(
             continue;
         }
 
-        if (obj_x <= p_front) {
+        if (obj_x + 2 <= p_front && px <= obj_x + 13) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
@@ -214,8 +214,8 @@ static void process_sprite_logic(
                 case OBJ_PAD_BLUE_UP:
                 {
                     uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 12);
-                    uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
+                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
+                    uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
 
                     if (py <= pad_bot && p_feet >= pad_top) {
                         if (!cache->activated[i]) {
@@ -279,6 +279,8 @@ static void process_sprite_logic(
                     }
                     break;
             }
+        } else if (obj_x > p_front + 16) {
+            break;
         }
     }
 }
@@ -299,11 +301,14 @@ static uint8_t draw_sprites(
 
         if (obj == OBJ_LEVEL_END || obj >= 100) continue;
 
+        int16_t rel_x = (int16_t)obj_x - (int16_t)cam_px;
+        if (rel_x < -64 || rel_x > 176) continue;
+
         uint8_t screen_x;
         if (reversed) {
-            screen_x = 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8;
+            screen_x = 128 - (uint8_t)rel_x + 8;
         } else {
-            screen_x = ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
+            screen_x = (uint8_t)rel_x + PLAYER_SCREEN_X + 8;
         }
 
         uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;

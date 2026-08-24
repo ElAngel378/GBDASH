@@ -31,20 +31,20 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_1                                                        0000185C R
-  8 ___str_2                                                        0000186E R
-  8 ___str_3                                                        00001873 R
-  8 ___str_4                                                        00001878 R
-  8 ___str_5                                                        000025CC R
-  8 ___str_6                                                        000025DB R
+  8 ___str_1                                                        000018CE R
+  8 ___str_2                                                        000018E0 R
+  8 ___str_3                                                        000018E5 R
+  8 ___str_4                                                        000018EA R
+  8 ___str_5                                                        0000263E R
+  8 ___str_6                                                        0000264D R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      000017D2 GR
+  8 _draw_menu                                                      00001844 GR
     _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   00000249 R
   8 _draw_oam_2x3                                                   00000391 R
   8 _draw_oam_3x3                                                   00000826 R
-  8 _draw_sprites                                                   000015EA R
+  8 _draw_sprites                                                   0000162B R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -70,7 +70,7 @@ Symbol Table
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     0000188A GR
+  8 _play_level                                                     000018FC GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -81,7 +81,7 @@ Symbol Table
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                000017C1 GR
+  8 _setup_menu_font                                                00001833 GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
@@ -109,7 +109,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     25EB   flags    0
+   8 _CODE_10                                   size     265D   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 
