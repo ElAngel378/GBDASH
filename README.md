@@ -5,6 +5,7 @@
 # GB DASH
 
 ### GB Dash is a demake of Geometry Dash for the DMG GameBoy!
+Info: The project is going to be renamed to Geometry Dash Pocket soon.
 
 ### Images:
 <p align="center">
