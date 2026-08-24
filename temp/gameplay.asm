@@ -826,7 +826,7 @@ _process_and_draw_sprites:
 	jp	NC, 00364$
 	ldhl	sp,	#71
 	ld	a, (hl)
-	sub	a, #0x0b
+	sub	a, #0x0a
 	jp	NC, 00364$
 ;src/gameplay.c:225: if (!cache->active[sp_idx]) break; // Early out
 	ldhl	sp,#15
@@ -1932,11 +1932,26 @@ _process_and_draw_sprites:
 	cp	a, #0xd1
 	jp	NC, 00363$
 ;src/gameplay.c:359: if (oam_start > OBJ_OAM_MAX - 9) break;
-	ld	a, #0x02
 	ldhl	sp,	#71
-	sub	a, (hl)
+	ld	c, (hl)
+	ld	e, c
+	ld	a,#0x01
+	ld	d,a
+	sub	a, c
+	bit	7, e
+	jr	Z, 01343$
+	bit	7, d
+	jr	NZ, 01344$
+	cp	a, a
+	jr	01344$
+01343$:
+	bit	7, d
+	jr	Z, 01344$
+	scf
+01344$:
 	jp	C, 00364$
 ;src/gameplay.c:362: uint8_t oam = oam_start;
+	ldhl	sp,	#71
 	ld	a, (hl)
 	ldhl	sp,	#55
 	ld	(hl), a
@@ -1953,7 +1968,7 @@ _process_and_draw_sprites:
 	add	a, #0xd6
 	ld	c, a
 	ld	b, #0x00
-	ld	hl, #01343$
+	ld	hl, #01345$
 	add	hl, bc
 	add	hl, bc
 	ld	c, (hl)
@@ -1961,7 +1976,7 @@ _process_and_draw_sprites:
 	ld	h, (hl)
 	ld	l, c
 	jp	(hl)
-01343$:
+01345$:
 	.dw	00186$
 	.dw	00190$
 	.dw	00197$
@@ -4951,13 +4966,13 @@ _process_and_draw_sprites:
 	ld	(hl+), a
 	ld	(hl), #0x00
 	ld	a, #0x02
-01413$:
+01415$:
 	ldhl	sp,	#49
 	sla	(hl)
 	inc	hl
 	rl	(hl)
 	dec	a
-	jr	NZ, 01413$
+	jr	NZ, 01415$
 	ld	de, #_shadow_OAM
 	ld	a, (hl-)
 	ld	l, (hl)

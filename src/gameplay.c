@@ -49,7 +49,7 @@
 // Level objects must never write into this range, otherwise the player
 // draw overflows past shadow_OAM[] and corrupts adjacent WRAM.
 #define PLAYER_OAM_SLOTS 4
-#define OBJ_OAM_MAX      11
+#define OBJ_OAM_MAX      10
 
 extern uint8_t music_ready;
 
