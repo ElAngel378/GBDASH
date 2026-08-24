@@ -60,7 +60,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sprites_firstgid + 15: 15,  # Level end
         sprites_firstgid + 126: 126,  # test
         sprites_firstgid + 121: 121,  # test
-        **{sprites_firstgid + i: i for i in range(42, 62)},
+        # **{sprites_firstgid + i: i for i in range(42, 62)}, # DECO DISABLED
     }
 
     # BG Color mappings:
