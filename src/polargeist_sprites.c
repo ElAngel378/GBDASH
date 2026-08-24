@@ -1,9 +1,9 @@
-#pragma bank 123
+#pragma bank 122
 #include "assets.h"
 
 BANKREF(polargeist_sp)
 
-// Extracted 58 objects from SP layer
+// Extracted 59 objects from SP layer
 const SpDef polargeist_sp[] = {
     {17, 1, 11},
     {32, 1, 11},
@@ -45,6 +45,7 @@ const SpDef polargeist_sp[] = {
     {656, 4, 10},
     {687, 2, 11},
     {708, 0, 13},
+    {714, 15, 16},
     {716, 17, 100},
     {716, 1, 100},
     {717, 3, 10},

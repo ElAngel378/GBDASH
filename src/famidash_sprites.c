@@ -29,6 +29,11 @@ INCBIN_EXTERN(famidash_sprites_tiles)
 #define MT_BB 30
 #define PT_59 32
 #define PT_5B 34
+#define PT_4D 36
+#define PT_4F 38
+#define PT_51 40
+#define PT_53 42
+#define PT_55 44
 
 // 3 columns wide (24px) x 3 rows tall.
 // Carriage return goes down 16 (dy=16) and back left 16 (dx=-16) to hit column 1.
@@ -45,6 +50,27 @@ INCBIN_EXTERN(famidash_sprites_tiles)
                 METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
                 METASPR_TERM
         };
+
+        const metasprite_t famidash_ball_portal[] = {
+                METASPR_ITEM(0, 0, PT_41, P1),   METASPR_ITEM(0, 8, PT_43, P1),   METASPR_ITEM(0, 8, PT_45, P1),
+                METASPR_ITEM(16, -16, PT_47, P1), METASPR_ITEM(0, 8, PT_49, P1),   METASPR_ITEM(0, 8, PT_4B, P1),
+                METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
+                METASPR_TERM
+        };
+
+#define HORIZ_PORTAL(name, palette, flip_v) \
+const metasprite_t name[] = { \
+    METASPR_ITEM(0, 0, PT_4D, palette | flip_v), METASPR_ITEM(0, 8, PT_4F, palette | flip_v), METASPR_ITEM(0, 8, PT_51, palette | flip_v), \
+    METASPR_ITEM(0, 8, PT_51, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_4F, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_4D, palette | flip_v | S_FLIPX), \
+    METASPR_ITEM(flip_v ? 16 : -16, -40, PT_53, palette | flip_v), METASPR_ITEM(0, 8, PT_55, palette | flip_v), \
+    METASPR_ITEM(0, 8, PT_55, palette | flip_v | S_FLIPX), METASPR_ITEM(0, 8, PT_53, palette | flip_v | S_FLIPX), \
+    METASPR_TERM \
+}
+
+        HORIZ_PORTAL(famidash_portal_dn_horiz_dn, P0, 0);
+        HORIZ_PORTAL(famidash_portal_dn_horiz_up, P0, S_FLIPY);
+        HORIZ_PORTAL(famidash_portal_up_horiz_dn, P1, 0);
+        HORIZ_PORTAL(famidash_portal_up_horiz_up, P1, S_FLIPY);
 
 // 2 columns wide (16px) x 3 rows tall.
 // Carriage return goes down 16 (dy=16) and back left 8 (dx=-8) to hit column 1.
@@ -81,11 +107,14 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P1,           P1 | S_FLIPX);
 
 const metasprite_t * const famidash_sprite_table[38] = {
-    famidash_cube_portal, famidash_ship_portal, 0, 0, 0,
+    famidash_cube_portal, famidash_ship_portal, famidash_ball_portal, 0, 0,
     famidash_blue_orb, famidash_pink_orb, 0,
     famidash_gravity_down, famidash_gravity_up,
     famidash_yellow_pad, famidash_yellow_orb,
     famidash_yellow_pad_up, famidash_blue_pad, famidash_blue_pad_up,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+    famidash_portal_dn_horiz_dn, famidash_portal_dn_horiz_up,
+    famidash_portal_up_horiz_dn, famidash_portal_up_horiz_up,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     famidash_pink_pad
 };

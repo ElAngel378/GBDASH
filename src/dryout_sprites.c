@@ -1,4 +1,4 @@
-#pragma bank 125
+#pragma bank 124
 #include "assets.h"
 
 BANKREF(dryout_sp)

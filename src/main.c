@@ -1,7 +1,10 @@
 #include <gb/gb.h>
 #include "assets.h"
 #include "gameplay.h"
+#include "collision.h"
 #include "hUGEDriver.h"
+
+extern const hUGESong_t menuloop;
 
 uint8_t music_ready = 0;
 uint8_t redraw = 1;
@@ -26,14 +29,14 @@ void main(void) {
   NR51_REG = 0xFF;
   NR50_REG = 0x77;
 
-  // Set up timer at ~60 Hz for music playback
-  TMA_REG = 187;   // ~60 Hz (4096 Hz / (256-187) ≈ 59.4 Hz)
   TAC_REG = 0x04;
   add_TIM(play_music_safe);
   set_interrupts(VBL_IFLAG | TIM_IFLAG);
   enable_interrupts();
 
   setup_menu_font();
+
+  init_music_banked(&menuloop, 1, 176);
 
   while (1) {
     if (redraw) draw_menu();
@@ -50,10 +53,20 @@ void main(void) {
     } else if (joy & J_A) {
       disable_interrupts();
       play_level(selected);
+
+      // Stop level music and re-init sound hardware for menu
       music_ready = 0;
-      TAC_REG = 0x00;   // Stop music timer immediately
-      NR52_REG = 0x00; // Silence
+      TAC_REG = 0x00;
+      NR52_REG = 0x00;
+      NR52_REG = 0x80;
+      NR51_REG = 0xFF;
+      NR50_REG = 0x77;
+
+      setup_menu_font(); // Re-setup font just in case
+        init_music_banked(&menuloop, 1, 176);
+      TAC_REG = 0x04;    // Start timer
       enable_interrupts();
+      redraw = 1;
     }
 
     wait_vbl_done();

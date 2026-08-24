@@ -23,6 +23,7 @@
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
 #define OBJ_SHIP_PORTAL   1
+#define OBJ_BALL_PORTAL   2
 #define OBJ_ORB_BLUE      5
 #define OBJ_ORB_PINK      6
 #define OBJ_GRAVITY_DOWN  8
@@ -36,6 +37,10 @@
 #define OBJ_LEVEL_END     15
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
+#define OBJ_PORTAL_DN_HORIZ_DN  16
+#define OBJ_PORTAL_DN_HORIZ_UP  17
+#define OBJ_PORTAL_UP_HORIZ_DN  18
+#define OBJ_PORTAL_UP_HORIZ_UP  19
 
 // Scroll speed in 8.8 fixed point (pixels per frame)
 // Example: 3.0 = 768, 3.5 = 896, 4.0 = 1024
@@ -150,22 +155,21 @@ static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 9;
 }
 
-static uint8_t process_and_draw_sprites(
-        SpCache *cache, uint16_t cam_px, uint16_t cam_py,
-        Player* p, uint8_t joy, uint8_t* target_bg_idx, uint8_t oam_start
+static void process_sprite_logic(
+        SpCache *cache, uint16_t cam_px,
+        Player* p, uint8_t joy, uint8_t* target_bg_idx
 ) {
     uint8_t i;
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
-    uint8_t reversed = p->reversed;
 
-    // PRE-CALCULATE CONSTANTS OUTSIDE THE LOOP (Massive CPU saver)
+    // PRE-CALCULATE CONSTANTS OUTSIDE THE LOOP
     uint16_t p_front = px + 15;
-    uint16_t p_bottom = py + PLAYER_SIZE + 16;
+    uint16_t p_bottom = py + PLAYER_SIZE;
     uint16_t p_feet = py + PLAYER_SIZE;
 
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        if (!cache->active[i]) break; // Early out
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        if (!cache->active[i]) break;
 
         uint16_t obj_x = cache->px[i];
         if (obj_x > cam_px + 176u) break;
@@ -173,21 +177,35 @@ static uint8_t process_and_draw_sprites(
         uint8_t obj = cache->obj[i];
         uint16_t obj_y = cache->py[i];
 
-        // ==========================================
-        // 1. COLLISION & LOGIC
-        // ==========================================
         if (obj == OBJ_LEVEL_END) {
             if (px >= (obj_x - 180)) p->level_complete = 1;
             continue;
         }
 
-        if (obj_x <= p_front) {
+        if (obj >= 16 && obj <= 19) {
+            // 48-pixel (3 tile) wide horizontal gravity portal
+            if (obj_x <= p_front && px <= obj_x + 48u) {
+                if (py <= obj_y + 14u && p_bottom >= obj_y) {
+                    if (!cache->activated[i]) {
+                        uint8_t target_flipped = (obj >= 18);
+                        if (p->gravity_flipped != target_flipped) {
+                            p->gravity_flipped = target_flipped;
+                            p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                        }
+                        cache->activated[i] = 1;
+                    }
+                }
+            }
+        } else if (obj_x + 2 <= p_front && px <= obj_x + 13) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
+                case OBJ_BALL_PORTAL:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
                         if (!cache->activated[i]) {
-                            p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
+                            if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
+                            else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
+                            else p->mode = MODE_BALL;
                             cache->activated[i] = 1;
                         }
                     }
@@ -214,8 +232,8 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_PAD_BLUE_UP:
                 {
                     uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 12);
-                    uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
+                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
+                    uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
 
                     if (py <= pad_bot && p_feet >= pad_top) {
                         if (!cache->activated[i]) {
@@ -224,9 +242,11 @@ static uint8_t process_and_draw_sprites(
                                 p->gravity_flipped = !p->gravity_flipped;
                                 p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
                             } else if (obj == OBJ_PAD_PINK) {
-                                p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
+                                int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
+                                p->vel_y.w = (p->gravity_flipped) ? -force : force;
                             } else {
-                                p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                                int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_PAD : PAD_JUMP_FORCE;
+                                p->vel_y.w = (p->gravity_flipped) ? -force : force;
                             }
                             p->on_ground = 0;
                         }
@@ -239,16 +259,20 @@ static uint8_t process_and_draw_sprites(
                 case OBJ_ORB_BLUE:
                 {
                     if (joy & J_A) {
-                        if (py <= obj_y + 16 && p_feet >= obj_y) {
+                        if ((!(p->last_joy & J_A) || p->orb_buffered) && py <= obj_y + 16 && p_feet >= obj_y) {
                             if (!cache->activated[i]) {
                                 cache->activated[i] = 1;
+                                p->orb_buffered = 0; // Clear buffer after hit
                                 if (obj == OBJ_ORB_BLUE) {
                                     p->gravity_flipped = !p->gravity_flipped;
-                                    p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
+                                    int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
+                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 } else if (obj == OBJ_ORB_PINK) {
-                                    p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+                                    int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_ORB : MAGENTA_JUMP_FORCE;
+                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 } else {
-                                    p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 120 : JUMP_FORCE - 120;
+                                    int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_ORB : JUMP_FORCE;
+                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 }
                                 p->on_ground = 0;
                             }
@@ -265,35 +289,45 @@ static uint8_t process_and_draw_sprites(
                     continue;
 
                 case OBJ_MIRROR_PORTAL:
-                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
-                        if (!cache->activated[i]) {
-                            p->reversed = 1;
-                            cache->activated[i] = 1;
-                        }
-                    }
-                    break;
-
                 case OBJ_MIRROR_EXIT:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
                         if (!cache->activated[i]) {
-                            p->reversed = 0;
+                            p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
                             cache->activated[i] = 1;
                         }
                     }
                     break;
             }
+        } else if (obj_x > p_front + 16) {
+            break;
         }
+    }
+}
 
-        // ==========================================
-        // 2. RENDERING
-        // ==========================================
-        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+static uint8_t draw_sprites(
+        SpCache *cache, uint16_t cam_px, uint16_t cam_py,
+        uint8_t reversed, uint8_t oam_start
+) {
+    uint8_t i;
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
+        if (!cache->active[i]) break;
+
+        uint16_t obj_x = cache->px[i];
+        if (obj_x > cam_px + 176u) break;
+
+        uint8_t obj = cache->obj[i];
+        uint16_t obj_y = cache->py[i];
+
+        if (obj == OBJ_LEVEL_END || obj >= 100) continue;
+
+        int16_t rel_x = (int16_t)obj_x - (int16_t)cam_px;
+        if (rel_x < -64 || rel_x > 176) continue;
 
         uint8_t screen_x;
         if (reversed) {
-            screen_x = 128 - ((uint8_t)obj_x - (uint8_t)cam_px) + 8;
+            screen_x = 128 - (uint8_t)rel_x + 8;
         } else {
-            screen_x = ((uint8_t)obj_x - (uint8_t)cam_px) + PLAYER_SCREEN_X + 8;
+            screen_x = (uint8_t)rel_x + PLAYER_SCREEN_X + 8;
         }
 
         uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
@@ -302,10 +336,21 @@ static uint8_t process_and_draw_sprites(
         if (screen_y > 160 && screen_y < 208) continue;
 
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
+        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+
+        // Temporary: Disable orb and pad graphics
+        if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
+            obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
+            obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
+            continue;
+        }
 
         const metasprite_t *sprite = famidash_sprite_table[obj];
 
-        if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
+        if (obj >= 16 && obj <= 19) {
+            if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+            else oam_start += move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+        } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
             oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
@@ -324,13 +369,13 @@ void setup_menu_font(void) BANKED {
 void draw_menu(void) BANKED {
     fill_bkg_rect(0, 0, 20, 18, 0x00);
     gotoxy(0, 0);
-    printf("GBDASH DEMO 01\n");
+    printf("GD POCKET DEMO 01\n");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
         gotoxy(1, 2 + i);
         if (i == selected) printf("0 %s", game_levels[i]->name);
         else printf("  %s", game_levels[i]->name);
     }
-    printf("\n\n\n\n\n\n\n\nSotospro24");
+    printf("\n\n\n\n\n\n\nSotospro24");
     SHOW_BKG;
     redraw = 0;
 }
@@ -492,6 +537,10 @@ void play_level(uint8_t idx) BANKED {
                                    level_map_bank, collision_columns);
             cached_collision_col = collision_col;
         }
+
+        // Logic (Pads, Orbs, Portals) BEFORE player movement
+        process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+
         died = player_update(&player, joy, collision_columns, level_map_h);
 
         py = player_screen_y(&player, cam_py);
@@ -532,9 +581,9 @@ void play_level(uint8_t idx) BANKED {
             draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
         }
 
-        uint8_t oam_index = process_and_draw_sprites(
+        uint8_t oam_index = draw_sprites(
             &active_sp, cam_px, cam_py,
-            &player, joy, &target_bg_idx, 0
+            player.reversed, 0
         );
 
         if (player.mode == MODE_SHIP) {
@@ -582,6 +631,12 @@ void play_level(uint8_t idx) BANKED {
             disable_interrupts();
             // Restore normal tileset on death
             load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
+
+            /* // [SPRITE RELOAD DISABLED]
+            set_sprite_data(0, 8, icon1_tiles);
+            set_sprite_data(8, 4, ship_tiles);
+            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+            */
 
             cam_px = 0;
             cam_py = 112;

@@ -15,11 +15,10 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->mode = MODE_CUBE;
     p->reversed = 0;
     p->last_joy = 0;
+    p->ball_switched = 0;
     p->touching_orb = 0;
     p->level_complete = 0;
     p->sp_idx = 0;
-
-    // The activated array and tracking variables have been removed!
 }
 
 int16_t player_screen_y(const Player* p, uint16_t cam_y) {
@@ -38,31 +37,42 @@ uint8_t player_update(
         uint16_t map_h
 ) {
     if (p->dead) return 1;
+    if (p->level_complete) return 0;
 
-    if (p->level_complete) {
-        return 0;
+    // --------------------------------------------------------
+    // 1. PHASE 1: ACCELERATE (FamiDash Style)
+    // --------------------------------------------------------
+    if (p->mode == MODE_SHIP) {
+        int16_t accel;
+        if (joy & J_A) {
+            accel = (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
+        } else {
+            accel = (p->gravity_flipped) ? -SHIP_GRAVITY : SHIP_GRAVITY;
+        }
+        p->vel_y.w += accel;
+
+        // Ship Terminal Velocity
+        if (p->gravity_flipped) {
+            if (p->vel_y.w < -SHIP_MAX_VEL_UP) p->vel_y.w = -SHIP_MAX_VEL_UP;
+            if (p->vel_y.w > SHIP_MAX_VEL_DOWN) p->vel_y.w = SHIP_MAX_VEL_DOWN;
+        } else {
+            if (p->vel_y.w > SHIP_MAX_VEL_UP) p->vel_y.w = SHIP_MAX_VEL_UP;
+            if (p->vel_y.w < -SHIP_MAX_VEL_DOWN) p->vel_y.w = -SHIP_MAX_VEL_DOWN;
+        }
+    } else {
+        uint16_t gravity_val = (p->mode == MODE_BALL) ? BALL_GRAVITY : GRAVITY;
+        if (p->gravity_flipped) {
+            p->vel_y.w -= gravity_val;
+            if (p->vel_y.w < -MAX_FALL_SPEED) p->vel_y.w = -MAX_FALL_SPEED;
+        } else {
+            p->vel_y.w += gravity_val;
+            if (p->vel_y.w > MAX_FALL_SPEED) p->vel_y.w = MAX_FALL_SPEED;
+        }
     }
 
-    if (p->mode == MODE_SHIP) {
-        if (joy & J_A) {
-            p->vel_y.w += (p->gravity_flipped) ? -SHIP_THRUST : SHIP_THRUST;
-        } else {
-            p->vel_y.w += (p->gravity_flipped) ? -SHIP_GRAVITY : SHIP_GRAVITY;
-        }
-        if (p->vel_y.w > (p->gravity_flipped ? SHIP_MAX_VEL_UP : SHIP_MAX_VEL_DOWN))
-            p->vel_y.w = (p->gravity_flipped ? SHIP_MAX_VEL_UP : SHIP_MAX_VEL_DOWN);
-        if (p->vel_y.w < (p->gravity_flipped ? -SHIP_MAX_VEL_DOWN : -SHIP_MAX_VEL_UP))
-            p->vel_y.w = (p->gravity_flipped ? -SHIP_MAX_VEL_DOWN : -SHIP_MAX_VEL_UP);
-    } else {
-        if (!p->on_ground) {
-            if (p->gravity_flipped) {
-                p->vel_y.w -= GRAVITY;
-                if (p->vel_y.w < -MAX_FALL_SPEED) p->vel_y.w = -MAX_FALL_SPEED;
-            } else {
-                p->vel_y.w += GRAVITY;
-                if (p->vel_y.w > MAX_FALL_SPEED) p->vel_y.w = MAX_FALL_SPEED;
-            }
-        }
+    // Orb Buffering Logic: Only allow buffering if pressed while mid-air
+    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
+        p->orb_buffered = 1;
     }
 
     if (player_noclip) {
@@ -71,126 +81,153 @@ uint8_t player_update(
         return 0;
     }
 
-    if (p->mode == MODE_CUBE && (joy & J_A) && p->on_ground) {
-        p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
-        p->on_ground = 0;
-    }
+    // --------------------------------------------------------
+    // 2. PHASE 2: MOVE
+    // --------------------------------------------------------
+    p->world_y.w += p->vel_y.w;
 
+    // --------------------------------------------------------
+    // 3. PHASE 3: EJECT (Collision Response)
+    // --------------------------------------------------------
     uint8_t py = p->world_y.b.h;
     const uint8_t* c0 = collision_columns;
     const uint8_t* c1 = collision_columns + 16;
-
     uint8_t x_mod_16 = (uint8_t)p->world_x & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
-    uint8_t front_mid = COL_AT_PTR(p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE), py + 8);
-
-    if (IS_SOLID(front_mid)) {
-        p->dead = 1;
-        return 1;
-    }
-
-    p->world_y.w += p->vel_y.w;
-    uint8_t ny = p->world_y.b.h;
     p->on_ground = 0;
 
-    int16_t check_y_foot = (p->gravity_flipped) ? ny : ny + PLAYER_SIZE;
-    uint8_t falling = (p->gravity_flipped) ? (p->vel_y.w <= 0) : (p->vel_y.w >= 0);
-
-    // Defer the collision lookup to save CPU, but maintain the original logic path
-    uint8_t hit_foot = 0;
-    if (falling) {
-        uint8_t cl = COL_AT_PTR(GET_COL_FAST(2), check_y_foot);
-        uint8_t cr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_foot);
-        if (IS_SOLID(cl) || IS_SOLID(cr)) hit_foot = 1;
-    }
-
-    if (hit_foot) {
-        if (p->gravity_flipped) {
-            py = ((ny >> 4) + 1) << 4;
-        } else {
-            py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
-        }
-        p->world_y.b.h = py;
-        p->world_y.b.l = 0;
-        p->vel_y.w = 0;
-        p->on_ground = 1;
-    } else {
-        // Head / Ceiling check - always run this if we didn't hit the ground!
-        int16_t check_y_head;
-        if (p->mode == MODE_SHIP) {
-            check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE) : ny;
-        } else {
-            check_y_head = (p->gravity_flipped) ? (ny + PLAYER_SIZE - PLAYER_HBOX) : (ny + PLAYER_HBOX);
-        }
-
-        uint8_t hl = COL_AT_PTR(GET_COL_FAST(2), check_y_head);
-        uint8_t hr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), check_y_head);
-
-        if (IS_SOLID(hl) || IS_SOLID(hr)) {
-            if (p->mode == MODE_CUBE) {
-                p->dead = 1;
-                return 1;
+    // --- Vertical Ejection ---
+    // Check Floor
+    int16_t foot_y = py + PLAYER_SIZE;
+    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(3), foot_y);
+    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), foot_y);
+    if (IS_SOLID(cl_f) || IS_SOLID(cr_f)) {
+        if (!p->gravity_flipped || p->mode == MODE_SHIP) {
+            uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : cr_f;
+            if (hit_col == COL_BOTTOM) {
+                p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
             } else {
-                if (p->gravity_flipped) {
-                    py = ((ny + PLAYER_SIZE) & ~15) - PLAYER_SIZE - 1;
-                } else {
-                    py = ((ny >> 4) + 1) << 4;
-                }
-                p->world_y.b.h = py;
-                p->world_y.b.l = 0;
-                p->vel_y.w = 0;
+                p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
             }
-        } else {
-            py = ny;
-
-            // Sticky ground check
-            int16_t sticky_y = (p->gravity_flipped) ? ny - 1 : ny + PLAYER_SIZE + 1;
-            uint8_t gl = COL_AT_PTR(GET_COL_FAST(2), sticky_y);
-            uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
-
-            if (IS_SOLID(gl) || IS_SOLID(gr)) {
+            p->world_y.b.l = 0;
+            p->vel_y.w = 0;
+            if (!p->gravity_flipped) {
                 p->on_ground = 1;
-                if (p->mode == MODE_CUBE) p->vel_y.w = 0;
-                else if (p->gravity_flipped) { if (p->vel_y.w < 0) p->vel_y.w = 0; }
-                else { if (p->vel_y.w > 0) p->vel_y.w = 0; }
+                p->orb_buffered = 0;
             }
         }
     }
 
+    // Check Ceiling
+    int16_t head_y = py;
+    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(3), head_y);
+    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), head_y);
+    if (IS_SOLID(cl_h) || IS_SOLID(cr_h)) {
+        if (p->gravity_flipped || p->mode == MODE_SHIP) {
+            uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : cr_h;
+            if (hit_col == COL_TOP) {
+                p->world_y.b.h = (head_y & ~15) + 8;
+            } else {
+                p->world_y.b.h = (head_y & ~15) + 16;
+            }
+            p->world_y.b.l = 0;
+            p->vel_y.w = 0;
+            if (p->gravity_flipped) {
+                p->on_ground = 1;
+                p->orb_buffered = 0;
+            }
+        }
+    }
+
+    // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
+    if (!p->on_ground) {
+        int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
+        uint8_t gl = COL_AT_PTR(GET_COL_FAST(3), sticky_y);
+        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), sticky_y);
+        if (IS_SOLID(gl) || IS_SOLID(gr)) {
+            p->on_ground = 1;
+            p->vel_y.w = 0;
+            p->orb_buffered = 0;
+        }
+    }
+
+    // --- Wall / Front Collision (Death) ---
+    py = p->world_y.b.h;
     const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
     uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
     uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
-
     if (IS_SOLID(front_head) || IS_SOLID(front_foot)) {
         p->dead = 1;
         return 1;
     }
 
-    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-
+    // --- Hazard Collision (Spikes) ---
+    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_HBOX);
+    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
+    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX + 1), py + PLAYER_SIZE - PLAYER_HBOX);
     if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
         p->dead = 1;
         return 1;
     }
 
+    // --------------------------------------------------------
+    // 4. PHASE 4: INPUT (After Eject)
+    // --------------------------------------------------------
     if (p->on_ground) {
-        p->anim_timer = 0;
-        p->anim_frame = 0;
+        if (joy & J_A) {
+            if (p->mode == MODE_CUBE) {
+                p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
+                p->on_ground = 0;
+            } else if (p->mode == MODE_BALL && !p->ball_switched) {
+                p->gravity_flipped = !p->gravity_flipped;
+                p->vel_y.w = (p->gravity_flipped) ? -BALL_SWITCH_VEL : BALL_SWITCH_VEL;
+                p->on_ground = 0;
+                p->ball_switched = 1;
+            }
+        }
+    }
+    if (!(joy & J_A)) p->ball_switched = 0;
+
+    // Animation Update
+    if (p->on_ground && p->mode != MODE_BALL) {
+        // Landed mid-spin: settle onto the NEAREST square side.
+        // A quarter turn is 6 frames (90 deg), so the midpoint of the
+        // quarter is 45 deg. Past the midpoint -> finish the spin
+        // forwards; before the midpoint -> roll backwards instead.
+        uint8_t q = p->anim_frame % 6;
+        if (q != 0) {
+            p->anim_timer += 20; // double speed while settling
+            if (p->anim_timer >= 21) {
+                p->anim_timer -= 21;
+                if (q >= 3) {
+                    // Forward: complete the rotation to the next square
+                    p->anim_frame++;
+                    if (p->anim_frame >= 24) {
+                        p->anim_frame = 0;
+                        p->anim_timer = 0;
+                    }
+                } else {
+                    // Backward: un-roll to the previous square
+                    p->anim_frame--;
+                }
+            }
+        } else {
+            p->anim_timer = 0;
+        }
     } else {
         p->anim_timer += 10;
-        if (p->anim_timer >= 20) {
-            p->anim_timer -= 20;
+        if (p->anim_timer >= 21) {
+            p->anim_timer -= 21;
             p->anim_frame++;
             if (p->anim_frame >= 24) p->anim_frame = 0;
         }
     }
 
+    // Bounds check
     if (p->world_y.b.h > (map_h << 4)) {
         p->dead = 1;
         return 1;

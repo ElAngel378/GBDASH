@@ -7,15 +7,23 @@ const readText = (name) => read(name).toString("utf8");
 const write = (name, data) => fs.writeFileSync(path.join(ROOT, name), data);
 
 const PLAYER_TILE_COUNT = 12;
-const SPRITE_TILE_BASE = 88;
+const SPRITE_TILE_BASE = 104;
 
 // The source pairs used by the currently supported Famidash object IDs.
 // Each entry is an NES 8x16 pair: the listed tile and the tile immediately after it.
 const spritePairs = [
     ["portals", 0], ["portals", 2], ["portals", 4], ["portals", 6], ["portals", 8], ["portals", 10],
     ["portals", 44], ["portals", 46], ["portals", 50], ["portals", 52], ["portals", 56], ["portals", 58],
-    ["main", 24], ["main", 26], ["main", 56], ["main", 58], ["portals", 24], ["portals", 26]
+    ["main", 24], ["main", 26], ["main", 56], ["main", 58], ["portals", 24], ["portals", 26],
+    ["portals", 12], ["portals", 14], ["portals", 16], ["portals", 18], ["portals", 20], ["portals", 22]
 ];
+
+// Decoration pairs from Famidash's first decoration CHR bank. The source
+// tile numbers are the start (even) tile of each NES 8x16 pair.
+const decoPairs = [
+    14, 8, 10, 12, 20, 22, 24, 26, 28, 30,
+    32, 34, 36, 38, 44, 52, 48, 54
+].map((tile) => ["blank", tile]);
 
 function arrayBody(source, name) {
     const start = source.indexOf(`const uint8_t ${name}[`);
@@ -118,12 +126,19 @@ const compactMetatiles = [
 
 const portalChr = read("famidash-main/GRAPHICS/Level Sprites/bankportals.chr");
 const mainChr = read("famidash-main/GRAPHICS/Level Sprites/bankmain.chr");
-const compactSprites = Buffer.alloc(spritePairs.length * 2 * 16);
+const decoChr = read("famidash-main/GRAPHICS/Level Sprites/bankblank.chr");
+const compactSprites = Buffer.alloc((spritePairs.length + decoPairs.length) * 2 * 16);
 for (let index = 0; index < spritePairs.length; index++) {
     const [bank, tile] = spritePairs[index];
     const chr = bank === "portals" ? portalChr : mainChr;
     nesTileToGb(chr, tile).copy(compactSprites, index * 32);
     nesTileToGb(chr, tile + 1).copy(compactSprites, index * 32 + 16);
+}
+for (let index = 0; index < decoPairs.length; index++) {
+    const [, tile] = decoPairs[index];
+    const offset = (spritePairs.length + index) * 32;
+    nesTileToGb(decoChr, tile).copy(compactSprites, offset);
+    nesTileToGb(decoChr, tile + 1).copy(compactSprites, offset + 16);
 }
 
 write("levels/chr_data/chr_gb_dmg_tiles.bin", compactTiles);

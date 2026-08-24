@@ -48,6 +48,7 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
     portals_map = {
         sprites_firstgid + 0:  0,   # Cube portal
         sprites_firstgid + 1:  1,   # Ship portal
+        sprites_firstgid + 2:  2,   # Ball portal
         sprites_firstgid + 5:  5,   # Blue Orb (Gravity)
         sprites_firstgid + 6:  6,   # Pink Orb
         sprites_firstgid + 8:  8,   # Normal gravity trigger
@@ -58,8 +59,13 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sprites_firstgid + 13: 13,  # Blue Pad
         sprites_firstgid + 14: 14,  # Blue Pad (upside down)
         sprites_firstgid + 15: 15,  # Level end
+        sprites_firstgid + 16: 16,  # Normal gravity portal (horizontal down)
+        sprites_firstgid + 17: 17,  # Normal gravity portal (horizontal up)
+        sprites_firstgid + 18: 18,  # Inverted gravity portal (horizontal down)
+        sprites_firstgid + 19: 19,  # Inverted gravity portal (horizontal up)
         sprites_firstgid + 126: 126,  # test
         sprites_firstgid + 121: 121,  # test
+        # **{sprites_firstgid + i: i for i in range(42, 62)}, # DECO DISABLED
     }
 
     # BG Color mappings:

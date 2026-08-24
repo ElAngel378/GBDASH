@@ -12,7 +12,6 @@ Symbol Table
     _NR51_REG                                                       ******** GX
     _NR52_REG                                                       ******** GX
     _TAC_REG                                                        ******** GX
-    _TMA_REG                                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
     __current_bank                                                  ******** GX
   8 __xinit__current_song_bank                                      00000003 R
@@ -23,8 +22,10 @@ Symbol Table
   3 _current_song_bank                                              00000003 GR
     _draw_menu                                                      ******** GX
     _hUGE_dosound                                                   ******** GX
+    _init_music_banked                                              ******** GX
     _joypad                                                         ******** GX
   0 _main                                                           0000001F GR
+    _menuloop                                                       ******** GX
   3 _music_ready                                                    00000000 GR
     _play_level                                                     ******** GX
   0 _play_music_safe                                                00000000 GR
@@ -39,13 +40,12 @@ Symbol Table
     b_play_level                                                    ******** GX
     b_setup_menu_font                                               ******** GX
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size       E0   flags    0
+   0 _CODE                                      size       FF   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        4   flags    0

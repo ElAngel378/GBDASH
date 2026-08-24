@@ -10,22 +10,32 @@
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 
 // Physics constants using 8.8 fixed-point (256 units = 1 pixel)
-#define GRAVITY           103   // Famidash 0x006B
-#define JUMP_FORCE       -1276  // Famidash 0xFA70
-#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
-#define PAD_JUMP_FORCE   -1890  // Famidash 0xF840 (Yellow Pad)
-#define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
-#define BLUE_PAD_FORCE     928   // Famidash 0x03A0
-#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (ORB_BALL_HEIGHT_BLUE)
+#define GRAVITY           107   // Famidash 0x006B (60fps)
+#define JUMP_FORCE       -1424  // Famidash 0xFA70 (60fps)
+#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb 60fps)
+#define PAD_JUMP_FORCE   -1984  // Famidash 0xF840 (Yellow Pad 60fps)
+#define PINK_PAD_FORCE    -1296  // Famidash 0xFAF0 (60fps)
+#define BLUE_PAD_FORCE     928   // Famidash 0x03A0 (60fps)
+#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (60fps) - ONLY for Ball!
 #define MAX_FALL_SPEED    1536  // Famidash 0x0600
+
+// Ball specific orb/pad forces
+#define BALL_YELLOW_ORB   -1040 // Famidash -243.75
+#define BALL_PINK_ORB     -816  // Famidash -191.25
+#define BALL_YELLOW_PAD   -1264 // Famidash -296.25
+#define BALL_PINK_PAD     -864  // Famidash -202.5
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
+#define MODE_BALL         2
 
-#define SHIP_THRUST       -52   // Famidash SHIP_GRAVITY_BASE
-#define SHIP_GRAVITY       34   // Famidash SHIP_GRAVITY
+#define SHIP_THRUST       -42   // Famidash 0x002A (60fps)
+#define SHIP_GRAVITY       34   // Famidash 0x0022 (60fps)
 #define SHIP_MAX_VEL_UP    873  // Famidash 0x0369
 #define SHIP_MAX_VEL_DOWN  1091 // Famidash 0x0443
+
+#define BALL_GRAVITY      71    // Famidash 0x0047 (60fps)
+#define BALL_SWITCH_VEL   512   // Famidash 0x0200 (60fps)
 
 #define MAX_ACTIVATIONS 8
 
@@ -62,6 +72,8 @@ typedef struct Player {
     uint8_t  anim_frame;
     uint16_t anim_timer;
     uint8_t  last_joy;
+    uint8_t  ball_switched;
+    uint8_t  orb_buffered;
     uint8_t  touching_orb;
     uint8_t  level_complete;
     uint16_t level_end_x;
