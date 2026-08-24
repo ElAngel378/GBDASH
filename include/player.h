@@ -12,12 +12,18 @@
 // Physics constants using 8.8 fixed-point (256 units = 1 pixel)
 #define GRAVITY           107   // Famidash 0x006B (60fps)
 #define JUMP_FORCE       -1424  // Famidash 0xFA70 (60fps)
-#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb)
-#define PAD_JUMP_FORCE   -1890  // Famidash 0xF840 (Yellow Pad)
-#define PINK_PAD_FORCE    -1256  // Famidash 0xFAF0
-#define BLUE_PAD_FORCE     928   // Famidash 0x03A0
-#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (ORB_BALL_HEIGHT_BLUE)
+#define MAGENTA_JUMP_FORCE -976  // Famidash 0xFC30 (Pink Orb 60fps)
+#define PAD_JUMP_FORCE   -1984  // Famidash 0xF840 (Yellow Pad 60fps)
+#define PINK_PAD_FORCE    -1296  // Famidash 0xFAF0 (60fps)
+#define BLUE_PAD_FORCE     928   // Famidash 0x03A0 (60fps)
+#define BLUE_ORB_FORCE     416   // Famidash 0x01A0 (60fps) - ONLY for Ball!
 #define MAX_FALL_SPEED    1536  // Famidash 0x0600
+
+// Ball specific orb/pad forces
+#define BALL_YELLOW_ORB   -1040 // Famidash -243.75
+#define BALL_PINK_ORB     -816  // Famidash -191.25
+#define BALL_YELLOW_PAD   -1264 // Famidash -296.25
+#define BALL_PINK_PAD     -864  // Famidash -202.5
 
 #define MODE_CUBE         0
 #define MODE_SHIP         1
