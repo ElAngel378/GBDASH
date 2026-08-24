@@ -102,8 +102,8 @@ uint8_t player_update(
     // --- Vertical Ejection ---
     // Check Floor
     int16_t foot_y = py + PLAYER_SIZE;
-    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(4), foot_y);
-    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), foot_y);
+    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(3), foot_y);
+    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), foot_y);
     if (IS_SOLID(cl_f) || IS_SOLID(cr_f)) {
         if (!p->gravity_flipped || p->mode == MODE_SHIP) {
             uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : cr_f;
@@ -123,8 +123,8 @@ uint8_t player_update(
 
     // Check Ceiling
     int16_t head_y = py;
-    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(4), head_y);
-    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), head_y);
+    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(3), head_y);
+    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), head_y);
     if (IS_SOLID(cl_h) || IS_SOLID(cr_h)) {
         if (p->gravity_flipped || p->mode == MODE_SHIP) {
             uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : cr_h;
@@ -145,8 +145,8 @@ uint8_t player_update(
     // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
     if (!p->on_ground) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
-        uint8_t gl = COL_AT_PTR(GET_COL_FAST(4), sticky_y);
-        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 4), sticky_y);
+        uint8_t gl = COL_AT_PTR(GET_COL_FAST(3), sticky_y);
+        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), sticky_y);
         if (IS_SOLID(gl) || IS_SOLID(gr)) {
             p->on_ground = 1;
             p->vel_y.w = 0;
@@ -194,8 +194,30 @@ uint8_t player_update(
 
     // Animation Update
     if (p->on_ground && p->mode != MODE_BALL) {
-        p->anim_timer = 0;
-        p->anim_frame = 0;
+        // Landed mid-spin: settle onto the NEAREST square side.
+        // A quarter turn is 6 frames (90 deg), so the midpoint of the
+        // quarter is 45 deg. Past the midpoint -> finish the spin
+        // forwards; before the midpoint -> roll backwards instead.
+        uint8_t q = p->anim_frame % 6;
+        if (q != 0) {
+            p->anim_timer += 20; // double speed while settling
+            if (p->anim_timer >= 21) {
+                p->anim_timer -= 21;
+                if (q >= 3) {
+                    // Forward: complete the rotation to the next square
+                    p->anim_frame++;
+                    if (p->anim_frame >= 24) {
+                        p->anim_frame = 0;
+                        p->anim_timer = 0;
+                    }
+                } else {
+                    // Backward: un-roll to the previous square
+                    p->anim_frame--;
+                }
+            }
+        } else {
+            p->anim_timer = 0;
+        }
     } else {
         p->anim_timer += 10;
         if (p->anim_timer >= 21) {
