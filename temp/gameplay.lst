@@ -69,17 +69,17 @@
                                      69 ; code
                                      70 ;--------------------------------------------------------
                                      71 	.area _CODE_10
-                                     72 ;src/gameplay.c:55: void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
+                                     72 ;src/gameplay.c:62: void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
                                      73 ;	---------------------------------
                                      74 ; Function sp_cache_reset
                                      75 ; ---------------------------------
     00000000                         76 _sp_cache_reset::
-                                     77 ;src/gameplay.c:57: *stream_idx = 0;
+                                     77 ;src/gameplay.c:64: *stream_idx = 0;
     00000000 AF               [ 4]   78 	xor	a, a
     00000001 02               [ 8]   79 	ld	(bc), a
     00000002 03               [ 8]   80 	inc	bc
     00000003 02               [ 8]   81 	ld	(bc), a
-                                     82 ;src/gameplay.c:58: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
+                                     82 ;src/gameplay.c:65: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
     00000004 21 50 00         [12]   83 	ld	hl, #0x0050
     00000007 19               [ 8]   84 	add	hl, de
     00000008 4D               [ 4]   85 	ld	c, l
@@ -94,7 +94,7 @@
     00000013 7B               [ 4]   94 	ld	a, e
     00000014 D6 10            [ 8]   95 	sub	a, #0x10
     00000016 38 F4            [12]   96 	jr	C, 00102$
-                                     97 ;src/gameplay.c:59: }
+                                     97 ;src/gameplay.c:66: }
     00000018 C9               [16]   98 	ret
     00000019                         99 _level_sprite_cost_table:
     00000019 09                     100 	.db #0x09	; 9
@@ -135,7 +135,7 @@
     0000003C 00                     135 	.db #0x00	; 0
     0000003D 00                     136 	.db #0x00	; 0
     0000003E 02                     137 	.db #0x02	; 2
-                                    138 ;src/gameplay.c:61: void sp_cache_update(const Level *l, uint16_t cam_px,
+                                    138 ;src/gameplay.c:68: void sp_cache_update(const Level *l, uint16_t cam_px,
                                     139 ;	---------------------------------
                                     140 ; Function sp_cache_update
                                     141 ; ---------------------------------
@@ -148,7 +148,7 @@
     00000046 F8 12            [12]  148 	ldhl	sp,	#18
     00000048 79               [ 4]  149 	ld	a, c
     00000049 22               [ 8]  150 	ld	(hl+), a
-                                    151 ;src/gameplay.c:65: uint8_t sp_bank = l->sp_bank;
+                                    151 ;src/gameplay.c:72: uint8_t sp_bank = l->sp_bank;
     0000004A 78               [ 4]  152 	ld	a, b
     0000004B 22               [ 8]  153 	ld	(hl+), a
     0000004C 2A               [ 8]  154 	ld	a, (hl+)
@@ -161,7 +161,7 @@
     00000055 0A               [ 8]  161 	ld	a, (bc)
     00000056 F8 02            [12]  162 	ldhl	sp,	#2
     00000058 77               [ 8]  163 	ld	(hl), a
-                                    164 ;src/gameplay.c:66: const SpDef *sp_list = l->sp_list;
+                                    164 ;src/gameplay.c:73: const SpDef *sp_list = l->sp_list;
     00000059 F8 14            [12]  165 	ldhl	sp,#20
     0000005B 2A               [ 8]  166 	ld	a, (hl+)
     0000005C 5F               [ 4]  167 	ld	e, a
@@ -178,7 +178,7 @@
     0000006A 13               [ 8]  178 	inc	de
     0000006B 1A               [ 8]  179 	ld	a, (de)
     0000006C 77               [ 8]  180 	ld	(hl), a
-                                    181 ;src/gameplay.c:69: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+                                    181 ;src/gameplay.c:76: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
     0000006D F8 1A            [12]  182 	ldhl	sp,#26
     0000006F 2A               [ 8]  183 	ld	a, (hl+)
     00000070 5F               [ 4]  184 	ld	e, a
@@ -196,7 +196,7 @@
     00000080 F8 11            [12]  196 	ldhl	sp,	#17
     00000082 36 00            [12]  197 	ld	(hl), #0x00
     00000084                        198 00115$:
-                                    199 ;src/gameplay.c:70: if (!cache->active[i]) continue;
+                                    199 ;src/gameplay.c:77: if (!cache->active[i]) continue;
     00000084 F8 05            [12]  200 	ldhl	sp,#5
     00000086 2A               [ 8]  201 	ld	a, (hl+)
     00000087 5F               [ 4]  202 	ld	e, a
@@ -218,7 +218,7 @@
     0000009B 56               [ 8]  218 	ld	d, (hl)
     0000009C 1A               [ 8]  219 	ld	a, (de)
     0000009D 4F               [ 4]  220 	ld	c, a
-                                    221 ;src/gameplay.c:71: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
+                                    221 ;src/gameplay.c:78: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
     0000009E F8 1A            [12]  222 	ldhl	sp,#26
     000000A0 2A               [ 8]  223 	ld	a, (hl+)
     000000A1 5F               [ 4]  224 	ld	e, a
@@ -233,11 +233,11 @@
     000000AD 7C               [ 4]  233 	ld	a, h
     000000AE F8 17            [12]  234 	ldhl	sp,	#23
     000000B0 77               [ 8]  235 	ld	(hl), a
-                                    236 ;src/gameplay.c:70: if (!cache->active[i]) continue;
+                                    236 ;src/gameplay.c:77: if (!cache->active[i]) continue;
     000000B1 79               [ 4]  237 	ld	a, c
     000000B2 B7               [ 4]  238 	or	a, a
     000000B3 28 38            [12]  239 	jr	Z, 00105$
-                                    240 ;src/gameplay.c:71: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
+                                    240 ;src/gameplay.c:78: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
     000000B5 F8 11            [12]  241 	ldhl	sp,	#17
     000000B7 3A               [ 8]  242 	ld	a, (hl-)
     000000B8 87               [ 4]  243 	add	a, a
@@ -283,13 +283,13 @@
     000000EA 6F               [ 4]  283 	ld	l, a
     000000EB 36 00            [12]  284 	ld	(hl), #0x00
     000000ED                        285 00105$:
-                                    286 ;src/gameplay.c:69: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+                                    286 ;src/gameplay.c:76: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
     000000ED F8 11            [12]  287 	ldhl	sp,	#17
     000000EF 34               [12]  288 	inc	(hl)
     000000F0 7E               [ 8]  289 	ld	a, (hl)
     000000F1 D6 10            [ 8]  290 	sub	a, #0x10
     000000F3 38 8F            [12]  291 	jr	C, 00115$
-                                    292 ;src/gameplay.c:75: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+                                    292 ;src/gameplay.c:82: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
     000000F5 F8 16            [12]  293 	ldhl	sp,	#22
     000000F7 7E               [ 8]  294 	ld	a, (hl)
     000000F8 F8 07            [12]  295 	ldhl	sp,	#7
@@ -331,7 +331,7 @@
     0000012A 22               [ 8]  331 	ld	(hl+), a
     0000012B 77               [ 8]  332 	ld	(hl), a
     0000012C                        333 00116$:
-                                    334 ;src/gameplay.c:76: if (cache->active[i]) {
+                                    334 ;src/gameplay.c:83: if (cache->active[i]) {
     0000012C F8 05            [12]  335 	ldhl	sp,#5
     0000012E 2A               [ 8]  336 	ld	a, (hl+)
     0000012F 5F               [ 4]  337 	ld	e, a
@@ -354,12 +354,12 @@
     00000144 1A               [ 8]  354 	ld	a, (de)
     00000145 B7               [ 4]  355 	or	a, a
     00000146 CArF9r01         [16]  356 	jp	Z, 00117$
-                                    357 ;src/gameplay.c:77: if (count != i) {
+                                    357 ;src/gameplay.c:84: if (count != i) {
     00000149 F8 16            [12]  358 	ldhl	sp,	#22
     0000014B 2A               [ 8]  359 	ld	a, (hl+)
     0000014C 96               [ 8]  360 	sub	a, (hl)
     0000014D CArF6r01         [16]  361 	jp	Z, 00108$
-                                    362 ;src/gameplay.c:78: cache->obj[count] = cache->obj[i];
+                                    362 ;src/gameplay.c:85: cache->obj[count] = cache->obj[i];
     00000150 F8 1A            [12]  363 	ldhl	sp,#26
     00000152 2A               [ 8]  364 	ld	a, (hl+)
     00000153 5F               [ 4]  365 	ld	e, a
@@ -382,7 +382,7 @@
     00000169 54               [ 4]  382 	ld	d, h
     0000016A 1A               [ 8]  383 	ld	a, (de)
     0000016B 02               [ 8]  384 	ld	(bc), a
-                                    385 ;src/gameplay.c:79: cache->px[count] = cache->px[i];
+                                    385 ;src/gameplay.c:86: cache->px[count] = cache->px[i];
     0000016C F8 16            [12]  386 	ldhl	sp,	#22
     0000016E 7E               [ 8]  387 	ld	a, (hl)
     0000016F 87               [ 4]  388 	add	a, a
@@ -420,7 +420,7 @@
     00000198 79               [ 4]  420 	ld	a, c
     00000199 22               [ 8]  421 	ld	(hl+), a
     0000019A 70               [ 8]  422 	ld	(hl), b
-                                    423 ;src/gameplay.c:80: cache->py[count] = cache->py[i];
+                                    423 ;src/gameplay.c:87: cache->py[count] = cache->py[i];
     0000019B F8 11            [12]  424 	ldhl	sp,	#17
     0000019D 5E               [ 8]  425 	ld	e, (hl)
     0000019E 16 00            [ 8]  426 	ld	d, #0x00
@@ -455,7 +455,7 @@
     000001C2 79               [ 4]  455 	ld	a, c
     000001C3 22               [ 8]  456 	ld	(hl+), a
     000001C4 70               [ 8]  457 	ld	(hl), b
-                                    458 ;src/gameplay.c:81: cache->active[count] = cache->active[i];
+                                    458 ;src/gameplay.c:88: cache->active[count] = cache->active[i];
     000001C5 F8 05            [12]  459 	ldhl	sp,#5
     000001C7 2A               [ 8]  460 	ld	a, (hl+)
     000001C8 5F               [ 4]  461 	ld	e, a
@@ -469,7 +469,7 @@
     000001D2 F8 0D            [12]  469 	ldhl	sp,#13
     000001D4 2A               [ 8]  470 	ld	a, (hl+)
     000001D5 5F               [ 4]  471 	ld	e, a
-                                    472 ;src/gameplay.c:82: cache->activated[count] = cache->activated[i];
+                                    472 ;src/gameplay.c:89: cache->activated[count] = cache->activated[i];
     000001D6 3A               [ 8]  473 	ld	a, (hl-)
     000001D7 2B               [ 8]  474 	dec	hl
     000001D8 2B               [ 8]  475 	dec	hl
@@ -498,17 +498,17 @@
     000001F4 1A               [ 8]  498 	ld	a, (de)
     000001F5 02               [ 8]  499 	ld	(bc), a
     000001F6                        500 00108$:
-                                    501 ;src/gameplay.c:84: count++;
+                                    501 ;src/gameplay.c:91: count++;
     000001F6 F8 16            [12]  502 	ldhl	sp,	#22
     000001F8 34               [12]  503 	inc	(hl)
     000001F9                        504 00117$:
-                                    505 ;src/gameplay.c:75: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+                                    505 ;src/gameplay.c:82: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
     000001F9 F8 17            [12]  506 	ldhl	sp,	#23
     000001FB 34               [12]  507 	inc	(hl)
     000001FC 7E               [ 8]  508 	ld	a, (hl)
     000001FD D6 10            [ 8]  509 	sub	a, #0x10
     000001FF DAr2Cr01         [16]  510 	jp	C, 00116$
-                                    511 ;src/gameplay.c:87: while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
+                                    511 ;src/gameplay.c:94: while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
     00000202 2B               [ 8]  512 	dec	hl
     00000203 4E               [ 8]  513 	ld	c, (hl)
     00000204                        514 00112$:
@@ -529,7 +529,7 @@
     00000216 12               [ 8]  529 	ld	(de), a
     00000217 18 EB            [12]  530 	jr	00112$
     00000219                        531 00114$:
-                                    532 ;src/gameplay.c:89: sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
+                                    532 ;src/gameplay.c:96: sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
     00000219 F8 14            [12]  533 	ldhl	sp,#20
     0000021B 2A               [ 8]  534 	ld	a, (hl+)
     0000021C 5F               [ 4]  535 	ld	e, a
@@ -563,12 +563,12 @@
     0000023E 57               [ 4]  563 	ld	d, a
     0000023F 7E               [ 8]  564 	ld	a, (hl)
     00000240 CDr00r00         [24]  565 	call	_sp_cache_load
-                                    566 ;src/gameplay.c:90: }
+                                    566 ;src/gameplay.c:97: }
     00000243 E8 18            [16]  567 	add	sp, #24
     00000245 E1               [12]  568 	pop	hl
     00000246 E8 04            [16]  569 	add	sp, #4
     00000248 E9               [ 4]  570 	jp	(hl)
-                                    571 ;src/gameplay.c:203: static uint8_t process_and_draw_sprites(
+                                    571 ;src/gameplay.c:210: static uint8_t process_and_draw_sprites(
                                     572 ;	---------------------------------
                                     573 ; Function process_and_draw_sprites
                                     574 ; ---------------------------------
@@ -582,11 +582,11 @@
     00000252 79               [ 4]  582 	ld	a, c
     00000253 22               [ 8]  583 	ld	(hl+), a
     00000254 70               [ 8]  584 	ld	(hl), b
-                                    585 ;src/gameplay.c:208: uint16_t px = p->world_x;
+                                    585 ;src/gameplay.c:215: uint16_t px = p->world_x;
     00000255 F8 42            [12]  586 	ldhl	sp,#66
     00000257 2A               [ 8]  587 	ld	a, (hl+)
     00000258 5F               [ 4]  588 	ld	e, a
-                                    589 ;src/gameplay.c:209: uint16_t py = p->world_y.b.h;
+                                    589 ;src/gameplay.c:216: uint16_t py = p->world_y.b.h;
     00000259 3A               [ 8]  590 	ld	a, (hl-)
     0000025A 57               [ 4]  591 	ld	d, a
     0000025B 1A               [ 8]  592 	ld	a, (de)
@@ -604,7 +604,7 @@
     00000267 F8 00            [12]  604 	ldhl	sp,	#0
     00000269 22               [ 8]  605 	ld	(hl+), a
     0000026A 36 00            [12]  606 	ld	(hl), #0x00
-                                    607 ;src/gameplay.c:210: uint8_t reversed = p->reversed;
+                                    607 ;src/gameplay.c:217: uint8_t reversed = p->reversed;
     0000026C F8 42            [12]  608 	ldhl	sp,#66
     0000026E 2A               [ 8]  609 	ld	a, (hl+)
     0000026F 5F               [ 4]  610 	ld	e, a
@@ -624,7 +624,7 @@
     00000281 2A               [ 8]  624 	ld	a, (hl+)
     00000282 57               [ 4]  625 	ld	d, a
     00000283 1A               [ 8]  626 	ld	a, (de)
-                                    627 ;src/gameplay.c:213: uint16_t p_front = px + 15;
+                                    627 ;src/gameplay.c:220: uint16_t p_front = px + 15;
     00000284 22               [ 8]  628 	ld	(hl+), a
     00000285 79               [ 4]  629 	ld	a, c
     00000286 22               [ 8]  630 	ld	(hl+), a
@@ -641,7 +641,7 @@
     00000294 71               [ 8]  641 	ld	(hl), c
     00000295 23               [ 8]  642 	inc	hl
     00000296 77               [ 8]  643 	ld	(hl), a
-                                    644 ;src/gameplay.c:214: uint16_t p_bottom = py + PLAYER_SIZE + 16;
+                                    644 ;src/gameplay.c:221: uint16_t p_bottom = py + PLAYER_SIZE + 16;
     00000297 F8 00            [12]  645 	ldhl	sp,	#0
     00000299 7E               [ 8]  646 	ld	a, (hl)
     0000029A F8 09            [12]  647 	ldhl	sp,	#9
@@ -658,7 +658,7 @@
     000002A8 F8 0B            [12]  658 	ldhl	sp,	#11
     000002AA 71               [ 8]  659 	ld	(hl), c
     000002AB 23               [ 8]  660 	inc	hl
-                                    661 ;src/gameplay.c:215: uint16_t p_feet = py + PLAYER_SIZE;
+                                    661 ;src/gameplay.c:222: uint16_t p_feet = py + PLAYER_SIZE;
     000002AC 32               [ 8]  662 	ld	(hl-), a
     000002AD 2B               [ 8]  663 	dec	hl
     000002AE 2B               [ 8]  664 	dec	hl
@@ -673,7 +673,7 @@
     000002BA 71               [ 8]  673 	ld	(hl), c
     000002BB 23               [ 8]  674 	inc	hl
     000002BC 77               [ 8]  675 	ld	(hl), a
-                                    676 ;src/gameplay.c:217: for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; sp_idx++) {
+                                    676 ;src/gameplay.c:224: for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < OBJ_OAM_MAX; sp_idx++) {
     000002BD F8 3B            [12]  677 	ldhl	sp,#59
     000002BF 2A               [ 8]  678 	ld	a, (hl+)
     000002C0 5F               [ 4]  679 	ld	e, a
@@ -826,9 +826,9 @@
     0000038D D2r04r27         [16]  826 	jp	NC, 00355$
     00000390 F8 47            [12]  827 	ldhl	sp,	#71
     00000392 7E               [ 8]  828 	ld	a, (hl)
-    00000393 D6 26            [ 8]  829 	sub	a, #0x26
+    00000393 D6 24            [ 8]  829 	sub	a, #0x24
     00000395 D2r04r27         [16]  830 	jp	NC, 00355$
-                                    831 ;src/gameplay.c:218: if (!cache->active[sp_idx]) break; // Early out
+                                    831 ;src/gameplay.c:225: if (!cache->active[sp_idx]) break; // Early out
     00000398 F8 0F            [12]  832 	ldhl	sp,#15
     0000039A 2A               [ 8]  833 	ld	a, (hl+)
     0000039B 5F               [ 4]  834 	ld	e, a
@@ -842,7 +842,7 @@
     000003A5 0A               [ 8]  842 	ld	a, (bc)
     000003A6 B7               [ 4]  843 	or	a, a
     000003A7 CAr04r27         [16]  844 	jp	Z, 00355$
-                                    845 ;src/gameplay.c:220: uint16_t obj_x = cache->px[sp_idx];
+                                    845 ;src/gameplay.c:227: uint16_t obj_x = cache->px[sp_idx];
     000003AA F8 3D            [12]  846 	ldhl	sp,	#61
     000003AC 7E               [ 8]  847 	ld	a, (hl)
     000003AD 87               [ 4]  848 	add	a, a
@@ -866,7 +866,7 @@
     000003C4 13               [ 8]  866 	inc	de
     000003C5 1A               [ 8]  867 	ld	a, (de)
     000003C6 77               [ 8]  868 	ld	(hl), a
-                                    869 ;src/gameplay.c:221: if (obj_x > cam_px + 176u) break;
+                                    869 ;src/gameplay.c:228: if (obj_x > cam_px + 176u) break;
     000003C7 F8 39            [12]  870 	ldhl	sp,	#57
     000003C9 2A               [ 8]  871 	ld	a, (hl+)
     000003CA 4F               [ 4]  872 	ld	c, a
@@ -884,7 +884,7 @@
     000003D9 7A               [ 4]  884 	ld	a, d
     000003DA 98               [ 4]  885 	sbc	a, b
     000003DB DAr04r27         [16]  886 	jp	C, 00355$
-                                    887 ;src/gameplay.c:223: uint8_t obj = cache->obj[sp_idx];
+                                    887 ;src/gameplay.c:230: uint8_t obj = cache->obj[sp_idx];
     000003DE F8 3B            [12]  888 	ldhl	sp,#59
     000003E0 2A               [ 8]  889 	ld	a, (hl+)
     000003E1 5F               [ 4]  890 	ld	e, a
@@ -898,7 +898,7 @@
     000003EA 1A               [ 8]  898 	ld	a, (de)
     000003EB F8 34            [12]  899 	ldhl	sp,	#52
     000003ED 77               [ 8]  900 	ld	(hl), a
-                                    901 ;src/gameplay.c:224: uint16_t obj_y = cache->py[sp_idx];
+                                    901 ;src/gameplay.c:231: uint16_t obj_y = cache->py[sp_idx];
     000003EE F8 13            [12]  902 	ldhl	sp,#19
     000003F0 2A               [ 8]  903 	ld	a, (hl+)
     000003F1 5F               [ 4]  904 	ld	e, a
@@ -924,12 +924,12 @@
     00000409 13               [ 8]  924 	inc	de
     0000040A 1A               [ 8]  925 	ld	a, (de)
     0000040B 77               [ 8]  926 	ld	(hl), a
-                                    927 ;src/gameplay.c:229: if (obj == OBJ_LEVEL_END) {
+                                    927 ;src/gameplay.c:236: if (obj == OBJ_LEVEL_END) {
     0000040C F8 34            [12]  928 	ldhl	sp,	#52
     0000040E 7E               [ 8]  929 	ld	a, (hl)
     0000040F D6 0F            [ 8]  930 	sub	a, #0x0f
     00000411 20 21            [12]  931 	jr	NZ, 00108$
-                                    932 ;src/gameplay.c:230: if (px >= (obj_x - 180)) p->level_complete = 1;
+                                    932 ;src/gameplay.c:237: if (px >= (obj_x - 180)) p->level_complete = 1;
     00000413 79               [ 4]  933 	ld	a, c
     00000414 C6 4C            [ 8]  934 	add	a, #0x4c
     00000416 4F               [ 4]  935 	ld	c, a
@@ -951,10 +951,10 @@
     0000042D 4D               [ 4]  951 	ld	c, l
     0000042E 44               [ 4]  952 	ld	b, h
     0000042F 36 01            [12]  953 	ld	(hl), #0x01
-                                    954 ;src/gameplay.c:231: continue;
+                                    954 ;src/gameplay.c:238: continue;
     00000431 C3rFEr26         [16]  955 	jp	00354$
     00000434                        956 00108$:
-                                    957 ;src/gameplay.c:234: if (obj_x <= p_front) {
+                                    957 ;src/gameplay.c:241: if (obj_x <= p_front) {
     00000434 F8 07            [12]  958 	ldhl	sp,	#7
     00000436 5D               [ 4]  959 	ld	e, l
     00000437 54               [ 4]  960 	ld	d, h
@@ -966,7 +966,7 @@
     0000043E 1A               [ 8]  966 	ld	a, (de)
     0000043F 9E               [ 8]  967 	sbc	a, (hl)
     00000440 DArDFr08         [16]  968 	jp	C, 00178$
-                                    969 ;src/gameplay.c:235: switch (obj) {
+                                    969 ;src/gameplay.c:242: switch (obj) {
     00000443 F8 34            [12]  970 	ldhl	sp,	#52
     00000445 7E               [ 8]  971 	ld	a, (hl)
     00000446 B7               [ 4]  972 	or	a, a
@@ -1049,9 +1049,9 @@
     000004D6 D6 7E            [ 8] 1049 	sub	a, #0x7e
     000004D8 CAr63r08         [16] 1050 	jp	Z, 00164$
     000004DB C3rDFr08         [16] 1051 	jp	00178$
-                                   1052 ;src/gameplay.c:237: case OBJ_SHIP_PORTAL:
+                                   1052 ;src/gameplay.c:244: case OBJ_SHIP_PORTAL:
     000004DE                       1053 00110$:
-                                   1054 ;src/gameplay.c:238: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                                   1054 ;src/gameplay.c:245: if (py <= obj_y + 32 && p_bottom >= obj_y) {
     000004DE F8 37            [12] 1055 	ldhl	sp,	#55
     000004E0 2A               [ 8] 1056 	ld	a, (hl+)
     000004E1 4F               [ 4] 1057 	ld	c, a
@@ -1078,7 +1078,7 @@
     000004FD 1A               [ 8] 1078 	ld	a, (de)
     000004FE 9E               [ 8] 1079 	sbc	a, (hl)
     000004FF DArDFr08         [16] 1080 	jp	C, 00178$
-                                   1081 ;src/gameplay.c:239: if (!cache->activated[sp_idx]) {
+                                   1081 ;src/gameplay.c:246: if (!cache->activated[sp_idx]) {
     00000502 F8 28            [12] 1082 	ldhl	sp,#40
     00000504 2A               [ 8] 1083 	ld	a, (hl+)
     00000505 5F               [ 4] 1084 	ld	e, a
@@ -1092,7 +1092,7 @@
     0000050F 0A               [ 8] 1092 	ld	a, (bc)
     00000510 B7               [ 4] 1093 	or	a, a
     00000511 C2rDFr08         [16] 1094 	jp	NZ, 00178$
-                                   1095 ;src/gameplay.c:240: p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
+                                   1095 ;src/gameplay.c:247: p->mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE : MODE_SHIP;
     00000514 F8 42            [12] 1096 	ldhl	sp,#66
     00000516 2A               [ 8] 1097 	ld	a, (hl+)
     00000517 5F               [ 4] 1098 	ld	e, a
@@ -1119,14 +1119,14 @@
     00000532 66               [ 8] 1119 	ld	h, (hl)
     00000533 6B               [ 4] 1120 	ld	l, e
     00000534 77               [ 8] 1121 	ld	(hl), a
-                                   1122 ;src/gameplay.c:241: cache->activated[sp_idx] = 1;
+                                   1122 ;src/gameplay.c:248: cache->activated[sp_idx] = 1;
     00000535 3E 01            [ 8] 1123 	ld	a, #0x01
     00000537 02               [ 8] 1124 	ld	(bc), a
-                                   1125 ;src/gameplay.c:244: break;
+                                   1125 ;src/gameplay.c:251: break;
     00000538 C3rDFr08         [16] 1126 	jp	00178$
-                                   1127 ;src/gameplay.c:247: case OBJ_GRAVITY_UP:
+                                   1127 ;src/gameplay.c:254: case OBJ_GRAVITY_UP:
     0000053B                       1128 00117$:
-                                   1129 ;src/gameplay.c:248: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                                   1129 ;src/gameplay.c:255: if (py <= obj_y + 32 && p_bottom >= obj_y) {
     0000053B F8 37            [12] 1130 	ldhl	sp,	#55
     0000053D 2A               [ 8] 1131 	ld	a, (hl+)
     0000053E 4F               [ 4] 1132 	ld	c, a
@@ -1153,7 +1153,7 @@
     0000055A 1A               [ 8] 1153 	ld	a, (de)
     0000055B 9E               [ 8] 1154 	sbc	a, (hl)
     0000055C DArDFr08         [16] 1155 	jp	C, 00178$
-                                   1156 ;src/gameplay.c:249: if (!cache->activated[sp_idx]) {
+                                   1156 ;src/gameplay.c:256: if (!cache->activated[sp_idx]) {
     0000055F F8 26            [12] 1157 	ldhl	sp,#38
     00000561 2A               [ 8] 1158 	ld	a, (hl+)
     00000562 5F               [ 4] 1159 	ld	e, a
@@ -1167,7 +1167,7 @@
     0000056C 0A               [ 8] 1167 	ld	a, (bc)
     0000056D B7               [ 4] 1168 	or	a, a
     0000056E C2rDFr08         [16] 1169 	jp	NZ, 00178$
-                                   1170 ;src/gameplay.c:250: uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
+                                   1170 ;src/gameplay.c:257: uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
     00000571 F8 34            [12] 1171 	ldhl	sp,	#52
     00000573 7E               [ 8] 1172 	ld	a, (hl)
     00000574 D6 09            [ 8] 1173 	sub	a, #0x09
@@ -1175,7 +1175,7 @@
     00000578 28 01            [12] 1175 	jr	Z, 01259$
     0000057A AF               [ 4] 1176 	xor	a, a
     0000057B                       1177 01259$:
-                                   1178 ;src/gameplay.c:251: if (p->gravity_flipped != target_flipped) {
+                                   1178 ;src/gameplay.c:258: if (p->gravity_flipped != target_flipped) {
     0000057B F8 15            [12] 1179 	ldhl	sp,#21
     0000057D 5E               [ 8] 1180 	ld	e, (hl)
     0000057E 23               [ 8] 1181 	inc	hl
@@ -1186,14 +1186,14 @@
     00000583 F1               [12] 1186 	pop	af
     00000584 BD               [ 4] 1187 	cp	a, l
     00000585 28 67            [12] 1188 	jr	Z, 00119$
-                                   1189 ;src/gameplay.c:252: p->gravity_flipped = target_flipped;
+                                   1189 ;src/gameplay.c:259: p->gravity_flipped = target_flipped;
     00000587 F8 15            [12] 1190 	ldhl	sp,	#21
     00000589 5E               [ 8] 1191 	ld	e, (hl)
     0000058A 23               [ 8] 1192 	inc	hl
     0000058B 66               [ 8] 1193 	ld	h, (hl)
     0000058C 6B               [ 4] 1194 	ld	l, e
     0000058D 77               [ 8] 1195 	ld	(hl), a
-                                   1196 ;src/gameplay.c:253: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                                   1196 ;src/gameplay.c:260: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
     0000058E F8 42            [12] 1197 	ldhl	sp,#66
     00000590 2A               [ 8] 1198 	ld	a, (hl+)
     00000591 5F               [ 4] 1199 	ld	e, a
@@ -1268,14 +1268,14 @@
     000005EC 7E               [ 8] 1268 	ld	a, (hl)
     000005ED 12               [ 8] 1269 	ld	(de), a
     000005EE                       1270 00119$:
-                                   1271 ;src/gameplay.c:255: cache->activated[sp_idx] = 1;
+                                   1271 ;src/gameplay.c:262: cache->activated[sp_idx] = 1;
     000005EE 3E 01            [ 8] 1272 	ld	a, #0x01
     000005F0 02               [ 8] 1273 	ld	(bc), a
-                                   1274 ;src/gameplay.c:258: break;
+                                   1274 ;src/gameplay.c:265: break;
     000005F1 C3rDFr08         [16] 1275 	jp	00178$
-                                   1276 ;src/gameplay.c:264: case OBJ_PAD_BLUE_UP:
+                                   1276 ;src/gameplay.c:271: case OBJ_PAD_BLUE_UP:
     000005F4                       1277 00129$:
-                                   1278 ;src/gameplay.c:266: uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+                                   1278 ;src/gameplay.c:273: uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
     000005F4 F8 34            [12] 1279 	ldhl	sp,	#52
     000005F6 7E               [ 8] 1280 	ld	a, (hl)
     000005F7 D6 0C            [ 8] 1281 	sub	a, #0x0c
@@ -1290,7 +1290,7 @@
     00000605 3E 01            [ 8] 1290 	ld	a, #0x01
     00000607                       1291 00365$:
     00000607 5F               [ 4] 1292 	ld	e, a
-                                   1293 ;src/gameplay.c:267: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 12);
+                                   1293 ;src/gameplay.c:274: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 12);
     00000608 B7               [ 4] 1294 	or	a, a
     00000609 28 07            [12] 1295 	jr	Z, 00366$
     0000060B F8 37            [12] 1296 	ldhl	sp,	#55
@@ -1308,7 +1308,7 @@
     0000061B 4D               [ 4] 1308 	ld	c, l
     0000061C 44               [ 4] 1309 	ld	b, h
     0000061D                       1310 00367$:
-                                   1311 ;src/gameplay.c:268: uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
+                                   1311 ;src/gameplay.c:275: uint16_t pad_bot = is_ceiling ? (obj_y + 4) : (obj_y + 16);
     0000061D 7B               [ 4] 1312 	ld	a, e
     0000061E B7               [ 4] 1313 	or	a, a
     0000061F 28 0B            [12] 1314 	jr	Z, 00368$
@@ -1331,7 +1331,7 @@
     00000635 5D               [ 4] 1331 	ld	e, l
     00000636 54               [ 4] 1332 	ld	d, h
     00000637                       1333 00369$:
-                                   1334 ;src/gameplay.c:270: if (py <= pad_bot && p_feet >= pad_top) {
+                                   1334 ;src/gameplay.c:277: if (py <= pad_bot && p_feet >= pad_top) {
     00000637 F8 00            [12] 1335 	ldhl	sp,	#0
     00000639 7B               [ 4] 1336 	ld	a, e
     0000063A 96               [ 8] 1337 	sub	a, (hl)
@@ -1345,7 +1345,7 @@
     00000645 7E               [ 8] 1345 	ld	a, (hl)
     00000646 98               [ 4] 1346 	sbc	a, b
     00000647 DArDFr08         [16] 1347 	jp	C, 00178$
-                                   1348 ;src/gameplay.c:271: if (!cache->activated[sp_idx]) {
+                                   1348 ;src/gameplay.c:278: if (!cache->activated[sp_idx]) {
     0000064A F8 24            [12] 1349 	ldhl	sp,#36
     0000064C 2A               [ 8] 1350 	ld	a, (hl+)
     0000064D 5F               [ 4] 1351 	ld	e, a
@@ -1359,10 +1359,10 @@
     00000657 0A               [ 8] 1359 	ld	a, (bc)
     00000658 B7               [ 4] 1360 	or	a, a
     00000659 C2rDFr08         [16] 1361 	jp	NZ, 00178$
-                                   1362 ;src/gameplay.c:272: cache->activated[sp_idx] = 1;
+                                   1362 ;src/gameplay.c:279: cache->activated[sp_idx] = 1;
     0000065C 3E 01            [ 8] 1363 	ld	a, #0x01
     0000065E 02               [ 8] 1364 	ld	(bc), a
-                                   1365 ;src/gameplay.c:273: if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
+                                   1365 ;src/gameplay.c:280: if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
     0000065F F8 34            [12] 1366 	ldhl	sp,	#52
     00000661 7E               [ 8] 1367 	ld	a, (hl)
     00000662 D6 0D            [ 8] 1368 	sub	a, #0x0d
@@ -1372,7 +1372,7 @@
     00000669 D6 0E            [ 8] 1372 	sub	a, #0x0e
     0000066B 20 46            [12] 1373 	jr	NZ, 00134$
     0000066D                       1374 00133$:
-                                   1375 ;src/gameplay.c:274: p->gravity_flipped = !p->gravity_flipped;
+                                   1375 ;src/gameplay.c:281: p->gravity_flipped = !p->gravity_flipped;
     0000066D F8 15            [12] 1376 	ldhl	sp,#21
     0000066F 2A               [ 8] 1377 	ld	a, (hl+)
     00000670 5F               [ 4] 1378 	ld	e, a
@@ -1386,7 +1386,7 @@
     0000067A 6E               [ 8] 1386 	ld	l, (hl)
     0000067B 67               [ 4] 1387 	ld	h, a
     0000067C 71               [ 8] 1388 	ld	(hl), c
-                                   1389 ;src/gameplay.c:275: p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+                                   1389 ;src/gameplay.c:282: p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
     0000067D F8 42            [12] 1390 	ldhl	sp,#66
     0000067F 2A               [ 8] 1391 	ld	a, (hl+)
     00000680 5F               [ 4] 1392 	ld	e, a
@@ -1429,12 +1429,12 @@
     000006B0 70               [ 8] 1429 	ld	(hl), b
     000006B1 18 63            [12] 1430 	jr	00135$
     000006B3                       1431 00134$:
-                                   1432 ;src/gameplay.c:276: } else if (obj == OBJ_PAD_PINK) {
+                                   1432 ;src/gameplay.c:283: } else if (obj == OBJ_PAD_PINK) {
     000006B3 F8 34            [12] 1433 	ldhl	sp,	#52
     000006B5 7E               [ 8] 1434 	ld	a, (hl)
     000006B6 D6 25            [ 8] 1435 	sub	a, #0x25
     000006B8 20 3B            [12] 1436 	jr	NZ, 00131$
-                                   1437 ;src/gameplay.c:277: p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
+                                   1437 ;src/gameplay.c:284: p->vel_y.w = (p->gravity_flipped) ? -PINK_PAD_FORCE : PINK_PAD_FORCE;
     000006BA F8 42            [12] 1438 	ldhl	sp,#66
     000006BC 2A               [ 8] 1439 	ld	a, (hl+)
     000006BD 5F               [ 4] 1440 	ld	e, a
@@ -1480,7 +1480,7 @@
     000006F2 70               [ 8] 1480 	ld	(hl), b
     000006F3 18 21            [12] 1481 	jr	00135$
     000006F5                       1482 00131$:
-                                   1483 ;src/gameplay.c:279: p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
+                                   1483 ;src/gameplay.c:286: p->vel_y.w = (p->gravity_flipped) ? -PAD_JUMP_FORCE : PAD_JUMP_FORCE;
     000006F5 F8 42            [12] 1484 	ldhl	sp,#66
     000006F7 2A               [ 8] 1485 	ld	a, (hl+)
     000006F8 5F               [ 4] 1486 	ld	e, a
@@ -1507,7 +1507,7 @@
     00000714 7A               [ 4] 1507 	ld	a, d
     00000715 02               [ 8] 1508 	ld	(bc), a
     00000716                       1509 00135$:
-                                   1510 ;src/gameplay.c:281: p->on_ground = 0;
+                                   1510 ;src/gameplay.c:288: p->on_ground = 0;
     00000716 F8 42            [12] 1511 	ldhl	sp,#66
     00000718 2A               [ 8] 1512 	ld	a, (hl+)
     00000719 5F               [ 4] 1513 	ld	e, a
@@ -1518,16 +1518,16 @@
     00000720 44               [ 4] 1518 	ld	b, h
     00000721 AF               [ 4] 1519 	xor	a, a
     00000722 02               [ 8] 1520 	ld	(bc), a
-                                   1521 ;src/gameplay.c:284: break;
+                                   1521 ;src/gameplay.c:291: break;
     00000723 C3rDFr08         [16] 1522 	jp	00178$
-                                   1523 ;src/gameplay.c:289: case OBJ_ORB_BLUE:
+                                   1523 ;src/gameplay.c:296: case OBJ_ORB_BLUE:
     00000726                       1524 00144$:
-                                   1525 ;src/gameplay.c:291: if (joy & J_A) {
+                                   1525 ;src/gameplay.c:298: if (joy & J_A) {
     00000726 F8 23            [12] 1526 	ldhl	sp,	#35
     00000728 7E               [ 8] 1527 	ld	a, (hl)
     00000729 B7               [ 4] 1528 	or	a, a
     0000072A CArDFr08         [16] 1529 	jp	Z, 00178$
-                                   1530 ;src/gameplay.c:292: if (py <= obj_y + 16 && p_feet >= obj_y) {
+                                   1530 ;src/gameplay.c:299: if (py <= obj_y + 16 && p_feet >= obj_y) {
     0000072D F8 37            [12] 1531 	ldhl	sp,	#55
     0000072F 2A               [ 8] 1532 	ld	a, (hl+)
     00000730 4F               [ 4] 1533 	ld	c, a
@@ -1554,7 +1554,7 @@
     0000074C 1A               [ 8] 1554 	ld	a, (de)
     0000074D 9E               [ 8] 1555 	sbc	a, (hl)
     0000074E DArDFr08         [16] 1556 	jp	C, 00178$
-                                   1557 ;src/gameplay.c:293: if (!cache->activated[sp_idx]) {
+                                   1557 ;src/gameplay.c:300: if (!cache->activated[sp_idx]) {
     00000751 F8 21            [12] 1558 	ldhl	sp,#33
     00000753 2A               [ 8] 1559 	ld	a, (hl+)
     00000754 5F               [ 4] 1560 	ld	e, a
@@ -1568,15 +1568,15 @@
     0000075E 0A               [ 8] 1568 	ld	a, (bc)
     0000075F B7               [ 4] 1569 	or	a, a
     00000760 C2rDFr08         [16] 1570 	jp	NZ, 00178$
-                                   1571 ;src/gameplay.c:294: cache->activated[sp_idx] = 1;
+                                   1571 ;src/gameplay.c:301: cache->activated[sp_idx] = 1;
     00000763 3E 01            [ 8] 1572 	ld	a, #0x01
     00000765 02               [ 8] 1573 	ld	(bc), a
-                                   1574 ;src/gameplay.c:295: if (obj == OBJ_ORB_BLUE) {
+                                   1574 ;src/gameplay.c:302: if (obj == OBJ_ORB_BLUE) {
     00000766 F8 36            [12] 1575 	ldhl	sp,	#54
     00000768 7E               [ 8] 1576 	ld	a, (hl)
     00000769 B7               [ 4] 1577 	or	a, a
     0000076A 28 4B            [12] 1578 	jr	Z, 00149$
-                                   1579 ;src/gameplay.c:296: p->gravity_flipped = !p->gravity_flipped;
+                                   1579 ;src/gameplay.c:303: p->gravity_flipped = !p->gravity_flipped;
     0000076C F8 15            [12] 1580 	ldhl	sp,#21
     0000076E 2A               [ 8] 1581 	ld	a, (hl+)
     0000076F 5F               [ 4] 1582 	ld	e, a
@@ -1594,7 +1594,7 @@
     0000077F 66               [ 8] 1594 	ld	h, (hl)
     00000780 6F               [ 4] 1595 	ld	l, a
     00000781 71               [ 8] 1596 	ld	(hl), c
-                                   1597 ;src/gameplay.c:297: p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
+                                   1597 ;src/gameplay.c:304: p->vel_y.w = (p->gravity_flipped) ? -BLUE_ORB_FORCE : BLUE_ORB_FORCE;
     00000782 F8 42            [12] 1598 	ldhl	sp,#66
     00000784 2A               [ 8] 1599 	ld	a, (hl+)
     00000785 5F               [ 4] 1600 	ld	e, a
@@ -1637,12 +1637,12 @@
     000007B4 12               [ 8] 1637 	ld	(de), a
     000007B5 18 79            [12] 1638 	jr	00150$
     000007B7                       1639 00149$:
-                                   1640 ;src/gameplay.c:298: } else if (obj == OBJ_ORB_PINK) {
+                                   1640 ;src/gameplay.c:305: } else if (obj == OBJ_ORB_PINK) {
     000007B7 F8 34            [12] 1641 	ldhl	sp,	#52
     000007B9 7E               [ 8] 1642 	ld	a, (hl)
     000007BA D6 06            [ 8] 1643 	sub	a, #0x06
     000007BC 20 3A            [12] 1644 	jr	NZ, 00146$
-                                   1645 ;src/gameplay.c:299: p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
+                                   1645 ;src/gameplay.c:306: p->vel_y.w = (p->gravity_flipped) ? -MAGENTA_JUMP_FORCE : MAGENTA_JUMP_FORCE;
     000007BE F8 42            [12] 1646 	ldhl	sp,#66
     000007C0 2A               [ 8] 1647 	ld	a, (hl+)
     000007C1 5F               [ 4] 1648 	ld	e, a
@@ -1688,7 +1688,7 @@
     000007F5 12               [ 8] 1688 	ld	(de), a
     000007F6 18 38            [12] 1689 	jr	00150$
     000007F8                       1690 00146$:
-                                   1691 ;src/gameplay.c:301: p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 120 : JUMP_FORCE - 120;
+                                   1691 ;src/gameplay.c:308: p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE + 120 : JUMP_FORCE - 120;
     000007F8 F8 42            [12] 1692 	ldhl	sp,#66
     000007FA 2A               [ 8] 1693 	ld	a, (hl+)
     000007FB 5F               [ 4] 1694 	ld	e, a
@@ -1733,7 +1733,7 @@
     0000082E 7E               [ 8] 1733 	ld	a, (hl)
     0000082F 12               [ 8] 1734 	ld	(de), a
     00000830                       1735 00150$:
-                                   1736 ;src/gameplay.c:303: p->on_ground = 0;
+                                   1736 ;src/gameplay.c:310: p->on_ground = 0;
     00000830 F8 42            [12] 1737 	ldhl	sp,#66
     00000832 2A               [ 8] 1738 	ld	a, (hl+)
     00000833 5F               [ 4] 1739 	ld	e, a
@@ -1744,11 +1744,11 @@
     0000083A 44               [ 4] 1744 	ld	b, h
     0000083B AF               [ 4] 1745 	xor	a, a
     0000083C 02               [ 8] 1746 	ld	(bc), a
-                                   1747 ;src/gameplay.c:307: break;
+                                   1747 ;src/gameplay.c:314: break;
     0000083D C3rDFr08         [16] 1748 	jp	00178$
-                                   1749 ;src/gameplay.c:310: case 100: case 101: case 102: case 103:
+                                   1749 ;src/gameplay.c:317: case 100: case 101: case 102: case 103:
     00000840                       1750 00161$:
-                                   1751 ;src/gameplay.c:311: if (!cache->activated[sp_idx]) {
+                                   1751 ;src/gameplay.c:318: if (!cache->activated[sp_idx]) {
     00000840 F8 2A            [12] 1752 	ldhl	sp,#42
     00000842 2A               [ 8] 1753 	ld	a, (hl+)
     00000843 5F               [ 4] 1754 	ld	e, a
@@ -1762,7 +1762,7 @@
     0000084D 0A               [ 8] 1762 	ld	a, (bc)
     0000084E B7               [ 4] 1763 	or	a, a
     0000084F C2rFEr26         [16] 1764 	jp	NZ, 00354$
-                                   1765 ;src/gameplay.c:312: *target_bg_idx = obj - 100;
+                                   1765 ;src/gameplay.c:319: *target_bg_idx = obj - 100;
     00000852 F8 45            [12] 1766 	ldhl	sp,	#69
     00000854 2A               [ 8] 1767 	ld	a, (hl+)
     00000855 5F               [ 4] 1768 	ld	e, a
@@ -1771,14 +1771,14 @@
     00000859 7E               [ 8] 1771 	ld	a, (hl)
     0000085A C6 9C            [ 8] 1772 	add	a, #0x9c
     0000085C 12               [ 8] 1773 	ld	(de), a
-                                   1774 ;src/gameplay.c:313: cache->activated[sp_idx] = 1;
+                                   1774 ;src/gameplay.c:320: cache->activated[sp_idx] = 1;
     0000085D 3E 01            [ 8] 1775 	ld	a, #0x01
     0000085F 02               [ 8] 1776 	ld	(bc), a
-                                   1777 ;src/gameplay.c:315: continue;
+                                   1777 ;src/gameplay.c:322: continue;
     00000860 C3rFEr26         [16] 1778 	jp	00354$
-                                   1779 ;src/gameplay.c:317: case OBJ_MIRROR_PORTAL:
+                                   1779 ;src/gameplay.c:324: case OBJ_MIRROR_PORTAL:
     00000863                       1780 00164$:
-                                   1781 ;src/gameplay.c:318: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                                   1781 ;src/gameplay.c:325: if (py <= obj_y + 32 && p_bottom >= obj_y) {
     00000863 F8 37            [12] 1782 	ldhl	sp,	#55
     00000865 2A               [ 8] 1783 	ld	a, (hl+)
     00000866 4F               [ 4] 1784 	ld	c, a
@@ -1805,7 +1805,7 @@
     00000881 1A               [ 8] 1805 	ld	a, (de)
     00000882 9E               [ 8] 1806 	sbc	a, (hl)
     00000883 38 5A            [12] 1807 	jr	C, 00178$
-                                   1808 ;src/gameplay.c:319: if (!cache->activated[sp_idx]) {
+                                   1808 ;src/gameplay.c:326: if (!cache->activated[sp_idx]) {
     00000885 F8 1F            [12] 1809 	ldhl	sp,#31
     00000887 2A               [ 8] 1810 	ld	a, (hl+)
     00000888 5F               [ 4] 1811 	ld	e, a
@@ -1819,20 +1819,20 @@
     00000892 0A               [ 8] 1819 	ld	a, (bc)
     00000893 B7               [ 4] 1820 	or	a, a
     00000894 20 49            [12] 1821 	jr	NZ, 00178$
-                                   1822 ;src/gameplay.c:320: p->reversed = 1;
+                                   1822 ;src/gameplay.c:327: p->reversed = 1;
     00000896 F8 02            [12] 1823 	ldhl	sp,	#2
     00000898 2A               [ 8] 1824 	ld	a, (hl+)
     00000899 66               [ 8] 1825 	ld	h, (hl)
     0000089A 6F               [ 4] 1826 	ld	l, a
     0000089B 36 01            [12] 1827 	ld	(hl), #0x01
-                                   1828 ;src/gameplay.c:321: cache->activated[sp_idx] = 1;
+                                   1828 ;src/gameplay.c:328: cache->activated[sp_idx] = 1;
     0000089D 3E 01            [ 8] 1829 	ld	a, #0x01
     0000089F 02               [ 8] 1830 	ld	(bc), a
-                                   1831 ;src/gameplay.c:324: break;
+                                   1831 ;src/gameplay.c:331: break;
     000008A0 18 3D            [12] 1832 	jr	00178$
-                                   1833 ;src/gameplay.c:326: case OBJ_MIRROR_EXIT:
+                                   1833 ;src/gameplay.c:333: case OBJ_MIRROR_EXIT:
     000008A2                       1834 00170$:
-                                   1835 ;src/gameplay.c:327: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                                   1835 ;src/gameplay.c:334: if (py <= obj_y + 32 && p_bottom >= obj_y) {
     000008A2 F8 37            [12] 1836 	ldhl	sp,	#55
     000008A4 2A               [ 8] 1837 	ld	a, (hl+)
     000008A5 4F               [ 4] 1838 	ld	c, a
@@ -1859,7 +1859,7 @@
     000008C0 1A               [ 8] 1859 	ld	a, (de)
     000008C1 9E               [ 8] 1860 	sbc	a, (hl)
     000008C2 38 1B            [12] 1861 	jr	C, 00178$
-                                   1862 ;src/gameplay.c:328: if (!cache->activated[sp_idx]) {
+                                   1862 ;src/gameplay.c:335: if (!cache->activated[sp_idx]) {
     000008C4 F8 1D            [12] 1863 	ldhl	sp,#29
     000008C6 2A               [ 8] 1864 	ld	a, (hl+)
     000008C7 5F               [ 4] 1865 	ld	e, a
@@ -1873,18 +1873,18 @@
     000008D1 0A               [ 8] 1873 	ld	a, (bc)
     000008D2 B7               [ 4] 1874 	or	a, a
     000008D3 20 0A            [12] 1875 	jr	NZ, 00178$
-                                   1876 ;src/gameplay.c:329: p->reversed = 0;
+                                   1876 ;src/gameplay.c:336: p->reversed = 0;
     000008D5 F8 02            [12] 1877 	ldhl	sp,	#2
     000008D7 2A               [ 8] 1878 	ld	a, (hl+)
     000008D8 66               [ 8] 1879 	ld	h, (hl)
     000008D9 6F               [ 4] 1880 	ld	l, a
     000008DA 36 00            [12] 1881 	ld	(hl), #0x00
-                                   1882 ;src/gameplay.c:330: cache->activated[sp_idx] = 1;
+                                   1882 ;src/gameplay.c:337: cache->activated[sp_idx] = 1;
     000008DC 3E 01            [ 8] 1883 	ld	a, #0x01
     000008DE 02               [ 8] 1884 	ld	(bc), a
-                                   1885 ;src/gameplay.c:334: }
+                                   1885 ;src/gameplay.c:341: }
     000008DF                       1886 00178$:
-                                   1887 ;src/gameplay.c:342: uint8_t rel_x = (uint8_t)obj_x - (uint8_t)cam_px;
+                                   1887 ;src/gameplay.c:349: uint8_t rel_x = (uint8_t)obj_x - (uint8_t)cam_px;
     000008DF F8 30            [12] 1888 	ldhl	sp,	#48
     000008E1 7E               [ 8] 1889 	ld	a, (hl)
     000008E2 F8 39            [12] 1890 	ldhl	sp,	#57
@@ -1892,7 +1892,7 @@
     000008E5 91               [ 4] 1892 	sub	a, c
     000008E6 F8 36            [12] 1893 	ldhl	sp,	#54
     000008E8 77               [ 8] 1894 	ld	(hl), a
-                                   1895 ;src/gameplay.c:344: uint8_t screen_x = reversed ? (136 - rel_x) : (rel_x + 40); // 40 is PLAYER_SCREEN_X (32) + 8
+                                   1895 ;src/gameplay.c:351: uint8_t screen_x = reversed ? (136 - rel_x) : (rel_x + 40); // 40 is PLAYER_SCREEN_X (32) + 8
     000008E9 F8 04            [12] 1896 	ldhl	sp,	#4
     000008EB 7E               [ 8] 1897 	ld	a, (hl)
     000008EC B7               [ 4] 1898 	or	a, a
@@ -1910,7 +1910,7 @@
     000008FD                       1910 00383$:
     000008FD F8 2C            [12] 1911 	ldhl	sp,	#44
     000008FF 73               [ 8] 1912 	ld	(hl), e
-                                   1913 ;src/gameplay.c:345: uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
+                                   1913 ;src/gameplay.c:352: uint8_t screen_y = ((uint8_t)obj_y - (uint8_t)cam_py) + 16;
     00000900 F8 37            [12] 1914 	ldhl	sp,	#55
     00000902 7E               [ 8] 1915 	ld	a, (hl)
     00000903 F8 40            [12] 1916 	ldhl	sp,	#64
@@ -1919,28 +1919,28 @@
     00000907 C6 10            [ 8] 1919 	add	a, #0x10
     00000909 F8 38            [12] 1920 	ldhl	sp,	#56
     0000090B 77               [ 8] 1921 	ld	(hl), a
-                                   1922 ;src/gameplay.c:349: if ((uint8_t)(screen_x + 24u) > 184u) continue;
+                                   1922 ;src/gameplay.c:356: if ((uint8_t)(screen_x + 24u) > 184u) continue;
     0000090C F8 2C            [12] 1923 	ldhl	sp,	#44
     0000090E 7E               [ 8] 1924 	ld	a, (hl)
     0000090F C6 18            [ 8] 1925 	add	a, #0x18
     00000911 FE B9            [ 8] 1926 	cp	a, #0xb9
     00000913 D2rFEr26         [16] 1927 	jp	NC, 00354$
-                                   1928 ;src/gameplay.c:350: if ((uint8_t)(screen_y + 48u) > 208u) continue;
+                                   1928 ;src/gameplay.c:357: if ((uint8_t)(screen_y + 48u) > 208u) continue;
     00000916 F8 38            [12] 1929 	ldhl	sp,	#56
     00000918 7E               [ 8] 1930 	ld	a, (hl)
     00000919 C6 30            [ 8] 1931 	add	a, #0x30
     0000091B FE D1            [ 8] 1932 	cp	a, #0xd1
     0000091D D2rFEr26         [16] 1933 	jp	NC, 00354$
-                                   1934 ;src/gameplay.c:352: if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
-    00000920 3E 1F            [ 8] 1935 	ld	a, #0x1f
+                                   1934 ;src/gameplay.c:359: if (oam_start > OBJ_OAM_MAX - 9) break;
+    00000920 3E 1B            [ 8] 1935 	ld	a, #0x1b
     00000922 F8 47            [12] 1936 	ldhl	sp,	#71
     00000924 96               [ 8] 1937 	sub	a, (hl)
     00000925 DAr04r27         [16] 1938 	jp	C, 00355$
-                                   1939 ;src/gameplay.c:355: uint8_t oam = oam_start;
+                                   1939 ;src/gameplay.c:362: uint8_t oam = oam_start;
     00000928 7E               [ 8] 1940 	ld	a, (hl)
     00000929 F8 37            [12] 1941 	ldhl	sp,	#55
     0000092B 77               [ 8] 1942 	ld	(hl), a
-                                   1943 ;src/gameplay.c:357: if (obj >= 42 && obj <= 63) {
+                                   1943 ;src/gameplay.c:364: if (obj >= 42 && obj <= 63) {
     0000092C F8 34            [12] 1944 	ldhl	sp,	#52
     0000092E 7E               [ 8] 1945 	ld	a, (hl)
     0000092F D6 2A            [ 8] 1946 	sub	a, #0x2a
@@ -1948,7 +1948,7 @@
     00000934 3E 3F            [ 8] 1948 	ld	a, #0x3f
     00000936 96               [ 8] 1949 	sub	a, (hl)
     00000937 DAr13r1A         [16] 1950 	jp	C, 00323$
-                                   1951 ;src/gameplay.c:358: switch (obj) {
+                                   1951 ;src/gameplay.c:365: switch (obj) {
     0000093A 7E               [ 8] 1952 	ld	a, (hl)
     0000093B C6 D6            [ 8] 1953 	add	a, #0xd6
     0000093D 4F               [ 4] 1954 	ld	c, a
@@ -1984,7 +1984,7 @@
     00000970rD1r16                 1984 	.dw	00304$
     00000972r72r17                 1985 	.dw	00311$
     00000974rC1r18                 1986 	.dw	00318$
-                                   1987 ;src/gameplay.c:359: case 42: DECO_1X2(D_CF, D_C9, DP, DP, 4, 0, -16); break;
+                                   1987 ;src/gameplay.c:366: case 42: DECO_1X2(D_CF, D_C9, DP, DP, 4, 0, -16); break;
     00000976                       1988 00186$:
     00000976 F8 2C            [12] 1989 	ldhl	sp,	#44
     00000978 7E               [ 8] 1990 	ld	a, (hl)
@@ -2102,7 +2102,7 @@
     00000A12 4E               [ 8] 2102 	ld	c, (hl)
     00000A13 0C               [ 4] 2103 	inc	c
     00000A14 C3r0Dr1A         [16] 2104 	jp	00321$
-                                   2105 ;src/gameplay.c:360: case 43: DECO_1X2(D_CF, D_CB, DP, DP, 4, 0, -16); break;
+                                   2105 ;src/gameplay.c:367: case 43: DECO_1X2(D_CF, D_CB, DP, DP, 4, 0, -16); break;
     00000A17                       2106 00190$:
     00000A17 F8 2C            [12] 2107 	ldhl	sp,	#44
     00000A19 7E               [ 8] 2108 	ld	a, (hl)
@@ -2220,7 +2220,7 @@
     00000AB3 4E               [ 8] 2220 	ld	c, (hl)
     00000AB4 0C               [ 4] 2221 	inc	c
     00000AB5 C3r0Dr1A         [16] 2222 	jp	00321$
-                                   2223 ;src/gameplay.c:361: case 44: DECO_1X1(D_CD, DP, 4, 0); break;
+                                   2223 ;src/gameplay.c:368: case 44: DECO_1X1(D_CD, DP, 4, 0); break;
     00000AB8                       2224 00197$:
     00000AB8 F8 04            [12] 2225 	ldhl	sp,	#4
     00000ABA 7E               [ 8] 2226 	ld	a, (hl)
@@ -2298,7 +2298,7 @@
     00000B2B 4E               [ 8] 2298 	ld	c, (hl)
     00000B2C 0C               [ 4] 2299 	inc	c
     00000B2D C3r0Dr1A         [16] 2300 	jp	00321$
-                                   2301 ;src/gameplay.c:362: case 45: DECO_1X2(D_D5, D_D7, DP, DP, 4, 0, -16); break;
+                                   2301 ;src/gameplay.c:369: case 45: DECO_1X2(D_D5, D_D7, DP, DP, 4, 0, -16); break;
     00000B30                       2302 00201$:
     00000B30 F8 2C            [12] 2303 	ldhl	sp,	#44
     00000B32 7E               [ 8] 2304 	ld	a, (hl)
@@ -2416,7 +2416,7 @@
     00000BCC 4E               [ 8] 2416 	ld	c, (hl)
     00000BCD 0C               [ 4] 2417 	inc	c
     00000BCE C3r0Dr1A         [16] 2418 	jp	00321$
-                                   2419 ;src/gameplay.c:365: case 46: DECO_2X1(D_D9, D_DB, DP, DP, 0, -4); break;
+                                   2419 ;src/gameplay.c:372: case 46: DECO_2X1(D_D9, D_DB, DP, DP, 0, -4); break;
     00000BD1                       2420 00208$:
     00000BD1 F8 04            [12] 2421 	ldhl	sp,	#4
     00000BD3 7E               [ 8] 2422 	ld	a, (hl)
@@ -2568,7 +2568,7 @@
     00000CAF 36 23            [12] 2568 	ld	(hl), #0x23
     00000CB1 0C               [ 4] 2569 	inc	c
     00000CB2 C3r0Dr1A         [16] 2570 	jp	00321$
-                                   2571 ;src/gameplay.c:366: case 47: DECO_2X1(D_D9, D_DB, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
+                                   2571 ;src/gameplay.c:373: case 47: DECO_2X1(D_D9, D_DB, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
     00000CB5                       2572 00215$:
     00000CB5 F8 04            [12] 2573 	ldhl	sp,	#4
     00000CB7 7E               [ 8] 2574 	ld	a, (hl)
@@ -2720,7 +2720,7 @@
     00000D93 36 63            [12] 2720 	ld	(hl), #0x63
     00000D95 0C               [ 4] 2721 	inc	c
     00000D96 C3r0Dr1A         [16] 2722 	jp	00321$
-                                   2723 ;src/gameplay.c:367: case 48: DECO_2X1(D_DD, D_DF, DP, DP, 0, -4); break;
+                                   2723 ;src/gameplay.c:374: case 48: DECO_2X1(D_DD, D_DF, DP, DP, 0, -4); break;
     00000D99                       2724 00222$:
     00000D99 F8 04            [12] 2725 	ldhl	sp,	#4
     00000D9B 7E               [ 8] 2726 	ld	a, (hl)
@@ -2872,7 +2872,7 @@
     00000E77 36 23            [12] 2872 	ld	(hl), #0x23
     00000E79 0C               [ 4] 2873 	inc	c
     00000E7A C3r0Dr1A         [16] 2874 	jp	00321$
-                                   2875 ;src/gameplay.c:368: case 49: DECO_2X1(D_DD, D_DF, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
+                                   2875 ;src/gameplay.c:375: case 49: DECO_2X1(D_DD, D_DF, DP|S_FLIPY, DP|S_FLIPY, 0, 4); break;
     00000E7D                       2876 00229$:
     00000E7D F8 04            [12] 2877 	ldhl	sp,	#4
     00000E7F 7E               [ 8] 2878 	ld	a, (hl)
@@ -3024,7 +3024,7 @@
     00000F5B 36 63            [12] 3024 	ld	(hl), #0x63
     00000F5D 0C               [ 4] 3025 	inc	c
     00000F5E C3r0Dr1A         [16] 3026 	jp	00321$
-                                   3027 ;src/gameplay.c:370: case 50: DECO_2X1(D_E1, D_E1, DP, DP|S_FLIPX, 0, 0); break;
+                                   3027 ;src/gameplay.c:377: case 50: DECO_2X1(D_E1, D_E1, DP, DP|S_FLIPX, 0, 0); break;
     00000F61                       3028 00236$:
     00000F61 F8 04            [12] 3029 	ldhl	sp,	#4
     00000F63 7E               [ 8] 3030 	ld	a, (hl)
@@ -3166,7 +3166,7 @@
     00001033 36 03            [12] 3166 	ld	(hl), #0x03
     00001035 0C               [ 4] 3167 	inc	c
     00001036 C3r0Dr1A         [16] 3168 	jp	00321$
-                                   3169 ;src/gameplay.c:371: case 51: DECO_1X1(D_E1, DP|S_FLIPX, 8, 0); break;
+                                   3169 ;src/gameplay.c:378: case 51: DECO_1X1(D_E1, DP|S_FLIPX, 8, 0); break;
     00001039                       3170 00243$:
     00001039 F8 04            [12] 3171 	ldhl	sp,	#4
     0000103B 7E               [ 8] 3172 	ld	a, (hl)
@@ -3243,7 +3243,7 @@
     000010AA 4E               [ 8] 3243 	ld	c, (hl)
     000010AB 0C               [ 4] 3244 	inc	c
     000010AC C3r0Dr1A         [16] 3245 	jp	00321$
-                                   3246 ;src/gameplay.c:372: case 52: DECO_1X1(D_E3, DP, 4, 0); break;
+                                   3246 ;src/gameplay.c:379: case 52: DECO_1X1(D_E3, DP, 4, 0); break;
     000010AF                       3247 00250$:
     000010AF F8 04            [12] 3248 	ldhl	sp,	#4
     000010B1 7E               [ 8] 3249 	ld	a, (hl)
@@ -3321,7 +3321,7 @@
     00001122 4E               [ 8] 3321 	ld	c, (hl)
     00001123 0C               [ 4] 3322 	inc	c
     00001124 C3r0Dr1A         [16] 3323 	jp	00321$
-                                   3324 ;src/gameplay.c:373: case 53: DECO_1X1(D_E5, DP, 4, 0); break;
+                                   3324 ;src/gameplay.c:380: case 53: DECO_1X1(D_E5, DP, 4, 0); break;
     00001127                       3325 00257$:
     00001127 F8 04            [12] 3326 	ldhl	sp,	#4
     00001129 7E               [ 8] 3327 	ld	a, (hl)
@@ -3399,7 +3399,7 @@
     0000119A 4E               [ 8] 3399 	ld	c, (hl)
     0000119B 0C               [ 4] 3400 	inc	c
     0000119C C3r0Dr1A         [16] 3401 	jp	00321$
-                                   3402 ;src/gameplay.c:374: case 54: DECO_2X1(D_E7, D_E7, DP, DP|S_FLIPX, 0, 0); break;
+                                   3402 ;src/gameplay.c:381: case 54: DECO_2X1(D_E7, D_E7, DP, DP|S_FLIPX, 0, 0); break;
     0000119F                       3403 00264$:
     0000119F F8 04            [12] 3404 	ldhl	sp,	#4
     000011A1 7E               [ 8] 3405 	ld	a, (hl)
@@ -3541,7 +3541,7 @@
     00001271 36 03            [12] 3541 	ld	(hl), #0x03
     00001273 0C               [ 4] 3542 	inc	c
     00001274 C3r0Dr1A         [16] 3543 	jp	00321$
-                                   3544 ;src/gameplay.c:375: case 55: DECO_2X1(D_ED, D_ED, DP, DP|S_FLIPX, 0, 0); break;
+                                   3544 ;src/gameplay.c:382: case 55: DECO_2X1(D_ED, D_ED, DP, DP|S_FLIPX, 0, 0); break;
     00001277                       3545 00271$:
     00001277 F8 04            [12] 3546 	ldhl	sp,	#4
     00001279 7E               [ 8] 3547 	ld	a, (hl)
@@ -3683,7 +3683,7 @@
     00001349 36 03            [12] 3683 	ld	(hl), #0x03
     0000134B 0C               [ 4] 3684 	inc	c
     0000134C C3r0Dr1A         [16] 3685 	jp	00321$
-                                   3686 ;src/gameplay.c:376: case 56: DECO_2X1(D_F1, D_F5, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
+                                   3686 ;src/gameplay.c:383: case 56: DECO_2X1(D_F1, D_F5, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
     0000134F                       3687 00278$:
     0000134F F8 04            [12] 3688 	ldhl	sp,	#4
     00001351 7E               [ 8] 3689 	ld	a, (hl)
@@ -3835,7 +3835,7 @@
     0000142D 36 03            [12] 3835 	ld	(hl), #0x03
     0000142F 0C               [ 4] 3836 	inc	c
     00001430 C3r0Dr1A         [16] 3837 	jp	00321$
-                                   3838 ;src/gameplay.c:377: case 57: DECO_2X1(D_F5, D_F1, DP, DP, 0, -4); break;
+                                   3838 ;src/gameplay.c:384: case 57: DECO_2X1(D_F5, D_F1, DP, DP, 0, -4); break;
     00001433                       3839 00285$:
     00001433 F8 04            [12] 3840 	ldhl	sp,	#4
     00001435 7E               [ 8] 3841 	ld	a, (hl)
@@ -3987,7 +3987,7 @@
     00001511 36 23            [12] 3987 	ld	(hl), #0x23
     00001513 0C               [ 4] 3988 	inc	c
     00001514 C3r0Dr1A         [16] 3989 	jp	00321$
-                                   3990 ;src/gameplay.c:378: case 58: DECO_1X2(D_CF, D_C9, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
+                                   3990 ;src/gameplay.c:385: case 58: DECO_1X2(D_CF, D_C9, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
     00001517                       3991 00289$:
     00001517 F8 2C            [12] 3992 	ldhl	sp,	#44
     00001519 7E               [ 8] 3993 	ld	a, (hl)
@@ -4105,7 +4105,7 @@
     000015B3 4E               [ 8] 4105 	ld	c, (hl)
     000015B4 0C               [ 4] 4106 	inc	c
     000015B5 C3r0Dr1A         [16] 4107 	jp	00321$
-                                   4108 ;src/gameplay.c:379: case 59: DECO_1X2(D_CF, D_CB, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
+                                   4108 ;src/gameplay.c:386: case 59: DECO_1X2(D_CF, D_CB, DP|S_FLIPY, DP|S_FLIPY, 4, 0, 16); break;
     000015B8                       4109 00293$:
     000015B8 F8 2C            [12] 4110 	ldhl	sp,	#44
     000015BA 7E               [ 8] 4111 	ld	a, (hl)
@@ -4223,7 +4223,7 @@
     00001654 4E               [ 8] 4223 	ld	c, (hl)
     00001655 0C               [ 4] 4224 	inc	c
     00001656 C3r0Dr1A         [16] 4225 	jp	00321$
-                                   4226 ;src/gameplay.c:380: case 60: DECO_1X1(D_CD, DP|S_FLIPY, 4, 0); break;
+                                   4226 ;src/gameplay.c:387: case 60: DECO_1X1(D_CD, DP|S_FLIPY, 4, 0); break;
     00001659                       4227 00300$:
     00001659 F8 04            [12] 4228 	ldhl	sp,	#4
     0000165B 7E               [ 8] 4229 	ld	a, (hl)
@@ -4302,7 +4302,7 @@
     000016CC 4E               [ 8] 4302 	ld	c, (hl)
     000016CD 0C               [ 4] 4303 	inc	c
     000016CE C3r0Dr1A         [16] 4304 	jp	00321$
-                                   4305 ;src/gameplay.c:381: case 61: DECO_1X2(D_D7, D_D5, DP|S_FLIPY, DP|S_FLIPY, 4, 16, 0); break;
+                                   4305 ;src/gameplay.c:388: case 61: DECO_1X2(D_D7, D_D5, DP|S_FLIPY, DP|S_FLIPY, 4, 16, 0); break;
     000016D1                       4306 00304$:
     000016D1 F8 2C            [12] 4307 	ldhl	sp,	#44
     000016D3 7E               [ 8] 4308 	ld	a, (hl)
@@ -4420,7 +4420,7 @@
     0000176D 4E               [ 8] 4420 	ld	c, (hl)
     0000176E 0C               [ 4] 4421 	inc	c
     0000176F C3r0Dr1A         [16] 4422 	jp	00321$
-                                   4423 ;src/gameplay.c:382: case 62: DECO_3X1(D_F1, D_F7, D_F5, DP|S_FLIPX, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
+                                   4423 ;src/gameplay.c:389: case 62: DECO_3X1(D_F1, D_F7, D_F5, DP|S_FLIPX, DP|S_FLIPX, DP|S_FLIPX, 0, -4); break;
     00001772                       4424 00311$:
     00001772 F8 04            [12] 4425 	ldhl	sp,	#4
     00001774 7E               [ 8] 4426 	ld	a, (hl)
@@ -4640,7 +4640,7 @@
     000018BB 36 03            [12] 4640 	ld	(hl), #0x03
     000018BD 0C               [ 4] 4641 	inc	c
     000018BE C3r0Dr1A         [16] 4642 	jp	00321$
-                                   4643 ;src/gameplay.c:383: case 63: DECO_3X1(D_F1, D_F7, D_F5, DP, DP, DP, 0, -4); break;
+                                   4643 ;src/gameplay.c:390: case 63: DECO_3X1(D_F1, D_F7, D_F5, DP, DP, DP, 0, -4); break;
     000018C1                       4644 00318$:
     000018C1 F8 04            [12] 4645 	ldhl	sp,	#4
     000018C3 7E               [ 8] 4646 	ld	a, (hl)
@@ -4859,15 +4859,15 @@
     00001A09 23               [ 8] 4859 	inc	hl
     00001A0A 36 23            [12] 4860 	ld	(hl), #0x23
     00001A0C 0C               [ 4] 4861 	inc	c
-                                   4862 ;src/gameplay.c:384: }
+                                   4862 ;src/gameplay.c:391: }
     00001A0D                       4863 00321$:
-                                   4864 ;src/gameplay.c:385: oam_start = oam; // Save the updated index!
+                                   4864 ;src/gameplay.c:392: oam_start = oam; // Save the updated index!
     00001A0D F8 47            [12] 4865 	ldhl	sp,	#71
     00001A0F 71               [ 8] 4866 	ld	(hl), c
-                                   4867 ;src/gameplay.c:386: continue;
+                                   4867 ;src/gameplay.c:393: continue;
     00001A10 C3rFEr26         [16] 4868 	jp	00354$
     00001A13                       4869 00323$:
-                                   4870 ;src/gameplay.c:391: if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+                                   4870 ;src/gameplay.c:398: if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
     00001A13 F8 34            [12] 4871 	ldhl	sp,	#52
     00001A15 7E               [ 8] 4872 	ld	a, (hl)
     00001A16 D6 26            [ 8] 4873 	sub	a, #0x26
@@ -4885,11 +4885,11 @@
     00001A28 78               [ 4] 4885 	ld	a, b
     00001A29 B1               [ 4] 4886 	or	a, c
     00001A2A CArFEr26         [16] 4887 	jp	Z, 00354$
-                                   4888 ;src/gameplay.c:392: const metasprite_t *sprite = famidash_sprite_table[obj];
+                                   4888 ;src/gameplay.c:399: const metasprite_t *sprite = famidash_sprite_table[obj];
     00001A2D F8 35            [12] 4889 	ldhl	sp,	#53
     00001A2F 79               [ 4] 4890 	ld	a, c
     00001A30 22               [ 8] 4891 	ld	(hl+), a
-                                   4892 ;src/gameplay.c:394: if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
+                                   4892 ;src/gameplay.c:401: if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL) {
     00001A31 78               [ 4] 4893 	ld	a, b
     00001A32 32               [ 8] 4894 	ld	(hl-), a
     00001A33 2B               [ 8] 4895 	dec	hl
@@ -4899,7 +4899,7 @@
     00001A38 7E               [ 8] 4899 	ld	a, (hl)
     00001A39 3D               [ 4] 4900 	dec	a
     00001A3A C2r0Br21         [16] 4901 	jp	NZ, 00351$
-                                   4902 ;src/gameplay.c:395: DRAW_META_3X3(sprite);
+                                   4902 ;src/gameplay.c:402: DRAW_META_3X3(sprite);
     00001A3D                       4903 00331$:
     00001A3D F8 04            [12] 4904 	ldhl	sp,	#4
     00001A3F 7E               [ 8] 4905 	ld	a, (hl)
@@ -6287,7 +6287,7 @@
     00002107 77               [ 8] 6287 	ld	(hl), a
     00002108 C3rF8r26         [16] 6288 	jp	00352$
     0000210B                       6289 00351$:
-                                   6290 ;src/gameplay.c:396: } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
+                                   6290 ;src/gameplay.c:403: } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
     0000210B F8 34            [12] 6291 	ldhl	sp,	#52
     0000210D 7E               [ 8] 6292 	ld	a, (hl)
     0000210E D6 08            [ 8] 6293 	sub	a, #0x08
@@ -6296,7 +6296,7 @@
     00002114 7E               [ 8] 6296 	ld	a, (hl)
     00002115 D6 09            [ 8] 6297 	sub	a, #0x09
     00002117 C2r9Er25         [16] 6298 	jp	NZ, 00343$
-                                   6299 ;src/gameplay.c:397: DRAW_META_2X3(sprite);
+                                   6299 ;src/gameplay.c:404: DRAW_META_2X3(sprite);
     0000211A                       6300 00337$:
     0000211A F8 04            [12] 6301 	ldhl	sp,	#4
     0000211C 7E               [ 8] 6302 	ld	a, (hl)
@@ -7194,7 +7194,7 @@
     00002598 F8 38            [12] 7194 	ldhl	sp,	#56
     0000259A 34               [12] 7195 	inc	(hl)
     0000259B C3rF8r26         [16] 7196 	jp	00352$
-                                   7197 ;src/gameplay.c:399: DRAW_META_2X1(sprite);
+                                   7197 ;src/gameplay.c:406: DRAW_META_2X1(sprite);
     0000259E                       7198 00343$:
     0000259E F8 04            [12] 7199 	ldhl	sp,	#4
     000025A0 7E               [ 8] 7200 	ld	a, (hl)
@@ -7451,34 +7451,34 @@
     000026F6 3C               [ 4] 7451 	inc	a
     000026F7 77               [ 8] 7452 	ld	(hl), a
     000026F8                       7453 00352$:
-                                   7454 ;src/gameplay.c:402: oam_start = oam; // Save the updated index!
+                                   7454 ;src/gameplay.c:409: oam_start = oam; // Save the updated index!
     000026F8 F8 38            [12] 7455 	ldhl	sp,	#56
     000026FA 7E               [ 8] 7456 	ld	a, (hl)
     000026FB F8 47            [12] 7457 	ldhl	sp,	#71
     000026FD 77               [ 8] 7458 	ld	(hl), a
     000026FE                       7459 00354$:
-                                   7460 ;src/gameplay.c:217: for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; sp_idx++) {
+                                   7460 ;src/gameplay.c:224: for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < OBJ_OAM_MAX; sp_idx++) {
     000026FE F8 3D            [12] 7461 	ldhl	sp,	#61
     00002700 34               [12] 7462 	inc	(hl)
     00002701 C3r88r03         [16] 7463 	jp	00358$
     00002704                       7464 00355$:
-                                   7465 ;src/gameplay.c:404: return oam_start;
+                                   7465 ;src/gameplay.c:411: return oam_start;
     00002704 F8 47            [12] 7466 	ldhl	sp,	#71
     00002706 7E               [ 8] 7467 	ld	a, (hl)
-                                   7468 ;src/gameplay.c:405: }
+                                   7468 ;src/gameplay.c:412: }
     00002707 E8 3E            [16] 7469 	add	sp, #62
     00002709 E1               [12] 7470 	pop	hl
     0000270A E8 08            [16] 7471 	add	sp, #8
     0000270C E9               [ 4] 7472 	jp	(hl)
-                                   7473 ;src/gameplay.c:407: void setup_menu_font(void) BANKED {
+                                   7473 ;src/gameplay.c:414: void setup_menu_font(void) BANKED {
                                    7474 ;	---------------------------------
                                    7475 ; Function setup_menu_font
                                    7476 ; ---------------------------------
                          0000000A  7477 	b_setup_menu_font	= 10
     0000270D                       7478 _setup_menu_font::
-                                   7479 ;src/gameplay.c:408: font_init();
+                                   7479 ;src/gameplay.c:415: font_init();
     0000270D CDr00r00         [24] 7480 	call	_font_init
-                                   7481 ;src/gameplay.c:409: font_set(font_load(font_min));
+                                   7481 ;src/gameplay.c:416: font_set(font_load(font_min));
     00002710 11r00r00         [12] 7482 	ld	de, #_font_min
     00002713 D5               [16] 7483 	push	de
     00002714 CDr00r00         [24] 7484 	call	_font_load
@@ -7486,15 +7486,15 @@
     00002718 D5               [16] 7486 	push	de
     00002719 CDr00r00         [24] 7487 	call	_font_set
     0000271C E1               [12] 7488 	pop	hl
-                                   7489 ;src/gameplay.c:410: }
+                                   7489 ;src/gameplay.c:417: }
     0000271D C9               [16] 7490 	ret
-                                   7491 ;src/gameplay.c:412: void draw_menu(void) BANKED {
+                                   7491 ;src/gameplay.c:419: void draw_menu(void) BANKED {
                                    7492 ;	---------------------------------
                                    7493 ; Function draw_menu
                                    7494 ; ---------------------------------
                          0000000A  7495 	b_draw_menu	= 10
     0000271E                       7496 _draw_menu::
-                                   7497 ;src/gameplay.c:413: fill_bkg_rect(0, 0, 20, 18, 0x00);
+                                   7497 ;src/gameplay.c:420: fill_bkg_rect(0, 0, 20, 18, 0x00);
     0000271E AF               [ 4] 7498 	xor	a, a
     0000271F 67               [ 4] 7499 	ld	h, a
     00002720 2E 12            [ 8] 7500 	ld	l, #0x12
@@ -7507,21 +7507,21 @@
     00002729 F5               [16] 7507 	push	af
     0000272A CDr00r00         [24] 7508 	call	_fill_bkg_rect
     0000272D E8 05            [16] 7509 	add	sp, #5
-                                   7510 ;src/gameplay.c:414: gotoxy(0, 0);
+                                   7510 ;src/gameplay.c:421: gotoxy(0, 0);
     0000272F AF               [ 4] 7511 	xor	a, a
     00002730 0F               [ 4] 7512 	rrca
     00002731 F5               [16] 7513 	push	af
     00002732 CDr00r00         [24] 7514 	call	_gotoxy
     00002735 E1               [12] 7515 	pop	hl
-                                   7516 ;src/gameplay.c:415: printf("GBDASH DEMO 01\n");
+                                   7516 ;src/gameplay.c:422: printf("GBDASH DEMO 01\n");
     00002736 11rA8r27         [12] 7517 	ld	de, #___str_1
     00002739 CDr00r00         [24] 7518 	call	_puts
-                                   7519 ;src/gameplay.c:416: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+                                   7519 ;src/gameplay.c:423: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
     0000273C 0E 00            [ 8] 7520 	ld	c, #0x00
     0000273E                       7521 00106$:
     0000273E FAr00r00         [16] 7522 	ld	a, (_MAX_LEVELS)
     00002741 47               [ 4] 7523 	ld	b, a
-                                   7524 ;src/gameplay.c:417: gotoxy(1, 2 + i);
+                                   7524 ;src/gameplay.c:424: gotoxy(1, 2 + i);
     00002742 79               [ 4] 7525 	ld	a,c
     00002743 B8               [ 4] 7526 	cp	a,b
     00002744 30 4F            [12] 7527 	jr	NC, 00104$
@@ -7533,7 +7533,7 @@
     0000274D CDr00r00         [24] 7533 	call	_gotoxy
     00002750 E1               [12] 7534 	pop	hl
     00002751 C1               [12] 7535 	pop	bc
-                                   7536 ;src/gameplay.c:418: if (i == selected) printf("0 %s", game_levels[i]->name);
+                                   7536 ;src/gameplay.c:425: if (i == selected) printf("0 %s", game_levels[i]->name);
     00002752 69               [ 4] 7537 	ld	l, c
     00002753 26 00            [ 8] 7538 	ld	h, #0x00
     00002755 29               [ 8] 7539 	add	hl, hl
@@ -7561,7 +7561,7 @@
     00002775 C1               [12] 7561 	pop	bc
     00002776 18 1A            [12] 7562 	jr	00107$
     00002778                       7563 00102$:
-                                   7564 ;src/gameplay.c:419: else printf("  %s", game_levels[i]->name);
+                                   7564 ;src/gameplay.c:426: else printf("  %s", game_levels[i]->name);
     00002778 3Er00            [ 8] 7565 	ld	a, #<(_game_levels)
     0000277A 80               [ 4] 7566 	add	a, b
     0000277B 6F               [ 4] 7567 	ld	l, a
@@ -7582,23 +7582,23 @@
     0000278F E8 04            [16] 7582 	add	sp, #4
     00002791 C1               [12] 7583 	pop	bc
     00002792                       7584 00107$:
-                                   7585 ;src/gameplay.c:416: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+                                   7585 ;src/gameplay.c:423: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
     00002792 0C               [ 4] 7586 	inc	c
     00002793 18 A9            [12] 7587 	jr	00106$
     00002795                       7588 00104$:
-                                   7589 ;src/gameplay.c:421: printf("\n\n\n\n\n\n\n\nSotospro24");
+                                   7589 ;src/gameplay.c:428: printf("\n\n\n\n\n\n\n\nSotospro24");
     00002795 11rC1r27         [12] 7590 	ld	de, #___str_4
     00002798 D5               [16] 7591 	push	de
     00002799 CDr00r00         [24] 7592 	call	_printf
     0000279C E1               [12] 7593 	pop	hl
-                                   7594 ;src/gameplay.c:422: SHOW_BKG;
+                                   7594 ;src/gameplay.c:429: SHOW_BKG;
     0000279D F0r00            [12] 7595 	ldh	a, (_LCDC_REG + 0)
     0000279F F6 01            [ 8] 7596 	or	a, #0x01
     000027A1 E0r00            [12] 7597 	ldh	(_LCDC_REG + 0), a
-                                   7598 ;src/gameplay.c:423: redraw = 0;
+                                   7598 ;src/gameplay.c:430: redraw = 0;
     000027A3 AF               [ 4] 7599 	xor	a, a
     000027A4 EAr00r00         [16] 7600 	ld	(#_redraw),a
-                                   7601 ;src/gameplay.c:424: }
+                                   7601 ;src/gameplay.c:431: }
     000027A7 C9               [16] 7602 	ret
     000027A8                       7603 ___str_1:
     000027A8 47 42 44 41 53 48 20  7604 	.ascii "GBDASH DEMO 01"
@@ -7622,7 +7622,7 @@
     000027C9 53 6F 74 6F 73 70 72  7621 	.ascii "Sotospro24"
              6F 32 34
     000027D3 00                    7622 	.db 0x00
-                                   7623 ;src/gameplay.c:426: void play_level(uint8_t idx) BANKED {
+                                   7623 ;src/gameplay.c:433: void play_level(uint8_t idx) BANKED {
                                    7624 ;	---------------------------------
                                    7625 ; Function play_level
                                    7626 ; ---------------------------------
@@ -7630,7 +7630,7 @@
     000027D4                       7628 _play_level::
     000027D4 E8 80            [16] 7629 	add	sp, #-128
     000027D6 E8 9E            [16] 7630 	add	sp, #-98
-                                   7631 ;src/gameplay.c:436: l = game_levels[idx];
+                                   7631 ;src/gameplay.c:443: l = game_levels[idx];
     000027D8 01r00r00         [12] 7632 	ld	bc, #_game_levels+0
     000027DB 21 E8 00         [12] 7633 	ld	hl, #232
     000027DE 39               [ 8] 7634 	add	hl, sp
@@ -7657,7 +7657,7 @@
     000027F8 22               [ 8] 7655 	ld	(hl+), a
     000027F9 13               [ 8] 7656 	inc	de
     000027FA 1A               [ 8] 7657 	ld	a, (de)
-                                   7658 ;src/gameplay.c:437: level_tiles = l->tiles;
+                                   7658 ;src/gameplay.c:444: level_tiles = l->tiles;
     000027FB 32               [ 8] 7659 	ld	(hl-), a
     000027FC 2A               [ 8] 7660 	ld	a, (hl+)
     000027FD 5F               [ 4] 7661 	ld	e, a
@@ -7684,7 +7684,7 @@
     0000281A 13               [ 8] 7682 	inc	de
     0000281B 1A               [ 8] 7683 	ld	a, (de)
     0000281C 77               [ 8] 7684 	ld	(hl), a
-                                   7685 ;src/gameplay.c:438: level_map = l->map;
+                                   7685 ;src/gameplay.c:445: level_map = l->map;
     0000281D 21 B2 00         [12] 7686 	ld	hl,#0xb2
     00002820 39               [ 8] 7687 	add	hl,sp
     00002821 2A               [ 8] 7688 	ld	a, (hl+)
@@ -7702,7 +7702,7 @@
     00002831 22               [ 8] 7700 	ld	(hl+), a
     00002832 13               [ 8] 7701 	inc	de
     00002833 1A               [ 8] 7702 	ld	a, (de)
-                                   7703 ;src/gameplay.c:439: level_tile_count = l->tile_count;
+                                   7703 ;src/gameplay.c:446: level_tile_count = l->tile_count;
     00002834 32               [ 8] 7704 	ld	(hl-), a
     00002835 2B               [ 8] 7705 	dec	hl
     00002836 2B               [ 8] 7706 	dec	hl
@@ -7722,7 +7722,7 @@
     00002848 13               [ 8] 7720 	inc	de
     00002849 1A               [ 8] 7721 	ld	a, (de)
     0000284A 77               [ 8] 7722 	ld	(hl), a
-                                   7723 ;src/gameplay.c:440: level_map_w = l->map_width;
+                                   7723 ;src/gameplay.c:447: level_map_w = l->map_width;
     0000284B 21 B2 00         [12] 7724 	ld	hl,#0xb2
     0000284E 39               [ 8] 7725 	add	hl,sp
     0000284F 2A               [ 8] 7726 	ld	a, (hl+)
@@ -7741,7 +7741,7 @@
     00002860 13               [ 8] 7739 	inc	de
     00002861 1A               [ 8] 7740 	ld	a, (de)
     00002862 77               [ 8] 7741 	ld	(hl), a
-                                   7742 ;src/gameplay.c:441: level_map_h = l->map_height;
+                                   7742 ;src/gameplay.c:448: level_map_h = l->map_height;
     00002863 21 B2 00         [12] 7743 	ld	hl,#0xb2
     00002866 39               [ 8] 7744 	add	hl,sp
     00002867 2A               [ 8] 7745 	ld	a, (hl+)
@@ -7759,10 +7759,10 @@
     00002877 22               [ 8] 7757 	ld	(hl+), a
     00002878 13               [ 8] 7758 	inc	de
     00002879 1A               [ 8] 7759 	ld	a, (de)
-                                   7760 ;src/gameplay.c:442: level_tiles_bank = BANK(chr_gb);
+                                   7760 ;src/gameplay.c:449: level_tiles_bank = BANK(chr_gb);
     0000287A 22               [ 8] 7761 	ld	(hl+), a
     0000287B 36r00            [12] 7762 	ld	(hl), #<(___bank_chr_gb)
-                                   7763 ;src/gameplay.c:443: level_map_bank = l->map_bank;
+                                   7763 ;src/gameplay.c:450: level_map_bank = l->map_bank;
     0000287D 21 B2 00         [12] 7764 	ld	hl,#0xb2
     00002880 39               [ 8] 7765 	add	hl,sp
     00002881 2A               [ 8] 7766 	ld	a, (hl+)
@@ -7776,16 +7776,16 @@
     0000288B 21 BD 00         [12] 7774 	ld	hl, #189
     0000288E 39               [ 8] 7775 	add	hl, sp
     0000288F 77               [ 8] 7776 	ld	(hl), a
-                                   7777 ;src/gameplay.c:445: NR52_REG = 0x80;
+                                   7777 ;src/gameplay.c:452: NR52_REG = 0x80;
     00002890 3E 80            [ 8] 7778 	ld	a, #0x80
     00002892 E0r00            [12] 7779 	ldh	(_NR52_REG + 0), a
-                                   7780 ;src/gameplay.c:446: NR51_REG = 0xFF;
+                                   7780 ;src/gameplay.c:453: NR51_REG = 0xFF;
     00002894 3E FF            [ 8] 7781 	ld	a, #0xff
     00002896 E0r00            [12] 7782 	ldh	(_NR51_REG + 0), a
-                                   7783 ;src/gameplay.c:447: NR50_REG = 0x77;
+                                   7783 ;src/gameplay.c:454: NR50_REG = 0x77;
     00002898 3E 77            [ 8] 7784 	ld	a, #0x77
     0000289A E0r00            [12] 7785 	ldh	(_NR50_REG + 0), a
-                                   7786 ;src/gameplay.c:449: if (level_songs[idx]) {
+                                   7786 ;src/gameplay.c:456: if (level_songs[idx]) {
     0000289C 11r00r00         [12] 7787 	ld	de, #_level_songs
     0000289F 21 E0 00         [12] 7788 	ld	hl, #224
     000028A2 39               [ 8] 7789 	add	hl, sp
@@ -7813,7 +7813,7 @@
     000028BC 47               [ 4] 7811 	ld	b, a
     000028BD B1               [ 4] 7812 	or	a, c
     000028BE 28 38            [12] 7813 	jr	Z, 00102$
-                                   7814 ;src/gameplay.c:450: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+                                   7814 ;src/gameplay.c:457: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
     000028C0 21 B2 00         [12] 7815 	ld	hl,#0xb2
     000028C3 39               [ 8] 7816 	add	hl,sp
     000028C4 2A               [ 8] 7817 	ld	a, (hl+)
@@ -7846,27 +7846,27 @@
     000028EA 50               [ 4] 7844 	ld	d, b
     000028EB CDr00r00         [24] 7845 	call	_init_music_banked
     000028EE D1               [12] 7846 	pop	de
-                                   7847 ;src/gameplay.c:451: current_song_bank = song_bank[idx];
+                                   7847 ;src/gameplay.c:458: current_song_bank = song_bank[idx];
     000028EF 1A               [ 8] 7848 	ld	a, (de)
     000028F0 EAr00r00         [16] 7849 	ld	(#_current_song_bank),a
-                                   7850 ;src/gameplay.c:452: music_ready = 1;
+                                   7850 ;src/gameplay.c:459: music_ready = 1;
     000028F3 21r00r00         [12] 7851 	ld	hl, #_music_ready
     000028F6 36 01            [12] 7852 	ld	(hl), #0x01
     000028F8                       7853 00102$:
-                                   7854 ;src/gameplay.c:455: uint16_t cam_px = 0;
+                                   7854 ;src/gameplay.c:462: uint16_t cam_px = 0;
     000028F8 AF               [ 4] 7855 	xor	a, a
     000028F9 21 E0 00         [12] 7856 	ld	hl, #224
     000028FC 39               [ 8] 7857 	add	hl, sp
     000028FD 22               [ 8] 7858 	ld	(hl+), a
     000028FE 77               [ 8] 7859 	ld	(hl), a
-                                   7860 ;src/gameplay.c:456: uint16_t cam_py = 112;
+                                   7860 ;src/gameplay.c:463: uint16_t cam_py = 112;
     000028FF 21 C0 00         [12] 7861 	ld	hl, #192
     00002902 39               [ 8] 7862 	add	hl, sp
     00002903 3E 70            [ 8] 7863 	ld	a, #0x70
     00002905 22               [ 8] 7864 	ld	(hl+), a
     00002906 AF               [ 4] 7865 	xor	a, a
     00002907 77               [ 8] 7866 	ld	(hl), a
-                                   7867 ;src/gameplay.c:457: uint16_t cam_py_max = (level_map_h << 4);
+                                   7867 ;src/gameplay.c:464: uint16_t cam_py_max = (level_map_h << 4);
     00002908 21 BA 00         [12] 7868 	ld	hl, #186
     0000290B 39               [ 8] 7869 	add	hl, sp
     0000290C 2A               [ 8] 7870 	ld	a, (hl+)
@@ -7879,7 +7879,7 @@
     00002915 CB 11            [ 8] 7877 	rl	c
     00002917 87               [ 4] 7878 	add	a, a
     00002918 CB 11            [ 8] 7879 	rl	c
-                                   7880 ;src/gameplay.c:458: if (cam_py_max > 144u) cam_py_max -= 144u;
+                                   7880 ;src/gameplay.c:465: if (cam_py_max > 144u) cam_py_max -= 144u;
     0000291A 21 DA 00         [12] 7881 	ld	hl, #218
     0000291D 39               [ 8] 7882 	add	hl, sp
     0000291E 22               [ 8] 7883 	ld	(hl+), a
@@ -7910,23 +7910,23 @@
     00002940 77               [ 8] 7908 	ld	(hl), a
     00002941 18 07            [12] 7909 	jr	00105$
     00002943                       7910 00104$:
-                                   7911 ;src/gameplay.c:459: else cam_py_max = 0;
+                                   7911 ;src/gameplay.c:466: else cam_py_max = 0;
     00002943 AF               [ 4] 7912 	xor	a, a
     00002944 21 C2 00         [12] 7913 	ld	hl, #194
     00002947 39               [ 8] 7914 	add	hl, sp
     00002948 22               [ 8] 7915 	ld	(hl+), a
     00002949 77               [ 8] 7916 	ld	(hl), a
     0000294A                       7917 00105$:
-                                   7918 ;src/gameplay.c:460: uint16_t loaded_r = BKG_MT_W - 1;
+                                   7918 ;src/gameplay.c:467: uint16_t loaded_r = BKG_MT_W - 1;
     0000294A 21 C4 00         [12] 7919 	ld	hl, #196
     0000294D 39               [ 8] 7920 	add	hl, sp
     0000294E 3E 0F            [ 8] 7921 	ld	a, #0x0f
     00002950 22               [ 8] 7922 	ld	(hl+), a
     00002951 AF               [ 4] 7923 	xor	a, a
     00002952 77               [ 8] 7924 	ld	(hl), a
-                                   7925 ;src/gameplay.c:465: uint8_t target_bg_idx = 0;
+                                   7925 ;src/gameplay.c:472: uint8_t target_bg_idx = 0;
     00002953 F8 06            [12] 7926 	ldhl	sp,	#6
-                                   7927 ;src/gameplay.c:466: const uint8_t bg_pals[] = {
+                                   7927 ;src/gameplay.c:473: const uint8_t bg_pals[] = {
     00002955 AF               [ 4] 7928 	xor	a, a
     00002956 22               [ 8] 7929 	ld	(hl+), a
     00002957 3E E4            [ 8] 7930 	ld	a,#0xe4
@@ -7935,7 +7935,7 @@
     0000295B 3E E4            [ 8] 7933 	ld	a, #0xe4
     0000295D 22               [ 8] 7934 	ld	(hl+), a
     0000295E 36 1B            [12] 7935 	ld	(hl), #0x1b
-                                   7936 ;src/gameplay.c:474: player_init(&player, 0, 240);
+                                   7936 ;src/gameplay.c:481: player_init(&player, 0, 240);
     00002960 11 F0 00         [12] 7937 	ld	de, #0x00f0
     00002963 D5               [16] 7938 	push	de
     00002964 01 00 00         [12] 7939 	ld	bc, #0x0000
@@ -7946,9 +7946,9 @@
     0000296D CDr00r00         [24] 7944 	call	_player_init
                                    7945 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     00002970 F3               [ 4] 7946 	di
-                                   7947 ;src/gameplay.c:477: DISPLAY_OFF;
+                                   7947 ;src/gameplay.c:484: DISPLAY_OFF;
     00002971 CDr00r00         [24] 7948 	call	_display_off
-                                   7949 ;src/gameplay.c:478: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+                                   7949 ;src/gameplay.c:485: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     00002974 21 BC 00         [12] 7950 	ld	hl, #188
     00002977 39               [ 8] 7951 	add	hl, sp
     00002978 7E               [ 8] 7952 	ld	a, (hl)
@@ -7965,21 +7965,21 @@
     00002987 5F               [ 4] 7963 	ld	e, a
     00002988 56               [ 8] 7964 	ld	d, (hl)
     00002989 CDr00r00         [24] 7965 	call	_load_bkg_tileset
-                                   7966 ;src/gameplay.c:479: set_sprite_data(0, 8, icon1_tiles);
+                                   7966 ;src/gameplay.c:486: set_sprite_data(0, 8, icon1_tiles);
     0000298C 11r00r00         [12] 7967 	ld	de, #_icon1_tiles
     0000298F D5               [16] 7968 	push	de
     00002990 21 00 08         [12] 7969 	ld	hl, #0x800
     00002993 E5               [16] 7970 	push	hl
     00002994 CDr00r00         [24] 7971 	call	_set_sprite_data
     00002997 E8 04            [16] 7972 	add	sp, #4
-                                   7973 ;src/gameplay.c:480: set_sprite_data(8, 4, ship_tiles);
+                                   7973 ;src/gameplay.c:487: set_sprite_data(8, 4, ship_tiles);
     00002999 11r00r00         [12] 7974 	ld	de, #_ship_tiles
     0000299C D5               [16] 7975 	push	de
     0000299D 21 08 04         [12] 7976 	ld	hl, #0x408
     000029A0 E5               [16] 7977 	push	hl
     000029A1 CDr00r00         [24] 7978 	call	_set_sprite_data
     000029A4 E8 04            [16] 7979 	add	sp, #4
-                                   7980 ;src/gameplay.c:481: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+                                   7980 ;src/gameplay.c:488: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     000029A6 11r00r00         [12] 7981 	ld	de, #_famidash_sprites_tiles
     000029A9 D5               [16] 7982 	push	de
     000029AA 21 58 48         [12] 7983 	ld	hl, #0x4858
@@ -7991,7 +7991,7 @@
     000029B4 E0r00            [12] 7989 	ldh	(_SCX_REG + 0), a
     000029B6 3E 70            [ 8] 7990 	ld	a, #0x70
     000029B8 E0r00            [12] 7991 	ldh	(_SCY_REG + 0), a
-                                   7992 ;src/gameplay.c:483: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+                                   7992 ;src/gameplay.c:490: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     000029BA AF               [ 4] 7993 	xor	a, a
     000029BB F5               [16] 7994 	push	af
     000029BC 33               [ 8] 7995 	inc	sp
@@ -8011,69 +8011,69 @@
     000029D0 5F               [ 4] 8009 	ld	e, a
     000029D1 56               [ 8] 8010 	ld	d, (hl)
     000029D2 CDr00r00         [24] 8011 	call	_fill_scroll_bg
-                                   8012 ;src/gameplay.c:484: BGP_REG = bg_pals[0];
+                                   8012 ;src/gameplay.c:491: BGP_REG = bg_pals[0];
     000029D5 F8 07            [12] 8013 	ldhl	sp,	#7
     000029D7 7E               [ 8] 8014 	ld	a, (hl)
     000029D8 E0r00            [12] 8015 	ldh	(_BGP_REG + 0), a
-                                   8016 ;src/gameplay.c:485: OBP0_REG = 0xE4;
+                                   8016 ;src/gameplay.c:492: OBP0_REG = 0xE4;
     000029DA 3E E4            [ 8] 8017 	ld	a, #0xe4
     000029DC E0r00            [12] 8018 	ldh	(_OBP0_REG + 0), a
-                                   8019 ;src/gameplay.c:486: SPRITES_8x16;
+                                   8019 ;src/gameplay.c:493: SPRITES_8x16;
     000029DE F0r00            [12] 8020 	ldh	a, (_LCDC_REG + 0)
     000029E0 F6 04            [ 8] 8021 	or	a, #0x04
     000029E2 E0r00            [12] 8022 	ldh	(_LCDC_REG + 0), a
-                                   8023 ;src/gameplay.c:487: OBP1_REG = 0xE4;
+                                   8023 ;src/gameplay.c:494: OBP1_REG = 0xE4;
     000029E4 3E E4            [ 8] 8024 	ld	a, #0xe4
     000029E6 E0r00            [12] 8025 	ldh	(_OBP1_REG + 0), a
-                                   8026 ;src/gameplay.c:488: SHOW_BKG;
+                                   8026 ;src/gameplay.c:495: SHOW_BKG;
     000029E8 F0r00            [12] 8027 	ldh	a, (_LCDC_REG + 0)
     000029EA F6 01            [ 8] 8028 	or	a, #0x01
     000029EC E0r00            [12] 8029 	ldh	(_LCDC_REG + 0), a
-                                   8030 ;src/gameplay.c:489: SHOW_SPRITES;
+                                   8030 ;src/gameplay.c:496: SHOW_SPRITES;
     000029EE F0r00            [12] 8031 	ldh	a, (_LCDC_REG + 0)
     000029F0 F6 02            [ 8] 8032 	or	a, #0x02
     000029F2 E0r00            [12] 8033 	ldh	(_LCDC_REG + 0), a
-                                   8034 ;src/gameplay.c:490: DISPLAY_ON;
+                                   8034 ;src/gameplay.c:497: DISPLAY_ON;
     000029F4 F0r00            [12] 8035 	ldh	a, (_LCDC_REG + 0)
     000029F6 F6 80            [ 8] 8036 	or	a, #0x80
     000029F8 E0r00            [12] 8037 	ldh	(_LCDC_REG + 0), a
-                                   8038 ;src/gameplay.c:491: TAC_REG = 0x04;
+                                   8038 ;src/gameplay.c:498: TAC_REG = 0x04;
     000029FA 3E 04            [ 8] 8039 	ld	a, #0x04
     000029FC E0r00            [12] 8040 	ldh	(_TAC_REG + 0), a
                                    8041 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
     000029FE FB               [ 4] 8042 	ei
-                                   8043 ;src/gameplay.c:494: uint16_t scroll_acc = 0;
+                                   8043 ;src/gameplay.c:501: uint16_t scroll_acc = 0;
     000029FF 21 C6 00         [12] 8044 	ld	hl, #198
     00002A02 39               [ 8] 8045 	add	hl, sp
-                                   8046 ;src/gameplay.c:495: uint8_t prev_joy = 0;
-                                   8047 ;src/gameplay.c:496: uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
+                                   8046 ;src/gameplay.c:502: uint8_t prev_joy = 0;
+                                   8047 ;src/gameplay.c:503: uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
     00002A03 AF               [ 4] 8048 	xor	a, a
     00002A04 22               [ 8] 8049 	ld	(hl+), a
     00002A05 22               [ 8] 8050 	ld	(hl+), a
     00002A06 36 28            [12] 8051 	ld	(hl), #0x28
-                                   8052 ;src/gameplay.c:498: uint16_t sp_stream_idx = 0;
+                                   8052 ;src/gameplay.c:505: uint16_t sp_stream_idx = 0;
     00002A08 AF               [ 4] 8053 	xor	a, a
     00002A09 21 90 00         [12] 8054 	ld	hl, #144
     00002A0C 39               [ 8] 8055 	add	hl, sp
     00002A0D 22               [ 8] 8056 	ld	(hl+), a
     00002A0E 77               [ 8] 8057 	ld	(hl), a
-                                   8058 ;src/gameplay.c:499: uint16_t sp_cache_col = 0xFFFF;
+                                   8058 ;src/gameplay.c:506: uint16_t sp_cache_col = 0xFFFF;
     00002A0F 21 C9 00         [12] 8059 	ld	hl, #201
     00002A12 39               [ 8] 8060 	add	hl, sp
-                                   8061 ;src/gameplay.c:501: uint16_t cached_collision_col = 0xFFFF;
+                                   8061 ;src/gameplay.c:508: uint16_t cached_collision_col = 0xFFFF;
     00002A13 3E FF            [ 8] 8062 	ld	a,#0xff
     00002A15 22               [ 8] 8063 	ld	(hl+),a
     00002A16 22               [ 8] 8064 	ld	(hl+), a
     00002A17 3E FF            [ 8] 8065 	ld	a, #0xff
     00002A19 22               [ 8] 8066 	ld	(hl+), a
     00002A1A 36 FF            [12] 8067 	ld	(hl), #0xff
-                                   8068 ;src/gameplay.c:502: uint8_t prev_reversed = player.reversed;
+                                   8068 ;src/gameplay.c:509: uint8_t prev_reversed = player.reversed;
     00002A1C F8 15            [12] 8069 	ldhl	sp,	#21
     00002A1E 7E               [ 8] 8070 	ld	a, (hl)
     00002A1F 21 CD 00         [12] 8071 	ld	hl, #205
     00002A22 39               [ 8] 8072 	add	hl, sp
     00002A23 77               [ 8] 8073 	ld	(hl), a
-                                   8074 ;src/gameplay.c:503: sp_cache_reset(&active_sp, &sp_stream_idx);
+                                   8074 ;src/gameplay.c:510: sp_cache_reset(&active_sp, &sp_stream_idx);
     00002A24 21 90 00         [12] 8075 	ld	hl, #144
     00002A27 39               [ 8] 8076 	add	hl, sp
     00002A28 E5               [16] 8077 	push	hl
@@ -8103,7 +8103,7 @@
     00002A47 5F               [ 4] 8101 	ld	e, a
     00002A48 56               [ 8] 8102 	ld	d, (hl)
     00002A49 CDr00r00         [24] 8103 	call	_sp_cache_reset
-                                   8104 ;src/gameplay.c:504: while (1) {
+                                   8104 ;src/gameplay.c:511: while (1) {
     00002A4C 21 DE 00         [12] 8105 	ld	hl, #222
     00002A4F 39               [ 8] 8106 	add	hl, sp
     00002A50 7E               [ 8] 8107 	ld	a, (hl)
@@ -8179,19 +8179,19 @@
     00002ABD 39               [ 8] 8177 	add	hl, sp
     00002ABE 77               [ 8] 8178 	ld	(hl), a
     00002ABF                       8179 00184$:
-                                   8180 ;src/gameplay.c:505: uint8_t joy = joypad();
+                                   8180 ;src/gameplay.c:512: uint8_t joy = joypad();
     00002ABF CDr00r00         [24] 8181 	call	_joypad
     00002AC2 21 D9 00         [12] 8182 	ld	hl, #217
     00002AC5 39               [ 8] 8183 	add	hl, sp
     00002AC6 77               [ 8] 8184 	ld	(hl), a
-                                   8185 ;src/gameplay.c:506: if (joy & J_START) break;
+                                   8185 ;src/gameplay.c:513: if (joy & J_START) break;
     00002AC7 E5               [16] 8186 	push	hl
     00002AC8 21 DB 00         [12] 8187 	ld	hl, #219
     00002ACB 39               [ 8] 8188 	add	hl, sp
     00002ACC CB 7E            [12] 8189 	bit	7, (hl)
     00002ACE E1               [12] 8190 	pop	hl
     00002ACF C2r3Ar34         [16] 8191 	jp	NZ, 00185$
-                                   8192 ;src/gameplay.c:508: if ((joy & J_UP) || player.level_complete) {
+                                   8192 ;src/gameplay.c:515: if ((joy & J_UP) || player.level_complete) {
     00002AD2 E5               [16] 8193 	push	hl
     00002AD3 21 DB 00         [12] 8194 	ld	hl, #219
     00002AD6 39               [ 8] 8195 	add	hl, sp
@@ -8203,7 +8203,7 @@
     00002ADF B7               [ 4] 8201 	or	a, a
     00002AE0 28 59            [12] 8202 	jr	Z, 00112$
     00002AE2                       8203 00111$:
-                                   8204 ;src/gameplay.c:509: HIDE_SPRITES;
+                                   8204 ;src/gameplay.c:516: HIDE_SPRITES;
     00002AE2 F0r00            [12] 8205 	ldh	a, (_LCDC_REG + 0)
     00002AE4 E6 FD            [ 8] 8206 	and	a, #0xfd
     00002AE6 E0r00            [12] 8207 	ldh	(_LCDC_REG + 0), a
@@ -8214,13 +8214,13 @@
     00002AEE E0r00            [12] 8212 	ldh	(_SCY_REG + 0), a
                                    8213 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     00002AF0 F3               [ 4] 8214 	di
-                                   8215 ;src/gameplay.c:512: setup_menu_font();
+                                   8215 ;src/gameplay.c:519: setup_menu_font();
     00002AF1 1Er00            [ 8] 8216 	ld	e, #b_setup_menu_font
     00002AF3 21r0Dr27         [12] 8217 	ld	hl, #_setup_menu_font
     00002AF6 CDr00r00         [24] 8218 	call	___sdcc_bcall_ehl
                                    8219 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
     00002AF9 FB               [ 4] 8220 	ei
-                                   8221 ;src/gameplay.c:514: fill_bkg_rect(0, 0, 20, 18, 0x00);
+                                   8221 ;src/gameplay.c:521: fill_bkg_rect(0, 0, 20, 18, 0x00);
     00002AFA AF               [ 4] 8222 	xor	a, a
     00002AFB 67               [ 4] 8223 	ld	h, a
     00002AFC 2E 12            [ 8] 8224 	ld	l, #0x12
@@ -8233,38 +8233,38 @@
     00002B05 F5               [16] 8231 	push	af
     00002B06 CDr00r00         [24] 8232 	call	_fill_bkg_rect
     00002B09 E8 05            [16] 8233 	add	sp, #5
-                                   8234 ;src/gameplay.c:515: gotoxy(3, 6);
+                                   8234 ;src/gameplay.c:522: gotoxy(3, 6);
     00002B0B 21 03 06         [12] 8235 	ld	hl, #0x603
     00002B0E E5               [16] 8236 	push	hl
     00002B0F CDr00r00         [24] 8237 	call	_gotoxy
     00002B12 E1               [12] 8238 	pop	hl
-                                   8239 ;src/gameplay.c:516: printf("LEVEL COMPLETE");
+                                   8239 ;src/gameplay.c:523: printf("LEVEL COMPLETE");
     00002B13 11r5Dr34         [12] 8240 	ld	de, #___str_5
     00002B16 D5               [16] 8241 	push	de
     00002B17 CDr00r00         [24] 8242 	call	_printf
     00002B1A E1               [12] 8243 	pop	hl
-                                   8244 ;src/gameplay.c:517: gotoxy(3, 12);
+                                   8244 ;src/gameplay.c:524: gotoxy(3, 12);
     00002B1B 21 03 0C         [12] 8245 	ld	hl, #0xc03
     00002B1E E5               [16] 8246 	push	hl
     00002B1F CDr00r00         [24] 8247 	call	_gotoxy
     00002B22 E1               [12] 8248 	pop	hl
-                                   8249 ;src/gameplay.c:518: printf("Press A to exit");
+                                   8249 ;src/gameplay.c:525: printf("Press A to exit");
     00002B23 11r6Cr34         [12] 8250 	ld	de, #___str_6
     00002B26 D5               [16] 8251 	push	de
     00002B27 CDr00r00         [24] 8252 	call	_printf
     00002B2A D1               [12] 8253 	pop	de
-                                   8254 ;src/gameplay.c:519: waitpadup();
+                                   8254 ;src/gameplay.c:526: waitpadup();
     00002B2B CDr00r00         [24] 8255 	call	_waitpadup
-                                   8256 ;src/gameplay.c:520: while (!(joypad() & J_A)) wait_vbl_done();
+                                   8256 ;src/gameplay.c:527: while (!(joypad() & J_A)) wait_vbl_done();
     00002B2E                       8257 00108$:
     00002B2E CDr00r00         [24] 8258 	call	_joypad
     00002B31 CB 67            [ 8] 8259 	bit	4, a
     00002B33 C2r3Ar34         [16] 8260 	jp	NZ, 00185$
     00002B36 CDr00r00         [24] 8261 	call	_wait_vbl_done
     00002B39 18 F3            [12] 8262 	jr	00108$
-                                   8263 ;src/gameplay.c:521: break;
+                                   8263 ;src/gameplay.c:528: break;
     00002B3B                       8264 00112$:
-                                   8265 ;src/gameplay.c:524: if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
+                                   8265 ;src/gameplay.c:531: if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
     00002B3B E5               [16] 8266 	push	hl
     00002B3C 21 DB 00         [12] 8267 	ld	hl, #219
     00002B3F 39               [ 8] 8268 	add	hl, sp
@@ -8284,14 +8284,14 @@
     00002B57 17               [ 4] 8282 	rla
     00002B58 77               [ 8] 8283 	ld	(hl), a
     00002B59                       8284 00115$:
-                                   8285 ;src/gameplay.c:525: prev_joy = joy;
+                                   8285 ;src/gameplay.c:532: prev_joy = joy;
     00002B59 21 D9 00         [12] 8286 	ld	hl, #217
     00002B5C 39               [ 8] 8287 	add	hl, sp
     00002B5D 7E               [ 8] 8288 	ld	a, (hl)
     00002B5E 21 C7 00         [12] 8289 	ld	hl, #199
     00002B61 39               [ 8] 8290 	add	hl, sp
     00002B62 77               [ 8] 8291 	ld	(hl), a
-                                   8292 ;src/gameplay.c:527: uint16_t px_prev = cam_px >> 4;
+                                   8292 ;src/gameplay.c:534: uint16_t px_prev = cam_px >> 4;
     00002B63 21 E0 00         [12] 8293 	ld	hl, #224
     00002B66 39               [ 8] 8294 	add	hl, sp
     00002B67 7E               [ 8] 8295 	ld	a, (hl)
@@ -8327,17 +8327,17 @@
     00002B96 7E               [ 8] 8325 	ld	a, (hl)
     00002B97 F8 01            [12] 8326 	ldhl	sp,	#1
     00002B99 77               [ 8] 8327 	ld	(hl), a
-                                   8328 ;src/gameplay.c:528: uint8_t needs_render = 0;
+                                   8328 ;src/gameplay.c:535: uint8_t needs_render = 0;
     00002B9A 21 DF 00         [12] 8329 	ld	hl, #223
     00002B9D 39               [ 8] 8330 	add	hl, sp
     00002B9E 36 00            [12] 8331 	ld	(hl), #0x00
-                                   8332 ;src/gameplay.c:529: uint16_t need_col = 0;
+                                   8332 ;src/gameplay.c:536: uint16_t need_col = 0;
     00002BA0 AF               [ 4] 8333 	xor	a, a
     00002BA1 21 DA 00         [12] 8334 	ld	hl, #218
     00002BA4 39               [ 8] 8335 	add	hl, sp
     00002BA5 22               [ 8] 8336 	ld	(hl+), a
     00002BA6 77               [ 8] 8337 	ld	(hl), a
-                                   8338 ;src/gameplay.c:532: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+                                   8338 ;src/gameplay.c:539: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
     00002BA7 21 B8 00         [12] 8339 	ld	hl, #184
     00002BAA 39               [ 8] 8340 	add	hl, sp
     00002BAB 2A               [ 8] 8341 	ld	a, (hl+)
@@ -8363,7 +8363,7 @@
     00002BC3 7A               [ 4] 8361 	ld	a, d
     00002BC4 98               [ 4] 8362 	sbc	a, b
     00002BC5 D2r53r2C         [16] 8363 	jp	NC, 00123$
-                                   8364 ;src/gameplay.c:533: scroll_acc += SCROLL_SPEED_FP;
+                                   8364 ;src/gameplay.c:540: scroll_acc += SCROLL_SPEED_FP;
     00002BC8 21 C6 00         [12] 8365 	ld	hl, #198
     00002BCB 39               [ 8] 8366 	add	hl, sp
     00002BCC 4E               [ 8] 8367 	ld	c, (hl)
@@ -8371,7 +8371,7 @@
     00002BCF 21 CA 02         [12] 8369 	ld	hl, #0x02ca
     00002BD2 09               [ 8] 8370 	add	hl, bc
     00002BD3 4D               [ 4] 8371 	ld	c, l
-                                   8372 ;src/gameplay.c:534: cam_px += scroll_acc >> 8;
+                                   8372 ;src/gameplay.c:541: cam_px += scroll_acc >> 8;
     00002BD4 5C               [ 4] 8373 	ld	e, h
     00002BD5 16 00            [ 8] 8374 	ld	d, #0x00
     00002BD7 21 E0 00         [12] 8375 	ld	hl, #224
@@ -8390,11 +8390,11 @@
     00002BE8 21 E1 00         [12] 8388 	ld	hl, #225
     00002BEB 39               [ 8] 8389 	add	hl, sp
     00002BEC 77               [ 8] 8390 	ld	(hl), a
-                                   8391 ;src/gameplay.c:535: scroll_acc &= 0xFF;
+                                   8391 ;src/gameplay.c:542: scroll_acc &= 0xFF;
     00002BED 21 C6 00         [12] 8392 	ld	hl, #198
     00002BF0 39               [ 8] 8393 	add	hl, sp
     00002BF1 71               [ 8] 8394 	ld	(hl), c
-                                   8395 ;src/gameplay.c:527: uint16_t px_prev = cam_px >> 4;
+                                   8395 ;src/gameplay.c:534: uint16_t px_prev = cam_px >> 4;
     00002BF2 21 E0 00         [12] 8396 	ld	hl, #224
     00002BF5 39               [ 8] 8397 	add	hl, sp
     00002BF6 7E               [ 8] 8398 	ld	a, (hl)
@@ -8422,11 +8422,11 @@
     00002C18 CB 3E            [16] 8420 	srl	(hl)
     00002C1A 2B               [ 8] 8421 	dec	hl
     00002C1B CB 1E            [16] 8422 	rr	(hl)
-                                   8423 ;src/gameplay.c:536: uint16_t px_curr = cam_px >> 4;
+                                   8423 ;src/gameplay.c:543: uint16_t px_curr = cam_px >> 4;
     00002C1D 2A               [ 8] 8424 	ld	a, (hl+)
     00002C1E 4F               [ 4] 8425 	ld	c, a
     00002C1F 46               [ 8] 8426 	ld	b, (hl)
-                                   8427 ;src/gameplay.c:537: if (px_curr != px_prev) {
+                                   8427 ;src/gameplay.c:544: if (px_curr != px_prev) {
     00002C20 F8 00            [12] 8428 	ldhl	sp,	#0
     00002C22 7E               [ 8] 8429 	ld	a, (hl)
     00002C23 91               [ 4] 8430 	sub	a, c
@@ -8436,12 +8436,12 @@
     00002C28 90               [ 4] 8434 	sub	a, b
     00002C29 28 28            [12] 8435 	jr	Z, 00123$
     00002C2B                       8436 00580$:
-                                   8437 ;src/gameplay.c:538: uint16_t need = px_curr + VIEW_MT_W;
+                                   8437 ;src/gameplay.c:545: uint16_t need = px_curr + VIEW_MT_W;
     00002C2B 21 0A 00         [12] 8438 	ld	hl, #0x000a
     00002C2E 09               [ 8] 8439 	add	hl, bc
     00002C2F 4D               [ 4] 8440 	ld	c, l
     00002C30 44               [ 4] 8441 	ld	b, h
-                                   8442 ;src/gameplay.c:539: if (need > loaded_r && need < level_map_w) {
+                                   8442 ;src/gameplay.c:546: if (need > loaded_r && need < level_map_w) {
     00002C31 21 C4 00         [12] 8443 	ld	hl, #196
     00002C34 39               [ 8] 8444 	add	hl, sp
     00002C35 2A               [ 8] 8445 	ld	a, (hl+)
@@ -8457,18 +8457,18 @@
     00002C42 78               [ 4] 8455 	ld	a, b
     00002C43 9E               [ 8] 8456 	sbc	a, (hl)
     00002C44 30 0D            [12] 8457 	jr	NC, 00123$
-                                   8458 ;src/gameplay.c:540: needs_render = 1;
+                                   8458 ;src/gameplay.c:547: needs_render = 1;
     00002C46 21 DF 00         [12] 8459 	ld	hl, #223
     00002C49 39               [ 8] 8460 	add	hl, sp
     00002C4A 36 01            [12] 8461 	ld	(hl), #0x01
-                                   8462 ;src/gameplay.c:541: need_col = need;
+                                   8462 ;src/gameplay.c:548: need_col = need;
     00002C4C 21 DA 00         [12] 8463 	ld	hl, #218
     00002C4F 39               [ 8] 8464 	add	hl, sp
     00002C50 79               [ 4] 8465 	ld	a, c
     00002C51 22               [ 8] 8466 	ld	(hl+), a
     00002C52 70               [ 8] 8467 	ld	(hl), b
     00002C53                       8468 00123$:
-                                   8469 ;src/gameplay.c:546: player.world_x = cam_px;
+                                   8469 ;src/gameplay.c:553: player.world_x = cam_px;
     00002C53 21 E0 00         [12] 8470 	ld	hl, #224
     00002C56 39               [ 8] 8471 	add	hl, sp
     00002C57 7E               [ 8] 8472 	ld	a, (hl)
@@ -8479,7 +8479,7 @@
     00002C5F 7E               [ 8] 8477 	ld	a, (hl)
     00002C60 F8 0C            [12] 8478 	ldhl	sp,	#12
     00002C62 77               [ 8] 8479 	ld	(hl), a
-                                   8480 ;src/gameplay.c:549: if ((cam_px >> 4) != sp_cache_col) {
+                                   8480 ;src/gameplay.c:556: if ((cam_px >> 4) != sp_cache_col) {
     00002C63 21 DD 00         [12] 8481 	ld	hl, #221
     00002C66 39               [ 8] 8482 	add	hl, sp
     00002C67 7E               [ 8] 8483 	ld	a, (hl)
@@ -8495,7 +8495,7 @@
     00002C78 96               [ 8] 8493 	sub	a, (hl)
     00002C79 28 30            [12] 8494 	jr	Z, 00125$
     00002C7B                       8495 00581$:
-                                   8496 ;src/gameplay.c:550: sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
+                                   8496 ;src/gameplay.c:557: sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
     00002C7B F8 02            [12] 8497 	ldhl	sp,	#2
     00002C7D 2A               [ 8] 8498 	ld	a, (hl+)
     00002C7E 5F               [ 4] 8499 	ld	e, a
@@ -8517,7 +8517,7 @@
     00002C92 5F               [ 4] 8515 	ld	e, a
     00002C93 56               [ 8] 8516 	ld	d, (hl)
     00002C94 CDr3Fr00         [24] 8517 	call	_sp_cache_update
-                                   8518 ;src/gameplay.c:551: sp_cache_col = cam_px >> 4;
+                                   8518 ;src/gameplay.c:558: sp_cache_col = cam_px >> 4;
     00002C97 21 DD 00         [12] 8519 	ld	hl, #221
     00002C9A 39               [ 8] 8520 	add	hl, sp
     00002C9B 7E               [ 8] 8521 	ld	a, (hl)
@@ -8531,7 +8531,7 @@
     00002CA9 39               [ 8] 8529 	add	hl, sp
     00002CAA 77               [ 8] 8530 	ld	(hl), a
     00002CAB                       8531 00125$:
-                                   8532 ;src/gameplay.c:554: if (player.reversed != prev_reversed) {
+                                   8532 ;src/gameplay.c:561: if (player.reversed != prev_reversed) {
     00002CAB F8 15            [12] 8533 	ldhl	sp,	#21
     00002CAD 4E               [ 8] 8534 	ld	c, (hl)
     00002CAE 21 CD 00         [12] 8535 	ld	hl, #205
@@ -8541,7 +8541,7 @@
     00002CB4 CArB2r2D         [16] 8539 	jp	Z, 00132$
                                    8540 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     00002CB7 F3               [ 4] 8541 	di
-                                   8542 ;src/gameplay.c:558: const uint8_t* target_tiles = player.reversed ? l->tiles_rev : l->tiles;
+                                   8542 ;src/gameplay.c:565: const uint8_t* target_tiles = player.reversed ? l->tiles_rev : l->tiles;
     00002CB8 79               [ 4] 8543 	ld	a, c
     00002CB9 B7               [ 4] 8544 	or	a, a
     00002CBA 28 0D            [12] 8545 	jr	Z, 00217$
@@ -8567,7 +8567,7 @@
     00002CD3 1A               [ 8] 8565 	ld	a, (de)
     00002CD4                       8566 00218$:
     00002CD4 59               [ 4] 8567 	ld	e, c
-                                   8568 ;src/gameplay.c:559: load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+                                   8568 ;src/gameplay.c:566: load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
     00002CD5 21 BC 00         [12] 8569 	ld	hl, #188
     00002CD8 39               [ 8] 8570 	add	hl, sp
     00002CD9 66               [ 8] 8571 	ld	h, (hl)
@@ -8580,7 +8580,7 @@
     00002CE2 46               [ 8] 8578 	ld	b, (hl)
     00002CE3 57               [ 4] 8579 	ld	d, a
     00002CE4 CDr00r00         [24] 8580 	call	_load_bkg_tileset
-                                   8581 ;src/gameplay.c:562: uint16_t start_col = cam_px >> 4;
+                                   8581 ;src/gameplay.c:569: uint16_t start_col = cam_px >> 4;
     00002CE7 21 DD 00         [12] 8582 	ld	hl, #221
     00002CEA 39               [ 8] 8583 	add	hl, sp
     00002CEB 7E               [ 8] 8584 	ld	a, (hl)
@@ -8591,12 +8591,12 @@
     00002CF3 7E               [ 8] 8589 	ld	a, (hl)
     00002CF4 F8 03            [12] 8590 	ldhl	sp,	#3
     00002CF6 77               [ 8] 8591 	ld	(hl), a
-                                   8592 ;src/gameplay.c:563: for (uint8_t i = 0; i < 16; i++) {
+                                   8592 ;src/gameplay.c:570: for (uint8_t i = 0; i < 16; i++) {
     00002CF7 21 DC 00         [12] 8593 	ld	hl, #220
     00002CFA 39               [ 8] 8594 	add	hl, sp
     00002CFB 36 00            [12] 8595 	ld	(hl), #0x00
     00002CFD                       8596 00210$:
-                                   8597 ;src/gameplay.c:564: uint16_t curr_col = start_col + i;
+                                   8597 ;src/gameplay.c:571: uint16_t curr_col = start_col + i;
     00002CFD F8 02            [12] 8598 	ldhl	sp,	#2
     00002CFF 7E               [ 8] 8599 	ld	a, (hl)
     00002D00 21 C4 00         [12] 8600 	ld	hl, #196
@@ -8607,13 +8607,13 @@
     00002D08 21 C5 00         [12] 8605 	ld	hl, #197
     00002D0B 39               [ 8] 8606 	add	hl, sp
     00002D0C 77               [ 8] 8607 	ld	(hl), a
-                                   8608 ;src/gameplay.c:563: for (uint8_t i = 0; i < 16; i++) {
+                                   8608 ;src/gameplay.c:570: for (uint8_t i = 0; i < 16; i++) {
     00002D0D 21 DC 00         [12] 8609 	ld	hl, #220
     00002D10 39               [ 8] 8610 	add	hl, sp
     00002D11 7E               [ 8] 8611 	ld	a, (hl)
     00002D12 D6 10            [ 8] 8612 	sub	a, #0x10
     00002D14 D2r95r2D         [16] 8613 	jp	NC, 00130$
-                                   8614 ;src/gameplay.c:564: uint16_t curr_col = start_col + i;
+                                   8614 ;src/gameplay.c:571: uint16_t curr_col = start_col + i;
     00002D17 4E               [ 8] 8615 	ld	c, (hl)
     00002D18 06 00            [ 8] 8616 	ld	b, #0x00
     00002D1A 21 C4 00         [12] 8617 	ld	hl, #196
@@ -8629,7 +8629,7 @@
     00002D28 71               [ 8] 8627 	ld	(hl), c
     00002D29 23               [ 8] 8628 	inc	hl
     00002D2A 77               [ 8] 8629 	ld	(hl), a
-                                   8630 ;src/gameplay.c:565: if (curr_col < level_map_w) {
+                                   8630 ;src/gameplay.c:572: if (curr_col < level_map_w) {
     00002D2B 21 C4 00         [12] 8631 	ld	hl, #196
     00002D2E 39               [ 8] 8632 	add	hl, sp
     00002D2F 5D               [ 4] 8633 	ld	e, l
@@ -8643,7 +8643,7 @@
     00002D39 1A               [ 8] 8641 	ld	a, (de)
     00002D3A 9E               [ 8] 8642 	sbc	a, (hl)
     00002D3B 30 50            [12] 8643 	jr	NC, 00211$
-                                   8644 ;src/gameplay.c:566: uint8_t vram_slot = (uint8_t)(curr_col & 15);
+                                   8644 ;src/gameplay.c:573: uint8_t vram_slot = (uint8_t)(curr_col & 15);
     00002D3D 21 C4 00         [12] 8645 	ld	hl, #196
     00002D40 39               [ 8] 8646 	add	hl, sp
     00002D41 7E               [ 8] 8647 	ld	a, (hl)
@@ -8653,13 +8653,13 @@
     00002D47 7E               [ 8] 8651 	ld	a, (hl)
     00002D48 E6 0F            [ 8] 8652 	and	a, #0x0f
     00002D4A 77               [ 8] 8653 	ld	(hl), a
-                                   8654 ;src/gameplay.c:502: uint8_t prev_reversed = player.reversed;
+                                   8654 ;src/gameplay.c:509: uint8_t prev_reversed = player.reversed;
     00002D4B F8 15            [12] 8655 	ldhl	sp,	#21
     00002D4D 7E               [ 8] 8656 	ld	a, (hl)
     00002D4E 21 CD 00         [12] 8657 	ld	hl, #205
     00002D51 39               [ 8] 8658 	add	hl, sp
     00002D52 77               [ 8] 8659 	ld	(hl), a
-                                   8660 ;src/gameplay.c:567: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+                                   8660 ;src/gameplay.c:574: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
     00002D53 7E               [ 8] 8661 	ld	a, (hl)
     00002D54 B7               [ 4] 8662 	or	a, a
     00002D55 28 09            [12] 8663 	jr	Z, 00127$
@@ -8670,7 +8670,7 @@
     00002D5D E6 0F            [ 8] 8668 	and	a, #0x0f
     00002D5F 77               [ 8] 8669 	ld	(hl), a
     00002D60                       8670 00127$:
-                                   8671 ;src/gameplay.c:568: draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
+                                   8671 ;src/gameplay.c:575: draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
     00002D60 21 CD 00         [12] 8672 	ld	hl, #205
     00002D63 39               [ 8] 8673 	add	hl, sp
     00002D64 7E               [ 8] 8674 	ld	a, (hl)
@@ -8703,7 +8703,7 @@
     00002D89 7E               [ 8] 8701 	ld	a, (hl)
     00002D8A CDr00r00         [24] 8702 	call	_draw_mt_column
     00002D8D                       8703 00211$:
-                                   8704 ;src/gameplay.c:563: for (uint8_t i = 0; i < 16; i++) {
+                                   8704 ;src/gameplay.c:570: for (uint8_t i = 0; i < 16; i++) {
     00002D8D 21 DC 00         [12] 8705 	ld	hl, #220
     00002D90 39               [ 8] 8706 	add	hl, sp
     00002D91 34               [12] 8707 	inc	(hl)
@@ -8711,7 +8711,7 @@
     00002D95                       8709 00130$:
                                    8710 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
     00002D95 FB               [ 4] 8711 	ei
-                                   8712 ;src/gameplay.c:573: loaded_r = start_col + 15;
+                                   8712 ;src/gameplay.c:580: loaded_r = start_col + 15;
     00002D96 21 C4 00         [12] 8713 	ld	hl,#0xc4
     00002D99 39               [ 8] 8714 	add	hl,sp
     00002D9A 2A               [ 8] 8715 	ld	a, (hl+)
@@ -8726,15 +8726,15 @@
     00002DA7 71               [ 8] 8724 	ld	(hl), c
     00002DA8 23               [ 8] 8725 	inc	hl
     00002DA9 77               [ 8] 8726 	ld	(hl), a
-                                   8727 ;src/gameplay.c:574: prev_reversed = player.reversed;
+                                   8727 ;src/gameplay.c:581: prev_reversed = player.reversed;
     00002DAA F8 15            [12] 8728 	ldhl	sp,	#21
     00002DAC 7E               [ 8] 8729 	ld	a, (hl)
     00002DAD 21 CD 00         [12] 8730 	ld	hl, #205
     00002DB0 39               [ 8] 8731 	add	hl, sp
     00002DB1 77               [ 8] 8732 	ld	(hl), a
     00002DB2                       8733 00132$:
-                                   8734 ;src/gameplay.c:577: uint16_t collision_col = cam_px >> 4;
-                                   8735 ;src/gameplay.c:578: if (collision_col != cached_collision_col) {
+                                   8734 ;src/gameplay.c:584: uint16_t collision_col = cam_px >> 4;
+                                   8735 ;src/gameplay.c:585: if (collision_col != cached_collision_col) {
     00002DB2 21 CB 00         [12] 8736 	ld	hl, #203
     00002DB5 39               [ 8] 8737 	add	hl, sp
     00002DB6 7E               [ 8] 8738 	ld	a, (hl)
@@ -8750,8 +8750,8 @@
     00002DC7 96               [ 8] 8748 	sub	a, (hl)
     00002DC8 28 39            [12] 8749 	jr	Z, 00134$
     00002DCA                       8750 00583$:
-                                   8751 ;src/gameplay.c:580: level_map_bank, collision_columns);
-                                   8752 ;src/gameplay.c:579: load_collision_columns(collision_col, level_map, level_map_w,
+                                   8751 ;src/gameplay.c:587: level_map_bank, collision_columns);
+                                   8752 ;src/gameplay.c:586: load_collision_columns(collision_col, level_map, level_map_w,
     00002DCA 21 92 00         [12] 8753 	ld	hl, #146
     00002DCD 39               [ 8] 8754 	add	hl, sp
     00002DCE E5               [16] 8755 	push	hl
@@ -8777,7 +8777,7 @@
     00002DEA 5F               [ 4] 8775 	ld	e, a
     00002DEB 56               [ 8] 8776 	ld	d, (hl)
     00002DEC CDr00r00         [24] 8777 	call	_load_collision_columns
-                                   8778 ;src/gameplay.c:581: cached_collision_col = collision_col;
+                                   8778 ;src/gameplay.c:588: cached_collision_col = collision_col;
     00002DEF 21 DD 00         [12] 8779 	ld	hl, #221
     00002DF2 39               [ 8] 8780 	add	hl, sp
     00002DF3 7E               [ 8] 8781 	ld	a, (hl)
@@ -8791,9 +8791,9 @@
     00002E01 39               [ 8] 8789 	add	hl, sp
     00002E02 77               [ 8] 8790 	ld	(hl), a
     00002E03                       8791 00134$:
-                                   8792 ;src/gameplay.c:583: died = player_update(&player, joy, collision_columns, level_map_h);
-                                   8793 ;src/gameplay.c:474: player_init(&player, 0, 240);
-                                   8794 ;src/gameplay.c:583: died = player_update(&player, joy, collision_columns, level_map_h);
+                                   8792 ;src/gameplay.c:590: died = player_update(&player, joy, collision_columns, level_map_h);
+                                   8793 ;src/gameplay.c:481: player_init(&player, 0, 240);
+                                   8794 ;src/gameplay.c:590: died = player_update(&player, joy, collision_columns, level_map_h);
     00002E03 21 BA 00         [12] 8795 	ld	hl, #186
     00002E06 39               [ 8] 8796 	add	hl, sp
     00002E07 2A               [ 8] 8797 	ld	a, (hl+)
@@ -8814,7 +8814,7 @@
     00002E1E 21 D8 00         [12] 8812 	ld	hl, #216
     00002E21 39               [ 8] 8813 	add	hl, sp
     00002E22 77               [ 8] 8814 	ld	(hl), a
-                                   8815 ;src/gameplay.c:585: py = player_screen_y(&player, cam_py);
+                                   8815 ;src/gameplay.c:592: py = player_screen_y(&player, cam_py);
     00002E23 21 C0 00         [12] 8816 	ld	hl, #192
     00002E26 39               [ 8] 8817 	add	hl, sp
     00002E27 2A               [ 8] 8818 	ld	a, (hl+)
@@ -8825,12 +8825,12 @@
     00002E2E 5D               [ 4] 8823 	ld	e, l
     00002E2F 54               [ 4] 8824 	ld	d, h
     00002E30 CDr00r00         [24] 8825 	call	_player_screen_y
-                                   8826 ;src/gameplay.c:586: if (py < CAM_Y_TOP_ZONE) {
+                                   8826 ;src/gameplay.c:593: if (py < CAM_Y_TOP_ZONE) {
     00002E33 F8 02            [12] 8827 	ldhl	sp,	#2
     00002E35 79               [ 4] 8828 	ld	a, c
     00002E36 22               [ 8] 8829 	ld	(hl+), a
     00002E37 70               [ 8] 8830 	ld	(hl), b
-                                   8831 ;src/gameplay.c:589: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                                   8831 ;src/gameplay.c:596: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
     00002E38 21 C2 00         [12] 8832 	ld	hl, #194
     00002E3B 39               [ 8] 8833 	add	hl, sp
     00002E3C 7E               [ 8] 8834 	ld	a, (hl)
@@ -8843,7 +8843,7 @@
     00002E47 21 DE 00         [12] 8841 	ld	hl, #222
     00002E4A 39               [ 8] 8842 	add	hl, sp
     00002E4B 77               [ 8] 8843 	ld	(hl), a
-                                   8844 ;src/gameplay.c:586: if (py < CAM_Y_TOP_ZONE) {
+                                   8844 ;src/gameplay.c:593: if (py < CAM_Y_TOP_ZONE) {
     00002E4C F8 02            [12] 8845 	ldhl	sp,	#2
     00002E4E 2A               [ 8] 8846 	ld	a, (hl+)
     00002E4F D6 14            [ 8] 8847 	sub	a, #0x14
@@ -8863,7 +8863,7 @@
     00002E66 37               [ 4] 8861 	scf
     00002E67                       8862 00585$:
     00002E67 30 30            [12] 8863 	jr	NC, 00146$
-                                   8864 ;src/gameplay.c:587: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+                                   8864 ;src/gameplay.c:594: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
     00002E69 F8 0E            [12] 8865 	ldhl	sp,	#14
     00002E6B 7E               [ 8] 8866 	ld	a, (hl)
     00002E6C 06 00            [ 8] 8867 	ld	b, #0x00
@@ -8872,13 +8872,13 @@
     00002E71 78               [ 4] 8870 	ld	a, b
     00002E72 CE FF            [ 8] 8871 	adc	a, #0xff
     00002E74 47               [ 4] 8872 	ld	b, a
-                                   8873 ;src/gameplay.c:588: if (target_cam_py < 0) target_cam_py = 0;
+                                   8873 ;src/gameplay.c:595: if (target_cam_py < 0) target_cam_py = 0;
     00002E75 60               [ 4] 8874 	ld	h, b
     00002E76 CB 7C            [ 8] 8875 	bit	7, h
     00002E78 28 03            [12] 8876 	jr	Z, 00136$
     00002E7A 01 00 00         [12] 8877 	ld	bc, #0x0000
     00002E7D                       8878 00136$:
-                                   8879 ;src/gameplay.c:589: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                                   8879 ;src/gameplay.c:596: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
     00002E7D 59               [ 4] 8880 	ld	e, c
     00002E7E 50               [ 4] 8881 	ld	d, b
     00002E7F 21 C2 00         [12] 8882 	ld	hl, #194
@@ -8894,7 +8894,7 @@
     00002E8E 4F               [ 4] 8892 	ld	c, a
     00002E8F 46               [ 8] 8893 	ld	b, (hl)
     00002E90                       8894 00138$:
-                                   8895 ;src/gameplay.c:590: cam_py = (uint16_t)target_cam_py;
+                                   8895 ;src/gameplay.c:597: cam_py = (uint16_t)target_cam_py;
     00002E90 21 C0 00         [12] 8896 	ld	hl, #192
     00002E93 39               [ 8] 8897 	add	hl, sp
     00002E94 79               [ 4] 8898 	ld	a, c
@@ -8902,7 +8902,7 @@
     00002E96 70               [ 8] 8900 	ld	(hl), b
     00002E97 18 39            [12] 8901 	jr	00147$
     00002E99                       8902 00146$:
-                                   8903 ;src/gameplay.c:592: else if (py > CAM_Y_BOTTOM_ZONE) {
+                                   8903 ;src/gameplay.c:599: else if (py > CAM_Y_BOTTOM_ZONE) {
     00002E99 F8 02            [12] 8904 	ldhl	sp,	#2
     00002E9B 3E 64            [ 8] 8905 	ld	a, #0x64
     00002E9D 96               [ 8] 8906 	sub	a, (hl)
@@ -8910,7 +8910,7 @@
     00002E9F 3E 00            [ 8] 8908 	ld	a, #0x00
     00002EA1 9E               [ 8] 8909 	sbc	a, (hl)
     00002EA2 30 2E            [12] 8910 	jr	NC, 00147$
-                                   8911 ;src/gameplay.c:593: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
+                                   8911 ;src/gameplay.c:600: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
     00002EA4 F8 0E            [12] 8912 	ldhl	sp,	#14
     00002EA6 7E               [ 8] 8913 	ld	a, (hl)
     00002EA7 06 00            [ 8] 8914 	ld	b, #0x00
@@ -8919,13 +8919,13 @@
     00002EAC 78               [ 4] 8917 	ld	a, b
     00002EAD CE FF            [ 8] 8918 	adc	a, #0xff
     00002EAF 47               [ 4] 8919 	ld	b, a
-                                   8920 ;src/gameplay.c:594: if (target_cam_py < 0) target_cam_py = 0;
+                                   8920 ;src/gameplay.c:601: if (target_cam_py < 0) target_cam_py = 0;
     00002EB0 60               [ 4] 8921 	ld	h, b
     00002EB1 CB 7C            [ 8] 8922 	bit	7, h
     00002EB3 28 03            [12] 8923 	jr	Z, 00140$
     00002EB5 01 00 00         [12] 8924 	ld	bc, #0x0000
     00002EB8                       8925 00140$:
-                                   8926 ;src/gameplay.c:595: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+                                   8926 ;src/gameplay.c:602: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
     00002EB8 59               [ 4] 8927 	ld	e, c
     00002EB9 50               [ 4] 8928 	ld	d, b
     00002EBA 21 C2 00         [12] 8929 	ld	hl, #194
@@ -8941,19 +8941,19 @@
     00002EC9 4F               [ 4] 8939 	ld	c, a
     00002ECA 46               [ 8] 8940 	ld	b, (hl)
     00002ECB                       8941 00142$:
-                                   8942 ;src/gameplay.c:596: cam_py = (uint16_t)target_cam_py;
+                                   8942 ;src/gameplay.c:603: cam_py = (uint16_t)target_cam_py;
     00002ECB 21 C0 00         [12] 8943 	ld	hl, #192
     00002ECE 39               [ 8] 8944 	add	hl, sp
     00002ECF 79               [ 4] 8945 	ld	a, c
     00002ED0 22               [ 8] 8946 	ld	(hl+), a
     00002ED1 70               [ 8] 8947 	ld	(hl), b
     00002ED2                       8948 00147$:
-                                   8949 ;src/gameplay.c:601: if (player.reversed) {
+                                   8949 ;src/gameplay.c:608: if (player.reversed) {
     00002ED2 F8 15            [12] 8950 	ldhl	sp,	#21
     00002ED4 7E               [ 8] 8951 	ld	a, (hl)
     00002ED5 B7               [ 4] 8952 	or	a, a
     00002ED6 28 21            [12] 8953 	jr	Z, 00149$
-                                   8954 ;src/gameplay.c:603: scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
+                                   8954 ;src/gameplay.c:610: scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
     00002ED8 21 E0 00         [12] 8955 	ld	hl, #224
     00002EDB 39               [ 8] 8956 	add	hl, sp
     00002EDC 2A               [ 8] 8957 	ld	a, (hl+)
@@ -8974,13 +8974,13 @@
     00002EEE 71               [ 8] 8972 	ld	(hl), c
     00002EEF 23               [ 8] 8973 	inc	hl
     00002EF0 77               [ 8] 8974 	ld	(hl), a
-                                   8975 ;src/gameplay.c:604: sprite_x_final = 128; // Mirrored player position
+                                   8975 ;src/gameplay.c:611: sprite_x_final = 128; // Mirrored player position
     00002EF1 21 DE 00         [12] 8976 	ld	hl, #222
     00002EF4 39               [ 8] 8977 	add	hl, sp
     00002EF5 36 80            [12] 8978 	ld	(hl), #0x80
     00002EF7 18 35            [12] 8979 	jr	00150$
     00002EF9                       8980 00149$:
-                                   8981 ;src/gameplay.c:606: scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+                                   8981 ;src/gameplay.c:613: scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
     00002EF9 21 E0 00         [12] 8982 	ld	hl, #224
     00002EFC 39               [ 8] 8983 	add	hl, sp
     00002EFD 2A               [ 8] 8984 	ld	a, (hl+)
@@ -9005,7 +9005,7 @@
     00002F15 73               [ 8] 9003 	ld	(hl), e
     00002F16 23               [ 8] 9004 	inc	hl
     00002F17 77               [ 8] 9005 	ld	(hl), a
-                                   9006 ;src/gameplay.c:607: sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+                                   9006 ;src/gameplay.c:614: sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
     00002F18 79               [ 4] 9007 	ld	a, c
     00002F19 D6 20            [ 8] 9008 	sub	a, #0x20
     00002F1B 78               [ 4] 9009 	ld	a, b
@@ -9022,7 +9022,7 @@
     00002F2C 39               [ 8] 9020 	add	hl, sp
     00002F2D 77               [ 8] 9021 	ld	(hl), a
     00002F2E                       9022 00150$:
-                                   9023 ;src/gameplay.c:609: int16_t final_py = player_screen_y(&player, cam_py);
+                                   9023 ;src/gameplay.c:616: int16_t final_py = player_screen_y(&player, cam_py);
     00002F2E 21 C0 00         [12] 9024 	ld	hl, #192
     00002F31 39               [ 8] 9025 	add	hl, sp
     00002F32 2A               [ 8] 9026 	ld	a, (hl+)
@@ -9038,9 +9038,9 @@
     00002F42 79               [ 4] 9036 	ld	a, c
     00002F43 22               [ 8] 9037 	ld	(hl+), a
     00002F44 70               [ 8] 9038 	ld	(hl), b
-                                   9039 ;src/gameplay.c:611: wait_vbl_done();
+                                   9039 ;src/gameplay.c:618: wait_vbl_done();
     00002F45 CDr00r00         [24] 9040 	call	_wait_vbl_done
-                                   9041 ;src/gameplay.c:612: BGP_REG = bg_pals[target_bg_idx];
+                                   9041 ;src/gameplay.c:619: BGP_REG = bg_pals[target_bg_idx];
     00002F48 E5               [16] 9042 	push	hl
     00002F49 21 09 00         [12] 9043 	ld	hl, #9
     00002F4C 39               [ 8] 9044 	add	hl, sp
@@ -9055,7 +9055,7 @@
     00002F57 44               [ 4] 9053 	ld	b, h
     00002F58 0A               [ 8] 9054 	ld	a, (bc)
     00002F59 E0r00            [12] 9055 	ldh	(_BGP_REG + 0), a
-                                   9056 ;src/gameplay.c:613: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+                                   9056 ;src/gameplay.c:620: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
     00002F5B 21 C0 00         [12] 9057 	ld	hl, #192
     00002F5E 39               [ 8] 9058 	add	hl, sp
     00002F5F 4E               [ 8] 9059 	ld	c, (hl)
@@ -9065,13 +9065,13 @@
                                    9063 ;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
     00002F65 79               [ 4] 9064 	ld	a, c
     00002F66 E0r00            [12] 9065 	ldh	(_SCY_REG + 0), a
-                                   9066 ;src/gameplay.c:615: if (needs_render) {
+                                   9066 ;src/gameplay.c:622: if (needs_render) {
     00002F68 21 DF 00         [12] 9067 	ld	hl, #223
     00002F6B 39               [ 8] 9068 	add	hl, sp
     00002F6C 7E               [ 8] 9069 	ld	a, (hl)
     00002F6D B7               [ 4] 9070 	or	a, a
     00002F6E 28 4B            [12] 9071 	jr	Z, 00154$
-                                   9072 ;src/gameplay.c:616: loaded_r = need_col;
+                                   9072 ;src/gameplay.c:623: loaded_r = need_col;
     00002F70 21 DA 00         [12] 9073 	ld	hl, #218
     00002F73 39               [ 8] 9074 	add	hl, sp
     00002F74 7E               [ 8] 9075 	ld	a, (hl)
@@ -9084,15 +9084,15 @@
     00002F7F 21 C5 00         [12] 9082 	ld	hl, #197
     00002F82 39               [ 8] 9083 	add	hl, sp
     00002F83 77               [ 8] 9084 	ld	(hl), a
-                                   9085 ;src/gameplay.c:617: uint8_t vram_slot = (uint8_t)(need_col & 15);
+                                   9085 ;src/gameplay.c:624: uint8_t vram_slot = (uint8_t)(need_col & 15);
     00002F84 21 DA 00         [12] 9086 	ld	hl, #218
     00002F87 39               [ 8] 9087 	add	hl, sp
     00002F88 7E               [ 8] 9088 	ld	a, (hl)
     00002F89 E6 0F            [ 8] 9089 	and	a, #0x0f
-                                   9090 ;src/gameplay.c:502: uint8_t prev_reversed = player.reversed;
+                                   9090 ;src/gameplay.c:509: uint8_t prev_reversed = player.reversed;
     00002F8B F8 15            [12] 9091 	ldhl	sp,	#21
     00002F8D 46               [ 8] 9092 	ld	b, (hl)
-                                   9093 ;src/gameplay.c:619: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+                                   9093 ;src/gameplay.c:626: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
     00002F8E 04               [ 4] 9094 	inc	b
     00002F8F 05               [ 4] 9095 	dec	b
     00002F90 28 06            [12] 9096 	jr	Z, 00152$
@@ -9102,7 +9102,7 @@
     00002F95 4F               [ 4] 9100 	ld	c, a
     00002F96 E6 0F            [ 8] 9101 	and	a, #0x0f
     00002F98                       9102 00152$:
-                                   9103 ;src/gameplay.c:620: draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
+                                   9103 ;src/gameplay.c:627: draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
     00002F98 C5               [16] 9104 	push	bc
     00002F99 33               [ 8] 9105 	inc	sp
     00002F9A 21 BE 00         [12] 9106 	ld	hl, #190
@@ -9129,7 +9129,7 @@
     00002FB7 56               [ 8] 9127 	ld	d, (hl)
     00002FB8 CDr00r00         [24] 9128 	call	_draw_mt_column
     00002FBB                       9129 00154$:
-                                   9130 ;src/gameplay.c:623: uint8_t oam_index = process_and_draw_sprites(
+                                   9130 ;src/gameplay.c:630: uint8_t oam_index = process_and_draw_sprites(
     00002FBB 21 06 00         [12] 9131 	ld	hl, #6
     00002FBE 39               [ 8] 9132 	add	hl, sp
     00002FBF AF               [ 4] 9133 	xor	a, a
@@ -9163,15 +9163,15 @@
     00002FE6 21 D9 00         [12] 9161 	ld	hl, #217
     00002FE9 39               [ 8] 9162 	add	hl, sp
     00002FEA 77               [ 8] 9163 	ld	(hl), a
-                                   9164 ;src/gameplay.c:628: if (player.mode == MODE_SHIP) {
+                                   9164 ;src/gameplay.c:635: if (player.mode == MODE_SHIP) {
     00002FEB F8 14            [12] 9165 	ldhl	sp,	#20
-                                   9166 ;src/gameplay.c:502: uint8_t prev_reversed = player.reversed;
+                                   9166 ;src/gameplay.c:509: uint8_t prev_reversed = player.reversed;
     00002FED 2A               [ 8] 9167 	ld	a, (hl+)
     00002FEE 4F               [ 4] 9168 	ld	c, a
     00002FEF 7E               [ 8] 9169 	ld	a, (hl)
     00002FF0 21 DA 00         [12] 9170 	ld	hl, #218
     00002FF3 39               [ 8] 9171 	add	hl, sp
-                                   9172 ;src/gameplay.c:630: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+                                   9172 ;src/gameplay.c:637: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
     00002FF4 22               [ 8] 9173 	ld	(hl+), a
     00002FF5 23               [ 8] 9174 	inc	hl
     00002FF6 7E               [ 8] 9175 	ld	a, (hl)
@@ -9184,21 +9184,21 @@
     00003001 77               [ 8] 9182 	ld	(hl), a
     00003002 2A               [ 8] 9183 	ld	a, (hl+)
     00003003 C6 18            [ 8] 9184 	add	a, #0x18
-                                   9185 ;src/gameplay.c:631: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                                   9185 ;src/gameplay.c:638: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
     00003005 32               [ 8] 9186 	ld	(hl-), a
     00003006 2A               [ 8] 9187 	ld	a, (hl+)
     00003007 23               [ 8] 9188 	inc	hl
     00003008 C6 08            [ 8] 9189 	add	a, #0x08
-                                   9190 ;src/gameplay.c:633: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                                   9190 ;src/gameplay.c:640: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
     0000300A 22               [ 8] 9191 	ld	(hl+), a
     0000300B 23               [ 8] 9192 	inc	hl
     0000300C 3A               [ 8] 9193 	ld	a, (hl-)
     0000300D C6 10            [ 8] 9194 	add	a, #0x10
     0000300F 77               [ 8] 9195 	ld	(hl), a
-                                   9196 ;src/gameplay.c:628: if (player.mode == MODE_SHIP) {
+                                   9196 ;src/gameplay.c:635: if (player.mode == MODE_SHIP) {
     00003010 0D               [ 4] 9197 	dec	c
     00003011 C2r72r31         [16] 9198 	jp	NZ, 00174$
-                                   9199 ;src/gameplay.c:629: if (player.gravity_flipped) {
+                                   9199 ;src/gameplay.c:636: if (player.gravity_flipped) {
     00003014 F8 13            [12] 9200 	ldhl	sp,	#19
     00003016 7E               [ 8] 9201 	ld	a, (hl)
     00003017 B7               [ 4] 9202 	or	a, a
@@ -9209,7 +9209,7 @@
     0000301F 21 DE 00         [12] 9207 	ld	hl, #222
     00003022 39               [ 8] 9208 	add	hl, sp
     00003023 77               [ 8] 9209 	ld	(hl), a
-                                   9210 ;src/gameplay.c:630: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+                                   9210 ;src/gameplay.c:637: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
     00003024 21 DA 00         [12] 9211 	ld	hl, #218
     00003027 39               [ 8] 9212 	add	hl, sp
     00003028 7E               [ 8] 9213 	ld	a, (hl)
@@ -9274,7 +9274,7 @@
     0000307F 5F               [ 4] 9272 	ld	e, a
     00003080 7E               [ 8] 9273 	ld	a, (hl)
     00003081 CDr00r00         [24] 9274 	call	___move_metasprite_hvflip
-                                   9275 ;src/gameplay.c:630: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+                                   9275 ;src/gameplay.c:637: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
     00003084 21 D9 00         [12] 9276 	ld	hl, #217
     00003087 39               [ 8] 9277 	add	hl, sp
     00003088 86               [ 8] 9278 	add	a, (hl)
@@ -9283,7 +9283,7 @@
     0000308D 77               [ 8] 9281 	ld	(hl), a
     0000308E C3rD4r32         [16] 9282 	jp	00175$
     00003091                       9283 00156$:
-                                   9284 ;src/gameplay.c:631: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                                   9284 ;src/gameplay.c:638: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
     00003091 21 DF 00         [12] 9285 	ld	hl, #223
     00003094 39               [ 8] 9286 	add	hl, sp
     00003095 7E               [ 8] 9287 	ld	a, (hl)
@@ -9354,7 +9354,7 @@
     000030F0 50               [ 4] 9352 	ld	d, b
     000030F1 7E               [ 8] 9353 	ld	a, (hl)
     000030F2 CDr00r00         [24] 9354 	call	___move_metasprite_hflip
-                                   9355 ;src/gameplay.c:631: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                                   9355 ;src/gameplay.c:638: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
     000030F5 21 D9 00         [12] 9356 	ld	hl, #217
     000030F8 39               [ 8] 9357 	add	hl, sp
     000030F9 86               [ 8] 9358 	add	a, (hl)
@@ -9363,7 +9363,7 @@
     000030FE 77               [ 8] 9361 	ld	(hl), a
     000030FF C3rD4r32         [16] 9362 	jp	00175$
     00003102                       9363 00162$:
-                                   9364 ;src/gameplay.c:633: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                                   9364 ;src/gameplay.c:640: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
     00003102 21 DA 00         [12] 9365 	ld	hl, #218
     00003105 39               [ 8] 9366 	add	hl, sp
     00003106 7E               [ 8] 9367 	ld	a, (hl)
@@ -9399,7 +9399,7 @@
     0000312E 39               [ 8] 9397 	add	hl, sp
     0000312F 7E               [ 8] 9398 	ld	a, (hl)
     00003130 CDr00r00         [24] 9399 	call	___move_metasprite_vflip
-                                   9400 ;src/gameplay.c:633: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                                   9400 ;src/gameplay.c:640: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
     00003133 21 D9 00         [12] 9401 	ld	hl, #217
     00003136 39               [ 8] 9402 	add	hl, sp
     00003137 86               [ 8] 9403 	add	a, (hl)
@@ -9408,7 +9408,7 @@
     0000313C 77               [ 8] 9406 	ld	(hl), a
     0000313D C3rD4r32         [16] 9407 	jp	00175$
     00003140                       9408 00159$:
-                                   9409 ;src/gameplay.c:634: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                                   9409 ;src/gameplay.c:641: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
     00003140 21 DE 00         [12] 9410 	ld	hl, #222
     00003143 39               [ 8] 9411 	add	hl, sp
     00003144 3A               [ 8] 9412 	ld	a, (hl-)
@@ -9436,7 +9436,7 @@
     00003160 39               [ 8] 9434 	add	hl, sp
     00003161 7E               [ 8] 9435 	ld	a, (hl)
     00003162 CDr00r00         [24] 9436 	call	___move_metasprite
-                                   9437 ;src/gameplay.c:634: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                                   9437 ;src/gameplay.c:641: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
     00003165 21 D9 00         [12] 9438 	ld	hl, #217
     00003168 39               [ 8] 9439 	add	hl, sp
     00003169 86               [ 8] 9440 	add	a, (hl)
@@ -9445,20 +9445,20 @@
     0000316E 77               [ 8] 9443 	ld	(hl), a
     0000316F C3rD4r32         [16] 9444 	jp	00175$
     00003172                       9445 00174$:
-                                   9446 ;src/gameplay.c:637: if (player.gravity_flipped) {
+                                   9446 ;src/gameplay.c:644: if (player.gravity_flipped) {
     00003172 F8 13            [12] 9447 	ldhl	sp,	#19
     00003174 4E               [ 8] 9448 	ld	c, (hl)
-                                   9449 ;src/gameplay.c:631: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                                   9449 ;src/gameplay.c:638: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
     00003175 21 DF 00         [12] 9450 	ld	hl, #223
     00003178 39               [ 8] 9451 	add	hl, sp
     00003179 7E               [ 8] 9452 	ld	a, (hl)
     0000317A C6 20            [ 8] 9453 	add	a, #0x20
     0000317C 77               [ 8] 9454 	ld	(hl), a
-                                   9455 ;src/gameplay.c:637: if (player.gravity_flipped) {
+                                   9455 ;src/gameplay.c:644: if (player.gravity_flipped) {
     0000317D 79               [ 4] 9456 	ld	a, c
     0000317E B7               [ 4] 9457 	or	a, a
     0000317F CAr29r32         [16] 9458 	jp	Z, 00171$
-                                   9459 ;src/gameplay.c:638: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+                                   9459 ;src/gameplay.c:645: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
     00003182 21 DA 00         [12] 9460 	ld	hl, #218
     00003185 39               [ 8] 9461 	add	hl, sp
     00003186 7E               [ 8] 9462 	ld	a, (hl)
@@ -9517,7 +9517,7 @@
     000031D5 5F               [ 4] 9515 	ld	e, a
     000031D6 7E               [ 8] 9516 	ld	a, (hl)
     000031D7 CDr00r00         [24] 9517 	call	___move_metasprite_hvflip
-                                   9518 ;src/gameplay.c:638: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+                                   9518 ;src/gameplay.c:645: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
     000031DA 21 D9 00         [12] 9519 	ld	hl, #217
     000031DD 39               [ 8] 9520 	add	hl, sp
     000031DE 86               [ 8] 9521 	add	a, (hl)
@@ -9526,7 +9526,7 @@
     000031E3 77               [ 8] 9524 	ld	(hl), a
     000031E4 C3rD4r32         [16] 9525 	jp	00175$
     000031E7                       9526 00165$:
-                                   9527 ;src/gameplay.c:639: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+                                   9527 ;src/gameplay.c:646: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
     000031E7 21 DE 00         [12] 9528 	ld	hl, #222
     000031EA 39               [ 8] 9529 	add	hl, sp
     000031EB 46               [ 8] 9530 	ld	b, (hl)
@@ -9564,7 +9564,7 @@
     00003217 39               [ 8] 9562 	add	hl, sp
     00003218 7E               [ 8] 9563 	ld	a, (hl)
     00003219 CDr00r00         [24] 9564 	call	___move_metasprite_vflip
-                                   9565 ;src/gameplay.c:639: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+                                   9565 ;src/gameplay.c:646: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
     0000321C 21 D9 00         [12] 9566 	ld	hl, #217
     0000321F 39               [ 8] 9567 	add	hl, sp
     00003220 86               [ 8] 9568 	add	a, (hl)
@@ -9573,7 +9573,7 @@
     00003225 77               [ 8] 9571 	ld	(hl), a
     00003226 C3rD4r32         [16] 9572 	jp	00175$
     00003229                       9573 00171$:
-                                   9574 ;src/gameplay.c:641: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+                                   9574 ;src/gameplay.c:648: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
     00003229 21 DA 00         [12] 9575 	ld	hl, #218
     0000322C 39               [ 8] 9576 	add	hl, sp
     0000322D 7E               [ 8] 9577 	ld	a, (hl)
@@ -9647,7 +9647,7 @@
     0000328D 39               [ 8] 9645 	add	hl, sp
     0000328E 7E               [ 8] 9646 	ld	a, (hl)
     0000328F CDr00r00         [24] 9647 	call	___move_metasprite_hflip
-                                   9648 ;src/gameplay.c:641: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+                                   9648 ;src/gameplay.c:648: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
     00003292 21 D9 00         [12] 9649 	ld	hl, #217
     00003295 39               [ 8] 9650 	add	hl, sp
     00003296 86               [ 8] 9651 	add	a, (hl)
@@ -9656,7 +9656,7 @@
     0000329B 77               [ 8] 9654 	ld	(hl), a
     0000329C 18 36            [12] 9655 	jr	00175$
     0000329E                       9656 00168$:
-                                   9657 ;src/gameplay.c:642: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                                   9657 ;src/gameplay.c:649: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
     0000329E 21 DE 00         [12] 9658 	ld	hl, #222
     000032A1 39               [ 8] 9659 	add	hl, sp
     000032A2 3A               [ 8] 9660 	ld	a, (hl-)
@@ -9689,7 +9689,7 @@
     000032C5 39               [ 8] 9687 	add	hl, sp
     000032C6 7E               [ 8] 9688 	ld	a, (hl)
     000032C7 CDr00r00         [24] 9689 	call	___move_metasprite
-                                   9690 ;src/gameplay.c:642: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                                   9690 ;src/gameplay.c:649: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
     000032CA 21 D9 00         [12] 9691 	ld	hl, #217
     000032CD 39               [ 8] 9692 	add	hl, sp
     000032CE 86               [ 8] 9693 	add	a, (hl)
@@ -9697,7 +9697,7 @@
     000032D2 39               [ 8] 9695 	add	hl, sp
     000032D3 77               [ 8] 9696 	ld	(hl), a
     000032D4                       9697 00175$:
-                                   9698 ;src/gameplay.c:647: if (oam_index < previous_oam_index) {
+                                   9698 ;src/gameplay.c:654: if (oam_index < previous_oam_index) {
     000032D4 21 DF 00         [12] 9699 	ld	hl, #223
     000032D7 39               [ 8] 9700 	add	hl, sp
     000032D8 7E               [ 8] 9701 	ld	a, (hl)
@@ -9705,21 +9705,21 @@
     000032DC 39               [ 8] 9703 	add	hl, sp
     000032DD 96               [ 8] 9704 	sub	a, (hl)
     000032DE 30 09            [12] 9705 	jr	NC, 00177$
-                                   9706 ;src/gameplay.c:648: hide_sprites_range(oam_index, previous_oam_index);
+                                   9706 ;src/gameplay.c:655: hide_sprites_range(oam_index, previous_oam_index);
     000032E0 5E               [ 8] 9707 	ld	e, (hl)
     000032E1 21 DF 00         [12] 9708 	ld	hl, #223
     000032E4 39               [ 8] 9709 	add	hl, sp
     000032E5 7E               [ 8] 9710 	ld	a, (hl)
     000032E6 CDr00r00         [24] 9711 	call	_hide_sprites_range
     000032E9                       9712 00177$:
-                                   9713 ;src/gameplay.c:650: previous_oam_index = oam_index;
+                                   9713 ;src/gameplay.c:657: previous_oam_index = oam_index;
     000032E9 21 DF 00         [12] 9714 	ld	hl, #223
     000032EC 39               [ 8] 9715 	add	hl, sp
     000032ED 7E               [ 8] 9716 	ld	a, (hl)
     000032EE 21 C8 00         [12] 9717 	ld	hl, #200
     000032F1 39               [ 8] 9718 	add	hl, sp
     000032F2 77               [ 8] 9719 	ld	(hl), a
-                                   9720 ;src/gameplay.c:503: sp_cache_reset(&active_sp, &sp_stream_idx);
+                                   9720 ;src/gameplay.c:510: sp_cache_reset(&active_sp, &sp_stream_idx);
     000032F3 21 90 00         [12] 9721 	ld	hl, #144
     000032F6 39               [ 8] 9722 	add	hl, sp
     000032F7 E5               [16] 9723 	push	hl
@@ -9740,40 +9740,40 @@
     0000330B 7C               [ 4] 9738 	ld	a, h
     0000330C F8 05            [12] 9739 	ldhl	sp,	#5
     0000330E 77               [ 8] 9740 	ld	(hl), a
-                                   9741 ;src/gameplay.c:652: if (died) {
+                                   9741 ;src/gameplay.c:659: if (died) {
     0000330F 21 D8 00         [12] 9742 	ld	hl, #216
     00003312 39               [ 8] 9743 	add	hl, sp
     00003313 7E               [ 8] 9744 	ld	a, (hl)
     00003314 B7               [ 4] 9745 	or	a, a
     00003315 CArBFr2A         [16] 9746 	jp	Z, 00184$
-                                   9747 ;src/gameplay.c:653: TAC_REG = 0x00;
+                                   9747 ;src/gameplay.c:660: TAC_REG = 0x00;
     00003318 AF               [ 4] 9748 	xor	a, a
     00003319 E0r00            [12] 9749 	ldh	(_TAC_REG + 0), a
-                                   9750 ;src/gameplay.c:654: NR52_REG = 0x00;
+                                   9750 ;src/gameplay.c:661: NR52_REG = 0x00;
     0000331B AF               [ 4] 9751 	xor	a, a
     0000331C E0r00            [12] 9752 	ldh	(_NR52_REG + 0), a
-                                   9753 ;src/gameplay.c:655: NR52_REG = 0x80;
+                                   9753 ;src/gameplay.c:662: NR52_REG = 0x80;
     0000331E 3E 80            [ 8] 9754 	ld	a, #0x80
     00003320 E0r00            [12] 9755 	ldh	(_NR52_REG + 0), a
-                                   9756 ;src/gameplay.c:656: NR51_REG = 0xFF;
+                                   9756 ;src/gameplay.c:663: NR51_REG = 0xFF;
     00003322 3E FF            [ 8] 9757 	ld	a, #0xff
     00003324 E0r00            [12] 9758 	ldh	(_NR51_REG + 0), a
-                                   9759 ;src/gameplay.c:657: NR50_REG = 0x77;
+                                   9759 ;src/gameplay.c:664: NR50_REG = 0x77;
     00003326 3E 77            [ 8] 9760 	ld	a, #0x77
     00003328 E0r00            [12] 9761 	ldh	(_NR50_REG + 0), a
-                                   9762 ;src/gameplay.c:658: NR41_REG = 0x00;
+                                   9762 ;src/gameplay.c:665: NR41_REG = 0x00;
     0000332A AF               [ 4] 9763 	xor	a, a
     0000332B E0r00            [12] 9764 	ldh	(_NR41_REG + 0), a
-                                   9765 ;src/gameplay.c:659: NR42_REG = 0xF2;
+                                   9765 ;src/gameplay.c:666: NR42_REG = 0xF2;
     0000332D 3E F2            [ 8] 9766 	ld	a, #0xf2
     0000332F E0r00            [12] 9767 	ldh	(_NR42_REG + 0), a
-                                   9768 ;src/gameplay.c:660: NR43_REG = 0x43;
+                                   9768 ;src/gameplay.c:667: NR43_REG = 0x43;
     00003331 3E 43            [ 8] 9769 	ld	a, #0x43
     00003333 E0r00            [12] 9770 	ldh	(_NR43_REG + 0), a
-                                   9771 ;src/gameplay.c:661: NR44_REG = 0x80;
+                                   9771 ;src/gameplay.c:668: NR44_REG = 0x80;
     00003335 3E 80            [ 8] 9772 	ld	a, #0x80
     00003337 E0r00            [12] 9773 	ldh	(_NR44_REG + 0), a
-                                   9774 ;src/gameplay.c:662: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
+                                   9774 ;src/gameplay.c:669: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
     00003339 0E 00            [ 8] 9775 	ld	c, #0x00
     0000333B                       9776 00213$:
     0000333B 79               [ 4] 9777 	ld	a, c
@@ -9783,16 +9783,16 @@
     00003343 0C               [ 4] 9781 	inc	c
     00003344 18 F5            [12] 9782 	jr	00213$
     00003346                       9783 00178$:
-                                   9784 ;src/gameplay.c:663: NR52_REG = 0x80;
+                                   9784 ;src/gameplay.c:670: NR52_REG = 0x80;
     00003346 3E 80            [ 8] 9785 	ld	a, #0x80
     00003348 E0r00            [12] 9786 	ldh	(_NR52_REG + 0), a
-                                   9787 ;src/gameplay.c:664: NR51_REG = 0xFF;
+                                   9787 ;src/gameplay.c:671: NR51_REG = 0xFF;
     0000334A 3E FF            [ 8] 9788 	ld	a, #0xff
     0000334C E0r00            [12] 9789 	ldh	(_NR51_REG + 0), a
-                                   9790 ;src/gameplay.c:665: NR50_REG = 0x77;
+                                   9790 ;src/gameplay.c:672: NR50_REG = 0x77;
     0000334E 3E 77            [ 8] 9791 	ld	a, #0x77
     00003350 E0r00            [12] 9792 	ldh	(_NR50_REG + 0), a
-                                   9793 ;src/gameplay.c:666: if (level_songs[idx]) {
+                                   9793 ;src/gameplay.c:673: if (level_songs[idx]) {
     00003352 21 BE 00         [12] 9794 	ld	hl,#0xbe
     00003355 39               [ 8] 9795 	add	hl,sp
     00003356 2A               [ 8] 9796 	ld	a, (hl+)
@@ -9805,7 +9805,7 @@
     0000335D 47               [ 4] 9803 	ld	b, a
     0000335E B1               [ 4] 9804 	or	a, c
     0000335F 28 2D            [12] 9805 	jr	Z, 00180$
-                                   9806 ;src/gameplay.c:667: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+                                   9806 ;src/gameplay.c:674: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
     00003361 21 D2 00         [12] 9807 	ld	hl,#0xd2
     00003364 39               [ 8] 9808 	add	hl,sp
     00003365 2A               [ 8] 9809 	ld	a, (hl+)
@@ -9829,7 +9829,7 @@
     0000337D 59               [ 4] 9827 	ld	e, c
     0000337E 50               [ 4] 9828 	ld	d, b
     0000337F CDr00r00         [24] 9829 	call	_init_music_banked
-                                   9830 ;src/gameplay.c:668: current_song_bank = song_bank[idx];
+                                   9830 ;src/gameplay.c:675: current_song_bank = song_bank[idx];
     00003382 21 D4 00         [12] 9831 	ld	hl,#0xd4
     00003385 39               [ 8] 9832 	add	hl,sp
     00003386 2A               [ 8] 9833 	ld	a, (hl+)
@@ -9841,7 +9841,7 @@
     0000338E                       9839 00180$:
                                    9840 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     0000338E F3               [ 4] 9841 	di
-                                   9842 ;src/gameplay.c:672: load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
+                                   9842 ;src/gameplay.c:679: load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
     0000338F 21 D6 00         [12] 9843 	ld	hl,#0xd6
     00003392 39               [ 8] 9844 	add	hl,sp
     00003393 2A               [ 8] 9845 	ld	a, (hl+)
@@ -9870,23 +9870,23 @@
     000033B2 5F               [ 4] 9868 	ld	e, a
     000033B3 56               [ 8] 9869 	ld	d, (hl)
     000033B4 CDr00r00         [24] 9870 	call	_load_bkg_tileset
-                                   9871 ;src/gameplay.c:674: cam_px = 0;
+                                   9871 ;src/gameplay.c:681: cam_px = 0;
     000033B7 AF               [ 4] 9872 	xor	a, a
     000033B8 21 E0 00         [12] 9873 	ld	hl, #224
     000033BB 39               [ 8] 9874 	add	hl, sp
     000033BC 22               [ 8] 9875 	ld	(hl+), a
     000033BD 77               [ 8] 9876 	ld	(hl), a
-                                   9877 ;src/gameplay.c:675: cam_py = 112;
+                                   9877 ;src/gameplay.c:682: cam_py = 112;
     000033BE 21 C0 00         [12] 9878 	ld	hl, #192
     000033C1 39               [ 8] 9879 	add	hl, sp
     000033C2 3E 70            [ 8] 9880 	ld	a, #0x70
     000033C4 22               [ 8] 9881 	ld	(hl+), a
     000033C5 AF               [ 4] 9882 	xor	a, a
     000033C6 77               [ 8] 9883 	ld	(hl), a
-                                   9884 ;src/gameplay.c:676: scroll_acc = 0;
+                                   9884 ;src/gameplay.c:683: scroll_acc = 0;
     000033C7 21 C6 00         [12] 9885 	ld	hl, #198
     000033CA 39               [ 8] 9886 	add	hl, sp
-                                   9887 ;src/gameplay.c:677: loaded_r = BKG_MT_W - 1;
+                                   9887 ;src/gameplay.c:684: loaded_r = BKG_MT_W - 1;
     000033CB AF               [ 4] 9888 	xor	a, a
     000033CC 32               [ 8] 9889 	ld	(hl-), a
     000033CD 2B               [ 8] 9890 	dec	hl
@@ -9894,9 +9894,9 @@
     000033D0 22               [ 8] 9892 	ld	(hl+), a
     000033D1 AF               [ 4] 9893 	xor	a, a
     000033D2 77               [ 8] 9894 	ld	(hl), a
-                                   9895 ;src/gameplay.c:678: target_bg_idx = 0;
+                                   9895 ;src/gameplay.c:685: target_bg_idx = 0;
     000033D3 F8 06            [12] 9896 	ldhl	sp,	#6
-                                   9897 ;src/gameplay.c:679: player_init(&player, 0, 240);
+                                   9897 ;src/gameplay.c:686: player_init(&player, 0, 240);
     000033D5 11 F0 00         [12] 9898 	ld	de, #0x00f0
     000033D8 72               [ 8] 9899 	ld	(hl), d
     000033D9 D5               [16] 9900 	push	de
@@ -9906,7 +9906,7 @@
     000033E1 5D               [ 4] 9904 	ld	e, l
     000033E2 54               [ 4] 9905 	ld	d, h
     000033E3 CDr00r00         [24] 9906 	call	_player_init
-                                   9907 ;src/gameplay.c:680: sp_cache_reset(&active_sp, &sp_stream_idx);
+                                   9907 ;src/gameplay.c:687: sp_cache_reset(&active_sp, &sp_stream_idx);
     000033E6 F8 02            [12] 9908 	ldhl	sp,	#2
     000033E8 2A               [ 8] 9909 	ld	a, (hl+)
     000033E9 4F               [ 4] 9910 	ld	c, a
@@ -9916,16 +9916,16 @@
     000033ED 5F               [ 4] 9914 	ld	e, a
     000033EE 56               [ 8] 9915 	ld	d, (hl)
     000033EF CDr00r00         [24] 9916 	call	_sp_cache_reset
-                                   9917 ;src/gameplay.c:681: sp_cache_col = 0xFFFF;
+                                   9917 ;src/gameplay.c:688: sp_cache_col = 0xFFFF;
     000033F2 21 C9 00         [12] 9918 	ld	hl, #201
     000033F5 39               [ 8] 9919 	add	hl, sp
-                                   9920 ;src/gameplay.c:682: previous_oam_index = MAX_HARDWARE_SPRITES;
+                                   9920 ;src/gameplay.c:689: previous_oam_index = MAX_HARDWARE_SPRITES;
     000033F6 3E FF            [ 8] 9921 	ld	a,#0xff
     000033F8 22               [ 8] 9922 	ld	(hl+),a
     000033F9 32               [ 8] 9923 	ld	(hl-), a
     000033FA 2B               [ 8] 9924 	dec	hl
     000033FB 36 28            [12] 9925 	ld	(hl), #0x28
-                                   9926 ;src/gameplay.c:683: cached_collision_col = 0xFFFF;
+                                   9926 ;src/gameplay.c:690: cached_collision_col = 0xFFFF;
     000033FD 21 CB 00         [12] 9927 	ld	hl, #203
     00003400 39               [ 8] 9928 	add	hl, sp
     00003401 3E FF            [ 8] 9929 	ld	a, #0xff
@@ -9936,11 +9936,11 @@
     00003407 E0r00            [12] 9934 	ldh	(_SCX_REG + 0), a
     00003409 3E 70            [ 8] 9935 	ld	a, #0x70
     0000340B E0r00            [12] 9936 	ldh	(_SCY_REG + 0), a
-                                   9937 ;src/gameplay.c:685: BGP_REG = bg_pals[0];
+                                   9937 ;src/gameplay.c:692: BGP_REG = bg_pals[0];
     0000340D F8 07            [12] 9938 	ldhl	sp,	#7
     0000340F 7E               [ 8] 9939 	ld	a, (hl)
     00003410 E0r00            [12] 9940 	ldh	(_BGP_REG + 0), a
-                                   9941 ;src/gameplay.c:686: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+                                   9941 ;src/gameplay.c:693: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     00003412 AF               [ 4] 9942 	xor	a, a
     00003413 F5               [16] 9943 	push	af
     00003414 33               [ 8] 9944 	inc	sp
@@ -9960,18 +9960,18 @@
     00003428 5F               [ 4] 9958 	ld	e, a
     00003429 56               [ 8] 9959 	ld	d, (hl)
     0000342A CDr00r00         [24] 9960 	call	_fill_scroll_bg
-                                   9961 ;src/gameplay.c:687: TAC_REG = 0x04;
+                                   9961 ;src/gameplay.c:694: TAC_REG = 0x04;
     0000342D 3E 04            [ 8] 9962 	ld	a, #0x04
     0000342F E0r00            [12] 9963 	ldh	(_TAC_REG + 0), a
-                                   9964 ;src/gameplay.c:688: music_ready = 1;
+                                   9964 ;src/gameplay.c:695: music_ready = 1;
     00003431 21r00r00         [12] 9965 	ld	hl, #_music_ready
     00003434 36 01            [12] 9966 	ld	(hl), #0x01
                                    9967 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
     00003436 FB               [ 4] 9968 	ei
-                                   9969 ;src/gameplay.c:689: enable_interrupts();
+                                   9969 ;src/gameplay.c:696: enable_interrupts();
     00003437 C3rBFr2A         [16] 9970 	jp	00184$
     0000343A                       9971 00185$:
-                                   9972 ;src/gameplay.c:693: HIDE_SPRITES;
+                                   9972 ;src/gameplay.c:700: HIDE_SPRITES;
     0000343A F0r00            [12] 9973 	ldh	a, (_LCDC_REG + 0)
     0000343C E6 FD            [ 8] 9974 	and	a, #0xfd
     0000343E E0r00            [12] 9975 	ldh	(_LCDC_REG + 0), a
@@ -9980,20 +9980,20 @@
     00003441 E0r00            [12] 9978 	ldh	(_SCX_REG + 0), a
     00003443 AF               [ 4] 9979 	xor	a, a
     00003444 E0r00            [12] 9980 	ldh	(_SCY_REG + 0), a
-                                   9981 ;src/gameplay.c:695: waitpadup();
+                                   9981 ;src/gameplay.c:702: waitpadup();
     00003446 CDr00r00         [24] 9982 	call	_waitpadup
                                    9983 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     00003449 F3               [ 4] 9984 	di
-                                   9985 ;src/gameplay.c:697: setup_menu_font();
+                                   9985 ;src/gameplay.c:704: setup_menu_font();
     0000344A 1Er00            [ 8] 9986 	ld	e, #b_setup_menu_font
     0000344C 21r0Dr27         [12] 9987 	ld	hl, #_setup_menu_font
     0000344F CDr00r00         [24] 9988 	call	___sdcc_bcall_ehl
                                    9989 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
     00003452 FB               [ 4] 9990 	ei
-                                   9991 ;src/gameplay.c:699: redraw = 1;
+                                   9991 ;src/gameplay.c:706: redraw = 1;
     00003453 21r00r00         [12] 9992 	ld	hl, #_redraw
     00003456 36 01            [12] 9993 	ld	(hl), #0x01
-                                   9994 ;src/gameplay.c:700: }
+                                   9994 ;src/gameplay.c:707: }
     00003458 E8 7F            [16] 9995 	add	sp, #127
     0000345A E8 63            [16] 9996 	add	sp, #99
     0000345C C9               [16] 9997 	ret

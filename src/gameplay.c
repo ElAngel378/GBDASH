@@ -44,6 +44,13 @@
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
+// Reserve the last N hardware sprite slots exclusively for the player
+// metasprite (icon/ship use 2 hw sprites each; 4 is a safe upper bound).
+// Level objects must never write into this range, otherwise the player
+// draw overflows past shadow_OAM[] and corrupts adjacent WRAM.
+#define PLAYER_OAM_SLOTS 4
+#define OBJ_OAM_MAX      (MAX_HARDWARE_SPRITES - PLAYER_OAM_SLOTS)
+
 extern uint8_t music_ready;
 
 static const uint8_t level_sprite_cost_table[38] = {
@@ -214,7 +221,7 @@ static uint8_t process_and_draw_sprites(
     uint16_t p_bottom = py + PLAYER_SIZE + 16;
     uint16_t p_feet = py + PLAYER_SIZE;
 
-    for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; sp_idx++) {
+    for (sp_idx = 0; sp_idx < MAX_ACTIVE_SP_OBJECTS && oam_start < OBJ_OAM_MAX; sp_idx++) {
         if (!cache->active[sp_idx]) break; // Early out
 
         uint16_t obj_x = cache->px[sp_idx];
@@ -349,7 +356,7 @@ static uint8_t process_and_draw_sprites(
         if ((uint8_t)(screen_x + 24u) > 184u) continue;
         if ((uint8_t)(screen_y + 48u) > 208u) continue;
 
-        if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
+        if (oam_start > OBJ_OAM_MAX - 9) break;
 
         // Ensure we use 'oam' exclusively for the hardware array index!
         uint8_t oam = oam_start;
