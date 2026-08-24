@@ -49,7 +49,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00001DDC  l__CODE_2 |    00002000  _rROMB0   |    00002000  l__CODE_2
      00002218  l__CODE_2 |    00002766  l__CODE_2 |    0000299B  l__CODE  
      000029B0  l__CODE_2 |    00002B9B  s__HOME   |    00003000  _rROMB1  
-     0000303B  l__CODE_1 |    00003370  ___size_c |    00003370  l__CODE_1
+     000031E4  l__CODE_1 |    00003370  ___size_c |    00003370  l__CODE_1
      00003450  ___size_c |    00003450  l__CODE_7 |    000034A0  ___size_d
      000034A0  l__CODE_4 |    000034E0  ___size_b |    000034E0  l__CODE_3
      00003650  ___size_b |    00003650  l__CODE_6 |    00003691  s__BASE  
@@ -509,28 +509,29 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_10               000A4000    0000303B =       12347. bytes (REL,CON)
+_CODE_10               000A4000    000031E4 =       12772. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      000A4000  ___func_f |    000A4000  _famidash |    000A4540  _famidash
      000A4568  _famidash |    000A4590  _famidash |    000A45B8  _famidash
-     000A45D4  _famidash |    000A45F0  _famidash |    000A45FC  _famidash
-     000A4608  _famidash |    000A4614  _famidash |    000A4620  _famidash
-     000A462C  _famidash |    000A4638  _famidash |    000A4644  _famidash
-     000A4650  _famidash |    000A469C  _sp_cache |    000A46DB  _sp_cache
-     000A5FDD  _setup_me |    000A5FEE  _draw_men |    000A60A6  _play_lev
-     000A6E07  _icon1_pa |    000A6E0F  _icon1_ti |    000A6E8F  _icon1_me
-     000A6E9B  _icon1_me |    000A6EA7  _icon1_me |    000A6EB3  _icon1_me
-     000A6EBF  _icon1_me |    000A6ECB  _icon1_me |    000A6ED7  _icon1_me
-     000A6EE3  _icon1_me |    000A6EEF  _icon1_me |    000A6EFB  _icon1_me
-     000A6F07  _icon1_me |    000A6F13  _icon1_me |    000A6F1F  _icon1_me
-     000A6F2B  _icon1_me |    000A6F37  _icon1_me |    000A6F43  _icon1_me
-     000A6F4F  _icon1_me |    000A6F5B  _icon1_me |    000A6F67  _icon1_me
-     000A6F73  _icon1_me |    000A6F7F  _icon1_me |    000A6F8B  _icon1_me
-     000A6F97  _icon1_me |    000A6FA3  _icon1_me |    000A6FAF  _icon1_me
-     000A6FBB  _icon1_me |    000A6FED  _ship_til |    000A702D  _ship_met
-     000A7039  _ship_met
+     000A45E4  _famidash |    000A4610  _famidash |    000A463C  _famidash
+     000A4668  _famidash |    000A4684  _famidash |    000A46A0  _famidash
+     000A46AC  _famidash |    000A46B8  _famidash |    000A46C4  _famidash
+     000A46D0  _famidash |    000A46DC  _famidash |    000A46E8  _famidash
+     000A46F4  _famidash |    000A4700  _famidash |    000A474C  _sp_cache
+     000A478B  _sp_cache |    000A6186  _setup_me |    000A6197  _draw_men
+     000A624F  _play_lev |    000A6FB0  _icon1_pa |    000A6FB8  _icon1_ti
+     000A7038  _icon1_me |    000A7044  _icon1_me |    000A7050  _icon1_me
+     000A705C  _icon1_me |    000A7068  _icon1_me |    000A7074  _icon1_me
+     000A7080  _icon1_me |    000A708C  _icon1_me |    000A7098  _icon1_me
+     000A70A4  _icon1_me |    000A70B0  _icon1_me |    000A70BC  _icon1_me
+     000A70C8  _icon1_me |    000A70D4  _icon1_me |    000A70E0  _icon1_me
+     000A70EC  _icon1_me |    000A70F8  _icon1_me |    000A7104  _icon1_me
+     000A7110  _icon1_me |    000A711C  _icon1_me |    000A7128  _icon1_me
+     000A7134  _icon1_me |    000A7140  _icon1_me |    000A714C  _icon1_me
+     000A7158  _icon1_me |    000A7164  _icon1_me |    000A7196  _ship_til
+     000A71D6  _ship_met |    000A71E2  _ship_met
 ASxxxx Linker V03.00/V05.40 + sdld,  page 40.
 Hexadecimal  [32-Bits]
 

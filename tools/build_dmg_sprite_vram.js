@@ -13,9 +13,9 @@ const SPRITE_TILE_BASE = 104;
 // Each entry is an NES 8x16 pair: the listed tile and the tile immediately after it.
 const spritePairs = [
     ["portals", 0], ["portals", 2], ["portals", 4], ["portals", 6], ["portals", 8], ["portals", 10],
-    ["portals", 12], ["portals", 14], ["portals", 16], ["portals", 18], ["portals", 20], ["portals", 22],
     ["portals", 44], ["portals", 46], ["portals", 50], ["portals", 52], ["portals", 56], ["portals", 58],
-    ["main", 24], ["main", 26], ["main", 56], ["main", 58], ["portals", 24], ["portals", 26]
+    ["main", 24], ["main", 26], ["main", 56], ["main", 58], ["portals", 24], ["portals", 26],
+    ["portals", 12], ["portals", 14], ["portals", 16], ["portals", 18], ["portals", 20], ["portals", 22]
 ];
 
 // Decoration pairs from Famidash's first decoration CHR bank. The source
