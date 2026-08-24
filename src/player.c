@@ -106,7 +106,12 @@ uint8_t player_update(
     uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
     if (IS_SOLID(cl_f) || IS_SOLID(cr_f)) {
         if (!p->gravity_flipped || p->mode == MODE_SHIP) {
-            p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
+            uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : cr_f;
+            if (hit_col == COL_BOTTOM) {
+                p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
+            } else {
+                p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
+            }
             p->world_y.b.l = 0;
             p->vel_y.w = 0;
             if (!p->gravity_flipped) {
@@ -122,7 +127,12 @@ uint8_t player_update(
     uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
     if (IS_SOLID(cl_h) || IS_SOLID(cr_h)) {
         if (p->gravity_flipped || p->mode == MODE_SHIP) {
-            p->world_y.b.h = (head_y & ~15) + 16;
+            uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : cr_h;
+            if (hit_col == COL_TOP) {
+                p->world_y.b.h = (head_y & ~15) + 8;
+            } else {
+                p->world_y.b.h = (head_y & ~15) + 16;
+            }
             p->world_y.b.l = 0;
             p->vel_y.w = 0;
             if (p->gravity_flipped) {

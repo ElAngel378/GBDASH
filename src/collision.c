@@ -40,18 +40,19 @@ uint8_t col_at_raw(
 uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
     uint8_t py8 = (uint8_t)world_py;
     uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t inner_y = py8 & 0x0F;
 
-    if (col >= 0x10) {
-        if (col == COL_DEATH_TOP_HALF) {
-            if ((py8 & 0x0F) < 8) return COL_NONE;
-            return COL_DEATH;
-        }
-        if (col == COL_DEATH_BOTTOM_HALF) {
-            if ((py8 & 0x0F) >= 8) return COL_NONE;
-            return COL_DEATH;
-        }
+    if (col == COL_TOP) {
+        if (inner_y >= 8) return COL_NONE;
+    } else if (col == COL_BOTTOM) {
+        if (inner_y < 8) return COL_NONE;
+    } else if (col == COL_DEATH_TOP_HALF) {
+        if (inner_y < 8) return COL_NONE;
+        return COL_DEATH;
+    } else if (col == COL_DEATH_BOTTOM_HALF) {
+        if (inner_y >= 8) return COL_NONE;
+        return COL_DEATH;
     }
-
 
     return col;
 }
