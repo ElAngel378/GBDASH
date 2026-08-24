@@ -826,7 +826,7 @@ _process_and_draw_sprites:
 	jp	NC, 00364$
 	ldhl	sp,	#71
 	ld	a, (hl)
-	sub	a, #0x0c
+	sub	a, #0x0b
 	jp	NC, 00364$
 ;src/gameplay.c:225: if (!cache->active[sp_idx]) break; // Early out
 	ldhl	sp,#15
@@ -1932,7 +1932,7 @@ _process_and_draw_sprites:
 	cp	a, #0xd1
 	jp	NC, 00363$
 ;src/gameplay.c:359: if (oam_start > OBJ_OAM_MAX - 9) break;
-	ld	a, #0x03
+	ld	a, #0x02
 	ldhl	sp,	#71
 	sub	a, (hl)
 	jp	C, 00364$
@@ -9903,23 +9903,44 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_load_bkg_tileset
-;src/gameplay.c:689: cam_px = 0;
+;src/gameplay.c:690: set_sprite_data(0, 8, icon1_tiles);
+	ld	de, #_icon1_tiles
+	push	de
+	ld	hl, #0x800
+	push	hl
+	call	_set_sprite_data
+	add	sp, #4
+;src/gameplay.c:691: set_sprite_data(8, 4, ship_tiles);
+	ld	de, #_ship_tiles
+	push	de
+	ld	hl, #0x408
+	push	hl
+	call	_set_sprite_data
+	add	sp, #4
+;src/gameplay.c:692: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+	ld	de, #_famidash_sprites_tiles
+	push	de
+	ld	hl, #0x4858
+	push	hl
+	call	_set_sprite_data
+	add	sp, #4
+;src/gameplay.c:694: cam_px = 0;
 	xor	a, a
 	ld	hl, #224
 	add	hl, sp
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:690: cam_py = 112;
+;src/gameplay.c:695: cam_py = 112;
 	ld	hl, #192
 	add	hl, sp
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:691: scroll_acc = 0;
+;src/gameplay.c:696: scroll_acc = 0;
 	ld	hl, #198
 	add	hl, sp
-;src/gameplay.c:692: loaded_r = BKG_MT_W - 1;
+;src/gameplay.c:697: loaded_r = BKG_MT_W - 1;
 	xor	a, a
 	ld	(hl-), a
 	dec	hl
@@ -9927,9 +9948,9 @@ _play_level::
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:693: target_bg_idx = 0;
+;src/gameplay.c:698: target_bg_idx = 0;
 	ldhl	sp,	#6
-;src/gameplay.c:694: player_init(&player, 0, 240);
+;src/gameplay.c:699: player_init(&player, 0, 240);
 	ld	de, #0x00f0
 	ld	(hl), d
 	push	de
@@ -9939,7 +9960,7 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_player_init
-;src/gameplay.c:695: sp_cache_reset(&active_sp, &sp_stream_idx);
+;src/gameplay.c:700: sp_cache_reset(&active_sp, &sp_stream_idx);
 	ldhl	sp,	#2
 	ld	a, (hl+)
 	ld	c, a
@@ -9949,16 +9970,16 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_sp_cache_reset
-;src/gameplay.c:696: sp_cache_col = 0xFFFF;
+;src/gameplay.c:701: sp_cache_col = 0xFFFF;
 	ld	hl, #201
 	add	hl, sp
-;src/gameplay.c:697: previous_oam_index = MAX_HARDWARE_SPRITES;
+;src/gameplay.c:702: previous_oam_index = MAX_HARDWARE_SPRITES;
 	ld	a,#0xff
 	ld	(hl+),a
 	ld	(hl-), a
 	dec	hl
 	ld	(hl), #0x28
-;src/gameplay.c:698: cached_collision_col = 0xFFFF;
+;src/gameplay.c:703: cached_collision_col = 0xFFFF;
 	ld	hl, #203
 	add	hl, sp
 	ld	a, #0xff
@@ -9969,11 +9990,11 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:700: BGP_REG = bg_pals[0];
+;src/gameplay.c:705: BGP_REG = bg_pals[0];
 	ldhl	sp,	#7
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:701: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+;src/gameplay.c:706: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -9993,18 +10014,18 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_fill_scroll_bg
-;src/gameplay.c:702: TAC_REG = 0x04;
+;src/gameplay.c:707: TAC_REG = 0x04;
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
-;src/gameplay.c:703: music_ready = 1;
+;src/gameplay.c:708: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:704: enable_interrupts();
+;src/gameplay.c:709: enable_interrupts();
 	jp	00184$
 00185$:
-;src/gameplay.c:708: HIDE_SPRITES;
+;src/gameplay.c:713: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -10013,20 +10034,20 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	xor	a, a
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:710: waitpadup();
+;src/gameplay.c:715: waitpadup();
 	call	_waitpadup
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:712: setup_menu_font();
+;src/gameplay.c:717: setup_menu_font();
 	ld	e, #b_setup_menu_font
 	ld	hl, #_setup_menu_font
 	call	___sdcc_bcall_ehl
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:714: redraw = 1;
+;src/gameplay.c:719: redraw = 1;
 	ld	hl, #_redraw
 	ld	(hl), #0x01
-;src/gameplay.c:715: }
+;src/gameplay.c:720: }
 	add	sp, #127
 	add	sp, #99
 	ret

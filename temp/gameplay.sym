@@ -35,8 +35,8 @@ Symbol Table
   8 ___str_2                                                        000027F7 R
   8 ___str_3                                                        000027FC R
   8 ___str_4                                                        00002801 R
-  8 ___str_5                                                        0000349D R
-  8 ___str_6                                                        000034AC R
+  8 ___str_5                                                        000034C4 R
+  8 ___str_6                                                        000034D3 R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
   8 _draw_menu                                                      0000275E GR
@@ -105,7 +105,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     34BC   flags    0
+   8 _CODE_10                                   size     34E3   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

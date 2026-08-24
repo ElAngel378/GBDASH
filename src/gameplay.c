@@ -49,7 +49,7 @@
 // Level objects must never write into this range, otherwise the player
 // draw overflows past shadow_OAM[] and corrupts adjacent WRAM.
 #define PLAYER_OAM_SLOTS 4
-#define OBJ_OAM_MAX      12
+#define OBJ_OAM_MAX      11
 
 extern uint8_t music_ready;
 
@@ -685,6 +685,11 @@ void play_level(uint8_t idx) BANKED {
             disable_interrupts();
             // Restore normal tileset on death
             load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
+
+            // ADD THESE LINES TO RELOAD SPRITE TILES
+            set_sprite_data(0, 8, icon1_tiles);
+            set_sprite_data(8, 4, ship_tiles);
+            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 
             cam_px = 0;
             cam_py = 112;
