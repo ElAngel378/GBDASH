@@ -25,6 +25,29 @@ int16_t player_screen_y(const Player* p, uint16_t cam_y) {
     return (int16_t)(p->world_y.b.h) - (int16_t)cam_y;
 }
 
+// Returns 1 if the sampled tile actually kills the player.
+// Side-facing half spikes (COL_DEATH_LEFT / COL_DEATH_RIGHT) only cover
+// their own half of the tile, giving them the same reduced hitbox as the
+// top/bottom half spikes. On mirrored levels (reversed) the sprites are
+// flipped, so the deadly half swaps sides too.
+static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
+    uint8_t inner_x;
+    uint8_t deadly_left;
+
+    if (!IS_HAZARD(col)) return 0;
+
+    if (col == COL_DEATH_LEFT || col == COL_DEATH_RIGHT) {
+        inner_x = (uint8_t)(p->world_x + x_off) & 0x0F;
+        deadly_left = (col == COL_DEATH_LEFT) ^ (p->reversed != 0);
+        if (deadly_left) {
+            if (inner_x >= 8) return 0; // deadly zone: left half only
+        } else {
+            if (inner_x < 8) return 0;  // deadly zone: right half only
+        }
+    }
+    return 1;
+}
+
 #define COL_AT_PTR(col, y) ( \
     (((uint16_t)(y)) & 0xFF00) ? ((((int16_t)(y)) < 0) ? COL_NONE : COL_ALL) : \
     col_at_raw_cached(col, (uint16_t)(y)) \
@@ -169,7 +192,10 @@ uint8_t player_update(
     uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
     uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
     uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    if (IS_HAZARD(hz_tl) || IS_HAZARD(hz_tr) || IS_HAZARD(hz_bl) || IS_HAZARD(hz_br)) {
+    if (hazard_kills(p, hz_tl, PLAYER_HBOX) ||
+        hazard_kills(p, hz_tr, PLAYER_SIZE - PLAYER_HBOX) ||
+        hazard_kills(p, hz_bl, PLAYER_HBOX) ||
+        hazard_kills(p, hz_br, PLAYER_SIZE - PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }
