@@ -15,6 +15,9 @@
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
 
+extern const unsigned char FontPusab[];
+#define FONT_PUSAB_START 0xD0
+
 #define BKG_MT_W 16
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
@@ -378,20 +381,38 @@ static uint8_t draw_sprites(
 }
 
 void setup_menu_font(void) BANKED {
-    font_init();
-    font_set(font_load(font_min));
+    set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
+}
+
+static void draw_text(uint8_t x, uint8_t y, const char *str) {
+    uint8_t tile;
+    while (*str) {
+        char c = *str;
+        if (c == ' ') tile = 0;
+        else if (c == '%') tile = 1;
+        else if (c == '/') tile = 2;
+        else if (c >= '0' && c <= '9') tile = (c - '0') + 3;
+        else if (c >= 'A' && c <= 'Z') tile = (c - 'A') + 13;
+        else if (c >= 'a' && c <= 'z') tile = (c - 'a') + 13;
+        else tile = 0;
+        set_bkg_tile_xy(x++, y, FONT_PUSAB_START + tile);
+        str++;
+    }
 }
 
 void draw_menu(void) BANKED {
+    BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
     fill_bkg_rect(0, 0, 20, 18, 0x00);
-    gotoxy(0, 0);
-    printf("GD POCKET DEMO 01\n");
+    draw_text(0, 0, "GD POCKET DEMO 02");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
-        gotoxy(1, 2 + i);
-        if (i == selected) printf("0 %s", game_levels[i]->name);
-        else printf("  %s", game_levels[i]->name);
+        if (i == selected) {
+            draw_text(1, 2 + i, "0"); // cursor icon
+            draw_text(3, 2 + i, game_levels[i]->name);
+        } else {
+            draw_text(3, 2 + i, game_levels[i]->name);
+        }
     }
-    printf("\n\n\n\n\n\n\nSotospro24");
+    draw_text(0, 16, "SOTOSPRO24");
     SHOW_BKG;
     redraw = 0;
 }
