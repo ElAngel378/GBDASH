@@ -16,27 +16,29 @@ Symbol Table
   0 _col_at_raw                                                     00000027 GR
   0 _col_at_raw_cached                                              00000083 GR
     _current_song_bank                                              ******** GX
-  0 _draw_mt_column                                                 000001DA GR
+  0 _draw_mt_column                                                 000002DA GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 000002E4 GR
+  0 _fill_scroll_bg                                                 000002F7 GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              0000032D GR
+  0 _init_music_banked                                              00000340 GR
   0 _load_bkg_tileset                                               000000F3 GR
   0 _load_collision_columns                                         0000013E GR
   2 _metatile_column_tiles                                          00000001 R
     _metatiles                                                      ******** GX
     _metatiles_rev                                                  ******** GX
     _music_ready                                                    ******** GX
+  0 _prepare_mt_column                                              000001DA GR
+    _queue_bg_column                                                ******** GX
     _rROMB0                                                         ******** GX
     _set_bkg_data                                                   ******** GX
-    _set_bkg_tiles                                                  ******** GX
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      35B   flags    0
+   0 _CODE                                      size      36E   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size       41   flags    0
    3 _INITIALIZED                               size        0   flags    0

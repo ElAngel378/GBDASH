@@ -73,6 +73,11 @@ void col_at_end(void);
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
 
+// Prepare a 64-byte metatile column in WRAM and queue it for VBlank upload
+void prepare_mt_column(uint8_t ring_col, uint16_t map_col,
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
+
+// Backwards-compatible wrapper (schedules upload via prepare_mt_column)
 void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed);
 

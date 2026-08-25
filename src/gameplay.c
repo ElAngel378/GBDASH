@@ -14,11 +14,14 @@
 #include "../levels/chr_data/chr_gb.h"
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
+#include "video_vbl_uploader.h"
+#include "profiling.h"
 
 #define BKG_MT_W 16
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
+#define TILE_CHUNK_TILES 16
 
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
@@ -50,6 +53,20 @@
 #define CAM_Y_BOTTOM_ZONE 100
 
 extern uint8_t music_ready;
+
+// Mirror mode state machine
+#define MIRROR_IDLE 0
+#define MIRROR_LOAD_TILES 1
+#define MIRROR_REDRAW_MAP 2
+static uint8_t mirror_state = MIRROR_IDLE;
+static uint16_t mirror_map_next = 0;
+static uint16_t mirror_map_target_end = 0;
+
+// Mirror tiles load state
+static const uint8_t *mirror_tiles_source = 0;
+static uint8_t mirror_tiles_bank = 0;
+static uint16_t mirror_tile_index = 0;
+static uint16_t mirror_tile_total = 0;
 
 static const uint8_t level_sprite_cost_table[38] = {
     9, 9, 0, 0, 0, 2, 2, 0, 9, 9, 2, 2, 2, 2, 2,
@@ -496,8 +513,9 @@ void play_level(uint8_t idx) BANKED {
                 if (need > loaded_r && need < level_map_w) {
                     needs_render = 1;
                     need_col = need;
-                }
-            }
+                                prof_column_changed_count++;
+                            }
+                        }
         }
 
         player.world_x = cam_px;
@@ -509,25 +527,18 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (player.reversed != prev_reversed) {
-            disable_interrupts();
-
-            // Swap tileset in VRAM to match mirror mode orientation
+            // Begin mirror-mode incremental process: load tiles first, then redraw map columns.
             const uint8_t* target_tiles = player.reversed ? l->tiles_rev : l->tiles;
-            load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-
-            // Instant redraw of the entire 16-column buffer
+            mirror_tiles_source = target_tiles;
+            mirror_tiles_bank = level_tiles_bank;
+            mirror_tile_index = 0;
+            mirror_tile_total = level_tile_count;
+            mirror_state = MIRROR_LOAD_TILES;
+            prof_mirror_transitions++;
+            // We'll set loaded_r after the map redraw completes; schedule map bounds now
             uint16_t start_col = cam_px >> 4;
-            for (uint8_t i = 0; i < 16; i++) {
-                uint16_t curr_col = start_col + i;
-                if (curr_col < level_map_w) {
-                    uint8_t vram_slot = (uint8_t)(curr_col & 15);
-                    if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-                    draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
-                }
-            }
-            enable_interrupts();
-            // Reset loaded_r to match the last column we just drew
-            loaded_r = start_col + 15;
+            mirror_map_next = start_col;
+            mirror_map_target_end = start_col + 15;
             prev_reversed = player.reversed;
         }
 
@@ -536,6 +547,44 @@ void play_level(uint8_t idx) BANKED {
             load_collision_columns(collision_col, level_map, level_map_w,
                                    level_map_bank, collision_columns);
             cached_collision_col = collision_col;
+        }
+
+        // Mirror-mode incremental state machine: load tiles in chunks first, then redraw map columns.
+        if (mirror_state == MIRROR_LOAD_TILES) {
+            // Copy one chunk of tiles from ROM into a temporary WRAM buffer, then queue it for VBlank commit.
+            uint8_t chunk_tiles = (uint8_t)( (mirror_tile_total - mirror_tile_index) >= TILE_CHUNK_TILES ? TILE_CHUNK_TILES : (mirror_tile_total - mirror_tile_index) );
+            if (chunk_tiles > 0) {
+                uint16_t chunk_bytes = (uint16_t)chunk_tiles * 16u; // 16 bytes per tile
+                // Fixed-size scratch buffer to avoid VLA compile errors on GBDK C.
+                uint8_t tile_chunk[16 * 16];
+                uint8_t prev = _current_bank;
+                SWITCH_ROM(mirror_tiles_bank);
+                // mirror_tiles_source points to ROM tiles array; copy into WRAM scratch
+                for (uint16_t i = 0; i < chunk_bytes; i++) {
+                    tile_chunk[i] = mirror_tiles_source[(uint32_t)mirror_tile_index * 16u + i];
+                }
+                SWITCH_ROM(prev);
+                // Queue the tile chunk for VBlank upload
+                queue_tile_chunk(mirror_tile_index, chunk_tiles, tile_chunk);
+                mirror_tile_index += chunk_tiles;
+            }
+            if (mirror_tile_index >= mirror_tile_total) {
+                mirror_state = MIRROR_REDRAW_MAP;
+            }
+        } else if (mirror_state == MIRROR_REDRAW_MAP) {
+            if (mirror_map_next <= mirror_map_target_end) {
+                uint16_t curr_col = mirror_map_next;
+                mirror_map_next++;
+                if (curr_col < level_map_w) {
+                    uint8_t vram_slot = (uint8_t)(curr_col & 15);
+                    if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+                    prepare_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
+                }
+            } else {
+                mirror_state = MIRROR_IDLE;
+                // Mark loaded_r now that redraw is finished
+                // loaded_r already set when mirror began
+            }
         }
 
         // Logic (Pads, Orbs, Portals) BEFORE player movement
@@ -569,17 +618,18 @@ void play_level(uint8_t idx) BANKED {
         }
         int16_t final_py = player_screen_y(&player, cam_py);
 
-        wait_vbl_done();
-        BGP_REG = bg_pals[target_bg_idx];
-        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-
         if (needs_render) {
             loaded_r = need_col;
             uint8_t vram_slot = (uint8_t)(need_col & 15);
-            // Reverse tile mapping in VRAM ring buffer to create mirrored level layout
             if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-            draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
+            // Prepare the 64-byte column in WRAM and queue it for the VBlank uploader.
+            prepare_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
+            // The VBlank uploader will commit this during the next VBlank; do not call set_bkg_tiles() here.
         }
+
+        wait_vbl_done();
+        BGP_REG = bg_pals[target_bg_idx];
+        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
         uint8_t oam_index = draw_sprites(
             &active_sp, cam_px, cam_py,

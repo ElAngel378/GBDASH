@@ -35,12 +35,19 @@ Symbol Table
   8 ___str_2                                                        00001B1B R
   8 ___str_3                                                        00001B20 R
   8 ___str_4                                                        00001B25 R
-  8 ___str_5                                                        00002879 R
-  8 ___str_6                                                        00002888 R
+  8 ___str_5                                                        000029A5 R
+  8 ___str_6                                                        000029B4 R
+    __current_bank                                                  ******** GX
+  9 __xinit__mirror_map_next                                        00000001 R
+  9 __xinit__mirror_map_target_end                                  00000003 R
+  9 __xinit__mirror_state                                           00000000 R
+  9 __xinit__mirror_tile_index                                      00000008 R
+  9 __xinit__mirror_tile_total                                      0000000A R
+  9 __xinit__mirror_tiles_bank                                      00000007 R
+  9 __xinit__mirror_tiles_source                                    00000005 R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
   8 _draw_menu                                                      00001A7F GR
-    _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   00000249 R
   8 _draw_oam_2x3                                                   00000391 R
   8 _draw_oam_3x3                                                   00000826 R
@@ -51,6 +58,11 @@ Symbol Table
     _fill_scroll_bg                                                 ******** GX
     _font_init                                                      ******** GX
     _font_load                                                      ******** GX
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
+Hexadecimal [32-Bits]
+
+Symbol Table
+
     _font_min                                                       ******** GX
     _font_set                                                       ******** GX
     _game_levels                                                    ******** GX
@@ -58,26 +70,33 @@ Symbol Table
     _hide_sprites_range                                             ******** GX
     _icon1_metasprites                                              ******** GX
     _icon1_tiles                                                    ******** GX
-ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
-Hexadecimal [32-Bits]
-
-Symbol Table
-
     _init_music_banked                                              ******** GX
     _joypad                                                         ******** GX
     _level_songs                                                    ******** GX
   8 _level_sprite_cost_table                                        00000019 R
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
+  3 _mirror_map_next                                                00000001 R
+  3 _mirror_map_target_end                                          00000003 R
+  3 _mirror_state                                                   00000000 R
+  3 _mirror_tile_index                                              00000008 R
+  3 _mirror_tile_total                                              0000000A R
+  3 _mirror_tiles_bank                                              00000007 R
+  3 _mirror_tiles_source                                            00000005 R
     _music_ready                                                    ******** GX
   8 _play_level                                                     00001B37 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
+    _prepare_mt_column                                              ******** GX
     _printf                                                         ******** GX
   8 _process_sprite_logic                                           00000F08 R
+    _prof_column_changed_count                                      ******** GX
+    _prof_mirror_transitions                                        ******** GX
     _puts                                                           ******** GX
+    _queue_tile_chunk                                               ******** GX
+    _rROMB0                                                         ******** GX
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
@@ -95,7 +114,6 @@ Symbol Table
     b_play_level                                                =   0000000A G
     b_setup_menu_font                                           =   0000000A G
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
@@ -104,12 +122,12 @@ Area Table
    0 _CODE                                      size        0   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
-   3 _INITIALIZED                               size        0   flags    0
+   3 _INITIALIZED                               size        C   flags    0
    4 _DABS                                      size        0   flags    8
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     2898   flags    0
-   9 _INITIALIZER                               size        0   flags    0
+   8 _CODE_10                                   size     29C4   flags    0
+   9 _INITIALIZER                               size        C   flags    0
    A _CABS                                      size        0   flags    8
 

@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include "collision.h"
 #include "famidash_metatiles.h"
+#include "video_vbl_uploader.h"
 
 #define BKG_MT_H 16
 
@@ -106,7 +107,7 @@ void load_collision_columns(uint16_t map_col, const uint8_t* map,
   SWITCH_ROM(_prev);
 }
 
-void draw_mt_column(uint8_t ring_col, uint16_t map_col,
+void prepare_mt_column(uint8_t ring_col, uint16_t map_col,
   const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   (void)map_w;
   uint8_t bx = ring_col << 1;
@@ -116,18 +117,27 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
 
-    for (uint8_t r = 0; r < BKG_MT_H; r++) {
-        const uint8_t *tiles = reversed ? metatiles_rev[*map_ptr++] : metatiles[*map_ptr++];
-        uint8_t offset = r << 2;
+  for (uint8_t r = 0; r < BKG_MT_H; r++) {
+      const uint8_t *tiles = reversed ? metatiles_rev[*map_ptr++] : metatiles[*map_ptr++];
+      uint8_t offset = r << 2;
 
-        metatile_column_tiles[offset] = tiles[0];
-        metatile_column_tiles[offset + 1] = tiles[1];
-        metatile_column_tiles[offset + 2] = tiles[2];
-        metatile_column_tiles[offset + 3] = tiles[3];
-    }
+      metatile_column_tiles[offset] = tiles[0];
+      metatile_column_tiles[offset + 1] = tiles[1];
+      metatile_column_tiles[offset + 2] = tiles[2];
+      metatile_column_tiles[offset + 3] = tiles[3];
+  }
 
   SWITCH_ROM(_prev);
-  set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
+
+  // Queue the prepared WRAM buffer for the VBlank uploader. The queue function
+  // is NONBANKED and copies WRAM data into the VBlank-owned buffer.
+  queue_bg_column(bx, metatile_column_tiles);
+}
+
+// Backwards-compatible wrapper kept for callers that expect draw_mt_column.
+void draw_mt_column(uint8_t ring_col, uint16_t map_col,
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
+    prepare_mt_column(ring_col, map_col, map, map_w, map_bank, reversed);
 }
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
