@@ -20,7 +20,6 @@
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
-#define TILE_CHUNK_TILES 16
 
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
@@ -63,6 +62,8 @@ static uint16_t mirror_map_target_end = 0;
 
 #define MIRROR_TILE_CHUNK_TILES 4
 #define MIRROR_TILE_CHUNK_BYTES (MIRROR_TILE_CHUNK_TILES * 16)
+
+// Persistent WRAM source buffer for the next mirror tile upload.
 static uint8_t mirror_tile_chunk[MIRROR_TILE_CHUNK_BYTES];
 
 // Mirror tiles load state
@@ -70,6 +71,19 @@ static const uint8_t *mirror_tiles_source = 0;
 static uint8_t mirror_tiles_bank = 0;
 static uint16_t mirror_tile_index = 0;
 static uint16_t mirror_tile_total = 0;
+
+static void mirror_reset_state(void) {
+    mirror_state = MIRROR_IDLE;
+
+    mirror_map_next = 0;
+    mirror_map_target_end = 0;
+
+    mirror_tiles_source = 0;
+    mirror_tiles_bank = 0;
+
+    mirror_tile_index = 0;
+    mirror_tile_total = 0;
+}
 
 static const uint8_t level_sprite_cost_table[38] = {
     9, 9, 0, 0, 0, 2, 2, 0, 9, 9, 2, 2, 2, 2, 2,

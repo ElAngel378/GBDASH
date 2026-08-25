@@ -30,6 +30,7 @@
 ;--------------------------------------------------------
 ; special function registers
 ;--------------------------------------------------------
+	.area _HRAM
 ;--------------------------------------------------------
 ; ram data
 ;--------------------------------------------------------
@@ -123,7 +124,7 @@ _main::
 ;src/main.c:40: set_interrupts(VBL_IFLAG | TIM_IFLAG);
 	ld	a, #0x05
 	call	_set_interrupts
-;c:\users\soter\gbdk-win64\gbdk\include\gb\gb.h:795: __asm__("ei");
+;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
 ;src/main.c:43: setup_menu_font();
 	ld	e, #b_setup_menu_font
@@ -206,7 +207,7 @@ _main::
 ;src/main.c:59: } else if (joy & J_A) {
 	bit	4, a
 	jr	Z, 00114$
-;c:\users\soter\gbdk-win64\gbdk\include\gb\gb.h:811: __asm__("di");
+;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
 ;src/main.c:61: play_level(selected);
 	ld	a, (_selected)
@@ -247,7 +248,7 @@ _main::
 ;src/main.c:73: TAC_REG = 0x04;    // Start timer
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
-;c:\users\soter\gbdk-win64\gbdk\include\gb\gb.h:795: __asm__("ei");
+;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
 ;src/main.c:75: redraw = 1;
 	ld	hl, #_redraw

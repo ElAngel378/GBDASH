@@ -31,28 +31,28 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  7 ___str_1                                                        00001B09 R
-  7 ___str_2                                                        00001B1B R
-  7 ___str_3                                                        00001B20 R
-  7 ___str_4                                                        00001B25 R
-  7 ___str_5                                                        0000298B R
-  7 ___str_6                                                        0000299A R
+  8 ___str_1                                                        00001B2E R
+  8 ___str_2                                                        00001B40 R
+  8 ___str_3                                                        00001B45 R
+  8 ___str_4                                                        00001B4A R
+  8 ___str_5                                                        000029B0 R
+  8 ___str_6                                                        000029BF R
     __current_bank                                                  ******** GX
-  8 __xinit__mirror_map_next                                        00000001 R
-  8 __xinit__mirror_map_target_end                                  00000003 R
-  8 __xinit__mirror_state                                           00000000 R
-  8 __xinit__mirror_tile_index                                      00000008 R
-  8 __xinit__mirror_tile_total                                      0000000A R
-  8 __xinit__mirror_tiles_bank                                      00000007 R
-  8 __xinit__mirror_tiles_source                                    00000005 R
+  9 __xinit__mirror_map_next                                        00000001 R
+  9 __xinit__mirror_map_target_end                                  00000003 R
+  9 __xinit__mirror_state                                           00000000 R
+  9 __xinit__mirror_tile_index                                      00000008 R
+  9 __xinit__mirror_tile_total                                      0000000A R
+  9 __xinit__mirror_tiles_bank                                      00000007 R
+  9 __xinit__mirror_tiles_source                                    00000005 R
     _bg_upload_busy                                                 ******** GX
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  7 _draw_menu                                                      00001A7F GR
-  7 _draw_oam_2x1                                                   00000249 R
-  7 _draw_oam_2x3                                                   00000391 R
-  7 _draw_oam_3x3                                                   00000826 R
-  7 _draw_sprites                                                   0000176D R
+  8 _draw_menu                                                      00001AA4 GR
+  8 _draw_oam_2x1                                                   0000026E R
+  8 _draw_oam_2x3                                                   000003B6 R
+  8 _draw_oam_3x3                                                   0000084B R
+  8 _draw_sprites                                                   00001792 R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -74,40 +74,41 @@ Symbol Table
     _init_music_banked                                              ******** GX
     _joypad                                                         ******** GX
     _level_songs                                                    ******** GX
-  7 _level_sprite_cost_table                                        00000019 R
+  8 _level_sprite_cost_table                                        0000003E R
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
-  2 _mirror_map_next                                                00000001 R
-  2 _mirror_map_target_end                                          00000003 R
-  2 _mirror_state                                                   00000000 R
-  1 _mirror_tile_chunk                                              00000000 R
-  2 _mirror_tile_index                                              00000008 R
-  2 _mirror_tile_total                                              0000000A R
-  2 _mirror_tiles_bank                                              00000007 R
-  2 _mirror_tiles_source                                            00000005 R
+  3 _mirror_map_next                                                00000001 R
+  3 _mirror_map_target_end                                          00000003 R
+  8 _mirror_reset_state                                             00000000 R
+  3 _mirror_state                                                   00000000 R
+  2 _mirror_tile_chunk                                              00000000 R
+  3 _mirror_tile_index                                              00000008 R
+  3 _mirror_tile_total                                              0000000A R
+  3 _mirror_tiles_bank                                              00000007 R
+  3 _mirror_tiles_source                                            00000005 R
     _music_ready                                                    ******** GX
-  7 _play_level                                                     00001B37 GR
+  8 _play_level                                                     00001B5C GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
     _prepare_mt_column                                              ******** GX
     _printf                                                         ******** GX
-  7 _process_sprite_logic                                           00000F08 R
+  8 _process_sprite_logic                                           00000F2D R
     _puts                                                           ******** GX
     _queue_tile_chunk                                               ******** GX
     _rROMB0                                                         ******** GX
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_sprite_data                                                ******** GX
-  7 _setup_menu_font                                                00001A6E GR
+  8 _setup_menu_font                                                00001A93 GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
     _song_bank                                                      ******** GX
     _sp_cache_load                                                  ******** GX
-  7 _sp_cache_reset                                                 00000000 GR
-  7 _sp_cache_update                                                0000003F GR
+  8 _sp_cache_reset                                                 00000025 GR
+  8 _sp_cache_update                                                00000064 GR
     _tile_upload_busy                                               ******** GX
     _wait_vbl_done                                                  ******** GX
     _waitpadup                                                      ******** GX
@@ -122,13 +123,14 @@ Hexadecimal [32-Bits]
 Area Table
 
    0 _CODE                                      size        0   flags    0
-   1 _DATA                                      size       40   flags    0
-   2 _INITIALIZED                               size        C   flags    0
-   3 _DABS                                      size        0   flags    8
-   4 _HOME                                      size        0   flags    0
-   5 _GSINIT                                    size        0   flags    0
-   6 _GSFINAL                                   size        0   flags    0
-   7 _CODE_10                                   size     29AA   flags    0
-   8 _INITIALIZER                               size        C   flags    0
-   9 _CABS                                      size        0   flags    8
+   1 _HRAM                                      size        0   flags    0
+   2 _DATA                                      size       40   flags    0
+   3 _INITIALIZED                               size        C   flags    0
+   4 _DABS                                      size        0   flags    8
+   5 _HOME                                      size        0   flags    0
+   6 _GSINIT                                    size        0   flags    0
+   7 _GSFINAL                                   size        0   flags    0
+   8 _CODE_10                                   size     29CF   flags    0
+   9 _INITIALIZER                               size        C   flags    0
+   A _CABS                                      size        0   flags    8
 

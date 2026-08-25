@@ -9,7 +9,7 @@ Symbol Table
     .__.H$L.                                                    =   00000000 L
     _TMA_REG                                                        ******** GX
     __current_bank                                                  ******** GX
-  1 __prev_map_bank                                                 00000000 R
+  2 __prev_map_bank                                                 00000000 R
   0 _col_at                                                         000001D9 GR
   0 _col_at_begin                                                   0000010A GR
   0 _col_at_end                                                     00000123 GR
@@ -24,7 +24,7 @@ Symbol Table
   0 _init_music_banked                                              0000044A GR
   0 _load_bkg_tileset                                               000001FD GR
   0 _load_collision_columns                                         00000248 GR
-  1 _metatile_column_tiles                                          00000001 R
+  2 _metatile_column_tiles                                          00000001 R
     _metatiles                                                      ******** GX
     _metatiles_rev                                                  ******** GX
     _music_ready                                                    ******** GX
@@ -40,12 +40,13 @@ Hexadecimal [32-Bits]
 Area Table
 
    0 _CODE                                      size      478   flags    0
-   1 _DATA                                      size       41   flags    0
-   2 _INITIALIZED                               size        0   flags    0
-   3 _DABS                                      size        0   flags    8
-   4 _HOME                                      size        0   flags    0
-   5 _GSINIT                                    size        0   flags    0
-   6 _GSFINAL                                   size        0   flags    0
-   7 _INITIALIZER                               size        0   flags    0
-   8 _CABS                                      size        0   flags    8
+   1 _HRAM                                      size        0   flags    0
+   2 _DATA                                      size       41   flags    0
+   3 _INITIALIZED                               size        0   flags    0
+   4 _DABS                                      size        0   flags    8
+   5 _HOME                                      size        0   flags    0
+   6 _GSINIT                                    size        0   flags    0
+   7 _GSFINAL                                   size        0   flags    0
+   8 _INITIALIZER                               size        0   flags    0
+   9 _CABS                                      size        0   flags    8
 
