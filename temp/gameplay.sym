@@ -32,20 +32,20 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_0                                                        0000141A R
-  8 ___str_1                                                        0000142C R
-  8 ___str_2                                                        0000142E R
-  8 ___str_3                                                        0000217B R
-  8 ___str_4                                                        0000218A R
+  8 ___str_0                                                        000017FD R
+  8 ___str_1                                                        0000180F R
+  8 ___str_2                                                        00001811 R
+  8 ___str_3                                                        0000255E R
+  8 ___str_4                                                        0000256D R
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      0000138A GR
+  8 _draw_menu                                                      0000176D GR
     _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   00000249 R
-  8 _draw_oam_2x3                                                   00000320 R
-  8 _draw_oam_3x3                                                   0000051A R
-  8 _draw_sprites                                                   00001043 R
-  8 _draw_text                                                      00001315 R
+  8 _draw_oam_2x3                                                   0000038F R
+  8 _draw_oam_3x3                                                   000006E1 R
+  8 _draw_sprites                                                   00001426 R
+  8 _draw_text                                                      000016F8 R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -67,19 +67,19 @@ Symbol Table
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     00001439 GR
+  8 _play_level                                                     0000181C GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
     _printf                                                         ******** GX
-  8 _process_sprite_logic                                           000007DE R
+  8 _process_sprite_logic                                           00000BC1 R
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_bkg_data                                                   ******** GX
     _set_bkg_tile_xy                                                ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                00001307 GR
+  8 _setup_menu_font                                                000016EA GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
@@ -106,7 +106,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     219A   flags    0
+   8 _CODE_10                                   size     257D   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

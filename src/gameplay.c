@@ -97,75 +97,64 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 }
 
-// ==============================================================================
-// ULTIMATE FAST OAM WRITERS (Zero Array Overhead, Raw Pointer Math)
-// ==============================================================================
 
-// Fast Writer: 2x1 Objects (Pads, Orbs)
+// FAST OAM WRITERS (Using Native GBDK OAM_item_t)
+
+
 static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    // Cast shadow_OAM to a raw 8-bit pointer. This forces the compiler to use LD (HL+), A.
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-
+    OAM_item_t *itm = &shadow_OAM[oam_idx];
     if (!reversed) {
-        *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+        itm->y=sy; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props;
     } else {
-        *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+        itm->y=sy; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX;
     }
     return 2;
 }
 
-// Fast Writer: 2x3 Objects (Gravity Portals)
 static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-
+    OAM_item_t *itm = &shadow_OAM[oam_idx];
     if (!reversed) {
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+        itm->y=sy;    itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy;    itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+16; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+32; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props;
     } else {
-        *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+        itm->y=sy;    itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy;    itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+16; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+8; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+32; itm->x=sx;   itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX;
     }
     return 6;
 }
 
-// Fast Writer: 3x3 Objects (Cube/Ship Portals)
 static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-
+    OAM_item_t *itm = &shadow_OAM[oam_idx];
     if (!reversed) {
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+        itm->y=sy;    itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy;    itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy;    itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+16; itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+32; itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props;
     } else {
-        *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-
-        *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-
-        *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+        itm->y=sy;    itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy;    itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy;    itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+16; itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+16; itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+16; itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+32; itm->x=sx+8;  itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX; itm++; meta++;
+        itm->y=sy+32; itm->x=sx;    itm->tile=meta->dtile+tile_base; itm->prop=meta->props^S_FLIPX;
     }
     return 9;
 }

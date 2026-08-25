@@ -194,8 +194,8 @@ static const unsigned char P4[] = {
     DN(___,0,0x000),
     DN(Ds7,2,0x000),
     DN(___,0,0x000),
-    DN(___,0,0x000),
-    DN(___,0,0x000),
+    DN(___,0,0xC09),
+    DN(___,0,0xC04),
     DN(D_5,1,0x000),
     DN(___,0,0x000),
     DN(D_5,1,0x000),
@@ -535,7 +535,7 @@ static const unsigned char P7[] = {
 
 static const unsigned char itSquareSP1[] = {
     DN(___,0,0xC05),
-    DN(___,0,0xC0F),
+    DN(___,0,0xC0A),
     DN(___,0,0x000),
     DN(___,0,0x000),
     DN(___,0,0x000),
@@ -636,9 +636,9 @@ static const unsigned char itSquareSP5[] = {
     DN(___,1,0x940),
 };
 static const unsigned char itWaveSP1[] = {
-    DN(___,0,0xC04),
-    DN(___,0,0xC0F),
-    DN(___,0,0x000),
+    DN(35,0,0xC04),
+    DN(36,0,0xC0F),
+    DN(___,0,0x101),
     DN(___,0,0x000),
     DN(___,0,0x000),
     DN(___,0,0x000),
