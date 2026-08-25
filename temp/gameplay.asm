@@ -3958,7 +3958,7 @@ _draw_sprites:
 	add	a, (hl)
 	ldhl	sp,	#24
 	ld	(hl), a
-	jr	00150$
+	jp	00150$
 00147$:
 ;src/gameplay.c:369: } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
 	ldhl	sp,	#13
@@ -3973,7 +3973,7 @@ _draw_sprites:
 	sub	a, #0x02
 	jr	NZ, 00142$
 00141$:
-;src/gameplay.c:370: oam_start = draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:370: oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#23
 	ld	a, (hl)
 	push	af
@@ -3994,6 +3994,7 @@ _draw_sprites:
 	ld	d, (hl)
 	call	_draw_oam_3x3
 	ldhl	sp,	#24
+	add	a, (hl)
 	ld	(hl), a
 	jr	00150$
 00142$:
@@ -4007,7 +4008,7 @@ _draw_sprites:
 	sub	a, #0x09
 	jr	NZ, 00138$
 00137$:
-;src/gameplay.c:372: oam_start = draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:372: oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#23
 	ld	a, (hl)
 	push	af
@@ -4028,10 +4029,11 @@ _draw_sprites:
 	ld	d, (hl)
 	call	_draw_oam_2x3
 	ldhl	sp,	#24
+	add	a, (hl)
 	ld	(hl), a
 	jr	00150$
 00138$:
-;src/gameplay.c:374: oam_start = draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:374: oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#23
 	ld	a, (hl)
 	push	af
@@ -4052,6 +4054,7 @@ _draw_sprites:
 	ld	d, (hl)
 	call	_draw_oam_2x1
 	ldhl	sp,	#24
+	add	a, (hl)
 	ld	(hl), a
 00150$:
 ;src/gameplay.c:326: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
