@@ -8,6 +8,27 @@
 static uint8_t _prev_map_bank;
 static uint8_t metatile_column_tiles[BKG_MT_H * 4];
 
+void draw_mt_column_immediate(uint8_t ring_col, uint16_t map_col,
+  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
+  (void)map_w;
+  uint8_t bx = ring_col << 1;
+
+  uint8_t _prev = _current_bank;
+  SWITCH_ROM(map_bank);
+
+  const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
+  for (uint8_t r = 0; r < BKG_MT_H; r++) {
+      const uint8_t *tiles = reversed ? metatiles_rev[*map_ptr++] : metatiles[*map_ptr++];
+      uint8_t offset = r << 2;
+      metatile_column_tiles[offset] = tiles[0];
+      metatile_column_tiles[offset + 1] = tiles[1];
+      metatile_column_tiles[offset + 2] = tiles[2];
+      metatile_column_tiles[offset + 3] = tiles[3];
+  }
+  SWITCH_ROM(_prev);
+  set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
+}
+
 void col_at_begin(uint8_t map_bank) {
     if (_current_bank == map_bank) {
         _prev_map_bank = 0xFF;
@@ -143,7 +164,7 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   uint16_t cols = (map_w < 16) ? map_w : 16;
   for (uint16_t c = 0; c < cols; c++) {
-    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank, reversed);
+    draw_mt_column_immediate((uint8_t)(c % 16), c, map, map_w, map_bank, reversed);
   }
 }
 

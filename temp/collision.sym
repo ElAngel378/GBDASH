@@ -9,43 +9,43 @@ Symbol Table
     .__.H$L.                                                    =   00000000 L
     _TMA_REG                                                        ******** GX
     __current_bank                                                  ******** GX
-  2 __prev_map_bank                                                 00000000 R
-  0 _col_at                                                         000000CF GR
-  0 _col_at_begin                                                   00000000 GR
-  0 _col_at_end                                                     00000019 GR
-  0 _col_at_raw                                                     00000027 GR
-  0 _col_at_raw_cached                                              00000083 GR
+  1 __prev_map_bank                                                 00000000 R
+  0 _col_at                                                         000001D9 GR
+  0 _col_at_begin                                                   0000010A GR
+  0 _col_at_end                                                     00000123 GR
+  0 _col_at_raw                                                     00000131 GR
+  0 _col_at_raw_cached                                              0000018D GR
     _current_song_bank                                              ******** GX
-  0 _draw_mt_column                                                 000002DA GR
+  0 _draw_mt_column                                                 000003E4 GR
+  0 _draw_mt_column_immediate                                       00000000 GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 000002F7 GR
+  0 _fill_scroll_bg                                                 00000401 GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              00000340 GR
-  0 _load_bkg_tileset                                               000000F3 GR
-  0 _load_collision_columns                                         0000013E GR
-  2 _metatile_column_tiles                                          00000001 R
+  0 _init_music_banked                                              0000044A GR
+  0 _load_bkg_tileset                                               000001FD GR
+  0 _load_collision_columns                                         00000248 GR
+  1 _metatile_column_tiles                                          00000001 R
     _metatiles                                                      ******** GX
     _metatiles_rev                                                  ******** GX
     _music_ready                                                    ******** GX
-  0 _prepare_mt_column                                              000001DA GR
+  0 _prepare_mt_column                                              000002E4 GR
     _queue_bg_column                                                ******** GX
     _rROMB0                                                         ******** GX
     _set_bkg_data                                                   ******** GX
-
+    _set_bkg_tiles                                                  ******** GX
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      36E   flags    0
-   1 _HRAM                                      size        0   flags    0
-   2 _DATA                                      size       41   flags    0
-   3 _INITIALIZED                               size        0   flags    0
-   4 _DABS                                      size        0   flags    8
-   5 _HOME                                      size        0   flags    0
-   6 _GSINIT                                    size        0   flags    0
-   7 _GSFINAL                                   size        0   flags    0
-   8 _INITIALIZER                               size        0   flags    0
-   9 _CABS                                      size        0   flags    8
+   0 _CODE                                      size      478   flags    0
+   1 _DATA                                      size       41   flags    0
+   2 _INITIALIZED                               size        0   flags    0
+   3 _DABS                                      size        0   flags    8
+   4 _HOME                                      size        0   flags    0
+   5 _GSINIT                                    size        0   flags    0
+   6 _GSFINAL                                   size        0   flags    0
+   7 _INITIALIZER                               size        0   flags    0
+   8 _CABS                                      size        0   flags    8
 

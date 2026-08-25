@@ -11,6 +11,10 @@ void queue_bg_column(uint8_t bx, const uint8_t *data) NONBANKED;
 // start_tile is the destination tile index (0..255), count is number of tiles.
 void queue_tile_chunk(uint16_t start_tile, uint8_t count, const uint8_t *data) NONBANKED;
 
+// Query whether a background map or tile-pattern upload is already pending.
+uint8_t bg_upload_busy(void) NONBANKED;
+uint8_t tile_upload_busy(void) NONBANKED;
+
 // Initialize the VBlank uploader (register VBlank handler). Call from init code.
 void bg_upload_init(void) NONBANKED;
 
