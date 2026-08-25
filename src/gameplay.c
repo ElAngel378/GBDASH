@@ -52,6 +52,11 @@ extern const unsigned char FontPusab[];
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
+// BG color triggers (SP objects 100-103) fire this many tiles BEFORE their
+// column. Level columns are 16px wide, so 7 tiles = 112 pixels.
+#define BG_TRIGGER_LEAD_TILES 10
+#define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
+
 extern uint8_t music_ready;
 
 static const uint8_t level_sprite_cost_table[38] = {
@@ -197,6 +202,24 @@ static void process_sprite_logic(
             continue;
         }
 
+        /* BG color triggers fire several tiles early so the palette swap
+         * lands ahead of the obstacle. Bypasses the normal overlap gate.
+         * Clamp avoids uint16 underflow for triggers near x=0.
+         * NOTE: must still honor the far-ahead break below, otherwise the
+         * scan walks the full cache every frame and costs frame budget. */
+        if (obj >= 100 && obj <= 103) {
+            if (!cache->activated[i]) {
+                uint16_t trig_x = (obj_x > BG_TRIGGER_LEAD_PX)
+                                ? (uint16_t)(obj_x - BG_TRIGGER_LEAD_PX) : 0;
+                if (px >= trig_x) {
+                    *target_bg_idx = obj - 100;
+                    cache->activated[i] = 1;
+                }
+            }
+            if (obj_x > p_front + 16) break;
+            continue;
+        }
+
         if (obj >= 16 && obj <= 19) {
             // 48-pixel (3 tile) wide horizontal gravity portal
             if (obj_x <= p_front && px <= obj_x + 48u) {
@@ -211,7 +234,7 @@ static void process_sprite_logic(
                     }
                 }
             }
-        } else if (obj_x + 2 <= p_front && px <= obj_x + 13) {
+        } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
@@ -296,12 +319,6 @@ static void process_sprite_logic(
                     break;
                 }
 
-                case 100: case 101: case 102: case 103:
-                    if (!cache->activated[i]) {
-                        *target_bg_idx = obj - 100;
-                        cache->activated[i] = 1;
-                    }
-                    continue;
 
                 case OBJ_MIRROR_PORTAL:
                 case OBJ_MIRROR_EXIT:

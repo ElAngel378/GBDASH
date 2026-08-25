@@ -100,6 +100,8 @@ _play_music_safe::
 ; Function main
 ; ---------------------------------
 _main::
+	dec	sp
+	dec	sp
 ;src/main.c:25: music_ready = 0;
 	xor	a, a
 	ld	(#_music_ready),a
@@ -167,9 +169,12 @@ _main::
 	bit	3, a
 	jr	Z, 00110$
 ;src/main.c:51: if (selected < MAX_LEVELS - 1) { selected++; redraw = 1; }
-	ld	a, (_MAX_LEVELS)
-	ld	b, #0x00
-	ld	c, a
+	ld	a, (#_MAX_LEVELS)
+	ldhl	sp,	#0
+	ld	(hl+), a
+	ld	(hl), #0x00
+	pop	bc
+	push	bc
 	dec	bc
 	ld	a, (_selected)
 	ld	l, a
@@ -253,8 +258,11 @@ _main::
 00114$:
 ;src/main.c:72: wait_vbl_done();
 	call	_wait_vbl_done
-;src/main.c:74: }
 	jp	00116$
+;src/main.c:74: }
+	inc	sp
+	inc	sp
+	ret
 	.area _CODE
 	.area _INITIALIZER
 __xinit__music_ready:
