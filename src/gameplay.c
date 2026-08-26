@@ -698,14 +698,21 @@ void play_level(uint8_t idx) BANKED {
                 current_song_bank = song_bank[idx];
             }
             disable_interrupts();
-            // Restore normal tileset on death
+            DISPLAY_OFF;
+
+            // Restore normal tileset on death.
+            // NOTE: BG tiles share VRAM 8000h-8FFFh with sprite tiles, and the
+            // chr_gb tileset is a full 256 tiles, so this upload wipes the
+            // famidash portal/orb/pad graphics (tiles 112-195) AND the
+            // player/ship/ball tiles (0-15).
             load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
 
-            /* // [SPRITE RELOAD DISABLED]
+            // Re-upload ALL sprite tiles afterwards or portals render corrupted
+            // on the next attempt.
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
+            set_sprite_data(12, 4, ball_tiles);
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
-            */
 
             cam_px = 0;
             cam_py = 112;
@@ -720,6 +727,7 @@ void play_level(uint8_t idx) BANKED {
             move_bkg(0, (uint8_t)cam_py);
             BGP_REG = bg_pals[0];
             fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+            DISPLAY_ON;
             TAC_REG = 0x04;
             music_ready = 1;
             enable_interrupts();
