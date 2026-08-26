@@ -35,8 +35,8 @@ Symbol Table
   8 ___str_0                                                        000012A0 R
   8 ___str_1                                                        000012B2 R
   8 ___str_2                                                        000012B4 R
-  8 ___str_3                                                        00002026 R
-  8 ___str_4                                                        00002035 R
+  8 ___str_3                                                        00001FE2 R
+  8 ___str_4                                                        00001FF1 R
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
     _current_song_bank                                              ******** GX
@@ -106,7 +106,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     2045   flags    0
+   8 _CODE_10                                   size     2001   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

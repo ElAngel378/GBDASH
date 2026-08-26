@@ -659,10 +659,10 @@ void play_level(uint8_t idx) BANKED {
             }
         } else if (player.mode == MODE_BALL) {
             if (player.gravity_flipped) {
-                if (player.reversed) oam_index += move_metasprite_hvflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 24, final_py + 32);
-                else oam_index += move_metasprite_vflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 21, final_py + 16);
+                if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+                else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
             } else {
-                if (player.reversed) oam_index += move_metasprite_hflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 10, final_py + 32);
+                if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
                 else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
             }
         } else {
