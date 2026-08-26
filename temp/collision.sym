@@ -8,6 +8,7 @@ Symbol Table
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
     _TMA_REG                                                        ******** GX
+    _VBK_REG                                                        ******** GX
     __current_bank                                                  ******** GX
   2 __prev_map_bank                                                 00000000 R
   0 _col_at                                                         000000C6 GR
@@ -16,13 +17,13 @@ Symbol Table
   0 _col_at_raw                                                     00000027 GR
   0 _col_at_raw_cached                                              00000079 GR
     _current_song_bank                                              ******** GX
-  0 _draw_mt_column                                                 000001E9 GR
+  0 _draw_mt_column                                                 000001EC GR
     _famidash_metatile_collision                                    ******** GX
-  0 _fill_scroll_bg                                                 000002C4 GR
+  0 _fill_scroll_bg                                                 000002CA GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              00000314 GR
+  0 _init_music_banked                                              0000031A GR
   0 _load_bkg_tileset                                               000000EE GR
-  0 _load_collision_columns                                         00000139 GR
+  0 _load_collision_columns                                         0000013C GR
   2 _metatile_column_tiles                                          00000001 R
     _metatiles                                                      ******** GX
     _metatiles_rev                                                  ******** GX
@@ -31,12 +32,13 @@ Symbol Table
     _set_bkg_data                                                   ******** GX
     _set_bkg_tiles                                                  ******** GX
 
+
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      342   flags    0
+   0 _CODE                                      size      348   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size       41   flags    0
    3 _INITIALIZED                               size        0   flags    0

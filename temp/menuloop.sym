@@ -1,0 +1,52 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 1
+Hexadecimal [32-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =   00002710 L
+    .__.ABS.                                                    =   00000000 G
+    .__.CPU.                                                    =   00000000 L
+    .__.H$L.                                                    =   00000000 L
+  8 _P0                                                             00000001 R
+  8 _P1                                                             00000301 R
+  8 _P2                                                             000000C1 R
+  8 _P3                                                             000003C1 R
+  8 _P4                                                             00000181 R
+  8 _P5                                                             00000481 R
+  8 _P6                                                             00000241 R
+  8 _P7                                                             00000541 R
+  8 _duty_instruments                                               00000861 R
+  8 _itNoiseSP2                                                     000007E1 R
+  8 _itSquareSP1                                                    00000601 R
+  8 _itSquareSP4                                                    00000661 R
+  8 _itSquareSP5                                                    000006C1 R
+  8 _itWaveSP1                                                      00000721 R
+  8 _itWaveSP2                                                      00000781 R
+  8 _menuloop                                                       000008ED GR
+  8 _noise_instruments                                              00000891 R
+  8 _order1                                                         00000841 R
+  8 _order2                                                         00000849 R
+  8 _order3                                                         00000851 R
+  8 _order4                                                         00000859 R
+  8 _order_cnt                                                      00000000 R
+  8 _wave_instruments                                               0000087F R
+  8 _waves                                                          0000089D R
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
+Hexadecimal [32-Bits]
+
+Area Table
+
+   0 _CODE                                      size        0   flags    0
+   1 _HRAM                                      size        0   flags    0
+   2 _DATA                                      size        0   flags    0
+   3 _INITIALIZED                               size        0   flags    0
+   4 _DABS                                      size        0   flags    8
+   5 _HOME                                      size        0   flags    0
+   6 _GSINIT                                    size        0   flags    0
+   7 _GSFINAL                                   size        0   flags    0
+   8 _CODE_1                                    size      902   flags    0
+   9 _INITIALIZER                               size        0   flags    0
+   A _CABS                                      size        0   flags    8
+

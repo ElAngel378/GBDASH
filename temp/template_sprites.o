@@ -1,0 +1,24 @@
+XL4
+H B areas 4 global symbols
+M template_sprites
+S .__.ABS. Def00000000
+S ___bank_template_sp Def00000078
+A _CODE size 0 flags 0 addr 0
+A _HRAM size 0 flags 0 addr 0
+A _DATA size 0 flags 0 addr 0
+A _INITIALIZED size 0 flags 0 addr 0
+A _DABS size 0 flags 8 addr 0
+A _HOME size 0 flags 0 addr 0
+A _GSINIT size 0 flags 0 addr 0
+A _GSFINAL size 0 flags 0 addr 0
+A _CODE_120 size 4 flags 0 addr 0
+S ___func_template_sp Def00000000
+S _template_sp Def00000000
+A _INITIALIZER size 0 flags 0 addr 0
+A _CABS size 0 flags 8 addr 0
+T 00 00 00 00
+R 00 00 08 00
+T 00 00 00 00
+R 00 00 08 00
+T 00 00 00 00 FF FF 00 00
+R 00 00 08 00

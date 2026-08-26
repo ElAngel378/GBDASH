@@ -1,0 +1,537 @@
+;--------------------------------------------------------
+; File Created by SDCC : free open source ISO C Compiler
+; Version 4.5.1 #15267 (MINGW64)
+;--------------------------------------------------------
+	.module cycles_sprites
+	
+;--------------------------------------------------------
+; Public variables in this module
+;--------------------------------------------------------
+	.globl _cycles_sp
+	.globl b___func_cycles_sp
+	.globl ___func_cycles_sp
+;--------------------------------------------------------
+; special function registers
+;--------------------------------------------------------
+	.area _HRAM
+;--------------------------------------------------------
+; ram data
+;--------------------------------------------------------
+	.area _DATA
+;--------------------------------------------------------
+; ram data
+;--------------------------------------------------------
+	.area _INITIALIZED
+;--------------------------------------------------------
+; absolute external ram data
+;--------------------------------------------------------
+	.area _DABS (ABS)
+;--------------------------------------------------------
+; global & static initialisations
+;--------------------------------------------------------
+	.area _HOME
+	.area _GSINIT
+	.area _GSFINAL
+	.area _GSINIT
+;--------------------------------------------------------
+; Home
+;--------------------------------------------------------
+	.area _HOME
+	.area _HOME
+;--------------------------------------------------------
+; code
+;--------------------------------------------------------
+	.area _CODE_125
+;src/cycles_sprites.c:4: BANKREF(cycles_sp)
+;	---------------------------------
+; Function __func_cycles_sp
+; ---------------------------------
+	b___func_cycles_sp	= 125
+___func_cycles_sp::
+	.local b___func_cycles_sp 
+	___bank_cycles_sp = b___func_cycles_sp 
+	.globl ___bank_cycles_sp 
+	.area _CODE_125
+_cycles_sp:
+	.dw #0x0012
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0013
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0017
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0018
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x001c
+	.db #0x00	; 0
+	.db #0x0a	; 10
+	.dw #0x0021
+	.db #0x01	; 1
+	.db #0x0b	; 11
+	.dw #0x0025
+	.db #0x03	; 3
+	.db #0x09	; 9
+	.dw #0x0027
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0029
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x002b
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x0030
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x0031
+	.db #0x03	; 3
+	.db #0x08	; 8
+	.dw #0x0039
+	.db #0x03	; 3
+	.db #0x2d	; 45
+	.dw #0x003b
+	.db #0x03	; 3
+	.db #0x2d	; 45
+	.dw #0x0049
+	.db #0x03	; 3
+	.db #0x09	; 9
+	.dw #0x004b
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x004f
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x0051
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x0052
+	.db #0x04	; 4
+	.db #0x0b	; 11
+	.dw #0x0056
+	.db #0x04	; 4
+	.db #0x0b	; 11
+	.dw #0x0059
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x005a
+	.db #0x04	; 4
+	.db #0x08	; 8
+	.dw #0x0061
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0062
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0065
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0067
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x006b
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x006e
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x006e
+	.db #0x02	; 2
+	.db #0x0b	; 11
+	.dw #0x0071
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0075
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0077
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0078
+	.db #0x03	; 3
+	.db #0x69	; 105	'i'
+	.dw #0x0079
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x007b
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x007d
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x007f
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x0081
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x0083
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x0085
+	.db #0x0a	; 10
+	.db #0x2d	; 45
+	.dw #0x0087
+	.db #0x06	; 6
+	.db #0x09	; 9
+	.dw #0x0092
+	.db #0x05	; 5
+	.db #0x08	; 8
+	.dw #0x0096
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x0098
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x009f
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x00a1
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x00a3
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x00a4
+	.db #0x04	; 4
+	.db #0x09	; 9
+	.dw #0x00b0
+	.db #0x06	; 6
+	.db #0x0c	; 12
+	.dw #0x00b4
+	.db #0x03	; 3
+	.db #0x0b	; 11
+	.dw #0x00ba
+	.db #0x06	; 6
+	.db #0x08	; 8
+	.dw #0x00be
+	.db #0x02	; 2
+	.db #0x0b	; 11
+	.dw #0x00c9
+	.db #0x00	; 0
+	.db #0x0a	; 10
+	.dw #0x00ce
+	.db #0x03	; 3
+	.db #0x0b	; 11
+	.dw #0x00ce
+	.db #0x00	; 0
+	.db #0x0a	; 10
+	.dw #0x00d0
+	.db #0x05	; 5
+	.db #0x0b	; 11
+	.dw #0x00d2
+	.db #0x00	; 0
+	.db #0x0a	; 10
+	.dw #0x00e6
+	.db #0x02	; 2
+	.db #0x0a	; 10
+	.dw #0x00f8
+	.db #0x03	; 3
+	.db #0x0a	; 10
+	.dw #0x00fd
+	.db #0x03	; 3
+	.db #0x0a	; 10
+	.dw #0x0100
+	.db #0x01	; 1
+	.db #0x0a	; 10
+	.dw #0x0101
+	.db #0x01	; 1
+	.db #0x0a	; 10
+	.dw #0x0104
+	.db #0x05	; 5
+	.db #0x0b	; 11
+	.dw #0x0109
+	.db #0x0a	; 10
+	.db #0x2d	; 45
+	.dw #0x010b
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x010d
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x010e
+	.db #0x06	; 6
+	.db #0x79	; 121	'y'
+	.dw #0x010f
+	.db #0x09	; 9
+	.db #0x2d	; 45
+	.dw #0x0111
+	.db #0x04	; 4
+	.db #0x0a	; 10
+	.dw #0x0115
+	.db #0x08	; 8
+	.db #0x0b	; 11
+	.dw #0x0119
+	.db #0x09	; 9
+	.db #0x0b	; 11
+	.dw #0x011d
+	.db #0x0e	; 14
+	.db #0x2d	; 45
+	.dw #0x011f
+	.db #0x0c	; 12
+	.db #0x2d	; 45
+	.dw #0x0121
+	.db #0x0a	; 10
+	.db #0x2d	; 45
+	.dw #0x0123
+	.db #0x08	; 8
+	.db #0x2d	; 45
+	.dw #0x0125
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0127
+	.db #0x07	; 7
+	.db #0x69	; 105	'i'
+	.dw #0x0127
+	.db #0x04	; 4
+	.db #0x2d	; 45
+	.dw #0x0129
+	.db #0x07	; 7
+	.db #0x73	; 115	's'
+	.dw #0x012e
+	.db #0x02	; 2
+	.db #0x02	; 2
+	.dw #0x013a
+	.db #0x06	; 6
+	.db #0x66	; 102	'f'
+	.dw #0x013c
+	.db #0x06	; 6
+	.db #0x67	; 103	'g'
+	.dw #0x015a
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x015e
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0165
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0168
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x016b
+	.db #0x06	; 6
+	.db #0x0b	; 11
+	.dw #0x016f
+	.db #0x05	; 5
+	.db #0x0b	; 11
+	.dw #0x0173
+	.db #0x04	; 4
+	.db #0x0b	; 11
+	.dw #0x0177
+	.db #0x04	; 4
+	.db #0x2d	; 45
+	.dw #0x0179
+	.db #0x04	; 4
+	.db #0x2d	; 45
+	.dw #0x017e
+	.db #0x04	; 4
+	.db #0x2d	; 45
+	.dw #0x0180
+	.db #0x04	; 4
+	.db #0x2d	; 45
+	.dw #0x0181
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0187
+	.db #0x01	; 1
+	.db #0x13	; 19
+	.dw #0x018c
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x018c
+	.db #0x04	; 4
+	.db #0x0c	; 12
+	.dw #0x0190
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x0193
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x01c0
+	.db #0x04	; 4
+	.db #0x01	; 1
+	.dw #0x01c1
+	.db #0x04	; 4
+	.db #0x08	; 8
+	.dw #0x01c9
+	.db #0x03	; 3
+	.db #0x09	; 9
+	.dw #0x01ca
+	.db #0x06	; 6
+	.db #0x68	; 104	'h'
+	.dw #0x01cc
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x01d2
+	.db #0x07	; 7
+	.db #0x08	; 8
+	.dw #0x01d3
+	.db #0x06	; 6
+	.db #0x77	; 119	'w'
+	.dw #0x01db
+	.db #0x04	; 4
+	.db #0x09	; 9
+	.dw #0x01dc
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x01e4
+	.db #0x07	; 7
+	.db #0x08	; 8
+	.dw #0x01e5
+	.db #0x06	; 6
+	.db #0x79	; 121	'y'
+	.dw #0x01ed
+	.db #0x04	; 4
+	.db #0x09	; 9
+	.dw #0x01ee
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x01f6
+	.db #0x07	; 7
+	.db #0x08	; 8
+	.dw #0x01f7
+	.db #0x06	; 6
+	.db #0x77	; 119	'w'
+	.dw #0x01fe
+	.db #0x04	; 4
+	.db #0x09	; 9
+	.dw #0x0200
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x0208
+	.db #0x06	; 6
+	.db #0x77	; 119	'w'
+	.dw #0x0211
+	.db #0x06	; 6
+	.db #0x79	; 121	'y'
+	.dw #0x021a
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x0223
+	.db #0x06	; 6
+	.db #0x79	; 121	'y'
+	.dw #0x0224
+	.db #0x05	; 5
+	.db #0x08	; 8
+	.dw #0x022c
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x0235
+	.db #0x06	; 6
+	.db #0x79	; 121	'y'
+	.dw #0x023e
+	.db #0x06	; 6
+	.db #0x78	; 120	'x'
+	.dw #0x0248
+	.db #0x06	; 6
+	.db #0x77	; 119	'w'
+	.dw #0x024b
+	.db #0x05	; 5
+	.db #0x00	; 0
+	.dw #0x0253
+	.db #0x07	; 7
+	.db #0x67	; 103	'g'
+	.dw #0x0255
+	.db #0x02	; 2
+	.db #0x73	; 115	's'
+	.dw #0x025e
+	.db #0x02	; 2
+	.db #0x02	; 2
+	.dw #0x0267
+	.db #0x05	; 5
+	.db #0x69	; 105	'i'
+	.dw #0x028d
+	.db #0x02	; 2
+	.db #0x0a	; 10
+	.dw #0x0292
+	.db #0x01	; 1
+	.db #0x0b	; 11
+	.dw #0x0296
+	.db #0x02	; 2
+	.db #0x0b	; 11
+	.dw #0x029a
+	.db #0x03	; 3
+	.db #0x0b	; 11
+	.dw #0x02ae
+	.db #0x04	; 4
+	.db #0x67	; 103	'g'
+	.dw #0x02b0
+	.db #0x04	; 4
+	.db #0x65	; 101	'e'
+	.dw #0x02c1
+	.db #0x06	; 6
+	.db #0x0c	; 12
+	.dw #0x02c4
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x02c7
+	.db #0x07	; 7
+	.db #0x2d	; 45
+	.dw #0x02c9
+	.db #0x05	; 5
+	.db #0x2d	; 45
+	.dw #0x02ca
+	.db #0x05	; 5
+	.db #0x2d	; 45
+	.dw #0x02ce
+	.db #0x05	; 5
+	.db #0x2d	; 45
+	.dw #0x02cf
+	.db #0x05	; 5
+	.db #0x2d	; 45
+	.dw #0x02d1
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x02d5
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x02d8
+	.db #0x06	; 6
+	.db #0x2d	; 45
+	.dw #0x02e0
+	.db #0x02	; 2
+	.db #0x0a	; 10
+	.dw #0x02e3
+	.db #0x04	; 4
+	.db #0x0b	; 11
+	.dw #0x02e6
+	.db #0x02	; 2
+	.db #0x0b	; 11
+	.dw #0x02f6
+	.db #0x03	; 3
+	.db #0x10	; 16
+	.dw #0x02f6
+	.db #0x01	; 1
+	.db #0x77	; 119	'w'
+	.dw #0x02f8
+	.db #0x01	; 1
+	.db #0x79	; 121	'y'
+	.dw #0x0302
+	.db #0x03	; 3
+	.db #0x13	; 19
+	.dw #0x030b
+	.db #0x03	; 3
+	.db #0x13	; 19
+	.dw #0x0315
+	.db #0x01	; 1
+	.db #0x0a	; 10
+	.dw #0x0319
+	.db #0x03	; 3
+	.db #0x0b	; 11
+	.dw #0x031e
+	.db #0x04	; 4
+	.db #0x09	; 9
+	.dw #0x0335
+	.db #0x0b	; 11
+	.db #0x0f	; 15
+	.dw #0x0335
+	.db #0x05	; 5
+	.db #0x0f	; 15
+	.dw #0xffff
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.area _INITIALIZER
+	.area _CABS (ABS)

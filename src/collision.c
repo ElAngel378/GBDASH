@@ -77,6 +77,9 @@ uint8_t col_at(
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(bank);
+  // On CGB hardware VRAM bank 1 contains tile attributes.  Always select
+  // the pattern/tile bank before uploading background graphics.
+  VBK_REG = VBK_TILES;
   if (tile_count == 256u) {
     set_bkg_data(0, 128, tiles);
     set_bkg_data(128, 128, tiles + (128u * 16u));
@@ -127,6 +130,9 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
     }
 
   SWITCH_ROM(_prev);
+  // set_bkg_tiles writes either tile numbers or CGB attributes depending on
+  // VBK_REG.  Mirror redraws must update tile numbers in bank 0.
+  VBK_REG = VBK_TILES;
   set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
 }
 

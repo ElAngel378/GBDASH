@@ -1,16 +1,16 @@
 # Build outputs and compiled objects
-*.o
-*.obj
-*.lst
-*.map
-*.ihx
-*.sym
-*.asm
-*.cdb
-*.adb
-*.rst
-*.noi
-*.lk
+#*.o
+#*.obj
+#*.lst
+#*.map
+#*.ihx
+#*.sym
+##*.asm
+#*.cdb
+#*.adb
+#*.rst
+#*.noi  
+#*.lk
 
 # IDE / Editor files
 .vscode/

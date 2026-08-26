@@ -127,7 +127,12 @@ const compactMetatiles = [
 const portalChr = read("famidash-main/GRAPHICS/Level Sprites/bankportals.chr");
 const mainChr = read("famidash-main/GRAPHICS/Level Sprites/bankmain.chr");
 const decoChr = read("famidash-main/GRAPHICS/Level Sprites/bankblank.chr");
-const compactSprites = Buffer.alloc((spritePairs.length + decoPairs.length) * 2 * 16);
+const chainChr = read("chain block.chr");
+const chainTileOrder = [0, 16, 1, 17, 32, 48, 33, 49];
+if (chainChr.length < (Math.max(...chainTileOrder) + 1) * 16) {
+    throw new Error("chain block CHR is missing the 16x32 graphic tiles");
+}
+const compactSprites = Buffer.alloc((spritePairs.length + decoPairs.length) * 2 * 16 + chainTileOrder.length * 16);
 for (let index = 0; index < spritePairs.length; index++) {
     const [bank, tile] = spritePairs[index];
     const chr = bank === "portals" ? portalChr : mainChr;
@@ -139,6 +144,13 @@ for (let index = 0; index < decoPairs.length; index++) {
     const offset = (spritePairs.length + index) * 32;
     nesTileToGb(decoChr, tile).copy(compactSprites, offset);
     nesTileToGb(decoChr, tile + 1).copy(compactSprites, offset + 16);
+}
+// ID 45 is a 16x32 graphic. Reorder YYCHR's row-major tiles into four
+// consecutive GB 8x16 pairs for the hardware's 8x16 sprite mode.
+const chainOffset = (spritePairs.length + decoPairs.length) * 32;
+for (let index = 0; index < chainTileOrder.length; index++) {
+    chainChr.copy(compactSprites, chainOffset + index * 16,
+        chainTileOrder[index] * 16, chainTileOrder[index] * 16 + 16);
 }
 
 write("levels/chr_data/chr_gb_dmg_tiles.bin", compactTiles);

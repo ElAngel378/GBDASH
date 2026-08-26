@@ -190,6 +190,150 @@ static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 2;
 }
 
+// Fast Writer: 2x2 8x16 objects (the 16x32 chain block).
+// SDCC passes tile_base in A and oam_idx in E; sy, sx and reversed are the
+// three stack bytes after the return address.  This routine also performs
+// SDCC's required three-byte stack cleanup before returning.
+static uint8_t draw_oam_2x2(uint8_t tile_base, uint8_t oam_idx,
+                            uint8_t sx, uint8_t sy, uint8_t reversed) __naked {
+__asm
+    ; Build &shadow_OAM[oam_idx] while preserving tile_base in A.
+    push    af
+    xor     a
+    ld      l, e
+    ld      h, a
+    add     hl, hl
+    add     hl, hl
+    ld      de, #_shadow_OAM
+    add     hl, de
+    pop     af
+    ld      e, a                   ; E = tile_base
+
+    ; Save the OAM pointer while reading the stack arguments.
+    ; Stack after PUSH HL: saved OAM pointer, return address, sx, sy, reversed.
+    push    hl
+    ldhl    sp, #4
+    ld      b, (hl)                ; B = sx
+    inc     hl
+    ld      c, (hl)                ; C = sy
+    inc     hl
+    ld      a, (hl)
+    pop     hl                     ; Restore the OAM pointer.
+    or      a
+    jr      NZ, 00102$
+
+    ; Normal order: top-left, top-right, bottom-left, bottom-right.
+    ld      (hl), c
+    inc     hl
+    ld      (hl), b
+    inc     hl
+    ld      a, e
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #3
+    inc     hl
+
+    ld      (hl), c
+    inc     hl
+    ld      a, b
+    add     #8
+    ld      (hl), a
+    inc     hl
+    ld      a, e
+    add     #2
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #3
+    inc     hl
+
+    ld      a, c
+    add     #16
+    ld      (hl), a
+    inc     hl
+    ld      (hl), b
+    inc     hl
+    ld      a, e
+    add     #4
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #3
+    inc     hl
+
+    ld      a, c
+    add     #16
+    ld      (hl), a
+    inc     hl
+    ld      a, b
+    add     #8
+    ld      (hl), a
+    inc     hl
+    ld      a, e
+    add     #6
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #3
+    jr      00103$
+
+00102$:
+    ; Mirror order: reverse columns and set horizontal flip.
+    ld      (hl), c
+    inc     hl
+    ld      a, b
+    add     #8
+    ld      (hl), a
+    inc     hl
+    ld      a, e
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #0x23
+    inc     hl
+
+    ld      (hl), c
+    inc     hl
+    ld      (hl), b
+    inc     hl
+    ld      a, e
+    add     #2
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #0x23
+    inc     hl
+
+    ld      a, c
+    add     #16
+    ld      (hl), a
+    inc     hl
+    ld      a, b
+    add     #8
+    ld      (hl), a
+    inc     hl
+    ld      a, e
+    add     #4
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #0x23
+    inc     hl
+
+    ld      a, c
+    add     #16
+    ld      (hl), a
+    inc     hl
+    ld      (hl), b
+    inc     hl
+    ld      a, e
+    add     #6
+    ld      (hl), a
+    inc     hl
+    ld      (hl), #0x23
+
+00103$:
+    ld      a, #4
+    pop     hl                     ; Return address
+    add     sp, #3                 ; sy, sx, reversed
+    jp      (hl)
+__endasm;
+}
+
 // Fast Writer: 2x3 Objects (Gravity Portals)
 static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
@@ -271,12 +415,19 @@ static void process_sprite_logic(
             continue;
         }
 
+        // Decoration has no gameplay behavior. Keep it out of the collision
+        // and trigger tests below; deco-heavy levels can contain many of
+        // these objects, so this early exit matters on every frame.
+        if (obj == 45) continue;
+
         /* BG color triggers fire several tiles early so the palette swap
          * lands ahead of the obstacle. Bypasses the normal overlap gate.
          * Clamp avoids uint16 underflow for triggers near x=0.
          * NOTE: must still honor the far-ahead break below, otherwise the
          * scan walks the full cache every frame and costs frame budget. */
-        if (obj >= 100 && obj <= 147) {
+        // 121 and 126 are mirror objects, not palette triggers.  They sit
+        // numerically inside the expanded GBC palette range.
+        if (obj >= 100 && obj <= 147 && obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
             if (!cache->activated[i]) {
                 uint16_t trig_x = (obj_x > BG_TRIGGER_LEAD_PX)
                                 ? (uint16_t)(obj_x - BG_TRIGGER_LEAD_PX) : 0;
@@ -452,8 +603,21 @@ static uint8_t draw_sprites(
         if (screen_x > 160 && screen_x < 232) continue;
         if (screen_y > 160 && screen_y < 208) continue;
 
+        if (obj >= 46) continue;
+
+        // ID45 is a fixed 2x2 graphic. Handle it before the generic
+        // metasprite path: this avoids a table lookup and all of the generic
+        // sprite classification for the most expensive decoration object.
+        if (obj == 45) {
+            if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
+            oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
+                                      oam_start, screen_x, screen_y - 8, reversed);
+            continue;
+        }
+
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
-        if (obj >= 38 || famidash_sprite_table[obj] == 0) continue;
+        const metasprite_t *sprite = (obj < 38) ? famidash_sprite_table[obj] : 0;
+        if (sprite == 0) continue;
 
         // Temporary: Disable orb and pad graphics
         if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
@@ -461,8 +625,6 @@ static uint8_t draw_sprites(
             obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
             continue;
         }
-
-        const metasprite_t *sprite = famidash_sprite_table[obj];
 
         if (obj >= 16 && obj <= 19) {
             if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
@@ -670,6 +832,10 @@ void play_level(uint8_t idx) BANKED {
             sp_cache_col = cam_px >> 4;
         }
 
+        // Apply object logic before testing the mirror state so the tile-map
+        // and camera switch on the same frame as the mirror portal.
+        process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+
         if (player.reversed != prev_reversed) {
             disable_interrupts();
 
@@ -699,9 +865,6 @@ void play_level(uint8_t idx) BANKED {
                                    level_map_bank, collision_columns);
             cached_collision_col = collision_col;
         }
-
-        // Logic (Pads, Orbs, Portals) BEFORE player movement
-        process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
 
         died = player_update(&player, joy, collision_columns, level_map_h);
 
