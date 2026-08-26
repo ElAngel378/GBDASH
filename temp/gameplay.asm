@@ -3675,7 +3675,7 @@ _draw_sprites:
 	ld	(hl), d
 ;c:\gbdk\include\gb\metasprites.h:251: __current_base_tile = base_tile;
 	ld	hl, #___current_base_tile
-	ld	(hl), #0x68
+	ld	(hl), #0x70
 ;c:\gbdk\include\gb\metasprites.h:252: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_prop),a
@@ -3708,7 +3708,7 @@ _draw_sprites:
 	ld	(hl), d
 ;c:\gbdk\include\gb\metasprites.h:170: __current_base_tile = base_tile;
 	ld	hl, #___current_base_tile
-	ld	(hl), #0x68
+	ld	(hl), #0x70
 ;c:\gbdk\include\gb\metasprites.h:171: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_prop),a
@@ -3747,7 +3747,7 @@ _draw_sprites:
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ld	a, #0x68
+	ld	a, #0x70
 	call	_draw_oam_3x3
 	ldhl	sp,	#19
 	add	a, (hl)
@@ -3773,7 +3773,7 @@ _draw_sprites:
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ld	a, #0x68
+	ld	a, #0x70
 	call	_draw_oam_2x3
 	ldhl	sp,	#19
 	add	a, (hl)
@@ -3789,7 +3789,7 @@ _draw_sprites:
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ld	a, #0x68
+	ld	a, #0x70
 	call	_draw_oam_2x1
 	ldhl	sp,	#19
 	add	a, (hl)
@@ -4397,7 +4397,7 @@ _play_level::
 ;src/gameplay.c:492: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 	ld	de, #_famidash_sprites_tiles
 	push	de
-	ld	hl, #0x5468
+	ld	hl, #0x5470
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4

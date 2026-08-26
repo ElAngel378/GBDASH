@@ -7,7 +7,7 @@ const readText = (name) => read(name).toString("utf8");
 const write = (name, data) => fs.writeFileSync(path.join(ROOT, name), data);
 
 const PLAYER_TILE_COUNT = 12;
-const SPRITE_TILE_BASE = 104;
+const SPRITE_TILE_BASE = 112;
 
 // The source pairs used by the currently supported Famidash object IDs.
 // Each entry is an NES 8x16 pair: the listed tile and the tile immediately after it.

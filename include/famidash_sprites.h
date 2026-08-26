@@ -5,7 +5,7 @@
 #include <gbdk/metasprites.h>
 #include "assets.h"
 
-#define FAMIDASH_SPRITE_TILE_BASE 104
+#define FAMIDASH_SPRITE_TILE_BASE 112
 #define FAMIDASH_SPRITE_TILE_COUNT 84
 
 extern const uint8_t famidash_sprites_tiles[1152];

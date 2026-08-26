@@ -3675,7 +3675,7 @@
     000010EB 72               [ 8] 3675 	ld	(hl), d
                                    3676 ;c:\gbdk\include\gb\metasprites.h:251: __current_base_tile = base_tile;
     000010EC 21r00r00         [12] 3677 	ld	hl, #___current_base_tile
-    000010EF 36 68            [12] 3678 	ld	(hl), #0x68
+    000010EF 36 70            [12] 3678 	ld	(hl), #0x70
                                    3679 ;c:\gbdk\include\gb\metasprites.h:252: __current_base_prop = 0;
     000010F1 AF               [ 4] 3680 	xor	a, a
     000010F2 EAr00r00         [16] 3681 	ld	(#___current_base_prop),a
@@ -3708,7 +3708,7 @@
     00001118 72               [ 8] 3708 	ld	(hl), d
                                    3709 ;c:\gbdk\include\gb\metasprites.h:170: __current_base_tile = base_tile;
     00001119 21r00r00         [12] 3710 	ld	hl, #___current_base_tile
-    0000111C 36 68            [12] 3711 	ld	(hl), #0x68
+    0000111C 36 70            [12] 3711 	ld	(hl), #0x70
                                    3712 ;c:\gbdk\include\gb\metasprites.h:171: __current_base_prop = 0;
     0000111E AF               [ 4] 3713 	xor	a, a
     0000111F EAr00r00         [16] 3714 	ld	(#___current_base_prop),a
@@ -3747,7 +3747,7 @@
     00001149 7E               [ 8] 3747 	ld	a, (hl)
     0000114A F5               [16] 3748 	push	af
     0000114B 33               [ 8] 3749 	inc	sp
-    0000114C 3E 68            [ 8] 3750 	ld	a, #0x68
+    0000114C 3E 70            [ 8] 3750 	ld	a, #0x70
     0000114E CDrD4r04         [24] 3751 	call	_draw_oam_3x3
     00001151 F8 13            [12] 3752 	ldhl	sp,	#19
     00001153 86               [ 8] 3753 	add	a, (hl)
@@ -3773,7 +3773,7 @@
     0000116B 7E               [ 8] 3773 	ld	a, (hl)
     0000116C F5               [16] 3774 	push	af
     0000116D 33               [ 8] 3775 	inc	sp
-    0000116E 3E 68            [ 8] 3776 	ld	a, #0x68
+    0000116E 3E 70            [ 8] 3776 	ld	a, #0x70
     00001170 CDrF5r02         [24] 3777 	call	_draw_oam_2x3
     00001173 F8 13            [12] 3778 	ldhl	sp,	#19
     00001175 86               [ 8] 3779 	add	a, (hl)
@@ -3789,7 +3789,7 @@
     0000117F 7E               [ 8] 3789 	ld	a, (hl)
     00001180 F5               [16] 3790 	push	af
     00001181 33               [ 8] 3791 	inc	sp
-    00001182 3E 68            [ 8] 3792 	ld	a, #0x68
+    00001182 3E 70            [ 8] 3792 	ld	a, #0x70
     00001184 CDr1Fr02         [24] 3793 	call	_draw_oam_2x1
     00001187 F8 13            [12] 3794 	ldhl	sp,	#19
     00001189 86               [ 8] 3795 	add	a, (hl)
@@ -4400,7 +4400,7 @@
                                    4397 ;src/gameplay.c:492: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     00001482 11r00r00         [12] 4398 	ld	de, #_famidash_sprites_tiles
     00001485 D5               [16] 4399 	push	de
-    00001486 21 68 54         [12] 4400 	ld	hl, #0x5468
+    00001486 21 70 54         [12] 4400 	ld	hl, #0x5470
     00001489 E5               [16] 4401 	push	hl
     0000148A CDr00r00         [24] 4402 	call	_set_sprite_data
     0000148D E8 04            [16] 4403 	add	sp, #4
