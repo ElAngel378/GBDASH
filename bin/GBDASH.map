@@ -32,15 +32,15 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      0000000A  b_draw_me |    0000000A  b_play_le |    0000000A  b_setup_m
      0000000B  ___bank_c |    0000000C  l__GSINIT |    00000013  l__HRAM  
      00000014  ___bank_c |    00000014  ___bank_c |    00000014  ___bank_c
-     00000030  l__HEADER |    00000060  l__HEADER |    00000077  ___bank_t
-     00000078  ___bank_t |    00000079  ___bank_s |    0000007A  ___bank_p
-     0000007B  ___bank_j |    0000007C  ___bank_d |    0000007D  ___bank_c
-     0000007E  ___bank_c |    0000007F  ___bank_b |    00000080  ___bank_b
-     000000A4  l__CODE_1 |    000000AB  l__HEADER |    000000C4  l__DATA  
-     000000FC  l__CODE_1 |    0000013C  l__CODE_1 |    0000015C  l__CODE_1
-     00000170  l__CODE_1 |    0000018C  l__CODE_1 |    000001B6  l__HOME  
-     000001D4  l__CODE_1 |    00000200  s__CODE   |    00000280  l__CODE_1
-     000002B0  l__CODE_1 |    000005C0  ___size_f |    00000902  l__CODE_1
+     00000030  l__HEADER |    00000054  l__CODE_1 |    00000060  l__HEADER
+     00000077  ___bank_t |    00000078  ___bank_t |    00000079  ___bank_s
+     0000007A  ___bank_p |    0000007B  ___bank_j |    0000007C  ___bank_d
+     0000007D  ___bank_c |    0000007E  ___bank_c |    0000007F  ___bank_b
+     00000080  ___bank_b |    00000080  l__CODE_1 |    00000080  l__CODE_1
+     000000A8  l__CODE_1 |    000000AB  l__HEADER |    000000C4  l__DATA  
+     000000D0  l__CODE_1 |    000000F0  l__CODE_1 |    00000100  l__CODE_1
+     00000158  l__CODE_1 |    00000178  l__CODE_1 |    000001B6  l__HOME  
+     00000200  s__CODE   |    000005C0  ___size_f |    00000902  l__CODE_1
      00000EBC  l__CODE_2 |    00001000  ___size_c |    00001000  ___size_c
      000010FC  l__CODE_2 |    000016C4  l__CODE_2 |    000017BE  l__CODE_2
      000018CE  l__CODE_2 |    00001DDC  l__CODE_2 |    00002000  _rROMB0  
@@ -410,7 +410,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_128              00804000    000000FC =         252. bytes (REL,CON)
+_CODE_128              00804000    00000080 =         128. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -459,7 +459,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_127              007F4000    00000170 =         368. bytes (REL,CON)
+_CODE_127              007F4000    00000080 =         128. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -479,7 +479,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_126              007E4000    0000018C =         396. bytes (REL,CON)
+_CODE_126              007E4000    000000D0 =         208. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -499,7 +499,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_125              007D4000    00000280 =         640. bytes (REL,CON)
+_CODE_125              007D4000    00000178 =         376. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -519,7 +519,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_124              007C4000    0000013C =         316. bytes (REL,CON)
+_CODE_124              007C4000    000000A8 =         168. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -539,7 +539,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_123              007B4000    0000015C =         348. bytes (REL,CON)
+_CODE_123              007B4000    00000100 =         256. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -659,7 +659,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_122              007A4000    000001D4 =         468. bytes (REL,CON)
+_CODE_122              007A4000    000000F0 =         240. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -679,7 +679,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_121              00794000    000000A4 =         164. bytes (REL,CON)
+_CODE_121              00794000    00000054 =          84. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -720,7 +720,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_119              00774000    000002B0 =         688. bytes (REL,CON)
+_CODE_119              00774000    00000158 =         344. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
