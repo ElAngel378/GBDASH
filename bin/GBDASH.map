@@ -45,10 +45,10 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000010FC  l__CODE_2 |    000016C4  l__CODE_2 |    000017BE  l__CODE_2
      000018CE  l__CODE_2 |    00001DDC  l__CODE_2 |    00002000  _rROMB0  
      00002000  l__CODE_2 |    00002218  l__CODE_2 |    00002766  l__CODE_2
-     0000287D  l__CODE   |    000029B0  l__CODE_2 |    00002A08  l__CODE_1
-     00002A7D  s__HOME   |    00002C33  s__BASE   |    00002C33  s__CODE_0
-     00002C33  s__INITIA |    00002C33  s__LIT    |    00002C3A  s__GSINIT
-     00002C46  s__GSFINA |    00003000  _rROMB1   |    00003370  ___size_c
+     000028C8  l__CODE   |    000029B0  l__CODE_2 |    00002AC8  s__HOME  
+     00002C69  l__CODE_1 |    00002C7E  s__BASE   |    00002C7E  s__CODE_0
+     00002C7E  s__INITIA |    00002C7E  s__LIT    |    00002C85  s__GSINIT
+     00002C91  s__GSFINA |    00003000  _rROMB1   |    00003370  ___size_c
      00003370  l__CODE_1 |    00003450  ___size_c |    00003450  l__CODE_7
      000034A0  ___size_d |    000034A0  l__CODE_4 |    000034E0  ___size_b
      000034E0  l__CODE_3 |    00003650  ___size_b |    00003650  l__CODE_6
@@ -109,7 +109,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE                  00000200    0000287D =       10365. bytes (REL,CON)
+_CODE                  00000200    000028C8 =       10440. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -127,17 +127,19 @@ _CODE                  00000200    0000287D =       10365. bytes (REL,CON)
      000014EE  _player_u |    00001EE5  _sp_cache |    00002089  _hUGE_ini
      0000208B  hUGE_init |    000020E1  _hUGE_mut |    000020E3  hUGE_mute
      00002331  _hUGE_set |    00002333  hUGE_set_ |    000024F8  _hUGE_dos
-     000024F8  hUGE_doso |    00002824  _hide_spr |    00002853  __divsuch
-     00002859  __modsuch |    00002862  __divusch |    0000286B  __modusch
-     00002877  __divscha |    0000287C  __modscha |    00002883  __divsint
-     0000288C  __modsint |    00002898  __divucha |    0000289D  __moducha
-     000028A4  __divuint |    000028AD  __moduint |    000028B9  .div8    
-     000028B9  .mod8     |    000028C1  .div16    |    000028C1  .mod16   
-     000028F7  .divu8    |    000028F7  .modu8    |    000028FA  .divu16  
-     000028FA  .modu16   |    0000293A  ___move_m |    0000293A  ___move_m
-     0000297B  ___move_m |    0000297B  ___move_m |    000029BC  ___move_m
-     000029BC  ___move_m |    000029FF  _set_vram |    00002A08  _set_win_
-     00002A11  _set_bkg_ |    00002A40  ___move_m
+     000024F8  hUGE_doso |    00002824  _set_spri |    00002829  _set_bkg_
+     0000282C  .set_pale |    0000284B  _set_spri |    00002850  _set_bkg_
+     00002853  .set_pale |    0000286F  _hide_spr |    0000289E  __divsuch
+     000028A4  __modsuch |    000028AD  __divusch |    000028B6  __modusch
+     000028C2  __divscha |    000028C7  __modscha |    000028CE  __divsint
+     000028D7  __modsint |    000028E3  __divucha |    000028E8  __moducha
+     000028EF  __divuint |    000028F8  __moduint |    00002904  .div8    
+     00002904  .mod8     |    0000290C  .div16    |    0000290C  .mod16   
+     00002942  .divu8    |    00002942  .modu8    |    00002945  .divu16  
+     00002945  .modu16   |    00002985  ___move_m |    00002985  ___move_m
+     000029C6  ___move_m |    000029C6  ___move_m |    00002A07  ___move_m
+     00002A07  ___move_m |    00002A4A  _set_vram |    00002A53  _set_win_
+     00002A5C  _set_bkg_ |    00002A8B  ___move_m
 ASxxxx Linker V03.00/V05.40 + sdld,  page 4.
 Hexadecimal  [32-Bits]
 
@@ -315,25 +317,25 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_HOME                  00002A7D    000001B6 =         438. bytes (REL,CON)
+_HOME                  00002AC8    000001B6 =         438. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00002A7D  .memset_s |    00002A86  .memcpy_s |    00002AA3  .display_
-     00002AA3  _display_ |    00002ABB  _add_TIM  |    00002ABE  _set_tile
-     00002AC3  _set_bkg_ |    00002AC3  _set_win_ |    00002ACB  _set_spri
-     00002AFB  .add_TIM  |    00002B01  .remove_T |    00002B01  _remove_T
-     00002B07  _fill_bkg |    00002B19  .padup    |    00002B19  _waitpadu
-     00002B29  .jpad     |    00002B29  _joypad   |    00002B51  _waitpad 
-     00002B52  .wait_pad |    00002B59  ___sdcc_b |    00002B6D  _set_bkg_
-     00002B81  .fill_rec |    00002B8A  .fill_rec |    00002BD7  .set_xy_w
-     00002BE0  .set_xy_b |    00002BEF  .set_xy_t
+     00002AC8  .memset_s |    00002AD1  .memcpy_s |    00002AEE  .display_
+     00002AEE  _display_ |    00002B06  _add_TIM  |    00002B09  _set_tile
+     00002B0E  _set_bkg_ |    00002B0E  _set_win_ |    00002B16  _set_spri
+     00002B46  .add_TIM  |    00002B4C  .remove_T |    00002B4C  _remove_T
+     00002B52  _fill_bkg |    00002B64  .padup    |    00002B64  _waitpadu
+     00002B74  .jpad     |    00002B74  _joypad   |    00002B9C  _waitpad 
+     00002B9D  .wait_pad |    00002BA4  ___sdcc_b |    00002BB8  _set_bkg_
+     00002BCC  .fill_rec |    00002BD5  .fill_rec |    00002C22  .set_xy_w
+     00002C2B  .set_xy_b |    00002C3A  .set_xy_t
 ASxxxx Linker V03.00/V05.40 + sdld,  page 23.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_INITIALIZER           00002C33    00000007 =           7. bytes (REL,CON)
+_INITIALIZER           00002C7E    00000007 =           7. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -342,17 +344,17 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSINIT                00002C3A    0000000C =          12. bytes (REL,CON)
+_GSINIT                00002C85    0000000C =          12. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00002C3A  gsinit   
+     00002C85  gsinit   
 ASxxxx Linker V03.00/V05.40 + sdld,  page 25.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSFINAL               00002C46    00000001 =           1. bytes (REL,CON)
+_GSFINAL               00002C91    00000001 =           1. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -418,7 +420,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_10               000A4000    00002A08 =       10760. bytes (REL,CON)
+_CODE_10               000A4000    00002C69 =       11369. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -430,18 +432,18 @@ _CODE_10               000A4000    00002A08 =       10760. bytes (REL,CON)
      000A46FA  _famidash |    000A4706  _famidash |    000A4712  _famidash
      000A471E  _famidash |    000A472A  _famidash |    000A4736  _famidash
      000A4742  _famidash |    000A474E  _famidash |    000A479A  _sp_cache
-     000A47D9  _sp_cache |    000A5934  _setup_me |    000A59B7  _draw_men
-     000A5A59  _play_lev |    000A67D4  _icon1_pa |    000A67DC  _icon1_ti
-     000A685C  _icon1_me |    000A6868  _icon1_me |    000A6874  _icon1_me
-     000A6880  _icon1_me |    000A688C  _icon1_me |    000A6898  _icon1_me
-     000A68A4  _icon1_me |    000A68B0  _icon1_me |    000A68BC  _icon1_me
-     000A68C8  _icon1_me |    000A68D4  _icon1_me |    000A68E0  _icon1_me
-     000A68EC  _icon1_me |    000A68F8  _icon1_me |    000A6904  _icon1_me
-     000A6910  _icon1_me |    000A691C  _icon1_me |    000A6928  _icon1_me
-     000A6934  _icon1_me |    000A6940  _icon1_me |    000A694C  _icon1_me
-     000A6958  _icon1_me |    000A6964  _icon1_me |    000A6970  _icon1_me
-     000A697C  _icon1_me |    000A6988  _icon1_me |    000A69BA  _ship_til
-     000A69FA  _ship_met |    000A6A06  _ship_met
+     000A4969  _sp_cache |    000A5B5A  _setup_me |    000A5BDD  _draw_men
+     000A5C9A  _play_lev |    000A6A35  _icon1_pa |    000A6A3D  _icon1_ti
+     000A6ABD  _icon1_me |    000A6AC9  _icon1_me |    000A6AD5  _icon1_me
+     000A6AE1  _icon1_me |    000A6AED  _icon1_me |    000A6AF9  _icon1_me
+     000A6B05  _icon1_me |    000A6B11  _icon1_me |    000A6B1D  _icon1_me
+     000A6B29  _icon1_me |    000A6B35  _icon1_me |    000A6B41  _icon1_me
+     000A6B4D  _icon1_me |    000A6B59  _icon1_me |    000A6B65  _icon1_me
+     000A6B71  _icon1_me |    000A6B7D  _icon1_me |    000A6B89  _icon1_me
+     000A6B95  _icon1_me |    000A6BA1  _icon1_me |    000A6BAD  _icon1_me
+     000A6BB9  _icon1_me |    000A6BC5  _icon1_me |    000A6BD1  _icon1_me
+     000A6BDD  _icon1_me |    000A6BE9  _icon1_me |    000A6C1B  _ship_til
+     000A6C5B  _ship_met |    000A6C67  _ship_met
 ASxxxx Linker V03.00/V05.40 + sdld,  page 32.
 Hexadecimal  [32-Bits]
 
@@ -785,6 +787,7 @@ lib/hUGEDriver.lib                        [ hUGEDriver_obj ]
 Libraries Linked                          [ object file ]
 
 C:\gbdk\lib/gb/gb.lib                     [ sfr.o ]
+C:\gbdk\lib/gb/gb.lib                     [ cgb_palettes.o ]
 C:\gbdk\lib/gb/gb.lib                     [ metasprites_hide_spr.o ]
 C:\gbdk\lib/sm83/sm83.lib                 [ div.o ]
 C:\gbdk\lib/gb/gb.lib                     [ tim.o ]

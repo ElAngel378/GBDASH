@@ -67,7 +67,7 @@ _cantletgo_sp:
 	.db #0x0b	; 11
 	.dw #0x0081
 	.db #0x01	; 1
-	.db #0x65	; 101	'e'
+	.db #0x79	; 121	'y'
 	.dw #0x0096
 	.db #0x05	; 5
 	.db #0x0b	; 11
@@ -100,19 +100,19 @@ _cantletgo_sp:
 	.db #0x0a	; 10
 	.dw #0x00e2
 	.db #0x0f	; 15
-	.db #0x65	; 101	'e'
+	.db #0x7a	; 122	'z'
 	.dw #0x00e2
 	.db #0x02	; 2
-	.db #0x65	; 101	'e'
+	.db #0x7a	; 122	'z'
 	.dw #0x00e7
 	.db #0x03	; 3
 	.db #0x0a	; 10
 	.dw #0x00f4
 	.db #0x09	; 9
-	.db #0x66	; 102	'f'
+	.db #0x6a	; 106	'j'
 	.dw #0x00f6
 	.db #0x09	; 9
-	.db #0x67	; 103	'g'
+	.db #0x73	; 115	's'
 	.dw #0x018b
 	.db #0x01	; 1
 	.db #0x0b	; 11
@@ -184,10 +184,10 @@ _cantletgo_sp:
 	.db #0x08	; 8
 	.dw #0x02d8
 	.db #0x02	; 2
-	.db #0x66	; 102	'f'
+	.db #0x69	; 105	'i'
 	.dw #0x02da
 	.db #0x02	; 2
-	.db #0x65	; 101	'e'
+	.db #0x79	; 121	'y'
 	.dw #0x02de
 	.db #0x02	; 2
 	.db #0x0a	; 10

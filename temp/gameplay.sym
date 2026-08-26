@@ -32,61 +32,67 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_0                                                        000012A0 R
-  8 ___str_1                                                        000012B2 R
-  8 ___str_2                                                        000012B4 R
-  8 ___str_3                                                        0000201B R
-  8 ___str_4                                                        0000202A R
+  8 ___str_0                                                        000014E1 R
+  8 ___str_1                                                        000014F3 R
+  8 ___str_2                                                        000014F5 R
+  8 ___str_3                                                        0000227C R
+  8 ___str_4                                                        0000228B R
+    __cpu                                                           ******** GX
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      0000121D GR
+  8 _draw_menu                                                      00001443 GR
+  8 _draw_menu_menu_pal_30000_362                                   000014D9 R
     _draw_mt_column                                                 ******** GX
-  8 _draw_oam_2x1                                                   0000021F R
-  8 _draw_oam_2x3                                                   000002F5 R
-  8 _draw_oam_3x3                                                   000004D4 R
-  8 _draw_sprites                                                   00000F68 R
-  8 _draw_text                                                      000011A8 R
+  8 _draw_oam_2x1                                                   000003AF R
+  8 _draw_oam_2x3                                                   00000485 R
+  8 _draw_oam_3x3                                                   00000664 R
+  8 _draw_sprites                                                   0000118E R
+  8 _draw_text                                                      000013CE R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
     _fill_scroll_bg                                                 ******** GX
     _game_levels                                                    ******** GX
+  8 _gbc_bg_palettes                                                0000003F R
+  8 _gbc_sprite_palettes                                            000001BF R
     _hide_sprites_range                                             ******** GX
-    _icon1_metasprites                                              ******** GX
-    _icon1_tiles                                                    ******** GX
-    _init_music_banked                                              ******** GX
-    _joypad                                                         ******** GX
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _icon1_metasprites                                              ******** GX
+    _icon1_tiles                                                    ******** GX
+    _init_music_banked                                              ******** GX
+    _joypad                                                         ******** GX
     _level_songs                                                    ******** GX
   8 _level_sprite_cost_table                                        00000019 R
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     000012BF GR
+  8 _play_level                                                     00001500 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
     _player_update                                                  ******** GX
-  8 _process_sprite_logic                                           0000077D R
+  8 _process_sprite_logic                                           0000090D R
     _redraw                                                         ******** GX
     _selected                                                       ******** GX
     _set_bkg_data                                                   ******** GX
+    _set_bkg_palette                                                ******** GX
     _set_bkg_tile_xy                                                ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                0000119A GR
+    _set_sprite_palette                                             ******** GX
+  8 _setup_menu_font                                                000013C0 GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
     _song_bank                                                      ******** GX
     _sp_cache_load                                                  ******** GX
   8 _sp_cache_reset                                                 00000000 GR
-  8 _sp_cache_update                                                0000003F GR
+  8 _sp_cache_update                                                000001CF GR
     _wait_vbl_done                                                  ******** GX
     _waitpadup                                                      ******** GX
     b_draw_menu                                                 =   0000000A G
@@ -106,7 +112,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     203A   flags    0
+   8 _CODE_10                                   size     229B   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

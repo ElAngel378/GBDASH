@@ -68,11 +68,10 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         # **{sprites_firstgid + i: i for i in range(42, 62)}, # DECO DISABLED
     }
 
-    # BG Color mappings:
-    portals_map[sprites_firstgid + 143] = 103  # Dark (was 13)
-    for i in range(128, 141): portals_map[sprites_firstgid + i] = 102 # Dark grey (was 12)
-    for i in range(144, 157): portals_map[sprites_firstgid + i] = 101 # Light grey (was 11)
-    for i in range(160, 173): portals_map[sprites_firstgid + i] = 100 # Light (was 10)
+    # BG Color mappings (Rows 8, 9, 10):
+    # Mapping unique indices 128-175 to obj_ids 100-147
+    for i in range(128, 176):
+        portals_map[sprites_firstgid + i] = 100 + (i - 128)
 
     portal_data = []
 

@@ -73,7 +73,7 @@ _backontrack_sp:
 	.db #0x0a	; 10
 	.dw #0x0096
 	.db #0x01	; 1
-	.db #0x65	; 101	'e'
+	.db #0x79	; 121	'y'
 	.dw #0x00a7
 	.db #0x01	; 1
 	.db #0x0a	; 10
@@ -100,7 +100,7 @@ _backontrack_sp:
 	.db #0x0a	; 10
 	.dw #0x0191
 	.db #0x02	; 2
-	.db #0x65	; 101	'e'
+	.db #0x7a	; 122	'z'
 	.dw #0x019b
 	.db #0x03	; 3
 	.db #0x0a	; 10
@@ -109,16 +109,16 @@ _backontrack_sp:
 	.db #0x01	; 1
 	.dw #0x01af
 	.db #0x01	; 1
-	.db #0x65	; 101	'e'
+	.db #0x78	; 120	'x'
 	.dw #0x01b1
 	.db #0x01	; 1
-	.db #0x65	; 101	'e'
+	.db #0x77	; 119	'w'
 	.dw #0x022f
 	.db #0x05	; 5
 	.db #0x00	; 0
 	.dw #0x0239
 	.db #0x01	; 1
-	.db #0x65	; 101	'e'
+	.db #0x78	; 120	'x'
 	.dw #0x0251
 	.db #0x01	; 1
 	.db #0x0a	; 10
@@ -136,10 +136,10 @@ _backontrack_sp:
 	.db #0x0a	; 10
 	.dw #0x02c8
 	.db #0x03	; 3
-	.db #0x65	; 101	'e'
+	.db #0x77	; 119	'w'
 	.dw #0x02ca
 	.db #0x05	; 5
-	.db #0x65	; 101	'e'
+	.db #0x75	; 117	'u'
 	.dw #0x033f
 	.db #0x01	; 1
 	.db #0x0a	; 10

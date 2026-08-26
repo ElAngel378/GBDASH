@@ -55,10 +55,10 @@ ___func_baseafterbase_sp::
 _baseafterbase_sp:
 	.dw #0x004f
 	.db #0x06	; 6
-	.db #0x65	; 101	'e'
+	.db #0x76	; 118	'v'
 	.dw #0x0051
 	.db #0x06	; 6
-	.db #0x65	; 101	'e'
+	.db #0x77	; 119	'w'
 	.dw #0x0062
 	.db #0x04	; 4
 	.db #0x0b	; 11
@@ -67,10 +67,10 @@ _baseafterbase_sp:
 	.db #0x0a	; 10
 	.dw #0x0097
 	.db #0x01	; 1
-	.db #0x66	; 102	'f'
+	.db #0x68	; 104	'h'
 	.dw #0x0099
 	.db #0x01	; 1
-	.db #0x66	; 102	'f'
+	.db #0x69	; 105	'i'
 	.dw #0x00ae
 	.db #0x05	; 5
 	.db #0x0b	; 11
@@ -97,7 +97,7 @@ _baseafterbase_sp:
 	.db #0x0b	; 11
 	.dw #0x0136
 	.db #0x01	; 1
-	.db #0x67	; 103	'g'
+	.db #0x73	; 115	's'
 	.dw #0x0198
 	.db #0x01	; 1
 	.db #0x12	; 18
@@ -118,19 +118,19 @@ _baseafterbase_sp:
 	.db #0x01	; 1
 	.dw #0x01d5
 	.db #0x05	; 5
-	.db #0x66	; 102	'f'
+	.db #0x6b	; 107	'k'
 	.dw #0x01d7
 	.db #0x05	; 5
-	.db #0x66	; 102	'f'
+	.db #0x68	; 104	'h'
 	.dw #0x0257
 	.db #0x07	; 7
 	.db #0x00	; 0
 	.dw #0x0260
 	.db #0x07	; 7
-	.db #0x65	; 101	'e'
+	.db #0x7c	; 124
 	.dw #0x0262
 	.db #0x07	; 7
-	.db #0x64	; 100	'd'
+	.db #0x8d	; 141
 	.dw #0x0267
 	.db #0x06	; 6
 	.db #0x09	; 9
@@ -139,10 +139,10 @@ _baseafterbase_sp:
 	.db #0x08	; 8
 	.dw #0x02ec
 	.db #0x05	; 5
-	.db #0x65	; 101	'e'
+	.db #0x7a	; 122	'z'
 	.dw #0x02ee
 	.db #0x05	; 5
-	.db #0x65	; 101	'e'
+	.db #0x78	; 120	'x'
 	.dw #0x0363
 	.db #0x05	; 5
 	.db #0x0f	; 15
