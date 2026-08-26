@@ -12,6 +12,8 @@
 #include "ship1.h"
 #include "famidash_sprites.h"
 #include "../levels/chr_data/chr_gb.h"
+
+#define DEBUG_MODE
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
 
@@ -475,10 +477,10 @@ void play_level(uint8_t idx) BANKED {
 
     uint8_t target_bg_idx = 0;
     const uint8_t bg_pals[] = {
-            0xE4, // 0: White BG
-            0xE4, // 1: Light Gray BG
-            0xE4, // 2: Dark Gray BG
-            0x1B  // 3: Black BG
+            0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
+            0x39, // 1: Inverse (W:LG, LG:DG, DG:B, B:W)
+            0x3E, // 2: Inverse (W:DG, LG:B, DG:B, B:W)
+            0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
     };
 
     Player player;
@@ -532,7 +534,14 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
+
         if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
+#ifdef DEBUG_MODE
+        if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
+            target_bg_idx++;
+            if (target_bg_idx > 3) target_bg_idx = 0;
+        }
+#endif
         prev_joy = joy;
 
         uint16_t px_prev = cam_px >> 4;
