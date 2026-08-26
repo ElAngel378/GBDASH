@@ -10,6 +10,7 @@
 #include "assets.h"
 #include "icon1.h"
 #include "ship1.h"
+#include "ball.h"
 #include "famidash_sprites.h"
 #include "../levels/chr_data/chr_gb.h"
 
@@ -491,6 +492,7 @@ void play_level(uint8_t idx) BANKED {
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
+    set_sprite_data(12, 4, ball_tiles);
     set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
@@ -525,10 +527,8 @@ void play_level(uint8_t idx) BANKED {
             setup_menu_font();
             enable_interrupts();
             fill_bkg_rect(0, 0, 20, 18, 0x00);
-            gotoxy(3, 6);
-            printf("LEVEL COMPLETE");
-            gotoxy(3, 12);
-            printf("Press A to exit");
+            draw_text(3, 6, "LEVEL COMPLETE");
+            draw_text(3, 12, "PRESS A TO EXIT");
             waitpadup();
             while (!(joypad() & J_A)) wait_vbl_done();
             break;
@@ -656,6 +656,14 @@ void play_level(uint8_t idx) BANKED {
             } else {
                 if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
                 else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+            }
+        } else if (player.mode == MODE_BALL) {
+            if (player.gravity_flipped) {
+                if (player.reversed) oam_index += move_metasprite_hvflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 24, final_py + 32);
+                else oam_index += move_metasprite_vflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 21, final_py + 16);
+            } else {
+                if (player.reversed) oam_index += move_metasprite_hflip(ball_metasprites[0], 12, oam_index, sprite_x_final + 10, final_py + 32);
+                else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
             }
         } else {
             if (player.gravity_flipped) {
