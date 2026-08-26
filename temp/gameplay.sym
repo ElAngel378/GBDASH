@@ -32,22 +32,22 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_0                                                        000012A0 R
-  8 ___str_1                                                        000012B2 R
-  8 ___str_2                                                        000012B4 R
-  8 ___str_3                                                        00001FE2 R
-  8 ___str_4                                                        00001FF1 R
+  8 ___str_0                                                        0000129C R
+  8 ___str_1                                                        000012AE R
+  8 ___str_2                                                        000012B0 R
+  8 ___str_3                                                        00001FDA R
+  8 ___str_4                                                        00001FE9 R
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      0000121D GR
+  8 _draw_menu                                                      00001219 GR
     _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   0000021F R
   8 _draw_oam_2x3                                                   000002F5 R
   8 _draw_oam_3x3                                                   000004D4 R
-  8 _draw_sprites                                                   00000F68 R
-  8 _draw_text                                                      000011A8 R
+  8 _draw_sprites                                                   00000F64 R
+  8 _draw_text                                                      000011A4 R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
     _fill_bkg_rect                                                  ******** GX
@@ -68,7 +68,7 @@ Symbol Table
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     000012BF GR
+  8 _play_level                                                     000012BB GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -79,7 +79,7 @@ Symbol Table
     _set_bkg_data                                                   ******** GX
     _set_bkg_tile_xy                                                ******** GX
     _set_sprite_data                                                ******** GX
-  8 _setup_menu_font                                                0000119A GR
+  8 _setup_menu_font                                                00001196 GR
     _shadow_OAM                                                     ******** GX
     _ship_metasprites                                               ******** GX
     _ship_tiles                                                     ******** GX
@@ -106,7 +106,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     2001   flags    0
+   8 _CODE_10                                   size     1FF9   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

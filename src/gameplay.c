@@ -55,9 +55,7 @@ extern const unsigned char FontPusab[];
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
-// BG color triggers (SP objects 100-103) fire this many tiles BEFORE their
-// column. Level columns are 16px wide, so 7 tiles = 112 pixels.
-#define BG_TRIGGER_LEAD_TILES 10
+#define BG_TRIGGER_LEAD_TILES 11
 #define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
 
 extern uint8_t music_ready;
@@ -237,7 +235,7 @@ static void process_sprite_logic(
                     }
                 }
             }
-        } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
+        } else if (obj_x <= p_front && px <= obj_x + 15) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
@@ -273,10 +271,10 @@ static void process_sprite_logic(
                 case OBJ_PAD_BLUE_UP:
                 {
                     uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
-                    uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
+                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 8);
+                    uint16_t pad_bot = is_ceiling ? (obj_y + 8) : (obj_y + 20);
 
-                    if (py <= pad_bot && p_feet >= pad_top) {
+                    if (py <= pad_bot && p_bottom >= pad_top) {
                         if (!cache->activated[i]) {
                             cache->activated[i] = 1;
                             if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
