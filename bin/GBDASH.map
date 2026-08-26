@@ -38,7 +38,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      0000007D  ___bank_c |    0000007E  ___bank_c |    0000007F  ___bank_b
      00000080  ___bank_b |    00000080  l__CODE_1 |    00000080  l__CODE_1
      000000A8  l__CODE_1 |    000000AB  l__HEADER |    000000C4  l__DATA  
-     000000D0  l__CODE_1 |    000000F0  l__CODE_1 |    000000FC  l__CODE_1
+     000000D0  l__CODE_1 |    000000F0  l__CODE_1 |    00000100  l__CODE_1
      00000158  l__CODE_1 |    00000178  l__CODE_1 |    000001B6  l__HOME  
      00000200  s__CODE   |    00000540  ___size_f |    00000902  l__CODE_1
      00000EBC  l__CODE_2 |    00001000  ___size_c |    00001000  ___size_c
@@ -537,7 +537,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_123              007B4000    000000FC =         252. bytes (REL,CON)
+_CODE_123              007B4000    00000100 =         256. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
