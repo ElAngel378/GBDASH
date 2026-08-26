@@ -2324,6 +2324,14 @@ _process_sprite_logic:
 	jp	00207$
 ;src/gameplay.c:221: continue;
 00116$:
+;src/gameplay.c:224: if (obj >= 16 && obj <= 19) {
+	ldhl	sp,	#61
+	ld	a, (hl)
+	sub	a, #0x10
+	jp	C, 00201$
+	ld	a, #0x13
+	sub	a, (hl)
+	jp	C, 00201$
 ;src/gameplay.c:226: if (obj_x <= p_front && px <= obj_x + 48u) {
 	ldhl	sp,	#8
 	ld	e, l
@@ -2335,22 +2343,8 @@ _process_sprite_logic:
 	inc	hl
 	ld	a, (de)
 	sbc	a, (hl)
-	ld	a, #0x00
-	rla
-	ld	e, a
-;src/gameplay.c:224: if (obj >= 16 && obj <= 19) {
-	ldhl	sp,	#61
-	ld	a, (hl)
-	sub	a, #0x10
-	jp	C, 00201$
-	ld	a, #0x13
-	sub	a, (hl)
-	jp	C, 00201$
-;src/gameplay.c:226: if (obj_x <= p_front && px <= obj_x + 48u) {
-	bit	0, e
-	jp	NZ, 00204$
-	dec	hl
-	dec	hl
+	jp	C, 00204$
+	ldhl	sp,#59
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -2488,9 +2482,19 @@ _process_sprite_logic:
 	ld	(hl), #0x01
 	jp	00204$
 00201$:
-;src/gameplay.c:238: } else if (obj_x <= p_front && px <= obj_x + 15) {
-	bit	0, e
-	jp	NZ, 00197$
+;src/gameplay.c:238: } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
+	ldhl	sp,	#59
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	inc	de
+	inc	de
+	ldhl	sp,	#8
+	ld	a, (hl+)
+	sub	a, e
+	ld	a, (hl)
+	sbc	a, d
+	jp	C, 00197$
 	ldhl	sp,#59
 	ld	a, (hl+)
 	ld	e, a
@@ -2793,7 +2797,7 @@ _process_sprite_logic:
 00213$:
 	ld	l, a
 ;src/gameplay.c:227: if (py <= obj_y + 14u && p_bottom >= obj_y) {
-;src/gameplay.c:274: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 8);
+;src/gameplay.c:274: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
 	or	a, a
 	jr	Z, 00214$
 	ld	e, c
@@ -2801,25 +2805,26 @@ _process_sprite_logic:
 	jr	00215$
 00214$:
 	ld	a, c
-	add	a, #0x08
+	add	a, #0x0d
 	ld	e, a
 	ld	a, b
 	adc	a, #0x00
 00215$:
 	ld	d, a
-;src/gameplay.c:275: uint16_t pad_bot = is_ceiling ? (obj_y + 8) : (obj_y + 20);
+;src/gameplay.c:275: uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
 	ld	a, l
 	or	a, a
 	jr	Z, 00216$
-	ld	hl, #0x0008
-	add	hl, bc
+	inc	bc
+	inc	bc
+	inc	bc
 	jr	00217$
 00216$:
-	ld	hl, #0x0014
+	ld	hl, #0x0010
 	add	hl, bc
-00217$:
 	ld	c, l
 	ld	b, h
+00217$:
 ;src/gameplay.c:277: if (py <= pad_bot && p_bottom >= pad_top) {
 	ldhl	sp,	#4
 	ld	a, c

@@ -235,7 +235,7 @@ static void process_sprite_logic(
                     }
                 }
             }
-        } else if (obj_x <= p_front && px <= obj_x + 15) {
+        } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
             switch (obj) {
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
@@ -271,8 +271,8 @@ static void process_sprite_logic(
                 case OBJ_PAD_BLUE_UP:
                 {
                     uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 8);
-                    uint16_t pad_bot = is_ceiling ? (obj_y + 8) : (obj_y + 20);
+                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
+                    uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
 
                     if (py <= pad_bot && p_bottom >= pad_top) {
                         if (!cache->activated[i]) {
