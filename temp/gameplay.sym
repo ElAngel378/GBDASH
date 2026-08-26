@@ -35,8 +35,8 @@ Symbol Table
   8 ___str_0                                                        000014E1 R
   8 ___str_1                                                        000014F3 R
   8 ___str_2                                                        000014F5 R
-  8 ___str_3                                                        0000227C R
-  8 ___str_4                                                        0000228B R
+  8 ___str_3                                                        00002325 R
+  8 ___str_4                                                        00002334 R
     __cpu                                                           ******** GX
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
@@ -73,6 +73,7 @@ Symbol Table
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
   8 _play_level                                                     00001500 GR
+  8 _play_level_dbg_pals_60003_387                                  00002321 R
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -99,6 +100,7 @@ Symbol Table
     b_play_level                                                =   0000000A G
     b_setup_menu_font                                           =   0000000A G
 
+
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
@@ -112,7 +114,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     229B   flags    0
+   8 _CODE_10                                   size     2344   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 
