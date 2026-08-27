@@ -18,6 +18,9 @@
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
 
+extern const uint8_t chr_gb_cgb_tiles[];
+extern const uint8_t chr_gb_cgb_tiles_rev[];
+
 extern const unsigned char FontPusab[];
 #define FONT_PUSAB_START 0xD0
 
@@ -61,8 +64,6 @@ extern const unsigned char FontPusab[];
 // Index (0-47) of the default "light gray" theme in gbc_bg_palettes:
 // bottom row (light), column 0 (gray). This is the GBC equivalent of the
 // DMG boot state bg_pals[0] (0xE4) used at level start and after death.
-#define GBC_DEFAULT_BG_PAL 32
-
 extern uint8_t music_ready;
 
 static const uint8_t level_sprite_cost_table[38] = {
@@ -126,6 +127,53 @@ static const uint16_t gbc_bg_palettes[] = {
     RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), // 14: White
     RGB8(50,50,50), RGB8(30,30,30), RGB8(10,10,10), RGB8(0,0,0)                 // 15: Black
 };
+
+/* FamiDash's paletteDefault: level, ground, decorations and text. */
+static const palette_color_t famidash_default_bg_palettes[16] = {
+    RGB8(0,31,157), RGB8(0,29,154), RGB8(0,0,0), RGB8(255,255,255),
+    RGB8(102,103,101), RGB8(0,29,154), RGB8(0,31,157), RGB8(255,255,255),
+    RGB8(102,103,101), RGB8(0,29,154), RGB8(0,0,0), RGB8(71,200,32),
+    RGB8(0,31,157), RGB8(0,29,154), RGB8(0,0,0), RGB8(0,0,0)
+};
+static palette_color_t famidash_bg_palettes[16];
+
+static palette_color_t famidash_darker(palette_color_t color) {
+    return RGB((color & 0x1Fu) * 3u / 4u,
+               ((color >> 5) & 0x1Fu) * 3u / 4u,
+               ((color >> 10) & 0x1Fu) * 3u / 4u);
+}
+
+static void famidash_reset_bg_palettes(void) {
+    uint8_t i;
+    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = famidash_default_bg_palettes[i];
+    set_bkg_palette(0, 4, famidash_bg_palettes);
+}
+
+static void famidash_apply_bg_trigger(uint8_t color_id) {
+    palette_color_t color;
+    static const palette_color_t hues[16] = {
+        RGB8(102,103,101), RGB8(0,29,154), RGB8(0,0,255), RGB8(66,0,150),
+        RGB8(138,0,126), RGB8(161,0,94), RGB8(166,0,40), RGB8(152,0,0),
+        RGB8(125,8,0), RGB8(92,46,0), RGB8(16,69,0), RGB8(5,74,0),
+        RGB8(0,71,46), RGB8(0,69,102), RGB8(0,0,0), RGB8(0,0,0)
+    };
+
+    if (color_id == 31u) color = RGB8(0, 240, 255); /* FamiDash $9F */
+    else if (color_id == 46u) {                       /* FamiDash $AE */
+        color = RGB8(0, 255, 0);
+        famidash_bg_palettes[6] = color;
+        famidash_bg_palettes[5] = famidash_darker(color);
+        set_bkg_palette(0, 4, famidash_bg_palettes);
+        return;
+    } else color = hues[color_id & 0x0Fu];
+
+    famidash_bg_palettes[0] = color;
+    color = famidash_darker(color);
+    famidash_bg_palettes[1] = color;
+    famidash_bg_palettes[9] = color;
+    famidash_bg_palettes[13] = color;
+    set_bkg_palette(0, 4, famidash_bg_palettes);
+}
 
 static const uint16_t gbc_sprite_palettes[] = {
     // Player Palette (Teal)
@@ -434,7 +482,7 @@ static void process_sprite_logic(
                 if (px >= trig_x) {
                     uint8_t pal_idx = obj - 100;
                     if (_cpu == CGB_TYPE) {
-                        set_bkg_palette(0, 1, &gbc_bg_palettes[pal_idx << 2]);
+                        famidash_apply_bg_trigger(pal_idx);
                     }
 
                     // DMG mapping: identical to pre-GBC behavior.
@@ -702,6 +750,7 @@ void play_level(uint8_t idx) BANKED {
     level_map_h = l->map_height;
     level_tiles_bank = BANK(chr_gb);
     level_map_bank = l->map_bank;
+    if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
@@ -748,7 +797,7 @@ void play_level(uint8_t idx) BANKED {
         // Boot on the default LIGHT gray theme so GBC matches the DMG boot
         // state (bg_pals[0] = 0xE4). gbc_bg_palettes[0] is the DARK theme
         // and would start the level nearly black.
-        set_bkg_palette(0, 1, &gbc_bg_palettes[GBC_DEFAULT_BG_PAL << 2]);
+        famidash_reset_bg_palettes();
         set_sprite_palette(0, 2, gbc_sprite_palettes);
     }
 
@@ -797,9 +846,7 @@ void play_level(uint8_t idx) BANKED {
             target_bg_idx++;
             if (target_bg_idx > 3) target_bg_idx = 0;
             if (_cpu == CGB_TYPE) {
-                // Debug cycle uses the gray column: light, med, dark, black
-                static const uint8_t dbg_pals[4] = { 32, 16, 0, 15 };
-                set_bkg_palette(0, 1, &gbc_bg_palettes[dbg_pals[target_bg_idx] << 2]);
+                famidash_apply_bg_trigger((uint8_t)(target_bg_idx << 2));
             }
         }
 #endif
@@ -840,7 +887,9 @@ void play_level(uint8_t idx) BANKED {
             disable_interrupts();
 
             // Swap tileset in VRAM to match mirror mode orientation
-            const uint8_t* target_tiles = player.reversed ? l->tiles_rev : l->tiles;
+            const uint8_t* target_tiles = player.reversed
+                ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
+                : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
 
             // Instant redraw of the entire 16-column buffer
@@ -969,7 +1018,7 @@ void play_level(uint8_t idx) BANKED {
             // chr_gb tileset is a full 256 tiles, so this upload wipes the
             // famidash portal/orb/pad graphics (tiles 112-195) AND the
             // player/ship/ball tiles (0-15).
-            load_bkg_tileset(l->tiles, level_tile_count, level_tiles_bank);
+            load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 
             // Re-upload ALL sprite tiles afterwards or portals render corrupted
             // on the next attempt.
@@ -994,7 +1043,7 @@ void play_level(uint8_t idx) BANKED {
                 // Reset to the default light theme on respawn, matching
                 // target_bg_idx = 0. Without this the palette from the
                 // death spot would persist until the first trigger.
-                set_bkg_palette(0, 1, &gbc_bg_palettes[GBC_DEFAULT_BG_PAL << 2]);
+                famidash_reset_bg_palettes();
             }
             fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
             DISPLAY_ON;

@@ -7,62 +7,66 @@
                                       7 ;--------------------------------------------------------
                                       8 ; Public variables in this module
                                       9 ;--------------------------------------------------------
-                                     10 	.globl b___func_chr_gb_tiles_rev
-                                     11 	.globl ___func_chr_gb_tiles_rev
-                                     12 	.globl b___func_chr_gb_tiles
-                                     13 	.globl ___func_chr_gb_tiles
-                                     14 	.globl b___func_chr_gb
-                                     15 	.globl ___func_chr_gb
-                                     16 ;--------------------------------------------------------
-                                     17 ; special function registers
-                                     18 ;--------------------------------------------------------
-                                     19 	.area _HRAM
+                                     10 	.globl b___func_chr_gb_cgb_tiles_rev
+                                     11 	.globl ___func_chr_gb_cgb_tiles_rev
+                                     12 	.globl b___func_chr_gb_cgb_tiles
+                                     13 	.globl ___func_chr_gb_cgb_tiles
+                                     14 	.globl b___func_chr_gb_tiles_rev
+                                     15 	.globl ___func_chr_gb_tiles_rev
+                                     16 	.globl b___func_chr_gb_tiles
+                                     17 	.globl ___func_chr_gb_tiles
+                                     18 	.globl b___func_chr_gb
+                                     19 	.globl ___func_chr_gb
                                      20 ;--------------------------------------------------------
-                                     21 ; ram data
+                                     21 ; special function registers
                                      22 ;--------------------------------------------------------
-                                     23 	.area _DATA
+                                     23 	.area _HRAM
                                      24 ;--------------------------------------------------------
                                      25 ; ram data
                                      26 ;--------------------------------------------------------
-                                     27 	.area _INITIALIZED
+                                     27 	.area _DATA
                                      28 ;--------------------------------------------------------
-                                     29 ; absolute external ram data
+                                     29 ; ram data
                                      30 ;--------------------------------------------------------
-                                     31 	.area _DABS (ABS)
+                                     31 	.area _INITIALIZED
                                      32 ;--------------------------------------------------------
-                                     33 ; global & static initialisations
+                                     33 ; absolute external ram data
                                      34 ;--------------------------------------------------------
-                                     35 	.area _HOME
-                                     36 	.area _GSINIT
-                                     37 	.area _GSFINAL
-                                     38 	.area _GSINIT
-                                     39 ;--------------------------------------------------------
-                                     40 ; Home
-                                     41 ;--------------------------------------------------------
-                                     42 	.area _HOME
-                                     43 	.area _HOME
-                                     44 ;--------------------------------------------------------
-                                     45 ; code
-                                     46 ;--------------------------------------------------------
-                                     47 	.area _CODE_20
-                                     48 ;src/tileset.c:5: BANKREF(chr_gb)
-                                     49 ;	---------------------------------
-                                     50 ; Function __func_chr_gb
-                                     51 ; ---------------------------------
-                         00000014    52 	b___func_chr_gb	= 20
-    00000000                         53 ___func_chr_gb::
-                                     54 	.local b___func_chr_gb 
-                         00000014    55 	___bank_chr_gb = b___func_chr_gb 
-                                     56 	.globl ___bank_chr_gb 
-                                     57 ;src/tileset.c:7: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
-                                     58 ;	---------------------------------
-                                     59 ; Function __func_chr_gb_tiles
-                                     60 ; ---------------------------------
-                         00000014    61 	b___func_chr_gb_tiles	= 20
-    00000000                         62 ___func_chr_gb_tiles::
-    00000000                         63 _chr_gb_tiles::
-    00000000                         64 1$:
-    00000000 00 00 00 00 00 00 00    65 	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
+                                     35 	.area _DABS (ABS)
+                                     36 ;--------------------------------------------------------
+                                     37 ; global & static initialisations
+                                     38 ;--------------------------------------------------------
+                                     39 	.area _HOME
+                                     40 	.area _GSINIT
+                                     41 	.area _GSFINAL
+                                     42 	.area _GSINIT
+                                     43 ;--------------------------------------------------------
+                                     44 ; Home
+                                     45 ;--------------------------------------------------------
+                                     46 	.area _HOME
+                                     47 	.area _HOME
+                                     48 ;--------------------------------------------------------
+                                     49 ; code
+                                     50 ;--------------------------------------------------------
+                                     51 	.area _CODE_20
+                                     52 ;src/tileset.c:5: BANKREF(chr_gb)
+                                     53 ;	---------------------------------
+                                     54 ; Function __func_chr_gb
+                                     55 ; ---------------------------------
+                         00000014    56 	b___func_chr_gb	= 20
+    00000000                         57 ___func_chr_gb::
+                                     58 	.local b___func_chr_gb 
+                         00000014    59 	___bank_chr_gb = b___func_chr_gb 
+                                     60 	.globl ___bank_chr_gb 
+                                     61 ;src/tileset.c:7: INCBIN(chr_gb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
+                                     62 ;	---------------------------------
+                                     63 ; Function __func_chr_gb_tiles
+                                     64 ; ---------------------------------
+                         00000014    65 	b___func_chr_gb_tiles	= 20
+    00000000                         66 ___func_chr_gb_tiles::
+    00000000                         67 _chr_gb_tiles::
+    00000000                         68 1$:
+    00000000 00 00 00 00 00 00 00    69 	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
@@ -81,21 +85,21 @@
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
              00 00
-    00001000                         66 2$:
-                         00001000    67 	___size_chr_gb_tiles = (2$-1$) 
-                                     68 	.globl ___size_chr_gb_tiles 
-                                     69 	.local b___func_chr_gb_tiles 
-                         00000014    70 	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
-                                     71 	.globl ___bank_chr_gb_tiles 
-                                     72 ;src/tileset.c:8: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
-                                     73 ;	---------------------------------
-                                     74 ; Function __func_chr_gb_tiles_rev
-                                     75 ; ---------------------------------
-                         00000014    76 	b___func_chr_gb_tiles_rev	= 20
-    00001000                         77 ___func_chr_gb_tiles_rev::
-    00001000                         78 _chr_gb_tiles_rev::
-    00001000                         79 1$:
-    00001000 00 00 00 00 00 00 00    80 	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
+    00001000                         70 2$:
+                         00001000    71 	___size_chr_gb_tiles = (2$-1$) 
+                                     72 	.globl ___size_chr_gb_tiles 
+                                     73 	.local b___func_chr_gb_tiles 
+                         00000014    74 	___bank_chr_gb_tiles = b___func_chr_gb_tiles 
+                                     75 	.globl ___bank_chr_gb_tiles 
+                                     76 ;src/tileset.c:8: INCBIN(chr_gb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
+                                     77 ;	---------------------------------
+                                     78 ; Function __func_chr_gb_tiles_rev
+                                     79 ; ---------------------------------
+                         00000014    80 	b___func_chr_gb_tiles_rev	= 20
+    00001000                         81 ___func_chr_gb_tiles_rev::
+    00001000                         82 _chr_gb_tiles_rev::
+    00001000                         83 1$:
+    00001000 00 00 00 00 00 00 00    84 	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
@@ -114,12 +118,78 @@
              00 00 00 00 00 00 00
              00 00 00 00 00 00 00
              00 00
-    00002000                         81 2$:
-                         00001000    82 	___size_chr_gb_tiles_rev = (2$-1$) 
-                                     83 	.globl ___size_chr_gb_tiles_rev 
-                                     84 	.local b___func_chr_gb_tiles_rev 
-                         00000014    85 	___bank_chr_gb_tiles_rev = b___func_chr_gb_tiles_rev 
-                                     86 	.globl ___bank_chr_gb_tiles_rev 
-                                     87 	.area _CODE_20
-                                     88 	.area _INITIALIZER
-                                     89 	.area _CABS (ABS)
+    00002000                         85 2$:
+                         00001000    86 	___size_chr_gb_tiles_rev = (2$-1$) 
+                                     87 	.globl ___size_chr_gb_tiles_rev 
+                                     88 	.local b___func_chr_gb_tiles_rev 
+                         00000014    89 	___bank_chr_gb_tiles_rev = b___func_chr_gb_tiles_rev 
+                                     90 	.globl ___bank_chr_gb_tiles_rev 
+                                     91 ;src/tileset.c:13: INCBIN(chr_gb_cgb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
+                                     92 ;	---------------------------------
+                                     93 ; Function __func_chr_gb_cgb_tiles
+                                     94 ; ---------------------------------
+                         00000014    95 	b___func_chr_gb_cgb_tiles	= 20
+    00002000                         96 ___func_chr_gb_cgb_tiles::
+    00002000                         97 _chr_gb_cgb_tiles::
+    00002000                         98 1$:
+    00002000 00 00 00 00 00 00 00    99 	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00
+    00003000                        100 2$:
+                         00001000   101 	___size_chr_gb_cgb_tiles = (2$-1$) 
+                                    102 	.globl ___size_chr_gb_cgb_tiles 
+                                    103 	.local b___func_chr_gb_cgb_tiles 
+                         00000014   104 	___bank_chr_gb_cgb_tiles = b___func_chr_gb_cgb_tiles 
+                                    105 	.globl ___bank_chr_gb_cgb_tiles 
+                                    106 ;src/tileset.c:14: INCBIN(chr_gb_cgb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
+                                    107 ;	---------------------------------
+                                    108 ; Function __func_chr_gb_cgb_tiles_rev
+                                    109 ; ---------------------------------
+                         00000014   110 	b___func_chr_gb_cgb_tiles_rev	= 20
+    00003000                        111 ___func_chr_gb_cgb_tiles_rev::
+    00003000                        112 _chr_gb_cgb_tiles_rev::
+    00003000                        113 1$:
+    00003000 00 00 00 00 00 00 00   114 	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00 00 00 00 00 00
+             00 00
+    00004000                        115 2$:
+                         00001000   116 	___size_chr_gb_cgb_tiles_rev = (2$-1$) 
+                                    117 	.globl ___size_chr_gb_cgb_tiles_rev 
+                                    118 	.local b___func_chr_gb_cgb_tiles_rev 
+                         00000014   119 	___bank_chr_gb_cgb_tiles_rev = b___func_chr_gb_cgb_tiles_rev 
+                                    120 	.globl ___bank_chr_gb_cgb_tiles_rev 
+                                    121 	.area _CODE_20
+                                    122 	.area _INITIALIZER
+                                    123 	.area _CABS (ABS)

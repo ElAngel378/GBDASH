@@ -7,6 +7,10 @@
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
+	.globl b___func_chr_gb_cgb_tiles_rev
+	.globl ___func_chr_gb_cgb_tiles_rev
+	.globl b___func_chr_gb_cgb_tiles
+	.globl ___func_chr_gb_cgb_tiles
 	.globl b___func_chr_gb_tiles_rev
 	.globl ___func_chr_gb_tiles_rev
 	.globl b___func_chr_gb_tiles
@@ -84,6 +88,36 @@ _chr_gb_tiles_rev::
 	.local b___func_chr_gb_tiles_rev 
 	___bank_chr_gb_tiles_rev = b___func_chr_gb_tiles_rev 
 	.globl ___bank_chr_gb_tiles_rev 
+;src/tileset.c:13: INCBIN(chr_gb_cgb_tiles, "levels/chr_data/chr_gb_dmg_tiles.bin")
+;	---------------------------------
+; Function __func_chr_gb_cgb_tiles
+; ---------------------------------
+	b___func_chr_gb_cgb_tiles	= 20
+___func_chr_gb_cgb_tiles::
+_chr_gb_cgb_tiles::
+1$:
+	.incbin "levels/chr_data/chr_gb_dmg_tiles.bin" 
+2$:
+	___size_chr_gb_cgb_tiles = (2$-1$) 
+	.globl ___size_chr_gb_cgb_tiles 
+	.local b___func_chr_gb_cgb_tiles 
+	___bank_chr_gb_cgb_tiles = b___func_chr_gb_cgb_tiles 
+	.globl ___bank_chr_gb_cgb_tiles 
+;src/tileset.c:14: INCBIN(chr_gb_cgb_tiles_rev, "levels/chr_data/chr_gb_dmg_flipped_tiles.bin")
+;	---------------------------------
+; Function __func_chr_gb_cgb_tiles_rev
+; ---------------------------------
+	b___func_chr_gb_cgb_tiles_rev	= 20
+___func_chr_gb_cgb_tiles_rev::
+_chr_gb_cgb_tiles_rev::
+1$:
+	.incbin "levels/chr_data/chr_gb_dmg_flipped_tiles.bin" 
+2$:
+	___size_chr_gb_cgb_tiles_rev = (2$-1$) 
+	.globl ___size_chr_gb_cgb_tiles_rev 
+	.local b___func_chr_gb_cgb_tiles_rev 
+	___bank_chr_gb_cgb_tiles_rev = b___func_chr_gb_cgb_tiles_rev 
+	.globl ___bank_chr_gb_cgb_tiles_rev 
 	.area _CODE_20
 	.area _INITIALIZER
 	.area _CABS (ABS)

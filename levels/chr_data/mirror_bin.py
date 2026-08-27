@@ -1,4 +1,5 @@
 import os
+import sys
 
 def mirror_bits(b):
     # Standard bit-reversal for Game Boy tile mirroring
@@ -30,5 +31,8 @@ def mirror_tileset(input_path, output_path):
     print(f"Successfully created mirrored binary: {output_path}")
 
 if __name__ == "__main__":
-    # Mirror the ALREADY EXPORTED bin file to maintain index parity
-    mirror_tileset("chr_gb_tiles.bin", "chr_gb_flipped_tiles.bin")
+    # Mirror an ALREADY EXPORTED bin file to maintain tile-index parity.
+    # Optional paths let other tilesets reuse this deterministic conversion.
+    input_path = sys.argv[1] if len(sys.argv) > 1 else "chr_gb_tiles.bin"
+    output_path = sys.argv[2] if len(sys.argv) > 2 else "chr_gb_flipped_tiles.bin"
+    mirror_tileset(input_path, output_path)

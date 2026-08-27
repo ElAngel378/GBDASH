@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include <gb/cgb.h>
 #include "assets.h"
 #include "gameplay.h"
 #include "collision.h"
@@ -23,6 +24,10 @@ void play_music_safe(void) {
 
 void main(void) {
   music_ready = 0;
+
+  // CGB double-speed affects CPU work only; timing-sensitive LCD hardware
+  // continues at its normal rate. Leave all non-CGB hardware untouched.
+  if (_cpu == CGB_TYPE) cpu_fast();
 
   // Enable sound hardware
   NR52_REG = 0x80;
