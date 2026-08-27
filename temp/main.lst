@@ -47,237 +47,252 @@
     00000002                         47 	.ds 1
     00000003                         48 _current_song_bank::
     00000003                         49 	.ds 1
-                                     50 ;--------------------------------------------------------
-                                     51 ; absolute external ram data
+    00000004                         50 _cgb_music_tick:
+    00000004                         51 	.ds 1
                                      52 ;--------------------------------------------------------
-                                     53 	.area _DABS (ABS)
+                                     53 ; absolute external ram data
                                      54 ;--------------------------------------------------------
-                                     55 ; global & static initialisations
+                                     55 	.area _DABS (ABS)
                                      56 ;--------------------------------------------------------
-                                     57 	.area _HOME
-                                     58 	.area _GSINIT
-                                     59 	.area _GSFINAL
+                                     57 ; global & static initialisations
+                                     58 ;--------------------------------------------------------
+                                     59 	.area _HOME
                                      60 	.area _GSINIT
-                                     61 ;--------------------------------------------------------
-                                     62 ; Home
+                                     61 	.area _GSFINAL
+                                     62 	.area _GSINIT
                                      63 ;--------------------------------------------------------
-                                     64 	.area _HOME
-                                     65 	.area _HOME
-                                     66 ;--------------------------------------------------------
-                                     67 ; code
+                                     64 ; Home
+                                     65 ;--------------------------------------------------------
+                                     66 	.area _HOME
+                                     67 	.area _HOME
                                      68 ;--------------------------------------------------------
-                                     69 	.area _CODE
-                                     70 ;src/main.c:16: void play_music_safe(void) {
-                                     71 ;	---------------------------------
-                                     72 ; Function play_music_safe
-                                     73 ; ---------------------------------
-    00000000                         74 _play_music_safe::
-                                     75 ;src/main.c:17: if (music_ready) {
-    00000000 FAr00r00         [16]   76 	ld	a, (#_music_ready)
-    00000003 B7               [ 4]   77 	or	a, a
-    00000004 C8               [20]   78 	ret	Z
-                                     79 ;src/main.c:18: uint8_t prev_bank = _current_bank;
-    00000005 F0r00            [12]   80 	ldh	a, (__current_bank + 0)
-    00000007 4F               [ 4]   81 	ld	c, a
-                                     82 ;src/main.c:19: SWITCH_ROM(current_song_bank);
-    00000008 21r03r00         [12]   83 	ld	hl, #_current_song_bank
-    0000000B 7E               [ 8]   84 	ld	a, (hl)
-    0000000C E0r00            [12]   85 	ldh	(__current_bank + 0), a
-    0000000E 7E               [ 8]   86 	ld	a, (hl)
-    0000000F EAr00r00         [16]   87 	ld	(#_rROMB0),a
-                                     88 ;src/main.c:20: hUGE_dosound();
-    00000012 C5               [16]   89 	push	bc
-    00000013 CDr00r00         [24]   90 	call	_hUGE_dosound
-    00000016 C1               [12]   91 	pop	bc
-                                     92 ;src/main.c:21: SWITCH_ROM(prev_bank);
-    00000017 79               [ 4]   93 	ld	a, c
-    00000018 E0r00            [12]   94 	ldh	(__current_bank + 0), a
-    0000001A 21r00r00         [12]   95 	ld	hl, #_rROMB0
-    0000001D 71               [ 8]   96 	ld	(hl), c
-                                     97 ;src/main.c:23: }
-    0000001E C9               [16]   98 	ret
-                                     99 ;src/main.c:25: void main(void) {
-                                    100 ;	---------------------------------
-                                    101 ; Function main
-                                    102 ; ---------------------------------
-    0000001F                        103 _main::
-    0000001F 3B               [ 8]  104 	dec	sp
-    00000020 3B               [ 8]  105 	dec	sp
-                                    106 ;src/main.c:26: music_ready = 0;
-    00000021 AF               [ 4]  107 	xor	a, a
-    00000022 EAr00r00         [16]  108 	ld	(#_music_ready),a
-                                    109 ;src/main.c:30: if (_cpu == CGB_TYPE) cpu_fast();
-    00000025 FAr00r00         [16]  110 	ld	a, (#__cpu)
-    00000028 D6 11            [ 8]  111 	sub	a, #0x11
-    0000002A 20 03            [12]  112 	jr	NZ, 00102$
-    0000002C CDr00r00         [24]  113 	call	_cpu_fast
-    0000002F                        114 00102$:
-                                    115 ;src/main.c:33: NR52_REG = 0x80;
-    0000002F 3E 80            [ 8]  116 	ld	a, #0x80
-    00000031 E0r00            [12]  117 	ldh	(_NR52_REG + 0), a
-                                    118 ;src/main.c:34: NR51_REG = 0xFF;
-    00000033 3E FF            [ 8]  119 	ld	a, #0xff
-    00000035 E0r00            [12]  120 	ldh	(_NR51_REG + 0), a
-                                    121 ;src/main.c:35: NR50_REG = 0x77;
-    00000037 3E 77            [ 8]  122 	ld	a, #0x77
-    00000039 E0r00            [12]  123 	ldh	(_NR50_REG + 0), a
-                                    124 ;src/main.c:37: TAC_REG = 0x04;
-    0000003B 3E 04            [ 8]  125 	ld	a, #0x04
-    0000003D E0r00            [12]  126 	ldh	(_TAC_REG + 0), a
-                                    127 ;src/main.c:38: add_TIM(play_music_safe);
-    0000003F 11r00r00         [12]  128 	ld	de, #_play_music_safe
-    00000042 CDr00r00         [24]  129 	call	_add_TIM
-                                    130 ;src/main.c:39: set_interrupts(VBL_IFLAG | TIM_IFLAG);
-    00000045 3E 05            [ 8]  131 	ld	a, #0x05
-    00000047 CDr00r00         [24]  132 	call	_set_interrupts
-                                    133 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
-    0000004A FB               [ 4]  134 	ei
-                                    135 ;src/main.c:42: setup_menu_font();
-    0000004B 1Er00            [ 8]  136 	ld	e, #b_setup_menu_font
-    0000004D 21r00r00         [12]  137 	ld	hl, #_setup_menu_font
-    00000050 CDr00r00         [24]  138 	call	___sdcc_bcall_ehl
-                                    139 ;src/main.c:44: init_music_banked(&menuloop, 1, 176);
-    00000053 3E B0            [ 8]  140 	ld	a, #0xb0
-    00000055 F5               [16]  141 	push	af
-    00000056 33               [ 8]  142 	inc	sp
-    00000057 3E 01            [ 8]  143 	ld	a, #0x01
-    00000059 11r00r00         [12]  144 	ld	de, #_menuloop
-    0000005C CDr00r00         [24]  145 	call	_init_music_banked
-                                    146 ;src/main.c:46: while (1) {
-    0000005F                        147 00118$:
-                                    148 ;src/main.c:47: if (redraw) draw_menu();
-    0000005F 21r01r00         [12]  149 	ld	hl, #_redraw
-    00000062 7E               [ 8]  150 	ld	a, (hl)
-    00000063 B7               [ 4]  151 	or	a, a
-    00000064 28 08            [12]  152 	jr	Z, 00104$
-    00000066 1Er00            [ 8]  153 	ld	e, #b_draw_menu
-    00000068 21r00r00         [12]  154 	ld	hl, #_draw_menu
-    0000006B CDr00r00         [24]  155 	call	___sdcc_bcall_ehl
-    0000006E                        156 00104$:
-                                    157 ;src/main.c:49: uint8_t joy = joypad();
-    0000006E CDr00r00         [24]  158 	call	_joypad
-                                    159 ;src/main.c:52: if (joy & J_UP) {
-    00000071 CB 57            [ 8]  160 	bit	2, a
-    00000073 28 13            [12]  161 	jr	Z, 00115$
-                                    162 ;src/main.c:53: if (selected > 0) { selected--; redraw = 1; }
-    00000075 21r02r00         [12]  163 	ld	hl, #_selected
-    00000078 7E               [ 8]  164 	ld	a, (hl)
-    00000079 B7               [ 4]  165 	or	a, a
-    0000007A 28 06            [12]  166 	jr	Z, 00106$
-    0000007C 35               [12]  167 	dec	(hl)
-    0000007D 21r01r00         [12]  168 	ld	hl, #_redraw
-    00000080 36 01            [12]  169 	ld	(hl), #0x01
-    00000082                        170 00106$:
-                                    171 ;src/main.c:54: waitpadup();
-    00000082 CDr00r00         [24]  172 	call	_waitpadup
-    00000085 C3r09r01         [16]  173 	jp	00116$
-    00000088                        174 00115$:
-                                    175 ;src/main.c:55: } else if (joy & J_DOWN) {
-    00000088 CB 5F            [ 8]  176 	bit	3, a
-    0000008A 28 37            [12]  177 	jr	Z, 00112$
-                                    178 ;src/main.c:56: if (selected < MAX_LEVELS - 1) { selected++; redraw = 1; }
-    0000008C FAr00r00         [16]  179 	ld	a, (#_MAX_LEVELS)
-    0000008F F8 00            [12]  180 	ldhl	sp,	#0
-    00000091 22               [ 8]  181 	ld	(hl+), a
-    00000092 36 00            [12]  182 	ld	(hl), #0x00
-    00000094 C1               [12]  183 	pop	bc
-    00000095 C5               [16]  184 	push	bc
-    00000096 0B               [ 8]  185 	dec	bc
-    00000097 FAr02r00         [16]  186 	ld	a, (_selected)
-    0000009A 6F               [ 4]  187 	ld	l, a
-    0000009B 26 00            [ 8]  188 	ld	h, #0x00
-    0000009D 58               [ 4]  189 	ld	e, b
-    0000009E 54               [ 4]  190 	ld	d, h
-    0000009F 7D               [ 4]  191 	ld	a, l
-    000000A0 91               [ 4]  192 	sub	a, c
-    000000A1 7C               [ 4]  193 	ld	a, h
-    000000A2 98               [ 4]  194 	sbc	a, b
-    000000A3 CB 7B            [ 8]  195 	bit	7, e
-    000000A5 28 07            [12]  196 	jr	Z, 00185$
-    000000A7 CB 7A            [ 8]  197 	bit	7, d
-    000000A9 20 08            [12]  198 	jr	NZ, 00186$
-    000000AB BF               [ 4]  199 	cp	a, a
-    000000AC 18 05            [12]  200 	jr	00186$
-    000000AE                        201 00185$:
-    000000AE CB 7A            [ 8]  202 	bit	7, d
-    000000B0 28 01            [12]  203 	jr	Z, 00186$
-    000000B2 37               [ 4]  204 	scf
-    000000B3                        205 00186$:
-    000000B3 30 09            [12]  206 	jr	NC, 00108$
-    000000B5 21r02r00         [12]  207 	ld	hl, #_selected
-    000000B8 34               [12]  208 	inc	(hl)
-    000000B9 21r01r00         [12]  209 	ld	hl, #_redraw
-    000000BC 36 01            [12]  210 	ld	(hl), #0x01
-    000000BE                        211 00108$:
-                                    212 ;src/main.c:57: waitpadup();
-    000000BE CDr00r00         [24]  213 	call	_waitpadup
-    000000C1 18 46            [12]  214 	jr	00116$
-    000000C3                        215 00112$:
-                                    216 ;src/main.c:58: } else if (joy & J_A) {
-    000000C3 CB 67            [ 8]  217 	bit	4, a
-    000000C5 28 42            [12]  218 	jr	Z, 00116$
-                                    219 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
-    000000C7 F3               [ 4]  220 	di
-                                    221 ;src/main.c:60: play_level(selected);
-    000000C8 FAr02r00         [16]  222 	ld	a, (_selected)
-    000000CB F5               [16]  223 	push	af
-    000000CC 33               [ 8]  224 	inc	sp
-    000000CD 1Er00            [ 8]  225 	ld	e, #b_play_level
-    000000CF 21r00r00         [12]  226 	ld	hl, #_play_level
-    000000D2 CDr00r00         [24]  227 	call	___sdcc_bcall_ehl
-    000000D5 33               [ 8]  228 	inc	sp
-                                    229 ;src/main.c:63: music_ready = 0;
-                                    230 ;src/main.c:64: TAC_REG = 0x00;
-    000000D6 AF               [ 4]  231 	xor	a, a
-    000000D7 EAr00r00         [16]  232 	ld	(#_music_ready), a
-    000000DA E0r00            [12]  233 	ldh	(_TAC_REG + 0), a
-                                    234 ;src/main.c:65: NR52_REG = 0x00;
-    000000DC AF               [ 4]  235 	xor	a, a
-    000000DD E0r00            [12]  236 	ldh	(_NR52_REG + 0), a
-                                    237 ;src/main.c:66: NR52_REG = 0x80;
-    000000DF 3E 80            [ 8]  238 	ld	a, #0x80
-    000000E1 E0r00            [12]  239 	ldh	(_NR52_REG + 0), a
-                                    240 ;src/main.c:67: NR51_REG = 0xFF;
-    000000E3 3E FF            [ 8]  241 	ld	a, #0xff
-    000000E5 E0r00            [12]  242 	ldh	(_NR51_REG + 0), a
-                                    243 ;src/main.c:68: NR50_REG = 0x77;
-    000000E7 3E 77            [ 8]  244 	ld	a, #0x77
-    000000E9 E0r00            [12]  245 	ldh	(_NR50_REG + 0), a
-                                    246 ;src/main.c:70: setup_menu_font(); // Re-setup font just in case
-    000000EB 1Er00            [ 8]  247 	ld	e, #b_setup_menu_font
-    000000ED 21r00r00         [12]  248 	ld	hl, #_setup_menu_font
-    000000F0 CDr00r00         [24]  249 	call	___sdcc_bcall_ehl
-                                    250 ;src/main.c:71: init_music_banked(&menuloop, 1, 176);
-    000000F3 3E B0            [ 8]  251 	ld	a, #0xb0
-    000000F5 F5               [16]  252 	push	af
-    000000F6 33               [ 8]  253 	inc	sp
-    000000F7 3E 01            [ 8]  254 	ld	a, #0x01
-    000000F9 11r00r00         [12]  255 	ld	de, #_menuloop
-    000000FC CDr00r00         [24]  256 	call	_init_music_banked
-                                    257 ;src/main.c:72: TAC_REG = 0x04;    // Start timer
-    000000FF 3E 04            [ 8]  258 	ld	a, #0x04
-    00000101 E0r00            [12]  259 	ldh	(_TAC_REG + 0), a
-                                    260 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
-    00000103 FB               [ 4]  261 	ei
-                                    262 ;src/main.c:74: redraw = 1;
-    00000104 21r01r00         [12]  263 	ld	hl, #_redraw
-    00000107 36 01            [12]  264 	ld	(hl), #0x01
-    00000109                        265 00116$:
-                                    266 ;src/main.c:77: wait_vbl_done();
-    00000109 CDr00r00         [24]  267 	call	_wait_vbl_done
-    0000010C C3r5Fr00         [16]  268 	jp	00118$
-                                    269 ;src/main.c:79: }
-    0000010F 33               [ 8]  270 	inc	sp
-    00000110 33               [ 8]  271 	inc	sp
-    00000111 C9               [16]  272 	ret
-                                    273 	.area _CODE
-                                    274 	.area _INITIALIZER
-    00000000                        275 __xinit__music_ready:
-    00000000 00                     276 	.db #0x00	; 0
-    00000001                        277 __xinit__redraw:
-    00000001 01                     278 	.db #0x01	; 1
-    00000002                        279 __xinit__selected:
-    00000002 00                     280 	.db #0x00	; 0
-    00000003                        281 __xinit__current_song_bank:
-    00000003 00                     282 	.db #0x00	; 0
-                                    283 	.area _CABS (ABS)
+                                     69 ; code
+                                     70 ;--------------------------------------------------------
+                                     71 	.area _CODE
+                                     72 ;src/main.c:17: void play_music_safe(void) {
+                                     73 ;	---------------------------------
+                                     74 ; Function play_music_safe
+                                     75 ; ---------------------------------
+    00000000                         76 _play_music_safe::
+                                     77 ;src/main.c:18: if (music_ready) {
+    00000000 FAr00r00         [16]   78 	ld	a, (#_music_ready)
+    00000003 B7               [ 4]   79 	or	a, a
+    00000004 C8               [20]   80 	ret	Z
+                                     81 ;src/main.c:21: if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
+    00000005 FAr00r00         [16]   82 	ld	a, (#__cpu)
+    00000008 D6 11            [ 8]   83 	sub	a, #0x11
+    0000000A 20 0B            [12]   84 	jr	NZ, 00102$
+    0000000C FAr04r00         [16]   85 	ld	a, (_cgb_music_tick)
+    0000000F 4F               [ 4]   86 	ld	c, a
+    00000010 21r04r00         [12]   87 	ld	hl, #_cgb_music_tick
+    00000013 34               [12]   88 	inc	(hl)
+    00000014 CB 41            [ 8]   89 	bit	0, c
+    00000016 C0               [20]   90 	ret	NZ
+    00000017                         91 00102$:
+                                     92 ;src/main.c:22: uint8_t prev_bank = _current_bank;
+    00000017 F0r00            [12]   93 	ldh	a, (__current_bank + 0)
+    00000019 4F               [ 4]   94 	ld	c, a
+                                     95 ;src/main.c:23: SWITCH_ROM(current_song_bank);
+    0000001A 21r03r00         [12]   96 	ld	hl, #_current_song_bank
+    0000001D 7E               [ 8]   97 	ld	a, (hl)
+    0000001E E0r00            [12]   98 	ldh	(__current_bank + 0), a
+    00000020 7E               [ 8]   99 	ld	a, (hl)
+    00000021 EAr00r00         [16]  100 	ld	(#_rROMB0),a
+                                    101 ;src/main.c:24: hUGE_dosound();
+    00000024 C5               [16]  102 	push	bc
+    00000025 CDr00r00         [24]  103 	call	_hUGE_dosound
+    00000028 C1               [12]  104 	pop	bc
+                                    105 ;src/main.c:25: SWITCH_ROM(prev_bank);
+    00000029 79               [ 4]  106 	ld	a, c
+    0000002A E0r00            [12]  107 	ldh	(__current_bank + 0), a
+    0000002C 21r00r00         [12]  108 	ld	hl, #_rROMB0
+    0000002F 71               [ 8]  109 	ld	(hl), c
+                                    110 ;src/main.c:27: }
+    00000030 C9               [16]  111 	ret
+                                    112 ;src/main.c:29: void main(void) {
+                                    113 ;	---------------------------------
+                                    114 ; Function main
+                                    115 ; ---------------------------------
+    00000031                        116 _main::
+    00000031 3B               [ 8]  117 	dec	sp
+    00000032 3B               [ 8]  118 	dec	sp
+                                    119 ;src/main.c:30: music_ready = 0;
+    00000033 AF               [ 4]  120 	xor	a, a
+    00000034 EAr00r00         [16]  121 	ld	(#_music_ready),a
+                                    122 ;src/main.c:34: if (_cpu == CGB_TYPE) cpu_fast();
+    00000037 FAr00r00         [16]  123 	ld	a, (#__cpu)
+    0000003A D6 11            [ 8]  124 	sub	a, #0x11
+    0000003C 20 03            [12]  125 	jr	NZ, 00102$
+    0000003E CDr00r00         [24]  126 	call	_cpu_fast
+    00000041                        127 00102$:
+                                    128 ;src/main.c:37: NR52_REG = 0x80;
+    00000041 3E 80            [ 8]  129 	ld	a, #0x80
+    00000043 E0r00            [12]  130 	ldh	(_NR52_REG + 0), a
+                                    131 ;src/main.c:38: NR51_REG = 0xFF;
+    00000045 3E FF            [ 8]  132 	ld	a, #0xff
+    00000047 E0r00            [12]  133 	ldh	(_NR51_REG + 0), a
+                                    134 ;src/main.c:39: NR50_REG = 0x77;
+    00000049 3E 77            [ 8]  135 	ld	a, #0x77
+    0000004B E0r00            [12]  136 	ldh	(_NR50_REG + 0), a
+                                    137 ;src/main.c:41: TAC_REG = 0x04;
+    0000004D 3E 04            [ 8]  138 	ld	a, #0x04
+    0000004F E0r00            [12]  139 	ldh	(_TAC_REG + 0), a
+                                    140 ;src/main.c:42: add_TIM(play_music_safe);
+    00000051 11r00r00         [12]  141 	ld	de, #_play_music_safe
+    00000054 CDr00r00         [24]  142 	call	_add_TIM
+                                    143 ;src/main.c:43: set_interrupts(VBL_IFLAG | TIM_IFLAG);
+    00000057 3E 05            [ 8]  144 	ld	a, #0x05
+    00000059 CDr00r00         [24]  145 	call	_set_interrupts
+                                    146 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
+    0000005C FB               [ 4]  147 	ei
+                                    148 ;src/main.c:46: setup_menu_font();
+    0000005D 1Er00            [ 8]  149 	ld	e, #b_setup_menu_font
+    0000005F 21r00r00         [12]  150 	ld	hl, #_setup_menu_font
+    00000062 CDr00r00         [24]  151 	call	___sdcc_bcall_ehl
+                                    152 ;src/main.c:48: init_music_banked(&menuloop, 1, 176);
+    00000065 3E B0            [ 8]  153 	ld	a, #0xb0
+    00000067 F5               [16]  154 	push	af
+    00000068 33               [ 8]  155 	inc	sp
+    00000069 3E 01            [ 8]  156 	ld	a, #0x01
+    0000006B 11r00r00         [12]  157 	ld	de, #_menuloop
+    0000006E CDr00r00         [24]  158 	call	_init_music_banked
+                                    159 ;src/main.c:50: while (1) {
+    00000071                        160 00118$:
+                                    161 ;src/main.c:51: if (redraw) draw_menu();
+    00000071 21r01r00         [12]  162 	ld	hl, #_redraw
+    00000074 7E               [ 8]  163 	ld	a, (hl)
+    00000075 B7               [ 4]  164 	or	a, a
+    00000076 28 08            [12]  165 	jr	Z, 00104$
+    00000078 1Er00            [ 8]  166 	ld	e, #b_draw_menu
+    0000007A 21r00r00         [12]  167 	ld	hl, #_draw_menu
+    0000007D CDr00r00         [24]  168 	call	___sdcc_bcall_ehl
+    00000080                        169 00104$:
+                                    170 ;src/main.c:53: uint8_t joy = joypad();
+    00000080 CDr00r00         [24]  171 	call	_joypad
+                                    172 ;src/main.c:56: if (joy & J_UP) {
+    00000083 CB 57            [ 8]  173 	bit	2, a
+    00000085 28 13            [12]  174 	jr	Z, 00115$
+                                    175 ;src/main.c:57: if (selected > 0) { selected--; redraw = 1; }
+    00000087 21r02r00         [12]  176 	ld	hl, #_selected
+    0000008A 7E               [ 8]  177 	ld	a, (hl)
+    0000008B B7               [ 4]  178 	or	a, a
+    0000008C 28 06            [12]  179 	jr	Z, 00106$
+    0000008E 35               [12]  180 	dec	(hl)
+    0000008F 21r01r00         [12]  181 	ld	hl, #_redraw
+    00000092 36 01            [12]  182 	ld	(hl), #0x01
+    00000094                        183 00106$:
+                                    184 ;src/main.c:58: waitpadup();
+    00000094 CDr00r00         [24]  185 	call	_waitpadup
+    00000097 C3r1Br01         [16]  186 	jp	00116$
+    0000009A                        187 00115$:
+                                    188 ;src/main.c:59: } else if (joy & J_DOWN) {
+    0000009A CB 5F            [ 8]  189 	bit	3, a
+    0000009C 28 37            [12]  190 	jr	Z, 00112$
+                                    191 ;src/main.c:60: if (selected < MAX_LEVELS - 1) { selected++; redraw = 1; }
+    0000009E FAr00r00         [16]  192 	ld	a, (#_MAX_LEVELS)
+    000000A1 F8 00            [12]  193 	ldhl	sp,	#0
+    000000A3 22               [ 8]  194 	ld	(hl+), a
+    000000A4 36 00            [12]  195 	ld	(hl), #0x00
+    000000A6 C1               [12]  196 	pop	bc
+    000000A7 C5               [16]  197 	push	bc
+    000000A8 0B               [ 8]  198 	dec	bc
+    000000A9 FAr02r00         [16]  199 	ld	a, (_selected)
+    000000AC 6F               [ 4]  200 	ld	l, a
+    000000AD 26 00            [ 8]  201 	ld	h, #0x00
+    000000AF 58               [ 4]  202 	ld	e, b
+    000000B0 54               [ 4]  203 	ld	d, h
+    000000B1 7D               [ 4]  204 	ld	a, l
+    000000B2 91               [ 4]  205 	sub	a, c
+    000000B3 7C               [ 4]  206 	ld	a, h
+    000000B4 98               [ 4]  207 	sbc	a, b
+    000000B5 CB 7B            [ 8]  208 	bit	7, e
+    000000B7 28 07            [12]  209 	jr	Z, 00185$
+    000000B9 CB 7A            [ 8]  210 	bit	7, d
+    000000BB 20 08            [12]  211 	jr	NZ, 00186$
+    000000BD BF               [ 4]  212 	cp	a, a
+    000000BE 18 05            [12]  213 	jr	00186$
+    000000C0                        214 00185$:
+    000000C0 CB 7A            [ 8]  215 	bit	7, d
+    000000C2 28 01            [12]  216 	jr	Z, 00186$
+    000000C4 37               [ 4]  217 	scf
+    000000C5                        218 00186$:
+    000000C5 30 09            [12]  219 	jr	NC, 00108$
+    000000C7 21r02r00         [12]  220 	ld	hl, #_selected
+    000000CA 34               [12]  221 	inc	(hl)
+    000000CB 21r01r00         [12]  222 	ld	hl, #_redraw
+    000000CE 36 01            [12]  223 	ld	(hl), #0x01
+    000000D0                        224 00108$:
+                                    225 ;src/main.c:61: waitpadup();
+    000000D0 CDr00r00         [24]  226 	call	_waitpadup
+    000000D3 18 46            [12]  227 	jr	00116$
+    000000D5                        228 00112$:
+                                    229 ;src/main.c:62: } else if (joy & J_A) {
+    000000D5 CB 67            [ 8]  230 	bit	4, a
+    000000D7 28 42            [12]  231 	jr	Z, 00116$
+                                    232 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
+    000000D9 F3               [ 4]  233 	di
+                                    234 ;src/main.c:64: play_level(selected);
+    000000DA FAr02r00         [16]  235 	ld	a, (_selected)
+    000000DD F5               [16]  236 	push	af
+    000000DE 33               [ 8]  237 	inc	sp
+    000000DF 1Er00            [ 8]  238 	ld	e, #b_play_level
+    000000E1 21r00r00         [12]  239 	ld	hl, #_play_level
+    000000E4 CDr00r00         [24]  240 	call	___sdcc_bcall_ehl
+    000000E7 33               [ 8]  241 	inc	sp
+                                    242 ;src/main.c:67: music_ready = 0;
+                                    243 ;src/main.c:68: TAC_REG = 0x00;
+    000000E8 AF               [ 4]  244 	xor	a, a
+    000000E9 EAr00r00         [16]  245 	ld	(#_music_ready), a
+    000000EC E0r00            [12]  246 	ldh	(_TAC_REG + 0), a
+                                    247 ;src/main.c:69: NR52_REG = 0x00;
+    000000EE AF               [ 4]  248 	xor	a, a
+    000000EF E0r00            [12]  249 	ldh	(_NR52_REG + 0), a
+                                    250 ;src/main.c:70: NR52_REG = 0x80;
+    000000F1 3E 80            [ 8]  251 	ld	a, #0x80
+    000000F3 E0r00            [12]  252 	ldh	(_NR52_REG + 0), a
+                                    253 ;src/main.c:71: NR51_REG = 0xFF;
+    000000F5 3E FF            [ 8]  254 	ld	a, #0xff
+    000000F7 E0r00            [12]  255 	ldh	(_NR51_REG + 0), a
+                                    256 ;src/main.c:72: NR50_REG = 0x77;
+    000000F9 3E 77            [ 8]  257 	ld	a, #0x77
+    000000FB E0r00            [12]  258 	ldh	(_NR50_REG + 0), a
+                                    259 ;src/main.c:74: setup_menu_font(); // Re-setup font just in case
+    000000FD 1Er00            [ 8]  260 	ld	e, #b_setup_menu_font
+    000000FF 21r00r00         [12]  261 	ld	hl, #_setup_menu_font
+    00000102 CDr00r00         [24]  262 	call	___sdcc_bcall_ehl
+                                    263 ;src/main.c:75: init_music_banked(&menuloop, 1, 176);
+    00000105 3E B0            [ 8]  264 	ld	a, #0xb0
+    00000107 F5               [16]  265 	push	af
+    00000108 33               [ 8]  266 	inc	sp
+    00000109 3E 01            [ 8]  267 	ld	a, #0x01
+    0000010B 11r00r00         [12]  268 	ld	de, #_menuloop
+    0000010E CDr00r00         [24]  269 	call	_init_music_banked
+                                    270 ;src/main.c:76: TAC_REG = 0x04;    // Start timer
+    00000111 3E 04            [ 8]  271 	ld	a, #0x04
+    00000113 E0r00            [12]  272 	ldh	(_TAC_REG + 0), a
+                                    273 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
+    00000115 FB               [ 4]  274 	ei
+                                    275 ;src/main.c:78: redraw = 1;
+    00000116 21r01r00         [12]  276 	ld	hl, #_redraw
+    00000119 36 01            [12]  277 	ld	(hl), #0x01
+    0000011B                        278 00116$:
+                                    279 ;src/main.c:81: wait_vbl_done();
+    0000011B CDr00r00         [24]  280 	call	_wait_vbl_done
+    0000011E C3r71r00         [16]  281 	jp	00118$
+                                    282 ;src/main.c:83: }
+    00000121 33               [ 8]  283 	inc	sp
+    00000122 33               [ 8]  284 	inc	sp
+    00000123 C9               [16]  285 	ret
+                                    286 	.area _CODE
+                                    287 	.area _INITIALIZER
+    00000000                        288 __xinit__music_ready:
+    00000000 00                     289 	.db #0x00	; 0
+    00000001                        290 __xinit__redraw:
+    00000001 01                     291 	.db #0x01	; 1
+    00000002                        292 __xinit__selected:
+    00000002 00                     293 	.db #0x00	; 0
+    00000003                        294 __xinit__current_song_bank:
+    00000003 00                     295 	.db #0x00	; 0
+    00000004                        296 __xinit__cgb_music_tick:
+    00000004 00                     297 	.db #0x00	; 0
+                                    298 	.area _CABS (ABS)

@@ -11,10 +11,14 @@ uint8_t music_ready = 0;
 uint8_t redraw = 1;
 uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
+static uint8_t cgb_music_tick = 0;
 
 // Called by the timer interrupt to update music
 void play_music_safe(void) {
   if (music_ready) {
+    // CGB double-speed makes this timer fire twice as often. Advance hUGE on
+    // alternate ticks so music retains the intended half-rate CGB cadence.
+    if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(current_song_bank);
     hUGE_dosound();

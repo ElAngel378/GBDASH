@@ -15,18 +15,20 @@ Symbol Table
     ___sdcc_bcall_ehl                                               ******** GX
     __cpu                                                           ******** GX
     __current_bank                                                  ******** GX
+  8 __xinit__cgb_music_tick                                         00000004 R
   8 __xinit__current_song_bank                                      00000003 R
   8 __xinit__music_ready                                            00000000 R
   8 __xinit__redraw                                                 00000001 R
   8 __xinit__selected                                               00000002 R
     _add_TIM                                                        ******** GX
+  3 _cgb_music_tick                                                 00000004 R
     _cpu_fast                                                       ******** GX
   3 _current_song_bank                                              00000003 GR
     _draw_menu                                                      ******** GX
     _hUGE_dosound                                                   ******** GX
     _init_music_banked                                              ******** GX
     _joypad                                                         ******** GX
-  0 _main                                                           0000001F GR
+  0 _main                                                           00000031 GR
     _menuloop                                                       ******** GX
   3 _music_ready                                                    00000000 GR
     _play_level                                                     ******** GX
@@ -48,14 +50,14 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      112   flags    0
+   0 _CODE                                      size      124   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
-   3 _INITIALIZED                               size        4   flags    0
+   3 _INITIALIZED                               size        5   flags    0
    4 _DABS                                      size        0   flags    8
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _INITIALIZER                               size        4   flags    0
+   8 _INITIALIZER                               size        5   flags    0
    9 _CABS                                      size        0   flags    8
 
