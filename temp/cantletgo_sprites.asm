@@ -53,6 +53,9 @@ ___func_cantletgo_sp::
 	.globl ___bank_cantletgo_sp 
 	.area _CODE_126
 _cantletgo_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x78	; 120	'x'
 	.dw #0x003d
 	.db #0x04	; 4
 	.db #0x0b	; 11

@@ -18,6 +18,7 @@ void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->ball_switched = 0;
     p->touching_orb = 0;
     p->level_complete = 0;
+    p->exit_timer = 0;
     p->sp_idx = 0;
 }
 

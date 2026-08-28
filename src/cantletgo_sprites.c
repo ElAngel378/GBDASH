@@ -3,8 +3,9 @@
 
 BANKREF(cantletgo_sp)
 
-// Extracted 51 objects from SP layer
+// Extracted 52 objects from SP layer
 const SpDef cantletgo_sp[] = {
+    {0, 2, 120},
     {61, 4, 11},
     {83, 0, 10},
     {88, 1, 11},

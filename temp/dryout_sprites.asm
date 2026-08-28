@@ -53,6 +53,9 @@ ___func_dryout_sp::
 	.globl ___bank_dryout_sp 
 	.area _CODE_124
 _dryout_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x7a	; 122	'z'
 	.dw #0x002e
 	.db #0x00	; 0
 	.db #0x6a	; 106	'j'

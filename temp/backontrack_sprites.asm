@@ -53,6 +53,9 @@ ___func_backontrack_sp::
 	.globl ___bank_backontrack_sp 
 	.area _CODE_128
 _backontrack_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x78	; 120	'x'
 	.dw #0x000d
 	.db #0x00	; 0
 	.db #0x0a	; 10

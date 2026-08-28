@@ -53,6 +53,9 @@ ___func_stereomadness_sp::
 	.globl ___bank_stereomadness_sp 
 	.area _CODE_121
 _stereomadness_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x75	; 117	'u'
 	.dw #0x003c
 	.db #0x01	; 1
 	.db #0x75	; 117	'u'

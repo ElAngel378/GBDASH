@@ -34,6 +34,7 @@ extern const unsigned char FontPusab[];
 #define OBJ_CUBE_PORTAL   0
 #define OBJ_SHIP_PORTAL   1
 #define OBJ_BALL_PORTAL   2
+#define OBJ_UFO_PORTAL    3
 #define OBJ_ORB_BLUE      5
 #define OBJ_ORB_PINK      6
 #define OBJ_GRAVITY_DOWN  8
@@ -507,7 +508,8 @@ static void process_sprite_logic(
                         uint8_t target_flipped = (obj >= 18);
                         if (p->gravity_flipped != target_flipped) {
                             p->gravity_flipped = target_flipped;
-                            p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                            p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity
+                            p->exit_timer = 10;
                         }
                         cache->activated[i] = 1;
                     }
@@ -518,11 +520,23 @@ static void process_sprite_logic(
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
                 case OBJ_BALL_PORTAL:
+                case OBJ_UFO_PORTAL:
                     if (py <= obj_y + 32 && p_bottom >= obj_y) {
                         if (!cache->activated[i]) {
-                            if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
-                            else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
-                            else p->mode = MODE_BALL;
+                            if (obj == OBJ_CUBE_PORTAL) {
+                                p->mode = MODE_CUBE;
+                                // FamiDash logic: maintain velocity when entering cube
+                            } else if (obj == OBJ_SHIP_PORTAL) {
+                                p->mode = MODE_SHIP;
+                                p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity
+                            } else if (obj == OBJ_BALL_PORTAL) {
+                                p->mode = MODE_BALL;
+                                p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity
+                            } else {
+                                p->mode = MODE_UFO;
+                                p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity
+                            }
+                            p->exit_timer = 10;
                             cache->activated[i] = 1;
                         }
                     }
@@ -536,6 +550,7 @@ static void process_sprite_logic(
                             if (p->gravity_flipped != target_flipped) {
                                 p->gravity_flipped = target_flipped;
                                 p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                                p->exit_timer = 10;
                             }
                             cache->activated[i] = 1;
                         }
@@ -835,6 +850,9 @@ void play_level(uint8_t idx) BANKED {
             disable_interrupts();
             setup_menu_font();
             enable_interrupts();
+            VBK_REG = 1;
+            fill_bkg_rect(0, 0, 32, 32, 0x00);
+            VBK_REG = 0;
             fill_bkg_rect(0, 0, 20, 18, 0x00);
             draw_text(3, 6, "LEVEL COMPLETE");
             draw_text(3, 12, "PRESS A TO EXIT");
@@ -927,16 +945,25 @@ void play_level(uint8_t idx) BANKED {
         died = player_update(&player, joy, collision_columns, level_map_h);
 
         py = player_screen_y(&player, cam_py);
+        int16_t target_cam_py = cam_py;
         if (py < CAM_Y_TOP_ZONE) {
-            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
-            if (target_cam_py < 0) target_cam_py = 0;
-            if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-            cam_py = (uint16_t)target_cam_py;
+            target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+        } else if (py > CAM_Y_BOTTOM_ZONE) {
+            target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
         }
-        else if (py > CAM_Y_BOTTOM_ZONE) {
-            int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
-            if (target_cam_py < 0) target_cam_py = 0;
-            if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+
+        if (target_cam_py < 0) target_cam_py = 0;
+        else if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+
+        if (player.exit_timer > 0) {
+            // FamiDash Camera Catch-up Smoothing
+            uint8_t max_move = 11 - player.exit_timer;
+            int16_t diff = target_cam_py - (int16_t)cam_py;
+            if (diff > (int16_t)max_move) diff = (int16_t)max_move;
+            else if (diff < -(int16_t)max_move) diff = -(int16_t)max_move;
+            cam_py = (uint16_t)((int16_t)cam_py + diff);
+            player.exit_timer--;
+        } else {
             cam_py = (uint16_t)target_cam_py;
         }
 

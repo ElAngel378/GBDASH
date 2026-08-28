@@ -53,6 +53,9 @@ ___func_timemachine_sp::
 	.globl ___bank_timemachine_sp 
 	.area _CODE_119
 _timemachine_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x8e	; 142
 	.dw #0x0011
 	.db #0x01	; 1
 	.db #0x8f	; 143

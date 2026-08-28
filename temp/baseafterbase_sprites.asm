@@ -53,6 +53,9 @@ ___func_baseafterbase_sp::
 	.globl ___bank_baseafterbase_sp 
 	.area _CODE_127
 _baseafterbase_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x85	; 133
 	.dw #0x004f
 	.db #0x06	; 6
 	.db #0x76	; 118	'v'

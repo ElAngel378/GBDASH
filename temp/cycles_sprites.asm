@@ -53,6 +53,9 @@ ___func_cycles_sp::
 	.globl ___bank_cycles_sp 
 	.area _CODE_125
 _cycles_sp:
+	.dw #0x0000
+	.db #0x00	; 0
+	.db #0x68	; 104	'h'
 	.dw #0x001c
 	.db #0x00	; 0
 	.db #0x0a	; 10

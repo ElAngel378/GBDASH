@@ -3,8 +3,9 @@
 
 BANKREF(cycles_sp)
 
-// Extracted 93 objects from SP layer
+// Extracted 94 objects from SP layer
 const SpDef cycles_sp[] = {
+    {0, 0, 104},
     {28, 0, 10},
     {33, 1, 11},
     {37, 3, 9},

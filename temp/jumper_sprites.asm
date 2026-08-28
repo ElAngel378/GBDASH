@@ -53,6 +53,9 @@ ___func_jumper_sp::
 	.globl ___bank_jumper_sp 
 	.area _CODE_123
 _jumper_sp:
+	.dw #0x0000
+	.db #0x02	; 2
+	.db #0x77	; 119	'w'
 	.dw #0x0031
 	.db #0x00	; 0
 	.db #0x0a	; 10
