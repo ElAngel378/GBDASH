@@ -183,7 +183,7 @@
     00000094                        183 00106$:
                                     184 ;src/main.c:58: waitpadup();
     00000094 CDr00r00         [24]  185 	call	_waitpadup
-    00000097 C3r1Br01         [16]  186 	jp	00116$
+    00000097 C3r33r01         [16]  186 	jp	00116$
     0000009A                        187 00115$:
                                     188 ;src/main.c:59: } else if (joy & J_DOWN) {
     0000009A CB 5F            [ 8]  189 	bit	3, a
@@ -224,75 +224,93 @@
     000000D0                        224 00108$:
                                     225 ;src/main.c:61: waitpadup();
     000000D0 CDr00r00         [24]  226 	call	_waitpadup
-    000000D3 18 46            [12]  227 	jr	00116$
+    000000D3 18 5E            [12]  227 	jr	00116$
     000000D5                        228 00112$:
                                     229 ;src/main.c:62: } else if (joy & J_A) {
     000000D5 CB 67            [ 8]  230 	bit	4, a
-    000000D7 28 42            [12]  231 	jr	Z, 00116$
+    000000D7 28 5A            [12]  231 	jr	Z, 00116$
                                     232 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
     000000D9 F3               [ 4]  233 	di
-                                    234 ;src/main.c:64: play_level(selected);
-    000000DA FAr02r00         [16]  235 	ld	a, (_selected)
-    000000DD F5               [16]  236 	push	af
-    000000DE 33               [ 8]  237 	inc	sp
-    000000DF 1Er00            [ 8]  238 	ld	e, #b_play_level
-    000000E1 21r00r00         [12]  239 	ld	hl, #_play_level
-    000000E4 CDr00r00         [24]  240 	call	___sdcc_bcall_ehl
-    000000E7 33               [ 8]  241 	inc	sp
-                                    242 ;src/main.c:67: music_ready = 0;
-                                    243 ;src/main.c:68: TAC_REG = 0x00;
-    000000E8 AF               [ 4]  244 	xor	a, a
-    000000E9 EAr00r00         [16]  245 	ld	(#_music_ready), a
-    000000EC E0r00            [12]  246 	ldh	(_TAC_REG + 0), a
-                                    247 ;src/main.c:69: NR52_REG = 0x00;
-    000000EE AF               [ 4]  248 	xor	a, a
-    000000EF E0r00            [12]  249 	ldh	(_NR52_REG + 0), a
-                                    250 ;src/main.c:70: NR52_REG = 0x80;
-    000000F1 3E 80            [ 8]  251 	ld	a, #0x80
-    000000F3 E0r00            [12]  252 	ldh	(_NR52_REG + 0), a
-                                    253 ;src/main.c:71: NR51_REG = 0xFF;
-    000000F5 3E FF            [ 8]  254 	ld	a, #0xff
-    000000F7 E0r00            [12]  255 	ldh	(_NR51_REG + 0), a
-                                    256 ;src/main.c:72: NR50_REG = 0x77;
-    000000F9 3E 77            [ 8]  257 	ld	a, #0x77
-    000000FB E0r00            [12]  258 	ldh	(_NR50_REG + 0), a
-                                    259 ;src/main.c:74: setup_menu_font(); // Re-setup font just in case
-    000000FD 1Er00            [ 8]  260 	ld	e, #b_setup_menu_font
-    000000FF 21r00r00         [12]  261 	ld	hl, #_setup_menu_font
-    00000102 CDr00r00         [24]  262 	call	___sdcc_bcall_ehl
-                                    263 ;src/main.c:75: init_music_banked(&menuloop, 1, 176);
-    00000105 3E B0            [ 8]  264 	ld	a, #0xb0
-    00000107 F5               [16]  265 	push	af
-    00000108 33               [ 8]  266 	inc	sp
-    00000109 3E 01            [ 8]  267 	ld	a, #0x01
-    0000010B 11r00r00         [12]  268 	ld	de, #_menuloop
-    0000010E CDr00r00         [24]  269 	call	_init_music_banked
-                                    270 ;src/main.c:76: TAC_REG = 0x04;    // Start timer
-    00000111 3E 04            [ 8]  271 	ld	a, #0x04
-    00000113 E0r00            [12]  272 	ldh	(_TAC_REG + 0), a
-                                    273 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
-    00000115 FB               [ 4]  274 	ei
-                                    275 ;src/main.c:78: redraw = 1;
-    00000116 21r01r00         [12]  276 	ld	hl, #_redraw
-    00000119 36 01            [12]  277 	ld	(hl), #0x01
-    0000011B                        278 00116$:
-                                    279 ;src/main.c:81: wait_vbl_done();
-    0000011B CDr00r00         [24]  280 	call	_wait_vbl_done
-    0000011E C3r71r00         [16]  281 	jp	00118$
-                                    282 ;src/main.c:83: }
-    00000121 33               [ 8]  283 	inc	sp
-    00000122 33               [ 8]  284 	inc	sp
-    00000123 C9               [16]  285 	ret
-                                    286 	.area _CODE
-                                    287 	.area _INITIALIZER
-    00000000                        288 __xinit__music_ready:
-    00000000 00                     289 	.db #0x00	; 0
-    00000001                        290 __xinit__redraw:
-    00000001 01                     291 	.db #0x01	; 1
-    00000002                        292 __xinit__selected:
-    00000002 00                     293 	.db #0x00	; 0
-    00000003                        294 __xinit__current_song_bank:
-    00000003 00                     295 	.db #0x00	; 0
-    00000004                        296 __xinit__cgb_music_tick:
-    00000004 00                     297 	.db #0x00	; 0
-                                    298 	.area _CABS (ABS)
+                                    234 ;src/main.c:64: music_ready = 0;
+    000000DA AF               [ 4]  235 	xor	a, a
+    000000DB EAr00r00         [16]  236 	ld	(#_music_ready),a
+                                    237 ;src/main.c:65: TAC_REG = 0x00;
+    000000DE 3E 00            [ 8]  238 	ld	a, #0x00
+    000000E0 E0r00            [12]  239 	ldh	(_TAC_REG + 0), a
+                                    240 ;src/main.c:66: NR52_REG = 0x00;
+    000000E2 3E 00            [ 8]  241 	ld	a, #0x00
+    000000E4 E0r00            [12]  242 	ldh	(_NR52_REG + 0), a
+                                    243 ;src/main.c:67: NR52_REG = 0x80;
+    000000E6 3E 80            [ 8]  244 	ld	a, #0x80
+    000000E8 E0r00            [12]  245 	ldh	(_NR52_REG + 0), a
+                                    246 ;src/main.c:68: NR51_REG = 0xFF;
+    000000EA 3E FF            [ 8]  247 	ld	a, #0xff
+    000000EC E0r00            [12]  248 	ldh	(_NR51_REG + 0), a
+                                    249 ;src/main.c:69: NR50_REG = 0x77;
+    000000EE 3E 77            [ 8]  250 	ld	a, #0x77
+    000000F0 E0r00            [12]  251 	ldh	(_NR50_REG + 0), a
+                                    252 ;src/main.c:70: play_level(selected);
+    000000F2 FAr02r00         [16]  253 	ld	a, (_selected)
+    000000F5 F5               [16]  254 	push	af
+    000000F6 33               [ 8]  255 	inc	sp
+    000000F7 1Er00            [ 8]  256 	ld	e, #b_play_level
+    000000F9 21r00r00         [12]  257 	ld	hl, #_play_level
+    000000FC CDr00r00         [24]  258 	call	___sdcc_bcall_ehl
+    000000FF 33               [ 8]  259 	inc	sp
+                                    260 ;src/main.c:73: music_ready = 0;
+                                    261 ;src/main.c:74: TAC_REG = 0x00;
+    00000100 AF               [ 4]  262 	xor	a, a
+    00000101 EAr00r00         [16]  263 	ld	(#_music_ready), a
+    00000104 E0r00            [12]  264 	ldh	(_TAC_REG + 0), a
+                                    265 ;src/main.c:75: NR52_REG = 0x00;
+    00000106 AF               [ 4]  266 	xor	a, a
+    00000107 E0r00            [12]  267 	ldh	(_NR52_REG + 0), a
+                                    268 ;src/main.c:76: NR52_REG = 0x80;
+    00000109 3E 80            [ 8]  269 	ld	a, #0x80
+    0000010B E0r00            [12]  270 	ldh	(_NR52_REG + 0), a
+                                    271 ;src/main.c:77: NR51_REG = 0xFF;
+    0000010D 3E FF            [ 8]  272 	ld	a, #0xff
+    0000010F E0r00            [12]  273 	ldh	(_NR51_REG + 0), a
+                                    274 ;src/main.c:78: NR50_REG = 0x77;
+    00000111 3E 77            [ 8]  275 	ld	a, #0x77
+    00000113 E0r00            [12]  276 	ldh	(_NR50_REG + 0), a
+                                    277 ;src/main.c:80: setup_menu_font(); // Re-setup font just in case
+    00000115 1Er00            [ 8]  278 	ld	e, #b_setup_menu_font
+    00000117 21r00r00         [12]  279 	ld	hl, #_setup_menu_font
+    0000011A CDr00r00         [24]  280 	call	___sdcc_bcall_ehl
+                                    281 ;src/main.c:81: init_music_banked(&menuloop, 1, 176);
+    0000011D 3E B0            [ 8]  282 	ld	a, #0xb0
+    0000011F F5               [16]  283 	push	af
+    00000120 33               [ 8]  284 	inc	sp
+    00000121 3E 01            [ 8]  285 	ld	a, #0x01
+    00000123 11r00r00         [12]  286 	ld	de, #_menuloop
+    00000126 CDr00r00         [24]  287 	call	_init_music_banked
+                                    288 ;src/main.c:82: TAC_REG = 0x04;    // Start timer
+    00000129 3E 04            [ 8]  289 	ld	a, #0x04
+    0000012B E0r00            [12]  290 	ldh	(_TAC_REG + 0), a
+                                    291 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
+    0000012D FB               [ 4]  292 	ei
+                                    293 ;src/main.c:84: redraw = 1;
+    0000012E 21r01r00         [12]  294 	ld	hl, #_redraw
+    00000131 36 01            [12]  295 	ld	(hl), #0x01
+    00000133                        296 00116$:
+                                    297 ;src/main.c:87: wait_vbl_done();
+    00000133 CDr00r00         [24]  298 	call	_wait_vbl_done
+    00000136 C3r71r00         [16]  299 	jp	00118$
+                                    300 ;src/main.c:89: }
+    00000139 33               [ 8]  301 	inc	sp
+    0000013A 33               [ 8]  302 	inc	sp
+    0000013B C9               [16]  303 	ret
+                                    304 	.area _CODE
+                                    305 	.area _INITIALIZER
+    00000000                        306 __xinit__music_ready:
+    00000000 00                     307 	.db #0x00	; 0
+    00000001                        308 __xinit__redraw:
+    00000001 01                     309 	.db #0x01	; 1
+    00000002                        310 __xinit__selected:
+    00000002 00                     311 	.db #0x00	; 0
+    00000003                        312 __xinit__current_song_bank:
+    00000003 00                     313 	.db #0x00	; 0
+    00000004                        314 __xinit__cgb_music_tick:
+    00000004 00                     315 	.db #0x00	; 0
+                                    316 	.area _CABS (ABS)

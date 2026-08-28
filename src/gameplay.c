@@ -557,7 +557,8 @@ static void process_sprite_logic(
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
                 case OBJ_BALL_PORTAL:
-                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                    // Expanded hitbox: 3px above, 3px below (total 38px height)
+                    if (py <= obj_y + 35 && p_bottom >= (obj_y - 3)) {
                         if (!cache->activated[i]) {
                             if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
                             else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
@@ -569,7 +570,8 @@ static void process_sprite_logic(
 
                 case OBJ_GRAVITY_DOWN:
                 case OBJ_GRAVITY_UP:
-                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                    // Expanded hitbox: 3px above, 3px below (total 38px height)
+                    if (py <= obj_y + 35 && p_bottom >= (obj_y - 3)) {
                         if (!cache->activated[i]) {
                             uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
                             if (p->gravity_flipped != target_flipped) {

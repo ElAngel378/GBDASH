@@ -231,7 +231,25 @@ _main::
 	jr	Z, 00116$
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/main.c:64: play_level(selected);
+;src/main.c:64: music_ready = 0;
+	xor	a, a
+	ld	(#_music_ready),a
+;src/main.c:65: TAC_REG = 0x00;
+	ld	a, #0x00
+	ldh	(_TAC_REG + 0), a
+;src/main.c:66: NR52_REG = 0x00;
+	ld	a, #0x00
+	ldh	(_NR52_REG + 0), a
+;src/main.c:67: NR52_REG = 0x80;
+	ld	a, #0x80
+	ldh	(_NR52_REG + 0), a
+;src/main.c:68: NR51_REG = 0xFF;
+	ld	a, #0xff
+	ldh	(_NR51_REG + 0), a
+;src/main.c:69: NR50_REG = 0x77;
+	ld	a, #0x77
+	ldh	(_NR50_REG + 0), a
+;src/main.c:70: play_level(selected);
 	ld	a, (_selected)
 	push	af
 	inc	sp
@@ -239,47 +257,47 @@ _main::
 	ld	hl, #_play_level
 	call	___sdcc_bcall_ehl
 	inc	sp
-;src/main.c:67: music_ready = 0;
-;src/main.c:68: TAC_REG = 0x00;
+;src/main.c:73: music_ready = 0;
+;src/main.c:74: TAC_REG = 0x00;
 	xor	a, a
 	ld	(#_music_ready), a
 	ldh	(_TAC_REG + 0), a
-;src/main.c:69: NR52_REG = 0x00;
+;src/main.c:75: NR52_REG = 0x00;
 	xor	a, a
 	ldh	(_NR52_REG + 0), a
-;src/main.c:70: NR52_REG = 0x80;
+;src/main.c:76: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/main.c:71: NR51_REG = 0xFF;
+;src/main.c:77: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/main.c:72: NR50_REG = 0x77;
+;src/main.c:78: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/main.c:74: setup_menu_font(); // Re-setup font just in case
+;src/main.c:80: setup_menu_font(); // Re-setup font just in case
 	ld	e, #b_setup_menu_font
 	ld	hl, #_setup_menu_font
 	call	___sdcc_bcall_ehl
-;src/main.c:75: init_music_banked(&menuloop, 1, 176);
+;src/main.c:81: init_music_banked(&menuloop, 1, 176);
 	ld	a, #0xb0
 	push	af
 	inc	sp
 	ld	a, #0x01
 	ld	de, #_menuloop
 	call	_init_music_banked
-;src/main.c:76: TAC_REG = 0x04;    // Start timer
+;src/main.c:82: TAC_REG = 0x04;    // Start timer
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/main.c:78: redraw = 1;
+;src/main.c:84: redraw = 1;
 	ld	hl, #_redraw
 	ld	(hl), #0x01
 00116$:
-;src/main.c:81: wait_vbl_done();
+;src/main.c:87: wait_vbl_done();
 	call	_wait_vbl_done
 	jp	00118$
-;src/main.c:83: }
+;src/main.c:89: }
 	inc	sp
 	inc	sp
 	ret
