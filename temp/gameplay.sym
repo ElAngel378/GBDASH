@@ -23,6 +23,7 @@ Symbol Table
     _SCX_REG                                                        ******** GX
     _SCY_REG                                                        ******** GX
     _TAC_REG                                                        ******** GX
+    _VBK_REG                                                        ******** GX
     ___bank_chr_gb                                                  ******** GX
     ___current_base_prop                                            ******** GX
     ___current_base_tile                                            ******** GX
@@ -32,11 +33,11 @@ Symbol Table
     ___move_metasprite_hvflip                                       ******** GX
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
-  8 ___str_0                                                        000015B6 R
-  8 ___str_1                                                        000015C8 R
-  8 ___str_2                                                        000015CA R
-  8 ___str_3                                                        00002384 R
-  8 ___str_4                                                        00002393 R
+  8 ___str_0                                                        000015CE R
+  8 ___str_1                                                        000015E0 R
+  8 ___str_2                                                        000015E2 R
+  8 ___str_3                                                        0000239C R
+  8 ___str_4                                                        000023AB R
     __cpu                                                           ******** GX
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
@@ -45,7 +46,7 @@ Symbol Table
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
   8 _draw_menu                                                      00001518 GR
-  8 _draw_menu_menu_pal_30000_379                                   000015AE R
+  8 _draw_menu_menu_pal_30000_379                                   000015C6 R
     _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   0000039F R
   8 _draw_oam_2x2                                                   00000475 R
@@ -57,12 +58,12 @@ Symbol Table
   8 _famidash_apply_bg_trigger_hues_10000_212                       00000156 R
   2 _famidash_bg_palettes                                           00000000 R
   8 _famidash_darker                                                00000000 R
-  8 _famidash_default_bg_palettes                                   00000099 R
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+  8 _famidash_default_bg_palettes                                   00000099 R
   8 _famidash_reset_bg_palettes                                     000000B9 R
     _famidash_sprite_table                                          ******** GX
     _famidash_sprites_tiles                                         ******** GX
@@ -80,7 +81,7 @@ Symbol Table
     _load_bkg_tileset                                               ******** GX
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
-  8 _play_level                                                     000015D5 GR
+  8 _play_level                                                     000015ED GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -107,7 +108,6 @@ Symbol Table
     b_play_level                                                =   0000000A G
     b_setup_menu_font                                           =   0000000A G
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 3
 Hexadecimal [32-Bits]
 
@@ -121,7 +121,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     23A3   flags    0
+   8 _CODE_10                                   size     23BB   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

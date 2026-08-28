@@ -722,6 +722,12 @@ void draw_menu(void) BANKED {
             RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
         };
         set_bkg_palette(0, 1, menu_pal);
+
+        // RESET ATTRIBUTES: Clear level attributes (Palettes 1-7, VRAM Bank 1, flips)
+        // so the menu text uses Palette 0 and VRAM Bank 0.
+        VBK_REG = 1;
+        fill_bkg_rect(0, 0, 32, 32, 0x00);
+        VBK_REG = 0;
     }
     BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
     fill_bkg_rect(0, 0, 20, 18, 0x00);
