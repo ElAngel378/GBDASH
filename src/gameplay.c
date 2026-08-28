@@ -175,8 +175,8 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
 }
 
 static const uint16_t gbc_sprite_palettes[] = {
-    // 0: Player Blue
-    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 120, 255), RGB8(0, 0, 0),
+    // 0: Player Blue and Green
+    RGB8(255, 255, 255), RGB8(0, 120, 255), RGB8(0, 255, 0), RGB8(0, 0, 0),
     // 1: Cube Green
     RGB8(255, 255, 255), RGB8(0, 255, 0), RGB8(0, 160, 0), RGB8(0, 0, 0),
     // 2: Normal Gravity Teal

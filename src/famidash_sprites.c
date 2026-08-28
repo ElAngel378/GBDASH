@@ -11,6 +11,10 @@ INCBIN_EXTERN(famidash_sprites_tiles)
 
 #define P0 S_PAL(0)
 #define P1 S_PAL(1)
+#define P2 S_PAL(2)
+#define P3 S_PAL(3)
+#define P4 S_PAL(4)
+#define P5 S_PAL(5)
 #define PT_41 0
 #define PT_43 2
 #define PT_45 4
@@ -38,23 +42,23 @@ INCBIN_EXTERN(famidash_sprites_tiles)
 // 3 columns wide (24px) x 3 rows tall.
 // Carriage return goes down 16 (dy=16) and back left 16 (dx=-16) to hit column 1.
         const metasprite_t famidash_cube_portal[] = {
-                METASPR_ITEM(0, 0, PT_41, P0),   METASPR_ITEM(0, 8, PT_43, P0),   METASPR_ITEM(0, 8, PT_45, P0),
-                METASPR_ITEM(16, -16, PT_47, P0), METASPR_ITEM(0, 8, PT_49, P0),   METASPR_ITEM(0, 8, PT_4B, P0),
-                METASPR_ITEM(16, -16, PT_41, P0 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P0 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P0 | S_FLIPY),
+                METASPR_ITEM(0, 0, PT_41, P1),   METASPR_ITEM(0, 8, PT_43, P1),   METASPR_ITEM(0, 8, PT_45, P1),
+                METASPR_ITEM(16, -16, PT_47, P1), METASPR_ITEM(0, 8, PT_49, P1),   METASPR_ITEM(0, 8, PT_4B, P1),
+                METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
                 METASPR_TERM
         };
 
         const metasprite_t famidash_ship_portal[] = {
-                METASPR_ITEM(0, 0, PT_41, P1),   METASPR_ITEM(0, 8, PT_43, P1),   METASPR_ITEM(0, 8, PT_45, P1),
-                METASPR_ITEM(16, -16, PT_47, P1), METASPR_ITEM(0, 8, PT_49, P1),   METASPR_ITEM(0, 8, PT_4B, P1),
-                METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
+                METASPR_ITEM(0, 0, PT_41, P4),   METASPR_ITEM(0, 8, PT_43, P4),   METASPR_ITEM(0, 8, PT_45, P4),
+                METASPR_ITEM(16, -16, PT_47, P4), METASPR_ITEM(0, 8, PT_49, P4),   METASPR_ITEM(0, 8, PT_4B, P4),
+                METASPR_ITEM(16, -16, PT_41, P4 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P4 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P4 | S_FLIPY),
                 METASPR_TERM
         };
 
         const metasprite_t famidash_ball_portal[] = {
-                METASPR_ITEM(0, 0, PT_41, P1),   METASPR_ITEM(0, 8, PT_43, P1),   METASPR_ITEM(0, 8, PT_45, P1),
-                METASPR_ITEM(16, -16, PT_47, P1), METASPR_ITEM(0, 8, PT_49, P1),   METASPR_ITEM(0, 8, PT_4B, P1),
-                METASPR_ITEM(16, -16, PT_41, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P1 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P1 | S_FLIPY),
+                METASPR_ITEM(0, 0, PT_41, P5),   METASPR_ITEM(0, 8, PT_43, P5),   METASPR_ITEM(0, 8, PT_45, P5),
+                METASPR_ITEM(16, -16, PT_47, P5), METASPR_ITEM(0, 8, PT_49, P5),   METASPR_ITEM(0, 8, PT_4B, P5),
+                METASPR_ITEM(16, -16, PT_41, P5 | S_FLIPY), METASPR_ITEM(0, 8, PT_43, P5 | S_FLIPY), METASPR_ITEM(0, 8, PT_45, P5 | S_FLIPY),
                 METASPR_TERM
         };
 
@@ -67,10 +71,10 @@ const metasprite_t name[] = { \
     METASPR_TERM \
 }
 
-        HORIZ_PORTAL(famidash_portal_dn_horiz_dn, P0, 0);
-        HORIZ_PORTAL(famidash_portal_dn_horiz_up, P0, S_FLIPY);
-        HORIZ_PORTAL(famidash_portal_up_horiz_dn, P1, 0);
-        HORIZ_PORTAL(famidash_portal_up_horiz_up, P1, S_FLIPY);
+        HORIZ_PORTAL(famidash_portal_dn_horiz_dn, P2, 0);
+        HORIZ_PORTAL(famidash_portal_dn_horiz_up, P2, S_FLIPY);
+        HORIZ_PORTAL(famidash_portal_up_horiz_dn, P3, 0);
+        HORIZ_PORTAL(famidash_portal_up_horiz_up, P3, S_FLIPY);
 
 // 2 columns wide (16px) x 3 rows tall.
 // Carriage return goes down 16 (dy=16) and back left 8 (dx=-8) to hit column 1.
@@ -82,8 +86,8 @@ const metasprite_t name[] = { \
     METASPR_TERM \
 }
 
-        VERTICAL_PORTAL(famidash_gravity_down, P0);
-        VERTICAL_PORTAL(famidash_gravity_up, P1);
+        VERTICAL_PORTAL(famidash_gravity_down, P2);
+        VERTICAL_PORTAL(famidash_gravity_up, P3);
 
 // Redefined to apply props to BOTH tiles uniformly, and not force S_FLIPX.
 // Redefined to allow independent properties for the left and right tiles
