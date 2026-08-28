@@ -175,18 +175,18 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
 }
 
 static const uint16_t gbc_sprite_palettes[] = {
-    // 0: Player Blue and Green
-    RGB8(255, 255, 255), RGB8(0, 120, 255), RGB8(0, 255, 0), RGB8(0, 0, 0),
-    // 1: Cube Green
-    RGB8(255, 255, 255), RGB8(0, 255, 0), RGB8(0, 160, 0), RGB8(0, 0, 0),
-    // 2: Normal Gravity Teal
-    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 160, 160), RGB8(0, 0, 0),
-    // 3: Inverted Gravity Yellow
-    RGB8(255, 255, 255), RGB8(255, 255, 0), RGB8(200, 200, 0), RGB8(0, 0, 0),
-    // 4: Ship Pink
-    RGB8(255, 255, 255), RGB8(255, 100, 255), RGB8(200, 50, 200), RGB8(0, 0, 0),
-    // 5: Ball Red
-    RGB8(255, 255, 255), RGB8(255, 0, 0), RGB8(160, 0, 0), RGB8(0, 0, 0)
+    // 0: Player (Outline: Black, Primary: Blue, Secondary: Green)
+    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 255, 0), RGB8(0, 0, 0),
+    // 1: Cube (Outline: Black, Primary: Green, Secondary: Green)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 255, 0), RGB8(0, 255, 0),
+    // 2: Normal Gravity (Outline: Black, Primary: Teal, Secondary: Teal)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 255, 255), RGB8(0, 255, 255),
+    // 3: Inverted Gravity (Outline: Black, Primary: Yellow, Secondary: Yellow)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 255, 0), RGB8(255, 255, 0),
+    // 4: Ship (Outline: Black, Primary: Pink, Secondary: Pink)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 100, 255), RGB8(255, 100, 255),
+    // 5: Ball (Outline: Black, Primary: Red, Secondary: Red)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 0, 0), RGB8(255, 0, 0)
 };
 
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
