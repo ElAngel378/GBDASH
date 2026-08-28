@@ -61,9 +61,8 @@ extern const unsigned char FontPusab[];
 #define BG_TRIGGER_LEAD_TILES 11
 #define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
 
-// Index (0-47) of the default "light gray" theme in gbc_bg_palettes:
-// bottom row (light), column 0 (gray). This is the GBC equivalent of the
-// DMG boot state bg_pals[0] (0xE4) used at level start and after death.
+// Index (0-3) of the default theme in bg_pals:
+// bottom row (light), column 0 (gray). This is used at level start and after death.
 extern uint8_t music_ready;
 
 static const uint8_t level_sprite_cost_table[38] = {
@@ -72,61 +71,61 @@ static const uint8_t level_sprite_cost_table[38] = {
     2
 };
 
-static const uint16_t gbc_bg_palettes[] = {
-    // --- ROW 0: DARK GRADIENTS (Triggers 100-115) ---
-    RGB8(0,0,0), RGB8(20,20,20), RGB8(40,40,40), RGB8(80,80,80),        // 0: Gray
-    RGB8(0,0,20), RGB8(0,10,40), RGB8(0,20,80), RGB8(0,40,120),        // 1: Deep Blue
-    RGB8(0,10,20), RGB8(0,30,60), RGB8(0,50,100), RGB8(20,80,150),      // 2: Blue
-    RGB8(10,0,30), RGB8(20,10,60), RGB8(40,20,100), RGB8(60,40,150),    // 3: Indigo
-    RGB8(20,0,40), RGB8(40,10,80), RGB8(60,20,120), RGB8(80,40,160),    // 4: Purple
-    RGB8(30,0,30), RGB8(60,10,60), RGB8(100,20,100), RGB8(150,40,150),  // 5: Magenta
-    RGB8(40,0,20), RGB8(80,10,40), RGB8(120,20,60), RGB8(180,40,80),    // 6: Pink
-    RGB8(40,0,0), RGB8(80,10,10), RGB8(120,20,20), RGB8(180,40,40),     // 7: Red
-    RGB8(40,20,0), RGB8(80,40,10), RGB8(120,60,20), RGB8(180,90,40),    // 8: Orange
-    RGB8(40,40,0), RGB8(80,80,10), RGB8(120,120,20), RGB8(180,180,40),  // 9: Yellow
-    RGB8(20,40,0), RGB8(40,80,10), RGB8(60,120,20), RGB8(80,180,40),    // 10: Lime
-    RGB8(0,40,0), RGB8(10,80,10), RGB8(20,120,20), RGB8(40,180,40),     // 11: Green
-    RGB8(0,40,30), RGB8(10,80,60), RGB8(20,120,100), RGB8(40,180,150),  // 12: Teal
-    RGB8(0,20,40), RGB8(10,40,80), RGB8(20,60,120), RGB8(40,80,180),    // 13: Navy
-    RGB8(80,80,80), RGB8(120,120,120), RGB8(180,180,180), RGB8(255,255,255), // 14: White
-    RGB8(0,0,0), RGB8(0,0,0), RGB8(0,0,0), RGB8(0,0,0),                 // 15: Black
-
-    // --- ROW 1: MEDIUM GRADIENTS (Triggers 116-131) ---
-    RGB8(20,20,20), RGB8(80,80,80), RGB8(150,150,150), RGB8(200,200,200), // 0: Gray
-    RGB8(0,20,60), RGB8(0,60,150), RGB8(20,100,220), RGB8(80,160,255),    // 1: Blue
-    RGB8(0,40,80), RGB8(20,100,180), RGB8(60,150,230), RGB8(120,200,255),  // 2: Sky
-    RGB8(30,10,80), RGB8(60,40,180), RGB8(100,80,255), RGB8(160,150,255),  // 3: Indigo
-    RGB8(50,10,100), RGB8(90,40,180), RGB8(140,80,255), RGB8(190,140,255), // 4: Purple
-    RGB8(80,10,80), RGB8(150,40,150), RGB8(220,80,220), RGB8(255,140,255), // 5: Magenta
-    RGB8(100,10,50), RGB8(180,40,100), RGB8(255,80,150), RGB8(255,150,200),// 6: Pink
-    RGB8(100,10,10), RGB8(180,40,40), RGB8(255,80,80), RGB8(255,150,150),  // 7: Red
-    RGB8(100,50,10), RGB8(180,100,40), RGB8(255,150,80), RGB8(255,200,150),// 8: Orange
-    RGB8(100,100,10), RGB8(180,180,40), RGB8(255,255,80), RGB8(255,255,180),// 9: Yellow
-    RGB8(50,100,10), RGB8(100,180,40), RGB8(150,255,80), RGB8(200,255,150),// 10: Lime
-    RGB8(10,100,10), RGB8(40,180,40), RGB8(80,255,80), RGB8(150,255,150),  // 11: Green
-    RGB8(10,100,80), RGB8(40,180,150), RGB8(80,255,220), RGB8(150,255,255),// 12: Teal
-    RGB8(10,40,100), RGB8(40,80,180), RGB8(80,120,255), RGB8(150,180,255), // 13: Navy
-    RGB8(150,150,150), RGB8(200,200,200), RGB8(255,255,255), RGB8(255,255,255), // 14: White
-    RGB8(20,20,20), RGB8(10,10,10), RGB8(5,5,5), RGB8(0,0,0),              // 15: Black
-
-    // --- ROW 2: LIGHT GRADIENTS (Triggers 132-147) ---
-    RGB8(100,100,100), RGB8(180,180,180), RGB8(230,230,230), RGB8(255,255,255), // 0: Gray
-    RGB8(40,80,180), RGB8(100,140,255), RGB8(160,200,255), RGB8(220,240,255),   // 1: Blue
-    RGB8(60,120,200), RGB8(120,180,255), RGB8(180,220,255), RGB8(230,250,255),  // 2: Sky
-    RGB8(100,80,200), RGB8(160,140,255), RGB8(200,180,255), RGB8(240,220,255),  // 3: Indigo
-    RGB8(140,80,220), RGB8(180,140,255), RGB8(220,180,255), RGB8(255,220,255),  // 4: Purple
-    RGB8(180,80,180), RGB8(220,140,220), RGB8(255,180,255), RGB8(255,230,255),  // 5: Magenta
-    RGB8(200,80,140), RGB8(255,140,180), RGB8(255,190,220), RGB8(255,240,250),  // 6: Pink
-    RGB8(200,80,80), RGB8(255,140,140), RGB8(255,190,190), RGB8(255,240,240),   // 7: Red
-    RGB8(200,120,80), RGB8(255,180,140), RGB8(255,220,190), RGB8(255,250,240),  // 8: Orange
-    RGB8(200,200,80), RGB8(255,255,140), RGB8(255,255,190), RGB8(255,255,240),  // 9: Yellow
-    RGB8(140,200,80), RGB8(190,255,140), RGB8(220,255,190), RGB8(250,255,240),  // 10: Lime
-    RGB8(80,200,80), RGB8(140,255,140), RGB8(190,255,190), RGB8(240,255,240),   // 11: Green
-    RGB8(80,200,180), RGB8(140,255,230), RGB8(190,255,245), RGB8(240,255,250),  // 12: Teal
-    RGB8(80,120,200), RGB8(140,180,255), RGB8(190,220,255), RGB8(240,240,255),  // 13: Navy
-    RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), // 14: White
-    RGB8(50,50,50), RGB8(30,30,30), RGB8(10,10,10), RGB8(0,0,0)                 // 15: Black
-};
+//static const uint16_t gbc_bg_palettes[] = {
+//    // --- ROW 0: DARK GRADIENTS (Triggers 100-115) ---
+//    RGB8(0,0,0), RGB8(20,20,20), RGB8(40,40,40), RGB8(80,80,80),        // 0: Gray
+//    RGB8(0,0,20), RGB8(0,10,40), RGB8(0,20,80), RGB8(0,40,120),        // 1: Deep Blue
+//    RGB8(0,10,20), RGB8(0,30,60), RGB8(0,50,100), RGB8(20,80,150),      // 2: Blue
+//    RGB8(10,0,30), RGB8(20,10,60), RGB8(40,20,100), RGB8(60,40,150),    // 3: Indigo
+//    RGB8(20,0,40), RGB8(40,10,80), RGB8(60,20,120), RGB8(80,40,160),    // 4: Purple
+//    RGB8(30,0,30), RGB8(60,10,60), RGB8(100,20,100), RGB8(150,40,150),  // 5: Magenta
+//    RGB8(40,0,20), RGB8(80,10,40), RGB8(120,20,60), RGB8(180,40,80),    // 6: Pink
+//    RGB8(40,0,0), RGB8(80,10,10), RGB8(120,20,20), RGB8(180,40,40),     // 7: Red
+//    RGB8(40,20,0), RGB8(80,40,10), RGB8(120,60,20), RGB8(180,90,40),    // 8: Orange
+//    RGB8(40,40,0), RGB8(80,80,10), RGB8(120,120,20), RGB8(180,180,40),  // 9: Yellow
+//    RGB8(20,40,0), RGB8(40,80,10), RGB8(60,120,20), RGB8(80,180,40),    // 10: Lime
+//    RGB8(0,40,0), RGB8(10,80,10), RGB8(20,120,20), RGB8(40,180,40),     // 11: Green
+//    RGB8(0,40,30), RGB8(10,80,60), RGB8(20,120,100), RGB8(40,180,150),  // 12: Teal
+//    RGB8(0,20,40), RGB8(10,40,80), RGB8(20,60,120), RGB8(40,80,180),    // 13: Navy
+//    RGB8(80,80,80), RGB8(120,120,120), RGB8(180,180,180), RGB8(255,255,255), // 14: White
+//    RGB8(0,0,0), RGB8(0,0,0), RGB8(0,0,0), RGB8(0,0,0),                 // 15: Black
+//
+//    // --- ROW 1: MEDIUM GRADIENTS (Triggers 116-131) ---
+//    RGB8(20,20,20), RGB8(80,80,80), RGB8(150,150,150), RGB8(200,200,200), // 0: Gray
+//    RGB8(0,20,60), RGB8(0,60,150), RGB8(20,100,220), RGB8(80,160,255),    // 1: Blue
+//    RGB8(0,40,80), RGB8(20,100,180), RGB8(60,150,230), RGB8(120,200,255),  // 2: Sky
+//    RGB8(30,10,80), RGB8(60,40,180), RGB8(100,80,255), RGB8(160,150,255),  // 3: Indigo
+//    RGB8(50,10,100), RGB8(90,40,180), RGB8(140,80,255), RGB8(190,140,255), // 4: Purple
+//    RGB8(80,10,80), RGB8(150,40,150), RGB8(220,80,220), RGB8(255,140,255), // 5: Magenta
+//    RGB8(100,10,50), RGB8(180,40,100), RGB8(255,80,150), RGB8(255,150,200),// 6: Pink
+//    RGB8(100,10,10), RGB8(180,40,40), RGB8(255,80,80), RGB8(255,150,150),  // 7: Red
+//    RGB8(100,50,10), RGB8(180,100,40), RGB8(255,150,80), RGB8(255,200,150),// 8: Orange
+//    RGB8(100,100,10), RGB8(180,180,40), RGB8(255,255,80), RGB8(255,255,180),// 9: Yellow
+//    RGB8(50,100,10), RGB8(100,180,40), RGB8(150,255,80), RGB8(200,255,150),// 10: Lime
+//    RGB8(10,100,10), RGB8(40,180,40), RGB8(80,255,80), RGB8(150,255,150),  // 11: Green
+//    RGB8(10,100,80), RGB8(40,180,150), RGB8(80,255,220), RGB8(150,255,255),// 12: Teal
+//    RGB8(10,40,100), RGB8(40,80,180), RGB8(80,120,255), RGB8(150,180,255), // 13: Navy
+//    RGB8(150,150,150), RGB8(200,200,200), RGB8(255,255,255), RGB8(255,255,255), // 14: White
+//    RGB8(20,20,20), RGB8(10,10,10), RGB8(5,5,5), RGB8(0,0,0),              // 15: Black
+//
+//    // --- ROW 2: LIGHT GRADIENTS (Triggers 132-147) ---
+//    RGB8(100,100,100), RGB8(180,180,180), RGB8(230,230,230), RGB8(255,255,255), // 0: Gray
+//    RGB8(40,80,180), RGB8(100,140,255), RGB8(160,200,255), RGB8(220,240,255),   // 1: Blue
+//    RGB8(60,120,200), RGB8(120,180,255), RGB8(180,220,255), RGB8(230,250,255),  // 2: Sky
+//    RGB8(100,80,200), RGB8(160,140,255), RGB8(200,180,255), RGB8(240,220,255),  // 3: Indigo
+//    RGB8(140,80,220), RGB8(180,140,255), RGB8(220,180,255), RGB8(255,220,255),  // 4: Purple
+//    RGB8(180,80,180), RGB8(220,140,220), RGB8(255,180,255), RGB8(255,230,255),  // 5: Magenta
+//    RGB8(200,80,140), RGB8(255,140,180), RGB8(255,190,220), RGB8(255,240,250),  // 6: Pink
+//    RGB8(200,80,80), RGB8(255,140,140), RGB8(255,190,190), RGB8(255,240,240),   // 7: Red
+//    RGB8(200,120,80), RGB8(255,180,140), RGB8(255,220,190), RGB8(255,250,240),  // 8: Orange
+//    RGB8(200,200,80), RGB8(255,255,140), RGB8(255,255,190), RGB8(255,255,240),  // 9: Yellow
+//    RGB8(140,200,80), RGB8(190,255,140), RGB8(220,255,190), RGB8(250,255,240),  // 10: Lime
+//    RGB8(80,200,80), RGB8(140,255,140), RGB8(190,255,190), RGB8(240,255,240),   // 11: Green
+//    RGB8(80,200,180), RGB8(140,255,230), RGB8(190,255,245), RGB8(240,255,250),  // 12: Teal
+//    RGB8(80,120,200), RGB8(140,180,255), RGB8(190,220,255), RGB8(240,240,255),  // 13: Navy
+//    RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), // 14: White
+//    RGB8(50,50,50), RGB8(30,30,30), RGB8(10,10,10), RGB8(0,0,0)                 // 15: Black
+//};
 
 /* FamiDash's paletteDefault: level, ground, decorations and text. */
 static const palette_color_t famidash_default_bg_palettes[16] = {
@@ -176,10 +175,18 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
 }
 
 static const uint16_t gbc_sprite_palettes[] = {
-    // Player Palette (Teal)
-    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 150, 255), RGB8(0, 0, 0),
-    // Secondary Palette (Pink?)
-    RGB8(255, 255, 255), RGB8(255, 100, 255), RGB8(200, 50, 200), RGB8(0, 0, 0)
+    // 0: Player Blue
+    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 120, 255), RGB8(0, 0, 0),
+    // 1: Cube Green
+    RGB8(255, 255, 255), RGB8(0, 255, 0), RGB8(0, 160, 0), RGB8(0, 0, 0),
+    // 2: Normal Gravity Teal
+    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 160, 160), RGB8(0, 0, 0),
+    // 3: Inverted Gravity Yellow
+    RGB8(255, 255, 255), RGB8(255, 255, 0), RGB8(200, 200, 0), RGB8(0, 0, 0),
+    // 4: Ship Pink
+    RGB8(255, 255, 255), RGB8(255, 100, 255), RGB8(200, 50, 200), RGB8(0, 0, 0),
+    // 5: Ball Red
+    RGB8(255, 255, 255), RGB8(255, 0, 0), RGB8(160, 0, 0), RGB8(0, 0, 0)
 };
 
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
@@ -794,11 +801,10 @@ void play_level(uint8_t idx) BANKED {
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
     if (_cpu == CGB_TYPE) {
-        // Boot on the default LIGHT gray theme so GBC matches the DMG boot
-        // state (bg_pals[0] = 0xE4). gbc_bg_palettes[0] is the DARK theme
-        // and would start the level nearly black.
+        // Boot on the default FamiDash theme so GBC matches the DMG boot
+        // state (bg_pals[0] = 0xE4).
         famidash_reset_bg_palettes();
-        set_sprite_palette(0, 2, gbc_sprite_palettes);
+        set_sprite_palette(0, 6, gbc_sprite_palettes);
     }
 
     BGP_REG = bg_pals[0];
