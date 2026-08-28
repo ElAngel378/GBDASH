@@ -902,6 +902,11 @@ void play_level(uint8_t idx) BANKED {
                     draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
                 }
             }
+            // Reinit sprites
+            set_sprite_data(0, 8, icon1_tiles);
+            set_sprite_data(8, 4, ship_tiles);
+            set_sprite_data(12, 4, ball_tiles);
+            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
             enable_interrupts();
             // Reset loaded_r to match the last column we just drew
             loaded_r = start_col + 15;
@@ -1020,8 +1025,7 @@ void play_level(uint8_t idx) BANKED {
             // player/ship/ball tiles (0-15).
             load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 
-            // Re-upload ALL sprite tiles afterwards or portals render corrupted
-            // on the next attempt.
+            // Re-upload ALL sprite tiles afterwards or portals render corrupted on the next attempt.
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 4, ball_tiles);
