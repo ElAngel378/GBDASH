@@ -21,9 +21,9 @@ Symbol Table
   0 _draw_mt_column                                                 000001EC GR
     _famidash_metatile_collision                                    ******** GX
     _famidash_metatile_palettes                                     ******** GX
-  0 _fill_scroll_bg                                                 0000033C GR
+  0 _fill_scroll_bg                                                 0000035A GR
     _hUGE_init                                                      ******** GX
-  0 _init_music_banked                                              0000038C GR
+  0 _init_music_banked                                              000003AA GR
   0 _load_bkg_tileset                                               000000EE GR
   0 _load_collision_columns                                         0000013C GR
   2 _metatile_column_attributes                                     00000041 R
@@ -41,7 +41,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      3BA   flags    0
+   0 _CODE                                      size      3D8   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size       81   flags    0
    3 _INITIALIZED                               size        0   flags    0

@@ -119,21 +119,27 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
   SWITCH_ROM(map_bank);
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
+  // DMG Optimization: Select table once per column instead of 16 times
+  const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
 
     for (uint8_t r = 0; r < BKG_MT_H; r++) {
         uint8_t metatile_id = *map_ptr++;
-        const uint8_t *tiles = reversed ? metatiles_rev[metatile_id] : metatiles[metatile_id];
+        const uint8_t *tiles = mt_table[metatile_id];
         uint8_t offset = r << 2;
-        uint8_t palette = famidash_metatile_palettes[metatile_id];
 
         metatile_column_tiles[offset] = tiles[0];
         metatile_column_tiles[offset + 1] = tiles[1];
         metatile_column_tiles[offset + 2] = tiles[2];
         metatile_column_tiles[offset + 3] = tiles[3];
-        metatile_column_attributes[offset] = palette;
-        metatile_column_attributes[offset + 1] = palette;
-        metatile_column_attributes[offset + 2] = palette;
-        metatile_column_attributes[offset + 3] = palette;
+
+        // DMG Optimization: Completely skip attributes if not on GBC
+        if (_cpu == CGB_TYPE) {
+            uint8_t palette = famidash_metatile_palettes[metatile_id];
+            metatile_column_attributes[offset] = palette;
+            metatile_column_attributes[offset + 1] = palette;
+            metatile_column_attributes[offset + 2] = palette;
+            metatile_column_attributes[offset + 3] = palette;
+        }
     }
 
   SWITCH_ROM(_prev);
