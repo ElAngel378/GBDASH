@@ -28,7 +28,6 @@
 #define MODE_CUBE         0
 #define MODE_SHIP         1
 #define MODE_BALL         2
-#define MODE_UFO          3
 
 #define SHIP_THRUST       -42   // Famidash 0x002A (60fps)
 #define SHIP_GRAVITY       34   // Famidash 0x0022 (60fps)
@@ -78,7 +77,6 @@ typedef struct Player {
     uint8_t  touching_orb;
     uint8_t  level_complete;
     uint16_t level_end_x;
-    uint8_t  exit_timer;
     uint16_t sp_idx;
 } Player;
 
