@@ -845,9 +845,9 @@ void play_level(uint8_t idx) BANKED {
     }
 
     BGP_REG = bg_pals[0];
-    OBP0_REG = 0xE4;
+    OBP0_REG = bg_pals[0];
     SPRITES_8x16;
-    OBP1_REG = 0xE4;
+    OBP1_REG = bg_pals[0];
     SHOW_BKG;
     SHOW_SPRITES;
     DISPLAY_ON;
@@ -996,6 +996,8 @@ void play_level(uint8_t idx) BANKED {
 
         wait_vbl_done();
         BGP_REG = bg_pals[target_bg_idx];
+        OBP0_REG = bg_pals[target_bg_idx];
+        OBP1_REG = bg_pals[target_bg_idx];
         move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
         if (needs_render) {
