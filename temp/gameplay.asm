@@ -7,6 +7,7 @@
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
+	.globl _get_nes_color
 	.globl _hide_sprites_range
 	.globl _sp_cache_load
 	.globl _player_screen_y
@@ -69,13 +70,13 @@ _famidash_bg_palettes:
 ; code
 ;--------------------------------------------------------
 	.area _CODE_10
-;src/gameplay.c:139: static palette_color_t famidash_darker(palette_color_t color) {
+;src/gameplay.c:133: static palette_color_t famidash_darker(palette_color_t color) {
 ;	---------------------------------
 ; Function famidash_darker
 ; ---------------------------------
 _famidash_darker:
 	push	de
-;src/gameplay.c:140: return RGB((color & 0x1Fu) * 3u / 4u,
+;src/gameplay.c:134: return RGB((color & 0x1Fu) * 3u / 4u,
 	ldhl	sp,	#1
 	ld	a, (hl)
 	rrca
@@ -152,7 +153,7 @@ _famidash_darker:
 	and	a, #0x1f
 	or	a, c
 	ld	c, a
-;src/gameplay.c:143: }
+;src/gameplay.c:137: }
 	inc	sp
 	inc	sp
 	ret
@@ -195,30 +196,13 @@ _level_sprite_cost_table:
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x02	; 2
-_famidash_default_bg_palettes:
-	.dw #0x4c60
-	.dw #0x4c60
-	.dw #0x0000
-	.dw #0x7fff
-	.dw #0x318c
-	.dw #0x4c60
-	.dw #0x4c60
-	.dw #0x7fff
-	.dw #0x318c
-	.dw #0x4c60
-	.dw #0x0000
-	.dw #0x1328
-	.dw #0x4c60
-	.dw #0x4c60
-	.dw #0x0000
-	.dw #0x0000
-;src/gameplay.c:145: static void famidash_reset_bg_palettes(void) {
+;src/gameplay.c:139: static void famidash_reset_bg_palettes(void) {
 ;	---------------------------------
 ; Function famidash_reset_bg_palettes
 ; ---------------------------------
 _famidash_reset_bg_palettes:
 	dec	sp
-;src/gameplay.c:147: for (i = 0; i != 16; i++) famidash_bg_palettes[i] = famidash_default_bg_palettes[i];
+;src/gameplay.c:141: for (i = 0; i != 16; i++) famidash_bg_palettes[i] = paletteDefault[i];
 	ldhl	sp,	#0
 	ld	(hl), #0x00
 00102$:
@@ -232,7 +216,7 @@ _famidash_reset_bg_palettes:
 	add	hl, de
 	ld	c, l
 	ld	b, h
-	ld	hl, #_famidash_default_bg_palettes
+	ld	hl, #_paletteDefault
 	add	hl, de
 	ld	a,	(hl+)
 	ld	h, (hl)
@@ -245,126 +229,98 @@ _famidash_reset_bg_palettes:
 	ld	a, (hl)
 	sub	a, #0x10
 	jr	NZ, 00102$
-;src/gameplay.c:148: set_bkg_palette(0, 4, famidash_bg_palettes);
+;src/gameplay.c:142: set_bkg_palette(0, 4, famidash_bg_palettes);
 	ld	de, #_famidash_bg_palettes
 	push	de
 	ld	hl, #0x400
 	push	hl
 	call	_set_bkg_palette
-;src/gameplay.c:149: }
+;src/gameplay.c:143: }
 	add	sp, #5
 	ret
-;src/gameplay.c:151: static void famidash_apply_bg_trigger(uint8_t color_id) {
+;src/gameplay.c:145: static void famidash_apply_bg_trigger(uint8_t color_id) {
 ;	---------------------------------
 ; Function famidash_apply_bg_trigger
 ; ---------------------------------
 _famidash_apply_bg_trigger:
-;src/gameplay.c:160: if (color_id == 31u) color = RGB8(0, 240, 255); /* FamiDash $9F */
-	ld	c, a
-	sub	a, #0x1f
+;src/gameplay.c:148: if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Use Aqua as default player color */
+	cp	a, #0x1f
 	jr	NZ, 00105$
-	ld	bc, #0x7fc0
+	ld	bc, #0x6fa0
 	jr	00106$
 00105$:
-;src/gameplay.c:161: else if (color_id == 46u) {                       /* FamiDash $AE */
-	ld	a, c
-	sub	a, #0x2e
+;src/gameplay.c:149: else if (color_id == 46u) {                       /* FamiDash $AE: Ground Color 2 Trigger */
+	cp	a, #0x2e
 	jr	NZ, 00102$
-;src/gameplay.c:163: famidash_bg_palettes[6] = color;
+;src/gameplay.c:151: famidash_bg_palettes[6] = color;
 	ld	hl, #(_famidash_bg_palettes + 12)
-	ld	a, #0xe0
+	ld	a, #0x80
 	ld	(hl+), a
-;src/gameplay.c:164: famidash_bg_palettes[5] = famidash_darker(color);
-	ld	de, #0x03e0
+;src/gameplay.c:152: famidash_bg_palettes[5] = famidash_darker(color);
+	ld	de, #0x0380
 	ld	(hl), d
 	call	_famidash_darker
 	ld	hl, #(_famidash_bg_palettes + 10)
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:165: set_bkg_palette(0, 4, famidash_bg_palettes);
+;src/gameplay.c:153: set_bkg_palette(0, 4, famidash_bg_palettes);
 	ld	de, #_famidash_bg_palettes
 	push	de
 	ld	hl, #0x400
 	push	hl
 	call	_set_bkg_palette
 	add	sp, #4
-;src/gameplay.c:166: return;
+;src/gameplay.c:154: return;
 	ret
 00102$:
-;src/gameplay.c:167: } else color = hues[color_id & 0x0Fu];
-	ld	de, #_famidash_apply_bg_trigger_hues_10000_212+0
-	ld	a, c
-	and	a, #0x0f
-	ld	h, #0x00
-	ld	l, a
-	add	hl, hl
-	add	hl, de
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
+;src/gameplay.c:158: color = get_nes_color(color_id);
+	call	_get_nes_color
 00106$:
-;src/gameplay.c:169: famidash_bg_palettes[0] = color;
+;src/gameplay.c:161: famidash_bg_palettes[0] = color;
 	ld	hl, #_famidash_bg_palettes
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:170: color = famidash_darker(color);
+;src/gameplay.c:162: color = famidash_darker(color);
 	ld	e, c
 	ld	d, b
 	call	_famidash_darker
-;src/gameplay.c:171: famidash_bg_palettes[1] = color;
+;src/gameplay.c:163: famidash_bg_palettes[1] = color;
 	ld	hl, #(_famidash_bg_palettes + 2)
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:172: famidash_bg_palettes[9] = color;
+;src/gameplay.c:164: famidash_bg_palettes[9] = color;
 	ld	hl, #(_famidash_bg_palettes + 18)
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:173: famidash_bg_palettes[13] = color;
+;src/gameplay.c:165: famidash_bg_palettes[13] = color;
 	ld	hl, #(_famidash_bg_palettes + 26)
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:174: set_bkg_palette(0, 4, famidash_bg_palettes);
+;src/gameplay.c:166: set_bkg_palette(0, 4, famidash_bg_palettes);
 	ld	de, #_famidash_bg_palettes
 	push	de
 	ld	hl, #0x400
 	push	hl
 	call	_set_bkg_palette
 	add	sp, #4
-;src/gameplay.c:175: }
+;src/gameplay.c:167: }
 	ret
-_famidash_apply_bg_trigger_hues_10000_212:
-	.dw #0x318c
-	.dw #0x4c60
-	.dw #0x7c00
-	.dw #0x4808
-	.dw #0x3c11
-	.dw #0x2c14
-	.dw #0x1414
-	.dw #0x0013
-	.dw #0x002f
-	.dw #0x00ab
-	.dw #0x0102
-	.dw #0x0120
-	.dw #0x1500
-	.dw #0x3100
-	.dw #0x0000
-	.dw #0x0000
-;src/gameplay.c:192: void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
+;src/gameplay.c:184: void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
 ;	---------------------------------
 ; Function sp_cache_reset
 ; ---------------------------------
 _sp_cache_reset::
-;src/gameplay.c:194: *stream_idx = 0;
+;src/gameplay.c:186: *stream_idx = 0;
 	xor	a, a
 	ld	(bc), a
 	inc	bc
 	ld	(bc), a
-;src/gameplay.c:195: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
+;src/gameplay.c:187: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 	ld	hl, #0x0050
 	add	hl, de
 	ld	c, l
@@ -379,7 +335,7 @@ _sp_cache_reset::
 	ld	a, e
 	sub	a, #0x10
 	jr	C, 00102$
-;src/gameplay.c:196: }
+;src/gameplay.c:188: }
 	ret
 _gbc_sprite_palettes:
 	.dw #0x7fff
@@ -406,7 +362,7 @@ _gbc_sprite_palettes:
 	.dw #0x0000
 	.dw #0x001f
 	.dw #0x001f
-;src/gameplay.c:198: void sp_cache_update(const Level *l, uint16_t cam_px,
+;src/gameplay.c:190: void sp_cache_update(const Level *l, uint16_t cam_px,
 ;	---------------------------------
 ; Function sp_cache_update
 ; ---------------------------------
@@ -419,7 +375,7 @@ _sp_cache_update::
 	ldhl	sp,	#18
 	ld	a, c
 	ld	(hl+), a
-;src/gameplay.c:202: uint8_t sp_bank = l->sp_bank;
+;src/gameplay.c:194: uint8_t sp_bank = l->sp_bank;
 	ld	a, b
 	ld	(hl+), a
 	ld	a, (hl+)
@@ -432,7 +388,7 @@ _sp_cache_update::
 	ld	a, (bc)
 	ldhl	sp,	#2
 	ld	(hl), a
-;src/gameplay.c:203: const SpDef *sp_list = l->sp_list;
+;src/gameplay.c:195: const SpDef *sp_list = l->sp_list;
 	ldhl	sp,#20
 	ld	a, (hl+)
 	ld	e, a
@@ -449,7 +405,7 @@ _sp_cache_update::
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:206: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:198: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,#26
 	ld	a, (hl+)
 	ld	e, a
@@ -467,7 +423,7 @@ _sp_cache_update::
 	ldhl	sp,	#23
 	ld	(hl), #0x00
 00115$:
-;src/gameplay.c:207: if (!cache->active[i]) continue;
+;src/gameplay.c:199: if (!cache->active[i]) continue;
 	ldhl	sp,#5
 	ld	a, (hl+)
 	ld	e, a
@@ -481,7 +437,7 @@ _sp_cache_update::
 	ld	a, (bc)
 	or	a, a
 	jr	Z, 00105$
-;src/gameplay.c:208: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
+;src/gameplay.c:200: if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
 	ldhl	sp,#26
 	ld	a, (hl+)
 	ld	e, a
@@ -513,13 +469,13 @@ _sp_cache_update::
 	xor	a, a
 	ld	(bc), a
 00105$:
-;src/gameplay.c:206: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:198: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,	#23
 	inc	(hl)
 	ld	a, (hl)
 	sub	a, #0x10
 	jr	C, 00115$
-;src/gameplay.c:212: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:204: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,#26
 	ld	a, (hl+)
 	ld	e, a
@@ -567,7 +523,7 @@ _sp_cache_update::
 	ld	(hl+), a
 	ld	(hl), a
 00116$:
-;src/gameplay.c:213: if (cache->active[i]) {
+;src/gameplay.c:205: if (cache->active[i]) {
 	ldhl	sp,#5
 	ld	a, (hl+)
 	ld	e, a
@@ -590,12 +546,12 @@ _sp_cache_update::
 	ld	a, (de)
 	or	a, a
 	jp	Z, 00117$
-;src/gameplay.c:214: if (count != i) {
+;src/gameplay.c:206: if (count != i) {
 	ldhl	sp,	#22
 	ld	a, (hl+)
 	sub	a, (hl)
 	jp	Z, 00108$
-;src/gameplay.c:215: cache->obj[count] = cache->obj[i];
+;src/gameplay.c:207: cache->obj[count] = cache->obj[i];
 	ldhl	sp,#26
 	ld	a, (hl+)
 	ld	e, a
@@ -618,7 +574,7 @@ _sp_cache_update::
 	ld	d, h
 	ld	a, (de)
 	ld	(bc), a
-;src/gameplay.c:216: cache->px[count] = cache->px[i];
+;src/gameplay.c:208: cache->px[count] = cache->px[i];
 	ldhl	sp,	#22
 	ld	a, (hl)
 	add	a, a
@@ -656,7 +612,7 @@ _sp_cache_update::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:217: cache->py[count] = cache->py[i];
+;src/gameplay.c:209: cache->py[count] = cache->py[i];
 	ldhl	sp,	#17
 	ld	e, (hl)
 	ld	d, #0x00
@@ -691,7 +647,7 @@ _sp_cache_update::
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:218: cache->active[count] = cache->active[i];
+;src/gameplay.c:210: cache->active[count] = cache->active[i];
 	ldhl	sp,#5
 	ld	a, (hl+)
 	ld	e, a
@@ -705,7 +661,7 @@ _sp_cache_update::
 	ldhl	sp,#13
 	ld	a, (hl+)
 	ld	e, a
-;src/gameplay.c:219: cache->activated[count] = cache->activated[i];
+;src/gameplay.c:211: cache->activated[count] = cache->activated[i];
 	ld	a, (hl-)
 	dec	hl
 	dec	hl
@@ -734,17 +690,17 @@ _sp_cache_update::
 	ld	a, (de)
 	ld	(bc), a
 00108$:
-;src/gameplay.c:221: count++;
+;src/gameplay.c:213: count++;
 	ldhl	sp,	#22
 	inc	(hl)
 00117$:
-;src/gameplay.c:212: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:204: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,	#23
 	inc	(hl)
 	ld	a, (hl)
 	sub	a, #0x10
 	jp	C, 00116$
-;src/gameplay.c:224: while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
+;src/gameplay.c:216: while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
 	dec	hl
 	ld	c, (hl)
 00112$:
@@ -765,7 +721,7 @@ _sp_cache_update::
 	ld	(de), a
 	jr	00112$
 00114$:
-;src/gameplay.c:226: sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
+;src/gameplay.c:218: sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 	ldhl	sp,#20
 	ld	a, (hl+)
 	ld	e, a
@@ -799,12 +755,12 @@ _sp_cache_update::
 	ld	d, a
 	ld	a, (hl)
 	call	_sp_cache_load
-;src/gameplay.c:227: }
+;src/gameplay.c:219: }
 	add	sp, #24
 	pop	hl
 	add	sp, #4
 	jp	(hl)
-;src/gameplay.c:234: static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+;src/gameplay.c:226: static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
 ;	---------------------------------
 ; Function draw_oam_2x1
 ; ---------------------------------
@@ -813,7 +769,7 @@ _draw_oam_2x1:
 	push	de
 	ldhl	sp,	#9
 	ld	(hl), a
-;src/gameplay.c:236: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+;src/gameplay.c:228: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 	ld	bc, #_shadow_OAM+0
 	ldhl	sp,	#12
 	ld	e, (hl)
@@ -823,7 +779,7 @@ _draw_oam_2x1:
 	add	hl, hl
 	add	hl, hl
 	add	hl, bc
-;src/gameplay.c:239: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:231: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	c,l
 	ld	b,h
 	inc	hl
@@ -872,18 +828,18 @@ _draw_oam_2x1:
 	ld	a, h
 	ldhl	sp,	#7
 	ld	(hl), a
-;src/gameplay.c:240: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+;src/gameplay.c:232: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
 	ldhl	sp,	#13
 	ld	a, (hl)
 	add	a, #0x08
 	ldhl	sp,	#8
 	ld	(hl), a
-;src/gameplay.c:238: if (!reversed) {
+;src/gameplay.c:230: if (!reversed) {
 	ldhl	sp,	#15
 	ld	a, (hl)
 	or	a, a
 	jr	NZ, 00102$
-;src/gameplay.c:239: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:231: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	dec	hl
 	ld	a, (hl)
 	ld	(bc), a
@@ -911,7 +867,7 @@ _draw_oam_2x1:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:240: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+;src/gameplay.c:232: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
 	ldhl	sp,	#14
 	ld	a, (hl)
 	ld	(bc), a
@@ -936,7 +892,7 @@ _draw_oam_2x1:
 	ld	(bc), a
 	jr	00103$
 00102$:
-;src/gameplay.c:242: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:234: *oam++ = sy; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#14
 	ld	a, (hl)
 	ld	(bc), a
@@ -964,7 +920,7 @@ _draw_oam_2x1:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:243: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+;src/gameplay.c:235: *oam++ = sy; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
 	ldhl	sp,	#14
 	ld	a, (hl-)
 	ld	(bc), a
@@ -988,19 +944,19 @@ _draw_oam_2x1:
 	xor	a, #0x20
 	ld	(bc), a
 00103$:
-;src/gameplay.c:245: return 2;
+;src/gameplay.c:237: return 2;
 	ld	a, #0x02
-;src/gameplay.c:246: }
+;src/gameplay.c:238: }
 	add	sp, #10
 	pop	hl
 	add	sp, #4
 	jp	(hl)
-;src/gameplay.c:252: static uint8_t draw_oam_2x2(uint8_t tile_base, uint8_t oam_idx,
+;src/gameplay.c:244: static uint8_t draw_oam_2x2(uint8_t tile_base, uint8_t oam_idx,
 ;	---------------------------------
 ; Function draw_oam_2x2
 ; ---------------------------------
 _draw_oam_2x2:
-;src/gameplay.c:389: __endasm;
+;src/gameplay.c:381: __endasm;
 ;	Build &shadow_OAM[oam_idx] while preserving tile_base in A.
 	push	af
 	xor	a
@@ -1125,8 +1081,8 @@ _draw_oam_2x2:
 	pop	hl ; Return address
 	add	sp, #3 ; sy, sx, reversed
 	jp	(hl)
-;src/gameplay.c:390: }
-;src/gameplay.c:393: static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+;src/gameplay.c:382: }
+;src/gameplay.c:385: static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
 ;	---------------------------------
 ; Function draw_oam_2x3
 ; ---------------------------------
@@ -1134,7 +1090,7 @@ _draw_oam_2x3:
 	add	sp, #-12
 	ldhl	sp,	#11
 	ld	(hl), a
-;src/gameplay.c:394: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+;src/gameplay.c:386: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 	ldhl	sp,	#14
 	ld	c, (hl)
 	xor	a, a
@@ -1144,7 +1100,7 @@ _draw_oam_2x3:
 	add	hl, hl
 	ld	bc, #_shadow_OAM
 	add	hl, bc
-;src/gameplay.c:397: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:389: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	c,l
 	ld	b,h
 	inc	hl
@@ -1185,29 +1141,29 @@ _draw_oam_2x3:
 	ld	a, h
 	ldhl	sp,	#7
 	ld	(hl), a
-;src/gameplay.c:398: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:390: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#15
-;src/gameplay.c:399: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:391: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	a, (hl+)
 	ld	e, (hl)
-;src/gameplay.c:398: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:390: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	add	a, #0x08
 	ldhl	sp,	#8
-;src/gameplay.c:399: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:391: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	(hl+), a
 	ld	a, e
 	add	a, #0x10
-;src/gameplay.c:401: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:393: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	(hl+), a
 	ld	a, e
 	add	a, #0x20
 	ld	(hl), a
-;src/gameplay.c:396: if (!reversed) {
+;src/gameplay.c:388: if (!reversed) {
 	ldhl	sp,	#17
 	ld	a, (hl)
 	or	a, a
 	jp	NZ, 00102$
-;src/gameplay.c:397: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:389: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	dec	hl
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1236,7 +1192,7 @@ _draw_oam_2x3:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:398: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:390: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#16
 	ld	a, (hl)
 	ld	(bc), a
@@ -1266,7 +1222,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:399: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:391: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#9
 	ld	a, (hl)
 	ld	(bc), a
@@ -1296,7 +1252,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:400: *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:392: *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#9
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1325,7 +1281,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:401: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:393: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ld	(bc), a
@@ -1355,7 +1311,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:402: *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+;src/gameplay.c:394: *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	dec	hl
@@ -1380,7 +1336,7 @@ _draw_oam_2x3:
 	ld	(bc), a
 	jp	00103$
 00102$:
-;src/gameplay.c:404: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:396: *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#16
 	ld	a, (hl)
 	ld	(bc), a
@@ -1411,7 +1367,7 @@ _draw_oam_2x3:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:405: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:397: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#16
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1441,7 +1397,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:406: *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:398: *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#9
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1471,7 +1427,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:407: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:399: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#9
 	ld	a, (hl)
 	ld	(bc), a
@@ -1502,7 +1458,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:408: *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:400: *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	dec	hl
@@ -1533,7 +1489,7 @@ _draw_oam_2x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:409: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+;src/gameplay.c:401: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ld	(bc), a
@@ -1558,14 +1514,14 @@ _draw_oam_2x3:
 	xor	a, #0x20
 	ld	(bc), a
 00103$:
-;src/gameplay.c:411: return 6;
+;src/gameplay.c:403: return 6;
 	ld	a, #0x06
-;src/gameplay.c:412: }
+;src/gameplay.c:404: }
 	add	sp, #12
 	pop	hl
 	add	sp, #4
 	jp	(hl)
-;src/gameplay.c:415: static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+;src/gameplay.c:407: static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
 ;	---------------------------------
 ; Function draw_oam_3x3
 ; ---------------------------------
@@ -1573,7 +1529,7 @@ _draw_oam_3x3:
 	add	sp, #-13
 	ldhl	sp,	#12
 	ld	(hl), a
-;src/gameplay.c:416: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+;src/gameplay.c:408: uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 	ldhl	sp,	#15
 	ld	c, (hl)
 	xor	a, a
@@ -1583,7 +1539,7 @@ _draw_oam_3x3:
 	add	hl, hl
 	ld	bc, #_shadow_OAM
 	add	hl, bc
-;src/gameplay.c:419: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:411: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	c,l
 	ld	b,h
 	inc	hl
@@ -1624,35 +1580,35 @@ _draw_oam_3x3:
 	ld	a, h
 	ldhl	sp,	#7
 	ld	(hl), a
-;src/gameplay.c:420: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:412: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#16
-;src/gameplay.c:423: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:415: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	a, (hl+)
 	ld	d, a
 	ld	e, (hl)
-;src/gameplay.c:420: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:412: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	a, d
 	add	a, #0x08
 	ldhl	sp,	#8
-;src/gameplay.c:421: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:413: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	(hl+), a
 	ld	a, d
 	add	a, #0x10
-;src/gameplay.c:423: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:415: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	(hl+), a
 	ld	a, e
 	add	a, #0x10
-;src/gameplay.c:427: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:419: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ld	(hl+), a
 	ld	a, e
 	add	a, #0x20
 	ld	(hl), a
-;src/gameplay.c:418: if (!reversed) {
+;src/gameplay.c:410: if (!reversed) {
 	ldhl	sp,	#18
 	ld	a, (hl)
 	or	a, a
 	jp	NZ, 00102$
-;src/gameplay.c:419: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:411: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	dec	hl
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1681,7 +1637,7 @@ _draw_oam_3x3:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:420: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:412: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#17
 	ld	a, (hl)
 	ld	(bc), a
@@ -1711,7 +1667,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:421: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:413: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#17
 	ld	a, (hl)
 	ld	(bc), a
@@ -1741,7 +1697,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:423: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:415: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ld	(bc), a
@@ -1771,7 +1727,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:424: *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:416: *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	dec	hl
@@ -1801,7 +1757,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:425: *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:417: *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	ld	(bc), a
@@ -1830,7 +1786,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:427: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:419: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ld	(bc), a
@@ -1860,7 +1816,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:428: *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
+;src/gameplay.c:420: *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ld	(bc), a
@@ -1890,7 +1846,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:429: *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
+;src/gameplay.c:421: *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
 	ldhl	sp,	#11
 	ld	a, (hl-)
 	dec	hl
@@ -1915,7 +1871,7 @@ _draw_oam_3x3:
 	ld	(bc), a
 	jp	00103$
 00102$:
-;src/gameplay.c:431: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:423: *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#17
 	ld	a, (hl)
 	ld	(bc), a
@@ -1946,7 +1902,7 @@ _draw_oam_3x3:
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-;src/gameplay.c:432: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:424: *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#17
 	ld	a, (hl)
 	ld	(bc), a
@@ -1977,7 +1933,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:433: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:425: *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#17
 	ld	a, (hl-)
 	ld	(bc), a
@@ -2007,7 +1963,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:435: *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:427: *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	ld	(bc), a
@@ -2037,7 +1993,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:436: *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:428: *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl-)
 	dec	hl
@@ -2068,7 +2024,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:437: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:429: *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#10
 	ld	a, (hl)
 	ld	(bc), a
@@ -2099,7 +2055,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:439: *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:431: *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#11
 	ld	a, (hl-)
 	dec	hl
@@ -2130,7 +2086,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:440: *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
+;src/gameplay.c:432: *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ld	(bc), a
@@ -2161,7 +2117,7 @@ _draw_oam_3x3:
 	inc	de
 	inc	de
 	inc	de
-;src/gameplay.c:441: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+;src/gameplay.c:433: *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ld	(bc), a
@@ -2186,14 +2142,14 @@ _draw_oam_3x3:
 	xor	a, #0x20
 	ld	(bc), a
 00103$:
-;src/gameplay.c:443: return 9;
+;src/gameplay.c:435: return 9;
 	ld	a, #0x09
-;src/gameplay.c:444: }
+;src/gameplay.c:436: }
 	add	sp, #13
 	pop	hl
 	add	sp, #4
 	jp	(hl)
-;src/gameplay.c:446: static void process_sprite_logic(
+;src/gameplay.c:438: static void process_sprite_logic(
 ;	---------------------------------
 ; Function process_sprite_logic
 ; ---------------------------------
@@ -2207,7 +2163,7 @@ _process_sprite_logic:
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:451: uint16_t px = p->world_x;
+;src/gameplay.c:443: uint16_t px = p->world_x;
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -2218,7 +2174,7 @@ _process_sprite_logic:
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:452: uint16_t py = p->world_y.b.h;
+;src/gameplay.c:444: uint16_t py = p->world_y.b.h;
 	ldhl	sp,	#71
 	ld	a, (hl+)
 	ld	c, a
@@ -2230,7 +2186,7 @@ _process_sprite_logic:
 	ldhl	sp,	#2
 	ld	(hl+), a
 	ld	(hl), #0x00
-;src/gameplay.c:455: uint16_t p_front = px + 15;
+;src/gameplay.c:447: uint16_t p_front = px + 15;
 	ldhl	sp,	#0
 	ld	a, (hl)
 	ldhl	sp,	#4
@@ -2250,7 +2206,7 @@ _process_sprite_logic:
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/gameplay.c:456: uint16_t p_bottom = py + PLAYER_SIZE;
+;src/gameplay.c:448: uint16_t p_bottom = py + PLAYER_SIZE;
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ldhl	sp,	#8
@@ -2267,12 +2223,12 @@ _process_sprite_logic:
 	ldhl	sp,	#10
 	ld	(hl), c
 	inc	hl
-;src/gameplay.c:457: uint16_t p_feet = py + PLAYER_SIZE;
+;src/gameplay.c:449: uint16_t p_feet = py + PLAYER_SIZE;
 	ld	(hl+), a
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/gameplay.c:459: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:451: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,#66
 	ld	a, (hl+)
 	ld	e, a
@@ -2497,7 +2453,7 @@ _process_sprite_logic:
 	ldhl	sp,	#68
 	ld	(hl), #0x00
 00218$:
-;src/gameplay.c:460: if (!cache->active[i]) break;
+;src/gameplay.c:452: if (!cache->active[i]) break;
 	ldhl	sp,#55
 	ld	a, (hl+)
 	ld	e, a
@@ -2511,7 +2467,7 @@ _process_sprite_logic:
 	ld	a, (bc)
 	or	a, a
 	jp	Z, 00219$
-;src/gameplay.c:462: uint16_t obj_x = cache->px[i];
+;src/gameplay.c:454: uint16_t obj_x = cache->px[i];
 	ldhl	sp,	#68
 	ld	a, (hl)
 	add	a, a
@@ -2535,7 +2491,7 @@ _process_sprite_logic:
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:463: if (obj_x > cam_px + 176u) break;
+;src/gameplay.c:455: if (obj_x > cam_px + 176u) break;
 	ldhl	sp,	#64
 	ld	a, (hl+)
 	ld	c, a
@@ -2557,7 +2513,7 @@ _process_sprite_logic:
 	ld	a, b
 	sbc	a, (hl)
 	jp	C, 00219$
-;src/gameplay.c:465: uint8_t obj = cache->obj[i];
+;src/gameplay.c:457: uint8_t obj = cache->obj[i];
 	ldhl	sp,#66
 	ld	a, (hl+)
 	ld	e, a
@@ -2571,7 +2527,7 @@ _process_sprite_logic:
 	ld	a, (bc)
 	ldhl	sp,	#61
 	ld	(hl), a
-;src/gameplay.c:466: uint16_t obj_y = cache->py[i];
+;src/gameplay.c:458: uint16_t obj_y = cache->py[i];
 	ldhl	sp,#16
 	ld	a, (hl+)
 	ld	e, a
@@ -2583,12 +2539,12 @@ _process_sprite_logic:
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-;src/gameplay.c:468: if (obj == OBJ_LEVEL_END) {
+;src/gameplay.c:460: if (obj == OBJ_LEVEL_END) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x0f
 	jr	NZ, 00108$
-;src/gameplay.c:469: if (px >= (obj_x - 180)) p->level_complete = 1;
+;src/gameplay.c:461: if (px >= (obj_x - 180)) p->level_complete = 1;
 	ldhl	sp,#59
 	ld	a, (hl+)
 	ld	e, a
@@ -2616,15 +2572,15 @@ _process_sprite_logic:
 	ld	c, l
 	ld	b, h
 	ld	(hl), #0x01
-;src/gameplay.c:470: continue;
+;src/gameplay.c:462: continue;
 	jp	00216$
 00108$:
-;src/gameplay.c:476: if (obj == 45) continue;
+;src/gameplay.c:468: if (obj == 45) continue;
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x2d
 	jp	Z, 00216$
-;src/gameplay.c:485: if (obj >= 100 && obj <= 147 && obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
+;src/gameplay.c:477: if (obj >= 100 && obj <= 147 && obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x64
@@ -2639,7 +2595,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sub	a, #0x7e
 	jp	Z, 00126$
-;src/gameplay.c:486: if (!cache->activated[i]) {
+;src/gameplay.c:478: if (!cache->activated[i]) {
 	ldhl	sp,#18
 	ld	a, (hl+)
 	ld	e, a
@@ -2662,7 +2618,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	or	a, a
 	jr	NZ, 00122$
-;src/gameplay.c:487: uint16_t trig_x = (obj_x > BG_TRIGGER_LEAD_PX)
+;src/gameplay.c:479: uint16_t trig_x = (obj_x > BG_TRIGGER_LEAD_PX)
 	ldhl	sp,	#57
 	ld	a, #0xb0
 	sub	a, (hl)
@@ -2686,35 +2642,35 @@ _process_sprite_logic:
 00221$:
 	ld	bc, #0x0000
 00222$:
-;src/gameplay.c:489: if (px >= trig_x) {
+;src/gameplay.c:481: if (px >= trig_x) {
 	ldhl	sp,	#0
 	ld	a, (hl+)
 	sub	a, c
 	ld	a, (hl)
 	sbc	a, b
 	jr	C, 00122$
-;src/gameplay.c:490: uint8_t pal_idx = obj - 100;
+;src/gameplay.c:482: uint8_t pal_idx = obj - 100;
 	ldhl	sp,	#61
 	ld	a, (hl)
 	add	a, #0x9c
 	ld	c, a
-;src/gameplay.c:491: if (_cpu == CGB_TYPE) {
+;src/gameplay.c:483: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00112$
-;src/gameplay.c:492: famidash_apply_bg_trigger(pal_idx);
+;src/gameplay.c:484: famidash_apply_bg_trigger(pal_idx);
 	push	bc
 	ld	a, c
 	call	_famidash_apply_bg_trigger
 	pop	bc
 00112$:
-;src/gameplay.c:498: uint8_t row = pal_idx >> 4;
+;src/gameplay.c:490: uint8_t row = pal_idx >> 4;
 	ld	a, c
 	swap	a
 	and	a, #0x0f
 	ldhl	sp,	#61
 	ld	(hl), a
-;src/gameplay.c:499: if (row == 0)      *target_bg_idx = ((pal_idx & 15) == 15) ? 3 : 2;
+;src/gameplay.c:491: if (row == 0)      *target_bg_idx = ((pal_idx & 15) == 15) ? 3 : 2;
 	ldhl	sp,	#74
 	ld	e, (hl)
 	inc	hl
@@ -2731,7 +2687,7 @@ _process_sprite_logic:
 	ld	(de), a
 	jr	00118$
 00117$:
-;src/gameplay.c:500: else if (row == 1) *target_bg_idx = 1;
+;src/gameplay.c:492: else if (row == 1) *target_bg_idx = 1;
 	ldhl	sp,	#61
 	ld	a, (hl)
 	dec	a
@@ -2740,18 +2696,18 @@ _process_sprite_logic:
 	ld	(de), a
 	jr	00118$
 00114$:
-;src/gameplay.c:501: else               *target_bg_idx = 0;
+;src/gameplay.c:493: else               *target_bg_idx = 0;
 	xor	a, a
 	ld	(de), a
 00118$:
-;src/gameplay.c:503: cache->activated[i] = 1;
+;src/gameplay.c:495: cache->activated[i] = 1;
 	ldhl	sp,	#62
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x01
 00122$:
-;src/gameplay.c:506: if (obj_x > p_front + 16) break;
+;src/gameplay.c:498: if (obj_x > p_front + 16) break;
 	ldhl	sp,	#6
 	ld	a, (hl+)
 	ld	c, a
@@ -2768,9 +2724,9 @@ _process_sprite_logic:
 	sbc	a, (hl)
 	jp	NC, 00216$
 	jp	00219$
-;src/gameplay.c:507: continue;
+;src/gameplay.c:499: continue;
 00126$:
-;src/gameplay.c:510: if (obj >= 16 && obj <= 19) {
+;src/gameplay.c:502: if (obj >= 16 && obj <= 19) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x10
@@ -2778,7 +2734,7 @@ _process_sprite_logic:
 	ld	a, #0x13
 	sub	a, (hl)
 	jp	C, 00213$
-;src/gameplay.c:512: if (obj_x <= p_front && px <= obj_x + 48u) {
+;src/gameplay.c:504: if (obj_x <= p_front && px <= obj_x + 48u) {
 	ldhl	sp,	#6
 	ld	e, l
 	ld	d, h
@@ -2805,7 +2761,7 @@ _process_sprite_logic:
 	ld	a, d
 	sbc	a, (hl)
 	jp	C, 00216$
-;src/gameplay.c:513: if (py <= obj_y + 14u && p_bottom >= obj_y) {
+;src/gameplay.c:505: if (py <= obj_y + 14u && p_bottom >= obj_y) {
 	ld	e, c
 	ld	d, b
 	ld	hl, #0x000e
@@ -2825,7 +2781,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sbc	a, b
 	jp	C, 00216$
-;src/gameplay.c:514: if (!cache->activated[i]) {
+;src/gameplay.c:506: if (!cache->activated[i]) {
 	ldhl	sp,#53
 	ld	a, (hl+)
 	ld	e, a
@@ -2848,7 +2804,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	or	a, a
 	jp	NZ, 00216$
-;src/gameplay.c:515: uint8_t target_flipped = (obj >= 18);
+;src/gameplay.c:507: uint8_t target_flipped = (obj >= 18);
 	dec	hl
 	dec	hl
 	ld	a, (hl)
@@ -2857,7 +2813,7 @@ _process_sprite_logic:
 	rla
 	xor	a, #0x01
 	ld	c, a
-;src/gameplay.c:516: if (p->gravity_flipped != target_flipped) {
+;src/gameplay.c:508: if (p->gravity_flipped != target_flipped) {
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -2865,12 +2821,12 @@ _process_sprite_logic:
 	ld	a, (de)
 	sub	a, c
 	jr	Z, 00131$
-;src/gameplay.c:517: p->gravity_flipped = target_flipped;
+;src/gameplay.c:509: p->gravity_flipped = target_flipped;
 	ld	a, (hl-)
 	ld	l, (hl)
 	ld	h, a
 	ld	(hl), c
-;src/gameplay.c:518: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+;src/gameplay.c:510: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -2921,7 +2877,7 @@ _process_sprite_logic:
 	ld	(hl+), a
 	ld	(hl), b
 00131$:
-;src/gameplay.c:520: cache->activated[i] = 1;
+;src/gameplay.c:512: cache->activated[i] = 1;
 	ldhl	sp,	#62
 	ld	a, (hl+)
 	ld	h, (hl)
@@ -2929,7 +2885,7 @@ _process_sprite_logic:
 	ld	(hl), #0x01
 	jp	00216$
 00213$:
-;src/gameplay.c:524: } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
+;src/gameplay.c:516: } else if (obj_x + 2 <= p_front && px <= obj_x + 15) {
 	ldhl	sp,	#59
 	ld	a, (hl+)
 	ld	e, a
@@ -2957,7 +2913,7 @@ _process_sprite_logic:
 	ld	a, d
 	sbc	a, (hl)
 	jp	C, 00209$
-;src/gameplay.c:525: switch (obj) {
+;src/gameplay.c:517: switch (obj) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	or	a, a
@@ -3027,9 +2983,9 @@ _process_sprite_logic:
 	sub	a, #0x7e
 	jp	Z, 00199$
 	jp	00216$
-;src/gameplay.c:528: case OBJ_BALL_PORTAL:
+;src/gameplay.c:520: case OBJ_BALL_PORTAL:
 00142$:
-;src/gameplay.c:529: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+;src/gameplay.c:521: if (py <= obj_y + 32 && p_bottom >= obj_y) {
 	ld	e, c
 	ld	d, b
 	ld	hl, #0x0020
@@ -3049,7 +3005,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sbc	a, b
 	jp	C, 00216$
-;src/gameplay.c:530: if (!cache->activated[i]) {
+;src/gameplay.c:522: if (!cache->activated[i]) {
 	ldhl	sp,#51
 	ld	a, (hl+)
 	ld	e, a
@@ -3072,7 +3028,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	or	a, a
 	jp	NZ, 00216$
-;src/gameplay.c:531: if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
+;src/gameplay.c:523: if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
 	dec	hl
 	dec	hl
 	ld	a, (hl)
@@ -3085,7 +3041,7 @@ _process_sprite_logic:
 	ld	(hl), #0x00
 	jr	00148$
 00147$:
-;src/gameplay.c:532: else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
+;src/gameplay.c:524: else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
 	ldhl	sp,	#61
 	ld	a, (hl)
 	dec	a
@@ -3097,24 +3053,24 @@ _process_sprite_logic:
 	ld	(hl), #0x01
 	jr	00148$
 00144$:
-;src/gameplay.c:533: else p->mode = MODE_BALL;
+;src/gameplay.c:525: else p->mode = MODE_BALL;
 	ldhl	sp,	#20
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x02
 00148$:
-;src/gameplay.c:534: cache->activated[i] = 1;
+;src/gameplay.c:526: cache->activated[i] = 1;
 	ldhl	sp,	#62
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x01
-;src/gameplay.c:537: break;
+;src/gameplay.c:529: break;
 	jp	00216$
-;src/gameplay.c:540: case OBJ_GRAVITY_UP:
+;src/gameplay.c:532: case OBJ_GRAVITY_UP:
 00155$:
-;src/gameplay.c:541: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+;src/gameplay.c:533: if (py <= obj_y + 32 && p_bottom >= obj_y) {
 	ld	e, c
 	ld	d, b
 	ld	hl, #0x0020
@@ -3134,7 +3090,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sbc	a, b
 	jp	C, 00216$
-;src/gameplay.c:542: if (!cache->activated[i]) {
+;src/gameplay.c:534: if (!cache->activated[i]) {
 	ldhl	sp,#49
 	ld	a, (hl+)
 	ld	e, a
@@ -3157,7 +3113,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	or	a, a
 	jp	NZ, 00216$
-;src/gameplay.c:543: uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
+;src/gameplay.c:535: uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
 	inc	hl
 	ld	a, (hl)
 	sub	a, #0x09
@@ -3167,7 +3123,7 @@ _process_sprite_logic:
 00868$:
 	ldhl	sp,	#63
 	ld	(hl), a
-;src/gameplay.c:544: if (p->gravity_flipped != target_flipped) {
+;src/gameplay.c:536: if (p->gravity_flipped != target_flipped) {
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3176,7 +3132,7 @@ _process_sprite_logic:
 	ldhl	sp,	#63
 	sub	a, (hl)
 	jr	Z, 00157$
-;src/gameplay.c:545: p->gravity_flipped = target_flipped;
+;src/gameplay.c:537: p->gravity_flipped = target_flipped;
 	ldhl	sp,	#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3184,7 +3140,7 @@ _process_sprite_logic:
 	ldhl	sp,	#63
 	ld	a, (hl)
 	ld	(de), a
-;src/gameplay.c:546: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+;src/gameplay.c:538: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -3235,17 +3191,17 @@ _process_sprite_logic:
 	ld	(hl+), a
 	ld	(hl), b
 00157$:
-;src/gameplay.c:548: cache->activated[i] = 1;
+;src/gameplay.c:540: cache->activated[i] = 1;
 	ldhl	sp,	#59
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x01
-;src/gameplay.c:551: break;
+;src/gameplay.c:543: break;
 	jp	00216$
-;src/gameplay.c:557: case OBJ_PAD_BLUE_UP:
+;src/gameplay.c:549: case OBJ_PAD_BLUE_UP:
 00167$:
-;src/gameplay.c:559: uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+;src/gameplay.c:551: uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x0c
@@ -3260,12 +3216,12 @@ _process_sprite_logic:
 	ld	a, #0x01
 00227$:
 	ld	e, a
-;src/gameplay.c:513: if (py <= obj_y + 14u && p_bottom >= obj_y) {
+;src/gameplay.c:505: if (py <= obj_y + 14u && p_bottom >= obj_y) {
 	ldhl	sp,	#59
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-;src/gameplay.c:560: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
+;src/gameplay.c:552: uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
 	or	a, a
 	jr	Z, 00228$
 	dec	hl
@@ -3289,7 +3245,7 @@ _process_sprite_logic:
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/gameplay.c:561: uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
+;src/gameplay.c:553: uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
 	ld	a, e
 	or	a, a
 	jr	Z, 00230$
@@ -3311,7 +3267,7 @@ _process_sprite_logic:
 	ld	e, l
 	ld	d, h
 00231$:
-;src/gameplay.c:563: if (py <= pad_bot && p_bottom >= pad_top) {
+;src/gameplay.c:555: if (py <= pad_bot && p_bottom >= pad_top) {
 	ldhl	sp,	#2
 	ld	a, e
 	sub	a, (hl)
@@ -3330,7 +3286,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	sbc	a, (hl)
 	jp	C, 00216$
-;src/gameplay.c:564: if (!cache->activated[i]) {
+;src/gameplay.c:556: if (!cache->activated[i]) {
 	ldhl	sp,#47
 	ld	a, (hl+)
 	ld	e, a
@@ -3344,10 +3300,10 @@ _process_sprite_logic:
 	ld	a, (bc)
 	or	a, a
 	jp	NZ, 00216$
-;src/gameplay.c:565: cache->activated[i] = 1;
+;src/gameplay.c:557: cache->activated[i] = 1;
 	ld	a, #0x01
 	ld	(bc), a
-;src/gameplay.c:518: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+;src/gameplay.c:510: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -3361,7 +3317,7 @@ _process_sprite_logic:
 	pop	hl
 	ld	a, h
 	ldhl	sp,	#63
-;src/gameplay.c:566: if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
+;src/gameplay.c:558: if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl)
@@ -3372,7 +3328,7 @@ _process_sprite_logic:
 	sub	a, #0x0e
 	jr	NZ, 00172$
 00171$:
-;src/gameplay.c:567: p->gravity_flipped = !p->gravity_flipped;
+;src/gameplay.c:559: p->gravity_flipped = !p->gravity_flipped;
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3387,7 +3343,7 @@ _process_sprite_logic:
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/gameplay.c:568: p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+;src/gameplay.c:560: p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
 	or	a, a
 	jr	Z, 00232$
 	ld	bc, #0xfc60
@@ -3404,12 +3360,12 @@ _process_sprite_logic:
 	ld	(hl), b
 	jr	00173$
 00172$:
-;src/gameplay.c:569: } else if (obj == OBJ_PAD_PINK) {
+;src/gameplay.c:561: } else if (obj == OBJ_PAD_PINK) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x25
 	jr	NZ, 00169$
-;src/gameplay.c:570: int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
+;src/gameplay.c:562: int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
 	ldhl	sp,#20
 	ld	a, (hl+)
 	ld	e, a
@@ -3422,7 +3378,7 @@ _process_sprite_logic:
 00234$:
 	ld	bc, #0xfaf0
 00235$:
-;src/gameplay.c:571: p->vel_y.w = (p->gravity_flipped) ? -force : force;
+;src/gameplay.c:563: p->vel_y.w = (p->gravity_flipped) ? -force : force;
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3446,7 +3402,7 @@ _process_sprite_logic:
 	ld	(hl), b
 	jr	00173$
 00169$:
-;src/gameplay.c:573: int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_PAD : PAD_JUMP_FORCE;
+;src/gameplay.c:565: int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_PAD : PAD_JUMP_FORCE;
 	ldhl	sp,#24
 	ld	a, (hl+)
 	ld	e, a
@@ -3459,7 +3415,7 @@ _process_sprite_logic:
 00238$:
 	ld	bc, #0xf840
 00239$:
-;src/gameplay.c:574: p->vel_y.w = (p->gravity_flipped) ? -force : force;
+;src/gameplay.c:566: p->vel_y.w = (p->gravity_flipped) ? -force : force;
 	ldhl	sp,#26
 	ld	a, (hl+)
 	ld	e, a
@@ -3482,7 +3438,7 @@ _process_sprite_logic:
 	ld	(hl+), a
 	ld	(hl), b
 00173$:
-;src/gameplay.c:576: p->on_ground = 0;
+;src/gameplay.c:568: p->on_ground = 0;
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -3493,16 +3449,16 @@ _process_sprite_logic:
 	ld	b, h
 	xor	a, a
 	ld	(bc), a
-;src/gameplay.c:579: break;
+;src/gameplay.c:571: break;
 	jp	00216$
-;src/gameplay.c:584: case OBJ_ORB_BLUE:
+;src/gameplay.c:576: case OBJ_ORB_BLUE:
 00182$:
-;src/gameplay.c:586: if (joy & J_A) {
+;src/gameplay.c:578: if (joy & J_A) {
 	ldhl	sp,	#46
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00216$
-;src/gameplay.c:587: if ((!(p->last_joy & J_A) || p->orb_buffered) && py <= obj_y + 16 && p_feet >= obj_y) {
+;src/gameplay.c:579: if ((!(p->last_joy & J_A) || p->orb_buffered) && py <= obj_y + 16 && p_feet >= obj_y) {
 	ldhl	sp,#28
 	ld	a, (hl+)
 	ld	e, a
@@ -3537,7 +3493,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sbc	a, b
 	jp	C, 00216$
-;src/gameplay.c:588: if (!cache->activated[i]) {
+;src/gameplay.c:580: if (!cache->activated[i]) {
 	ldhl	sp,#42
 	ld	a, (hl+)
 	ld	e, a
@@ -3551,16 +3507,16 @@ _process_sprite_logic:
 	ld	a, (bc)
 	or	a, a
 	jp	NZ, 00216$
-;src/gameplay.c:589: cache->activated[i] = 1;
+;src/gameplay.c:581: cache->activated[i] = 1;
 	ld	a, #0x01
 	ld	(bc), a
-;src/gameplay.c:590: p->orb_buffered = 0; // Clear buffer after hit
+;src/gameplay.c:582: p->orb_buffered = 0; // Clear buffer after hit
 	ldhl	sp,	#44
 	ld	a, (hl+)
 	ld	h, (hl)
 	ld	l, a
 	ld	(hl), #0x00
-;src/gameplay.c:518: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+;src/gameplay.c:510: p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -3575,12 +3531,12 @@ _process_sprite_logic:
 	ld	a, h
 	ldhl	sp,	#63
 	ld	(hl), a
-;src/gameplay.c:591: if (obj == OBJ_ORB_BLUE) {
+;src/gameplay.c:583: if (obj == OBJ_ORB_BLUE) {
 	ldhl	sp,	#60
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00187$
-;src/gameplay.c:592: p->gravity_flipped = !p->gravity_flipped;
+;src/gameplay.c:584: p->gravity_flipped = !p->gravity_flipped;
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3595,7 +3551,7 @@ _process_sprite_logic:
 	ld	h, (hl)
 	ld	l, e
 	ld	(hl), a
-;src/gameplay.c:593: int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
+;src/gameplay.c:585: int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
 	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
@@ -3622,7 +3578,7 @@ _process_sprite_logic:
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
-;src/gameplay.c:594: p->vel_y.w = (p->gravity_flipped) ? -force : force;
+;src/gameplay.c:586: p->vel_y.w = (p->gravity_flipped) ? -force : force;
 	ldhl	sp,#22
 	ld	a, (hl+)
 	ld	e, a
@@ -3665,12 +3621,12 @@ _process_sprite_logic:
 	ld	(de), a
 	jr	00188$
 00187$:
-;src/gameplay.c:595: } else if (obj == OBJ_ORB_PINK) {
+;src/gameplay.c:587: } else if (obj == OBJ_ORB_PINK) {
 	ldhl	sp,	#61
 	ld	a, (hl)
 	sub	a, #0x06
 	jr	NZ, 00184$
-;src/gameplay.c:596: int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_ORB : MAGENTA_JUMP_FORCE;
+;src/gameplay.c:588: int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_ORB : MAGENTA_JUMP_FORCE;
 	ldhl	sp,#32
 	ld	a, (hl+)
 	ld	e, a
@@ -3687,7 +3643,7 @@ _process_sprite_logic:
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:597: p->vel_y.w = (p->gravity_flipped) ? -force : force;
+;src/gameplay.c:589: p->vel_y.w = (p->gravity_flipped) ? -force : force;
 	ldhl	sp,#34
 	ld	a, (hl+)
 	ld	e, a
@@ -3730,7 +3686,7 @@ _process_sprite_logic:
 	ld	(de), a
 	jr	00188$
 00184$:
-;src/gameplay.c:599: int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_ORB : JUMP_FORCE;
+;src/gameplay.c:591: int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_ORB : JUMP_FORCE;
 	ldhl	sp,#36
 	ld	a, (hl+)
 	ld	e, a
@@ -3743,7 +3699,7 @@ _process_sprite_logic:
 00250$:
 	ld	bc, #0xfa70
 00251$:
-;src/gameplay.c:600: p->vel_y.w = (p->gravity_flipped) ? -force : force;
+;src/gameplay.c:592: p->vel_y.w = (p->gravity_flipped) ? -force : force;
 	ldhl	sp,#38
 	ld	a, (hl+)
 	ld	e, a
@@ -3766,7 +3722,7 @@ _process_sprite_logic:
 	ld	(hl+), a
 	ld	(hl), b
 00188$:
-;src/gameplay.c:602: p->on_ground = 0;
+;src/gameplay.c:594: p->on_ground = 0;
 	ldhl	sp,#71
 	ld	a, (hl+)
 	ld	e, a
@@ -3777,11 +3733,11 @@ _process_sprite_logic:
 	ld	b, h
 	xor	a, a
 	ld	(bc), a
-;src/gameplay.c:606: break;
+;src/gameplay.c:598: break;
 	jr	00216$
-;src/gameplay.c:611: case OBJ_MIRROR_EXIT:
+;src/gameplay.c:603: case OBJ_MIRROR_EXIT:
 00199$:
-;src/gameplay.c:612: if (py <= obj_y + 32 && p_bottom >= obj_y) {
+;src/gameplay.c:604: if (py <= obj_y + 32 && p_bottom >= obj_y) {
 	ld	e, c
 	ld	d, b
 	ld	hl, #0x0020
@@ -3801,7 +3757,7 @@ _process_sprite_logic:
 	ld	a, (hl)
 	sbc	a, b
 	jr	C, 00216$
-;src/gameplay.c:613: if (!cache->activated[i]) {
+;src/gameplay.c:605: if (!cache->activated[i]) {
 	ldhl	sp,#40
 	ld	a, (hl+)
 	ld	e, a
@@ -3815,7 +3771,7 @@ _process_sprite_logic:
 	ld	a, (de)
 	or	a, a
 	jr	NZ, 00216$
-;src/gameplay.c:614: p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
+;src/gameplay.c:606: p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
 	push	de
 	ldhl	sp,#73
 	ld	a, (hl+)
@@ -3834,13 +3790,13 @@ _process_sprite_logic:
 	xor	a, a
 00255$:
 	ld	(bc), a
-;src/gameplay.c:615: cache->activated[i] = 1;
+;src/gameplay.c:607: cache->activated[i] = 1;
 	ld	a, #0x01
 	ld	(de), a
-;src/gameplay.c:619: }
+;src/gameplay.c:611: }
 	jr	00216$
 00209$:
-;src/gameplay.c:620: } else if (obj_x > p_front + 16) {
+;src/gameplay.c:612: } else if (obj_x > p_front + 16) {
 	ldhl	sp,	#6
 	ld	a, (hl+)
 	ld	c, a
@@ -3856,21 +3812,21 @@ _process_sprite_logic:
 	ld	a, b
 	sbc	a, (hl)
 	jr	C, 00219$
-;src/gameplay.c:621: break;
+;src/gameplay.c:613: break;
 00216$:
-;src/gameplay.c:459: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+;src/gameplay.c:451: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
 	ldhl	sp,	#68
 	inc	(hl)
 	ld	a, (hl)
 	sub	a, #0x10
 	jp	C, 00218$
 00219$:
-;src/gameplay.c:624: }
+;src/gameplay.c:616: }
 	add	sp, #69
 	pop	hl
 	add	sp, #5
 	jp	(hl)
-;src/gameplay.c:626: static uint8_t draw_sprites(
+;src/gameplay.c:618: static uint8_t draw_sprites(
 ;	---------------------------------
 ; Function draw_sprites
 ; ---------------------------------
@@ -3883,7 +3839,7 @@ _draw_sprites:
 	ldhl	sp,	#11
 	ld	a, c
 	ld	(hl+), a
-;src/gameplay.c:633: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
+;src/gameplay.c:625: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
 	ld	a, b
 	ld	(hl+), a
 	ld	a, (hl+)
@@ -3933,7 +3889,7 @@ _draw_sprites:
 	ld	a, (hl)
 	sub	a, #0x26
 	jp	NC, 00156$
-;src/gameplay.c:634: if (!cache->active[i]) break;
+;src/gameplay.c:626: if (!cache->active[i]) break;
 	pop	de
 	push	de
 	ldhl	sp,	#15
@@ -3945,7 +3901,7 @@ _draw_sprites:
 	ld	a, (bc)
 	or	a, a
 	jp	Z, 00156$
-;src/gameplay.c:636: uint16_t obj_x = cache->px[i];
+;src/gameplay.c:628: uint16_t obj_x = cache->px[i];
 	ldhl	sp,	#15
 	ld	a, (hl)
 	add	a, a
@@ -3962,7 +3918,7 @@ _draw_sprites:
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-;src/gameplay.c:637: if (obj_x > cam_px + 176u) break;
+;src/gameplay.c:629: if (obj_x > cam_px + 176u) break;
 	ldhl	sp,	#11
 	ld	a, (hl+)
 	ld	e, a
@@ -3976,7 +3932,7 @@ _draw_sprites:
 	ld	a, h
 	sbc	a, d
 	jp	C, 00156$
-;src/gameplay.c:639: uint8_t obj = cache->obj[i];
+;src/gameplay.c:631: uint8_t obj = cache->obj[i];
 	ldhl	sp,#13
 	ld	a, (hl+)
 	ld	e, a
@@ -3990,7 +3946,7 @@ _draw_sprites:
 	ld	a, (de)
 	ldhl	sp,	#6
 	ld	(hl), a
-;src/gameplay.c:640: if (obj == OBJ_LEVEL_END || obj >= 100) continue;
+;src/gameplay.c:632: if (obj == OBJ_LEVEL_END || obj >= 100) continue;
 	ld	a, (hl)
 	sub	a, #0x0f
 	jp	Z, 00155$
@@ -3998,38 +3954,38 @@ _draw_sprites:
 	ld	a, (hl)
 	sub	a, #0x64
 	jp	NC, 00155$
-;src/gameplay.c:645: dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
+;src/gameplay.c:637: dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
 	ld	a, c
 	ldhl	sp,	#11
 	ld	c, (hl)
 	sub	a, c
-;src/gameplay.c:648: if (dist_x > 176 && dist_x < 224) continue;
+;src/gameplay.c:640: if (dist_x > 176 && dist_x < 224) continue;
 	cp	a, #0xb1
 	jr	C, 00109$
 	cp	a, #0xe0
 	jp	C, 00155$
 00109$:
-;src/gameplay.c:651: screen_x = 128 - dist_x + 8;
+;src/gameplay.c:643: screen_x = 128 - dist_x + 8;
 	ld	c, a
-;src/gameplay.c:650: if (reversed) {
+;src/gameplay.c:642: if (reversed) {
 	ldhl	sp,	#20
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00112$
-;src/gameplay.c:651: screen_x = 128 - dist_x + 8;
+;src/gameplay.c:643: screen_x = 128 - dist_x + 8;
 	ld	a, #0x88
 	sub	a, c
 	ldhl	sp,	#9
 	ld	(hl), a
 	jr	00113$
 00112$:
-;src/gameplay.c:653: screen_x = dist_x + PLAYER_SCREEN_X + 8;
+;src/gameplay.c:645: screen_x = dist_x + PLAYER_SCREEN_X + 8;
 	ld	a, c
 	add	a, #0x28
 	ldhl	sp,	#9
 	ld	(hl), a
 00113$:
-;src/gameplay.c:656: screen_y = ((uint8_t)cache->py[i] - (uint8_t)cam_py) + 16;
+;src/gameplay.c:648: screen_y = ((uint8_t)cache->py[i] - (uint8_t)cam_py) + 16;
 	ldhl	sp,#4
 	ld	a, (hl+)
 	ld	e, a
@@ -4046,7 +4002,7 @@ _draw_sprites:
 	sub	a, c
 	add	a, #0x10
 	ldhl	sp,	#10
-;src/gameplay.c:658: if (screen_x > 160 && screen_x < 232) continue;
+;src/gameplay.c:650: if (screen_x > 160 && screen_x < 232) continue;
 	ld	(hl-), a
 	ld	a, #0xa0
 	sub	a, (hl)
@@ -4055,7 +4011,7 @@ _draw_sprites:
 	sub	a, #0xe8
 	jp	C, 00155$
 00115$:
-;src/gameplay.c:659: if (screen_y > 160 && screen_y < 208) continue;
+;src/gameplay.c:651: if (screen_y > 160 && screen_y < 208) continue;
 	ld	a, #0xa0
 	ldhl	sp,	#10
 	sub	a, (hl)
@@ -4064,25 +4020,25 @@ _draw_sprites:
 	sub	a, #0xd0
 	jp	C, 00155$
 00118$:
-;src/gameplay.c:661: if (obj >= 46) continue;
+;src/gameplay.c:653: if (obj >= 46) continue;
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x2e
 	jp	NC, 00155$
-;src/gameplay.c:666: if (obj == 45) {
+;src/gameplay.c:658: if (obj == 45) {
 	ld	a, (hl)
 	sub	a, #0x2d
 	jr	NZ, 00125$
-;src/gameplay.c:667: if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
+;src/gameplay.c:659: if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
 	ld	a, #0x24
 	ldhl	sp,	#21
 	sub	a, (hl)
 	jp	C, 00156$
-;src/gameplay.c:669: oam_start, screen_x, screen_y - 8, reversed);
+;src/gameplay.c:661: oam_start, screen_x, screen_y - 8, reversed);
 	ldhl	sp,	#10
 	ld	a, (hl)
 	add	a, #0xf8
-;src/gameplay.c:668: oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
+;src/gameplay.c:660: oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
 	ldhl	sp,	#20
 	ld	h, (hl)
 	push	hl
@@ -4100,15 +4056,15 @@ _draw_sprites:
 	ldhl	sp,	#21
 	add	a, (hl)
 	ld	(hl), a
-;src/gameplay.c:670: continue;
+;src/gameplay.c:662: continue;
 	jp	00155$
 00125$:
-;src/gameplay.c:673: if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
+;src/gameplay.c:665: if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
 	ld	a, #0x1f
 	ldhl	sp,	#21
 	sub	a, (hl)
 	jp	C, 00156$
-;src/gameplay.c:674: const metasprite_t *sprite = (obj < 38) ? famidash_sprite_table[obj] : 0;
+;src/gameplay.c:666: const metasprite_t *sprite = (obj < 38) ? famidash_sprite_table[obj] : 0;
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x26
@@ -4128,13 +4084,13 @@ _draw_sprites:
 	ld	c, a
 00165$:
 	ldhl	sp,	#7
-;src/gameplay.c:675: if (sprite == 0) continue;
+;src/gameplay.c:667: if (sprite == 0) continue;
 	ld	(hl+), a
 	ld	(hl), c
 	dec	hl
 	or	a, c
 	jp	Z, 00155$
-;src/gameplay.c:678: if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
+;src/gameplay.c:670: if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
 	dec	hl
 	ld	a, (hl)
 	sub	a, #0x05
@@ -4147,7 +4103,7 @@ _draw_sprites:
 	ld	a, (hl)
 	sub	a, #0x0b
 	jp	Z, 00155$
-;src/gameplay.c:679: obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
+;src/gameplay.c:671: obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x0a
@@ -4160,7 +4116,7 @@ _draw_sprites:
 	ld	a, (hl)
 	sub	a, #0x0d
 	jp	Z, 00155$
-;src/gameplay.c:680: obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
+;src/gameplay.c:672: obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x0e
@@ -4169,7 +4125,7 @@ _draw_sprites:
 	ld	a, (hl)
 	sub	a, #0x25
 	jp	Z, 00155$
-;src/gameplay.c:684: if (obj >= 16 && obj <= 19) {
+;src/gameplay.c:676: if (obj >= 16 && obj <= 19) {
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x10
@@ -4177,7 +4133,7 @@ _draw_sprites:
 	ld	a, #0x13
 	sub	a, (hl)
 	jp	C, 00152$
-;src/gameplay.c:685: if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+;src/gameplay.c:677: if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
 	ldhl	sp,	#21
 	ld	a, (hl-)
 	ld	c, a
@@ -4240,7 +4196,7 @@ _draw_sprites:
 	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hflip
-;src/gameplay.c:685: if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+;src/gameplay.c:677: if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
 	ldhl	sp,	#21
 	add	a, (hl)
 	ld	(hl), a
@@ -4269,13 +4225,13 @@ _draw_sprites:
 	ld	a, c
 	call	___move_metasprite
 	pop	bc
-;src/gameplay.c:686: else oam_start += move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+;src/gameplay.c:678: else oam_start += move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
 	add	a, c
 	ldhl	sp,	#21
 	ld	(hl), a
 	jp	00155$
 00152$:
-;src/gameplay.c:687: } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
+;src/gameplay.c:679: } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
 	ldhl	sp,	#6
 	ld	a, (hl)
 	or	a, a
@@ -4288,7 +4244,7 @@ _draw_sprites:
 	sub	a, #0x02
 	jr	NZ, 00147$
 00146$:
-;src/gameplay.c:688: oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:680: oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#20
 	ld	a, (hl)
 	push	af
@@ -4313,7 +4269,7 @@ _draw_sprites:
 	ld	(hl), a
 	jr	00155$
 00147$:
-;src/gameplay.c:689: } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
+;src/gameplay.c:681: } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
 	ldhl	sp,	#6
 	ld	a, (hl)
 	sub	a, #0x08
@@ -4323,7 +4279,7 @@ _draw_sprites:
 	sub	a, #0x09
 	jr	NZ, 00143$
 00142$:
-;src/gameplay.c:690: oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:682: oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#20
 	ld	a, (hl)
 	push	af
@@ -4348,7 +4304,7 @@ _draw_sprites:
 	ld	(hl), a
 	jr	00155$
 00143$:
-;src/gameplay.c:692: oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+;src/gameplay.c:684: oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
 	ldhl	sp,	#20
 	ld	a, (hl)
 	push	af
@@ -4372,35 +4328,35 @@ _draw_sprites:
 	add	a, (hl)
 	ld	(hl), a
 00155$:
-;src/gameplay.c:633: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
+;src/gameplay.c:625: for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
 	ldhl	sp,	#15
 	inc	(hl)
 	jp	00161$
 00156$:
-;src/gameplay.c:695: return oam_start;
+;src/gameplay.c:687: return oam_start;
 	ldhl	sp,	#21
 	ld	a, (hl)
-;src/gameplay.c:696: }
+;src/gameplay.c:688: }
 	add	sp, #16
 	pop	hl
 	add	sp, #4
 	jp	(hl)
-;src/gameplay.c:698: void setup_menu_font(void) BANKED {
+;src/gameplay.c:690: void setup_menu_font(void) BANKED {
 ;	---------------------------------
 ; Function setup_menu_font
 ; ---------------------------------
 	b_setup_menu_font	= 10
 _setup_menu_font::
-;src/gameplay.c:699: set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
+;src/gameplay.c:691: set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
 	ld	de, #_FontPusab
 	push	de
 	ld	hl, #0x27d0
 	push	hl
 	call	_set_bkg_data
 	add	sp, #4
-;src/gameplay.c:700: }
+;src/gameplay.c:692: }
 	ret
-;src/gameplay.c:702: static void draw_text(uint8_t x, uint8_t y, const char *str) {
+;src/gameplay.c:694: static void draw_text(uint8_t x, uint8_t y, const char *str) {
 ;	---------------------------------
 ; Function draw_text
 ; ---------------------------------
@@ -4410,7 +4366,7 @@ _draw_text:
 	ldhl	sp,	#1
 	ld	(hl-), a
 	ld	(hl), e
-;src/gameplay.c:704: while (*str) {
+;src/gameplay.c:696: while (*str) {
 	ldhl	sp,	#4
 	ld	a, (hl+)
 	ld	c, a
@@ -4419,29 +4375,29 @@ _draw_text:
 	ld	a, (bc)
 	or	a, a
 	jr	Z, 00125$
-;src/gameplay.c:705: char c = *str;
-;src/gameplay.c:706: if (c == ' ') tile = 0;
+;src/gameplay.c:697: char c = *str;
+;src/gameplay.c:698: if (c == ' ') tile = 0;
 	ld	l, a
 	sub	a, #0x20
 	jr	NZ, 00120$
 	xor	a, a
 	jr	00121$
 00120$:
-;src/gameplay.c:707: else if (c == '%') tile = 1;
+;src/gameplay.c:699: else if (c == '%') tile = 1;
 	ld	a, l
 	sub	a, #0x25
 	jr	NZ, 00117$
 	ld	a, #0x01
 	jr	00121$
 00117$:
-;src/gameplay.c:708: else if (c == '/') tile = 2;
+;src/gameplay.c:700: else if (c == '/') tile = 2;
 	ld	a, l
 	sub	a, #0x2f
 	jr	NZ, 00114$
 	ld	a, #0x02
 	jr	00121$
 00114$:
-;src/gameplay.c:709: else if (c >= '0' && c <= '9') tile = (c - '0') + 3;
+;src/gameplay.c:701: else if (c >= '0' && c <= '9') tile = (c - '0') + 3;
 	ld	a, l
 	xor	a, #0x80
 	sub	a, #0xb0
@@ -4453,7 +4409,7 @@ _draw_text:
 	add	a, #0xd3
 	jr	00121$
 00110$:
-;src/gameplay.c:710: else if (c >= 'A' && c <= 'Z') tile = (c - 'A') + 13;
+;src/gameplay.c:702: else if (c >= 'A' && c <= 'Z') tile = (c - 'A') + 13;
 	ld	a, l
 	xor	a, #0x80
 	sub	a, #0xc1
@@ -4465,7 +4421,7 @@ _draw_text:
 	add	a, #0xcc
 	jr	00121$
 00106$:
-;src/gameplay.c:711: else if (c >= 'a' && c <= 'z') tile = (c - 'a') + 13;
+;src/gameplay.c:703: else if (c >= 'a' && c <= 'z') tile = (c - 'a') + 13;
 	ld	a, l
 	xor	a, #0x80
 	sub	a, #0xe1
@@ -4477,10 +4433,10 @@ _draw_text:
 	add	a, #0xac
 	jr	00121$
 00102$:
-;src/gameplay.c:712: else tile = 0;
+;src/gameplay.c:704: else tile = 0;
 	xor	a, a
 00121$:
-;src/gameplay.c:713: set_bkg_tile_xy(x++, y, FONT_PUSAB_START + tile);
+;src/gameplay.c:705: set_bkg_tile_xy(x++, y, FONT_PUSAB_START + tile);
 	add	a, #0xd0
 	ldhl	sp,	#1
 	ld	d, (hl)
@@ -4493,38 +4449,38 @@ _draw_text:
 	ld	a, d
 	call	_set_bkg_tile_xy
 	pop	bc
-;src/gameplay.c:714: str++;
+;src/gameplay.c:706: str++;
 	inc	bc
 	jr	00122$
 00125$:
-;src/gameplay.c:716: }
+;src/gameplay.c:708: }
 	inc	sp
 	inc	sp
 	pop	hl
 	pop	af
 	jp	(hl)
-;src/gameplay.c:718: void draw_menu(void) BANKED {
+;src/gameplay.c:710: void draw_menu(void) BANKED {
 ;	---------------------------------
 ; Function draw_menu
 ; ---------------------------------
 	b_draw_menu	= 10
 _draw_menu::
-;src/gameplay.c:719: if (_cpu == CGB_TYPE) {
+;src/gameplay.c:711: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00102$
-;src/gameplay.c:724: set_bkg_palette(0, 1, menu_pal);
-	ld	de, #_draw_menu_menu_pal_30000_379
+;src/gameplay.c:716: set_bkg_palette(0, 1, menu_pal);
+	ld	de, #_draw_menu_menu_pal_30000_381
 	push	de
 	xor	a, a
 	inc	a
 	push	af
 	call	_set_bkg_palette
 	add	sp, #4
-;src/gameplay.c:728: VBK_REG = 1;
+;src/gameplay.c:720: VBK_REG = 1;
 	ld	a, #0x01
 	ldh	(_VBK_REG + 0), a
-;src/gameplay.c:729: fill_bkg_rect(0, 0, 32, 32, 0x00);
+;src/gameplay.c:721: fill_bkg_rect(0, 0, 32, 32, 0x00);
 	xor	a, a
 	ld	h, a
 	ld	l, #0x20
@@ -4537,14 +4493,14 @@ _draw_menu::
 	push	af
 	call	_fill_bkg_rect
 	add	sp, #5
-;src/gameplay.c:730: VBK_REG = 0;
+;src/gameplay.c:722: VBK_REG = 0;
 	xor	a, a
 	ldh	(_VBK_REG + 0), a
 00102$:
-;src/gameplay.c:732: BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
+;src/gameplay.c:724: BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
 	ld	a, #0x2f
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:733: fill_bkg_rect(0, 0, 20, 18, 0x00);
+;src/gameplay.c:725: fill_bkg_rect(0, 0, 20, 18, 0x00);
 	xor	a, a
 	ld	h, a
 	ld	l, #0x12
@@ -4557,13 +4513,13 @@ _draw_menu::
 	push	af
 	call	_fill_bkg_rect
 	add	sp, #5
-;src/gameplay.c:734: draw_text(0, 0, "GD POCKET DEMO 02");
+;src/gameplay.c:726: draw_text(0, 0, "GD POCKET DEMO 02");
 	ld	de, #___str_0
 	push	de
 	xor	a, a
 	ld	e, a
 	call	_draw_text
-;src/gameplay.c:735: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+;src/gameplay.c:727: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
 	ld	c, #0x00
 00108$:
 	ld	a, (_MAX_LEVELS)
@@ -4571,22 +4527,22 @@ _draw_menu::
 	ld	a, c
 	sub	a, b
 	jr	NC, 00106$
-;src/gameplay.c:737: draw_text(1, 2 + i, "0"); // cursor icon
+;src/gameplay.c:729: draw_text(1, 2 + i, "0"); // cursor icon
 	ld	b, c
-;src/gameplay.c:738: draw_text(3, 2 + i, game_levels[i]->name);
+;src/gameplay.c:730: draw_text(3, 2 + i, game_levels[i]->name);
 	ld	l, c
 	xor	a, a
-;src/gameplay.c:737: draw_text(1, 2 + i, "0"); // cursor icon
+;src/gameplay.c:729: draw_text(1, 2 + i, "0"); // cursor icon
 	inc	b
 	inc	b
-;src/gameplay.c:738: draw_text(3, 2 + i, game_levels[i]->name);
+;src/gameplay.c:730: draw_text(3, 2 + i, game_levels[i]->name);
 	ld	h, a
 	add	hl, hl
-;src/gameplay.c:736: if (i == selected) {
+;src/gameplay.c:728: if (i == selected) {
 	ld	a, (_selected)
 	sub	a, c
 	jr	NZ, 00104$
-;src/gameplay.c:737: draw_text(1, 2 + i, "0"); // cursor icon
+;src/gameplay.c:729: draw_text(1, 2 + i, "0"); // cursor icon
 	push	hl
 	push	bc
 	ld	de, #___str_1
@@ -4596,7 +4552,7 @@ _draw_menu::
 	call	_draw_text
 	pop	bc
 	pop	hl
-;src/gameplay.c:738: draw_text(3, 2 + i, game_levels[i]->name);
+;src/gameplay.c:730: draw_text(3, 2 + i, game_levels[i]->name);
 	ld	de, #_game_levels
 	add	hl, de
 	ld	a,	(hl+)
@@ -4613,7 +4569,7 @@ _draw_menu::
 	pop	bc
 	jr	00109$
 00104$:
-;src/gameplay.c:740: draw_text(3, 2 + i, game_levels[i]->name);
+;src/gameplay.c:732: draw_text(3, 2 + i, game_levels[i]->name);
 	ld	de, #_game_levels
 	add	hl, de
 	ld	a,	(hl+)
@@ -4629,26 +4585,26 @@ _draw_menu::
 	call	_draw_text
 	pop	bc
 00109$:
-;src/gameplay.c:735: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
+;src/gameplay.c:727: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
 	inc	c
 	jr	00108$
 00106$:
-;src/gameplay.c:743: draw_text(0, 16, "SOTOSPRO24");
+;src/gameplay.c:735: draw_text(0, 16, "SOTOSPRO24");
 	ld	de, #___str_2
 	push	de
 	ld	e, #0x10
 	xor	a, a
 	call	_draw_text
-;src/gameplay.c:744: SHOW_BKG;
+;src/gameplay.c:736: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:745: redraw = 0;
+;src/gameplay.c:737: redraw = 0;
 	xor	a, a
 	ld	(#_redraw),a
-;src/gameplay.c:746: }
+;src/gameplay.c:738: }
 	ret
-_draw_menu_menu_pal_30000_379:
+_draw_menu_menu_pal_30000_381:
 	.dw #0x1442
 	.dw #0x498c
 	.dw #0x7f39
@@ -4662,7 +4618,7 @@ ___str_1:
 ___str_2:
 	.ascii "SOTOSPRO24"
 	.db 0x00
-;src/gameplay.c:748: void play_level(uint8_t idx) BANKED {
+;src/gameplay.c:740: void play_level(uint8_t idx) BANKED {
 ;	---------------------------------
 ; Function play_level
 ; ---------------------------------
@@ -4671,7 +4627,7 @@ _play_level::
 	ld	hl, #-222
 	add	hl, sp
 	ld	sp, hl
-;src/gameplay.c:758: l = game_levels[idx];
+;src/gameplay.c:750: l = game_levels[idx];
 	ld	bc, #_game_levels+0
 	ld	hl, #228
 	add	hl, sp
@@ -4698,7 +4654,7 @@ _play_level::
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
-;src/gameplay.c:759: level_tiles = l->tiles;
+;src/gameplay.c:751: level_tiles = l->tiles;
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	c, a
@@ -4712,7 +4668,7 @@ _play_level::
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
-;src/gameplay.c:760: level_map = l->map;
+;src/gameplay.c:752: level_map = l->map;
 	ld	(hl-), a
 	dec	hl
 	dec	hl
@@ -4732,7 +4688,7 @@ _play_level::
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:761: level_tile_count = l->tile_count;
+;src/gameplay.c:753: level_tile_count = l->tile_count;
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -4751,7 +4707,7 @@ _play_level::
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:762: level_map_w = l->map_width;
+;src/gameplay.c:754: level_map_w = l->map_width;
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -4770,7 +4726,7 @@ _play_level::
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
-;src/gameplay.c:763: level_map_h = l->map_height;
+;src/gameplay.c:755: level_map_h = l->map_height;
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -4788,10 +4744,10 @@ _play_level::
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
-;src/gameplay.c:764: level_tiles_bank = BANK(chr_gb);
+;src/gameplay.c:756: level_tiles_bank = BANK(chr_gb);
 	ld	(hl+), a
 	ld	(hl), #<(___bank_chr_gb)
-;src/gameplay.c:765: level_map_bank = l->map_bank;
+;src/gameplay.c:757: level_map_bank = l->map_bank;
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -4805,7 +4761,7 @@ _play_level::
 	ld	hl, #190
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:766: if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
+;src/gameplay.c:758: if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00102$
@@ -4815,16 +4771,16 @@ _play_level::
 	ld	(hl+), a
 	ld	(hl), #>(_chr_gb_cgb_tiles)
 00102$:
-;src/gameplay.c:768: NR52_REG = 0x80;
+;src/gameplay.c:760: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:769: NR51_REG = 0xFF;
+;src/gameplay.c:761: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/gameplay.c:770: NR50_REG = 0x77;
+;src/gameplay.c:762: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/gameplay.c:772: if (level_songs[idx]) {
+;src/gameplay.c:764: if (level_songs[idx]) {
 	ld	de, #_level_songs
 	ld	hl, #220
 	add	hl, sp
@@ -4852,7 +4808,7 @@ _play_level::
 	ld	b, a
 	or	a, c
 	jr	Z, 00104$
-;src/gameplay.c:773: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+;src/gameplay.c:765: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -4885,27 +4841,27 @@ _play_level::
 	ld	d, b
 	call	_init_music_banked
 	pop	de
-;src/gameplay.c:774: current_song_bank = song_bank[idx];
+;src/gameplay.c:766: current_song_bank = song_bank[idx];
 	ld	a, (de)
 	ld	(#_current_song_bank),a
-;src/gameplay.c:775: music_ready = 1;
+;src/gameplay.c:767: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
 00104$:
-;src/gameplay.c:778: uint16_t cam_px = 0;
+;src/gameplay.c:770: uint16_t cam_px = 0;
 	xor	a, a
 	ld	hl, #220
 	add	hl, sp
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:779: uint16_t cam_py = 112;
+;src/gameplay.c:771: uint16_t cam_py = 112;
 	ld	hl, #193
 	add	hl, sp
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:780: uint16_t cam_py_max = (level_map_h << 4);
+;src/gameplay.c:772: uint16_t cam_py_max = (level_map_h << 4);
 	ld	hl, #187
 	add	hl, sp
 	ld	a, (hl+)
@@ -4918,7 +4874,7 @@ _play_level::
 	rl	b
 	add	a, a
 	rl	b
-;src/gameplay.c:781: if (cam_py_max > 144u) cam_py_max -= 144u;
+;src/gameplay.c:773: if (cam_py_max > 144u) cam_py_max -= 144u;
 	ld	c, a
 	ld	a, #0x90
 	cp	a, c
@@ -4937,25 +4893,25 @@ _play_level::
 	ld	(hl), a
 	jr	00107$
 00106$:
-;src/gameplay.c:782: else cam_py_max = 0;
+;src/gameplay.c:774: else cam_py_max = 0;
 	xor	a, a
 	ld	hl, #195
 	add	hl, sp
 	ld	(hl+), a
 	ld	(hl), a
 00107$:
-;src/gameplay.c:783: uint16_t loaded_r = BKG_MT_W - 1;
+;src/gameplay.c:775: uint16_t loaded_r = BKG_MT_W - 1;
 	ld	hl, #197
 	add	hl, sp
 	ld	a, #0x0f
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:788: uint8_t target_bg_idx = 0;
+;src/gameplay.c:780: uint8_t target_bg_idx = 0;
 	ld	hl, #219
 	add	hl, sp
 	ld	(hl), #0x00
-;src/gameplay.c:789: const uint8_t bg_pals[] = {
+;src/gameplay.c:781: const uint8_t bg_pals[] = {
 	ldhl	sp,	#4
 	ld	a, #0xe4
 	ld	(hl+), a
@@ -4964,7 +4920,7 @@ _play_level::
 	ld	a, #0x3e
 	ld	(hl+), a
 	ld	(hl), #0x3f
-;src/gameplay.c:797: player_init(&player, 0, 240);
+;src/gameplay.c:789: player_init(&player, 0, 240);
 	ld	de, #0x00f0
 	push	de
 	ld	bc, #0x0000
@@ -4975,9 +4931,9 @@ _play_level::
 	call	_player_init
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:800: DISPLAY_OFF;
+;src/gameplay.c:792: DISPLAY_OFF;
 	call	_display_off
-;src/gameplay.c:801: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+;src/gameplay.c:793: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 	ld	hl, #189
 	add	hl, sp
 	ld	a, (hl)
@@ -4994,28 +4950,28 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_load_bkg_tileset
-;src/gameplay.c:802: set_sprite_data(0, 8, icon1_tiles);
+;src/gameplay.c:794: set_sprite_data(0, 8, icon1_tiles);
 	ld	de, #_icon1_tiles
 	push	de
 	ld	hl, #0x800
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:803: set_sprite_data(8, 4, ship_tiles);
+;src/gameplay.c:795: set_sprite_data(8, 4, ship_tiles);
 	ld	de, #_ship_tiles
 	push	de
 	ld	hl, #0x408
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:804: set_sprite_data(12, 4, ball_tiles);
+;src/gameplay.c:796: set_sprite_data(12, 4, ball_tiles);
 	ld	de, #_ball_tiles
 	push	de
 	ld	hl, #0x40c
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:805: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+;src/gameplay.c:797: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 	ld	de, #_famidash_sprites_tiles
 	push	de
 	ld	hl, #0x5c70
@@ -5027,7 +4983,7 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:807: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+;src/gameplay.c:799: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -5047,13 +5003,13 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_fill_scroll_bg
-;src/gameplay.c:809: if (_cpu == CGB_TYPE) {
+;src/gameplay.c:801: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00109$
-;src/gameplay.c:812: famidash_reset_bg_palettes();
+;src/gameplay.c:804: famidash_reset_bg_palettes();
 	call	_famidash_reset_bg_palettes
-;src/gameplay.c:813: set_sprite_palette(0, 6, gbc_sprite_palettes);
+;src/gameplay.c:805: set_sprite_palette(0, 6, gbc_sprite_palettes);
 	ld	de, #_gbc_sprite_palettes
 	push	de
 	ld	hl, #0x600
@@ -5061,69 +5017,69 @@ _play_level::
 	call	_set_sprite_palette
 	add	sp, #4
 00109$:
-;src/gameplay.c:816: BGP_REG = bg_pals[0];
+;src/gameplay.c:808: BGP_REG = bg_pals[0];
 	ldhl	sp,	#4
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:817: OBP0_REG = 0xE4;
+;src/gameplay.c:809: OBP0_REG = 0xE4;
 	ld	a, #0xe4
 	ldh	(_OBP0_REG + 0), a
-;src/gameplay.c:818: SPRITES_8x16;
+;src/gameplay.c:810: SPRITES_8x16;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x04
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:819: OBP1_REG = 0xE4;
+;src/gameplay.c:811: OBP1_REG = 0xE4;
 	ld	a, #0xe4
 	ldh	(_OBP1_REG + 0), a
-;src/gameplay.c:820: SHOW_BKG;
+;src/gameplay.c:812: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:821: SHOW_SPRITES;
+;src/gameplay.c:813: SHOW_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x02
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:822: DISPLAY_ON;
+;src/gameplay.c:814: DISPLAY_ON;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x80
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:823: TAC_REG = 0x04;
+;src/gameplay.c:815: TAC_REG = 0x04;
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:826: uint16_t scroll_acc = 0;
+;src/gameplay.c:818: uint16_t scroll_acc = 0;
 	ld	hl, #199
 	add	hl, sp
-;src/gameplay.c:827: uint8_t prev_joy = 0;
-;src/gameplay.c:828: uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
+;src/gameplay.c:819: uint8_t prev_joy = 0;
+;src/gameplay.c:820: uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl+), a
 	ld	(hl), #0x28
-;src/gameplay.c:830: uint16_t sp_stream_idx = 0;
+;src/gameplay.c:822: uint16_t sp_stream_idx = 0;
 	xor	a, a
 	ld	hl, #143
 	add	hl, sp
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:831: uint16_t sp_cache_col = 0xFFFF;
+;src/gameplay.c:823: uint16_t sp_cache_col = 0xFFFF;
 	ld	hl, #202
 	add	hl, sp
-;src/gameplay.c:833: uint16_t cached_collision_col = 0xFFFF;
+;src/gameplay.c:825: uint16_t cached_collision_col = 0xFFFF;
 	ld	a,#0xff
 	ld	(hl+),a
 	ld	(hl+), a
 	ld	a, #0xff
 	ld	(hl+), a
 	ld	(hl), #0xff
-;src/gameplay.c:834: uint8_t prev_reversed = player.reversed;
+;src/gameplay.c:826: uint8_t prev_reversed = player.reversed;
 	ldhl	sp,	#18
 	ld	a, (hl)
 	ld	hl, #206
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:835: sp_cache_reset(&active_sp, &sp_stream_idx);
+;src/gameplay.c:827: sp_cache_reset(&active_sp, &sp_stream_idx);
 	ld	hl, #143
 	add	hl, sp
 	ld	c, l
@@ -5133,7 +5089,7 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_sp_cache_reset
-;src/gameplay.c:836: while (1) {
+;src/gameplay.c:828: while (1) {
 	ld	hl,#0xb1
 	add	hl,sp
 	ld	a, (hl+)
@@ -5185,19 +5141,19 @@ _play_level::
 	add	hl, sp
 	ld	(hl), a
 00209$:
-;src/gameplay.c:837: uint8_t joy = joypad();
+;src/gameplay.c:829: uint8_t joy = joypad();
 	call	_joypad
 	ld	hl, #218
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:838: if (joy & J_START) break;
+;src/gameplay.c:830: if (joy & J_START) break;
 	push	hl
 	ld	hl, #220
 	add	hl, sp
 	bit	7, (hl)
 	pop	hl
 	jp	NZ, 00210$
-;src/gameplay.c:840: if ((joy & J_UP) || player.level_complete) {
+;src/gameplay.c:832: if ((joy & J_UP) || player.level_complete) {
 	push	hl
 	ld	hl, #220
 	add	hl, sp
@@ -5209,7 +5165,7 @@ _play_level::
 	or	a, a
 	jr	Z, 00116$
 00115$:
-;src/gameplay.c:841: HIDE_SPRITES;
+;src/gameplay.c:833: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -5220,13 +5176,13 @@ _play_level::
 	ldh	(_SCY_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:844: setup_menu_font();
+;src/gameplay.c:836: setup_menu_font();
 	ld	e, #b_setup_menu_font
 	ld	hl, #_setup_menu_font
 	call	___sdcc_bcall_ehl
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:846: fill_bkg_rect(0, 0, 20, 18, 0x00);
+;src/gameplay.c:838: fill_bkg_rect(0, 0, 20, 18, 0x00);
 	xor	a, a
 	ld	h, a
 	ld	l, #0x12
@@ -5239,30 +5195,30 @@ _play_level::
 	push	af
 	call	_fill_bkg_rect
 	add	sp, #5
-;src/gameplay.c:847: draw_text(3, 6, "LEVEL COMPLETE");
+;src/gameplay.c:839: draw_text(3, 6, "LEVEL COMPLETE");
 	ld	de, #___str_3
 	push	de
 	ld	e, #0x06
 	ld	a, #0x03
 	call	_draw_text
-;src/gameplay.c:848: draw_text(3, 12, "PRESS A TO EXIT");
+;src/gameplay.c:840: draw_text(3, 12, "PRESS A TO EXIT");
 	ld	de, #___str_4
 	push	de
 	ld	e, #0x0c
 	ld	a, #0x03
 	call	_draw_text
-;src/gameplay.c:849: waitpadup();
+;src/gameplay.c:841: waitpadup();
 	call	_waitpadup
-;src/gameplay.c:850: while (!(joypad() & J_A)) wait_vbl_done();
+;src/gameplay.c:842: while (!(joypad() & J_A)) wait_vbl_done();
 00112$:
 	call	_joypad
 	bit	4, a
 	jp	NZ, 00210$
 	call	_wait_vbl_done
 	jr	00112$
-;src/gameplay.c:851: break;
+;src/gameplay.c:843: break;
 00116$:
-;src/gameplay.c:855: if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
+;src/gameplay.c:847: if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
 	push	hl
 	ld	hl, #220
 	add	hl, sp
@@ -5282,7 +5238,7 @@ _play_level::
 	rla
 	ld	(hl), a
 00119$:
-;src/gameplay.c:857: if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
+;src/gameplay.c:849: if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
 	push	hl
 	ld	hl, #220
 	add	hl, sp
@@ -5295,21 +5251,21 @@ _play_level::
 	bit	6, (hl)
 	pop	hl
 	jr	NZ, 00126$
-;src/gameplay.c:858: target_bg_idx++;
+;src/gameplay.c:850: target_bg_idx++;
 	ld	hl, #219
 	add	hl, sp
 	inc	(hl)
-;src/gameplay.c:859: if (target_bg_idx > 3) target_bg_idx = 0;
+;src/gameplay.c:851: if (target_bg_idx > 3) target_bg_idx = 0;
 	ld	a, #0x03
 	sub	a, (hl)
 	jr	NC, 00122$
 	ld	(hl), #0x00
 00122$:
-;src/gameplay.c:860: if (_cpu == CGB_TYPE) {
+;src/gameplay.c:852: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00126$
-;src/gameplay.c:861: famidash_apply_bg_trigger((uint8_t)(target_bg_idx << 2));
+;src/gameplay.c:853: famidash_apply_bg_trigger((uint8_t)(target_bg_idx << 2));
 	ld	hl, #219
 	add	hl, sp
 	ld	a, (hl)
@@ -5317,14 +5273,14 @@ _play_level::
 	add	a, a
 	call	_famidash_apply_bg_trigger
 00126$:
-;src/gameplay.c:865: prev_joy = joy;
+;src/gameplay.c:857: prev_joy = joy;
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
 	ld	hl, #200
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:867: uint16_t px_prev = cam_px >> 4;
+;src/gameplay.c:859: uint16_t px_prev = cam_px >> 4;
 	ld	hl, #220
 	add	hl, sp
 	ld	a, (hl)
@@ -5360,15 +5316,15 @@ _play_level::
 	ld	a, (hl)
 	ldhl	sp,	#3
 	ld	(hl), a
-;src/gameplay.c:868: uint8_t needs_render = 0;
+;src/gameplay.c:860: uint8_t needs_render = 0;
 	ld	hl, #215
 	add	hl, sp
-;src/gameplay.c:869: uint16_t need_col = 0;
+;src/gameplay.c:861: uint16_t need_col = 0;
 	xor	a, a
 	ld	(hl+), a
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:872: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+;src/gameplay.c:864: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
 	ld	hl, #185
 	add	hl, sp
 	ld	a, (hl+)
@@ -5394,7 +5350,7 @@ _play_level::
 	ld	a, d
 	sbc	a, b
 	jp	NC, 00134$
-;src/gameplay.c:873: scroll_acc += SCROLL_SPEED_FP;
+;src/gameplay.c:865: scroll_acc += SCROLL_SPEED_FP;
 	ld	hl, #199
 	add	hl, sp
 	ld	c, (hl)
@@ -5402,7 +5358,7 @@ _play_level::
 	ld	hl, #0x02ca
 	add	hl, bc
 	ld	c, l
-;src/gameplay.c:874: cam_px += scroll_acc >> 8;
+;src/gameplay.c:866: cam_px += scroll_acc >> 8;
 	ld	e, h
 	ld	d, #0x00
 	ld	hl, #220
@@ -5421,11 +5377,11 @@ _play_level::
 	ld	hl, #221
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:875: scroll_acc &= 0xFF;
+;src/gameplay.c:867: scroll_acc &= 0xFF;
 	ld	hl, #199
 	add	hl, sp
 	ld	(hl), c
-;src/gameplay.c:867: uint16_t px_prev = cam_px >> 4;
+;src/gameplay.c:859: uint16_t px_prev = cam_px >> 4;
 	ld	hl, #220
 	add	hl, sp
 	ld	a, (hl)
@@ -5453,11 +5409,11 @@ _play_level::
 	srl	(hl)
 	dec	hl
 	rr	(hl)
-;src/gameplay.c:876: uint16_t px_curr = cam_px >> 4;
+;src/gameplay.c:868: uint16_t px_curr = cam_px >> 4;
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-;src/gameplay.c:877: if (px_curr != px_prev) {
+;src/gameplay.c:869: if (px_curr != px_prev) {
 	ldhl	sp,	#2
 	ld	a, (hl)
 	sub	a, c
@@ -5467,12 +5423,12 @@ _play_level::
 	sub	a, b
 	jr	Z, 00134$
 00704$:
-;src/gameplay.c:878: uint16_t need = px_curr + VIEW_MT_W;
+;src/gameplay.c:870: uint16_t need = px_curr + VIEW_MT_W;
 	ld	hl, #0x000a
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;src/gameplay.c:879: if (need > loaded_r && need < level_map_w) {
+;src/gameplay.c:871: if (need > loaded_r && need < level_map_w) {
 	ld	hl, #197
 	add	hl, sp
 	ld	a, (hl+)
@@ -5488,17 +5444,17 @@ _play_level::
 	ld	a, b
 	sbc	a, (hl)
 	jr	NC, 00134$
-;src/gameplay.c:880: needs_render = 1;
+;src/gameplay.c:872: needs_render = 1;
 	ld	hl, #215
 	add	hl, sp
-;src/gameplay.c:881: need_col = need;
+;src/gameplay.c:873: need_col = need;
 	ld	a, #0x01
 	ld	(hl+), a
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
 00134$:
-;src/gameplay.c:886: player.world_x = cam_px;
+;src/gameplay.c:878: player.world_x = cam_px;
 	ld	hl, #220
 	add	hl, sp
 	ld	a, (hl)
@@ -5509,8 +5465,8 @@ _play_level::
 	ld	a, (hl)
 	ldhl	sp,	#9
 	ld	(hl), a
-;src/gameplay.c:835: sp_cache_reset(&active_sp, &sp_stream_idx);
-;src/gameplay.c:889: if ((cam_px >> 4) != sp_cache_col) {
+;src/gameplay.c:827: sp_cache_reset(&active_sp, &sp_stream_idx);
+;src/gameplay.c:881: if ((cam_px >> 4) != sp_cache_col) {
 	ld	hl, #213
 	add	hl, sp
 	ld	a, (hl)
@@ -5526,7 +5482,7 @@ _play_level::
 	sub	a, (hl)
 	jr	Z, 00136$
 00705$:
-;src/gameplay.c:890: sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
+;src/gameplay.c:882: sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
 	ld	hl, #143
 	add	hl, sp
 	push	hl
@@ -5544,7 +5500,7 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_sp_cache_update
-;src/gameplay.c:891: sp_cache_col = cam_px >> 4;
+;src/gameplay.c:883: sp_cache_col = cam_px >> 4;
 	ld	hl, #213
 	add	hl, sp
 	ld	a, (hl)
@@ -5558,7 +5514,7 @@ _play_level::
 	add	hl, sp
 	ld	(hl), a
 00136$:
-;src/gameplay.c:896: process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+;src/gameplay.c:888: process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
 	ld	hl, #219
 	add	hl, sp
 	push	hl
@@ -5580,7 +5536,7 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_process_sprite_logic
-;src/gameplay.c:898: if (player.reversed != prev_reversed) {
+;src/gameplay.c:890: if (player.reversed != prev_reversed) {
 	ldhl	sp,	#18
 	ld	c, (hl)
 	ld	hl, #206
@@ -5590,7 +5546,7 @@ _play_level::
 	jp	Z, 00143$
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:902: const uint8_t* target_tiles = player.reversed
+;src/gameplay.c:894: const uint8_t* target_tiles = player.reversed
 	ld	a, c
 	or	a, a
 	jr	Z, 00246$
@@ -5621,7 +5577,7 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 00247$:
-;src/gameplay.c:905: load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+;src/gameplay.c:897: load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
 	ld	hl, #189
 	add	hl, sp
 	ld	a, (hl)
@@ -5633,7 +5589,7 @@ _play_level::
 	ld	c, a
 	ld	b, (hl)
 	call	_load_bkg_tileset
-;src/gameplay.c:908: uint16_t start_col = cam_px >> 4;
+;src/gameplay.c:900: uint16_t start_col = cam_px >> 4;
 	ld	hl, #213
 	add	hl, sp
 	ld	a, (hl)
@@ -5644,12 +5600,12 @@ _play_level::
 	ld	a, (hl)
 	ldhl	sp,	#3
 	ld	(hl), a
-;src/gameplay.c:909: for (uint8_t i = 0; i < 16; i++) {
+;src/gameplay.c:901: for (uint8_t i = 0; i < 16; i++) {
 	ld	hl, #214
 	add	hl, sp
 	ld	(hl), #0x00
 00239$:
-;src/gameplay.c:910: uint16_t curr_col = start_col + i;
+;src/gameplay.c:902: uint16_t curr_col = start_col + i;
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ld	hl, #197
@@ -5660,13 +5616,13 @@ _play_level::
 	ld	hl, #198
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:909: for (uint8_t i = 0; i < 16; i++) {
+;src/gameplay.c:901: for (uint8_t i = 0; i < 16; i++) {
 	ld	hl, #214
 	add	hl, sp
 	ld	a, (hl)
 	sub	a, #0x10
 	jr	NC, 00141$
-;src/gameplay.c:910: uint16_t curr_col = start_col + i;
+;src/gameplay.c:902: uint16_t curr_col = start_col + i;
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	hl, #197
@@ -5682,7 +5638,7 @@ _play_level::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/gameplay.c:911: if (curr_col < level_map_w) {
+;src/gameplay.c:903: if (curr_col < level_map_w) {
 	ld	hl, #197
 	add	hl, sp
 	ld	e, l
@@ -5696,19 +5652,19 @@ _play_level::
 	ld	a, (de)
 	sbc	a, (hl)
 	jr	NC, 00240$
-;src/gameplay.c:912: uint8_t vram_slot = (uint8_t)(curr_col & 15);
+;src/gameplay.c:904: uint8_t vram_slot = (uint8_t)(curr_col & 15);
 	ld	hl, #197
 	add	hl, sp
 	ld	a, (hl)
 	and	a, #0x0f
 	ld	c, a
-;src/gameplay.c:834: uint8_t prev_reversed = player.reversed;
+;src/gameplay.c:826: uint8_t prev_reversed = player.reversed;
 	ldhl	sp,	#18
 	ld	a, (hl)
 	ld	hl, #206
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:913: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+;src/gameplay.c:905: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00138$
@@ -5720,7 +5676,7 @@ _play_level::
 	and	a, #0x0f
 	ld	c, a
 00138$:
-;src/gameplay.c:914: draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
+;src/gameplay.c:906: draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
 	ld	hl, #206
 	add	hl, sp
 	ld	a, (hl)
@@ -5751,34 +5707,34 @@ _play_level::
 	ld	a, c
 	call	_draw_mt_column
 00240$:
-;src/gameplay.c:909: for (uint8_t i = 0; i < 16; i++) {
+;src/gameplay.c:901: for (uint8_t i = 0; i < 16; i++) {
 	ld	hl, #214
 	add	hl, sp
 	inc	(hl)
 	jp	00239$
 00141$:
-;src/gameplay.c:918: set_sprite_data(0, 8, icon1_tiles);
+;src/gameplay.c:910: set_sprite_data(0, 8, icon1_tiles);
 	ld	de, #_icon1_tiles
 	push	de
 	ld	hl, #0x800
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:919: set_sprite_data(8, 4, ship_tiles);
+;src/gameplay.c:911: set_sprite_data(8, 4, ship_tiles);
 	ld	de, #_ship_tiles
 	push	de
 	ld	hl, #0x408
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:920: set_sprite_data(12, 4, ball_tiles);
+;src/gameplay.c:912: set_sprite_data(12, 4, ball_tiles);
 	ld	de, #_ball_tiles
 	push	de
 	ld	hl, #0x40c
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:921: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+;src/gameplay.c:913: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 	ld	de, #_famidash_sprites_tiles
 	push	de
 	ld	hl, #0x5c70
@@ -5787,7 +5743,7 @@ _play_level::
 	add	sp, #4
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:924: loaded_r = start_col + 15;
+;src/gameplay.c:916: loaded_r = start_col + 15;
 	ld	hl,#0xc5
 	add	hl,sp
 	ld	a, (hl+)
@@ -5802,14 +5758,14 @@ _play_level::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
-;src/gameplay.c:925: prev_reversed = player.reversed;
+;src/gameplay.c:917: prev_reversed = player.reversed;
 	ldhl	sp,	#18
 	ld	a, (hl)
 	ld	hl, #206
 	add	hl, sp
 	ld	(hl), a
 00143$:
-;src/gameplay.c:928: uint16_t collision_col = cam_px >> 4;
+;src/gameplay.c:920: uint16_t collision_col = cam_px >> 4;
 	ld	hl,#0xdc
 	add	hl,sp
 	ld	a, (hl+)
@@ -5823,7 +5779,7 @@ _play_level::
 	rr	e
 	srl	d
 	rr	e
-;src/gameplay.c:929: if (collision_col != cached_collision_col) {
+;src/gameplay.c:921: if (collision_col != cached_collision_col) {
 	ld	hl, #204
 	add	hl, sp
 	ld	a, (hl)
@@ -5834,10 +5790,10 @@ _play_level::
 	sub	a, d
 	jr	Z, 00145$
 00709$:
-;src/gameplay.c:931: level_map_bank, collision_columns);
+;src/gameplay.c:923: level_map_bank, collision_columns);
 	ld	hl, #145
 	add	hl, sp
-;src/gameplay.c:930: load_collision_columns(collision_col, level_map, level_map_w,
+;src/gameplay.c:922: load_collision_columns(collision_col, level_map, level_map_w,
 	push	de
 	push	hl
 	ld	hl, #194
@@ -5858,16 +5814,16 @@ _play_level::
 	ld	b, (hl)
 	call	_load_collision_columns
 	pop	de
-;src/gameplay.c:932: cached_collision_col = collision_col;
+;src/gameplay.c:924: cached_collision_col = collision_col;
 	ld	hl, #204
 	add	hl, sp
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
 00145$:
-;src/gameplay.c:935: died = player_update(&player, joy, collision_columns, level_map_h);
-;src/gameplay.c:797: player_init(&player, 0, 240);
-;src/gameplay.c:935: died = player_update(&player, joy, collision_columns, level_map_h);
+;src/gameplay.c:927: died = player_update(&player, joy, collision_columns, level_map_h);
+;src/gameplay.c:789: player_init(&player, 0, 240);
+;src/gameplay.c:927: died = player_update(&player, joy, collision_columns, level_map_h);
 	ld	hl, #187
 	add	hl, sp
 	ld	a, (hl+)
@@ -5888,7 +5844,7 @@ _play_level::
 	ld	hl, #213
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:937: py = player_screen_y(&player, cam_py);
+;src/gameplay.c:929: py = player_screen_y(&player, cam_py);
 	ld	hl, #193
 	add	hl, sp
 	ld	a, (hl+)
@@ -5899,7 +5855,7 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_player_screen_y
-;src/gameplay.c:938: if (py < CAM_Y_TOP_ZONE) {
+;src/gameplay.c:930: if (py < CAM_Y_TOP_ZONE) {
 	ldhl	sp,	#2
 	ld	a, c
 	ld	(hl+), a
@@ -5923,7 +5879,7 @@ _play_level::
 	scf
 00711$:
 	jr	NC, 00157$
-;src/gameplay.c:939: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
+;src/gameplay.c:931: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
 	ldhl	sp,	#11
 	ld	c, (hl)
 	ld	b, #0x00
@@ -5937,7 +5893,7 @@ _play_level::
 	add	hl, sp
 	ld	(hl-), a
 	ld	(hl), e
-;src/gameplay.c:940: if (target_cam_py < 0) target_cam_py = 0;
+;src/gameplay.c:932: if (target_cam_py < 0) target_cam_py = 0;
 	ld	a, (hl)
 	ldhl	sp,	#2
 	ld	(hl), a
@@ -5954,7 +5910,7 @@ _play_level::
 	ld	(hl+), a
 	ld	(hl), a
 00147$:
-;src/gameplay.c:941: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+;src/gameplay.c:933: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
 	ld	hl, #193
 	add	hl, sp
 	ld	a, (hl+)
@@ -5975,10 +5931,10 @@ _play_level::
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
-;src/gameplay.c:942: cam_py = (uint16_t)target_cam_py;
+;src/gameplay.c:934: cam_py = (uint16_t)target_cam_py;
 	jr	00158$
 00157$:
-;src/gameplay.c:944: else if (py > CAM_Y_BOTTOM_ZONE) {
+;src/gameplay.c:936: else if (py > CAM_Y_BOTTOM_ZONE) {
 	ldhl	sp,	#2
 	ld	a, #0x64
 	sub	a, (hl)
@@ -5986,7 +5942,7 @@ _play_level::
 	ld	a, #0x00
 	sbc	a, (hl)
 	jr	NC, 00158$
-;src/gameplay.c:945: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
+;src/gameplay.c:937: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
 	ldhl	sp,	#11
 	ld	a, (hl)
 	ld	b, #0x00
@@ -5995,13 +5951,13 @@ _play_level::
 	ld	a, b
 	adc	a, #0xff
 	ld	b, a
-;src/gameplay.c:946: if (target_cam_py < 0) target_cam_py = 0;
+;src/gameplay.c:938: if (target_cam_py < 0) target_cam_py = 0;
 	ld	h, b
 	bit	7, h
 	jr	Z, 00151$
 	ld	bc, #0x0000
 00151$:
-;src/gameplay.c:947: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
+;src/gameplay.c:939: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
 	ld	e, c
 	ld	d, b
 	ld	hl, #195
@@ -6016,19 +5972,19 @@ _play_level::
 	ld	c, a
 	ld	b, (hl)
 00153$:
-;src/gameplay.c:948: cam_py = (uint16_t)target_cam_py;
+;src/gameplay.c:940: cam_py = (uint16_t)target_cam_py;
 	ld	hl, #193
 	add	hl, sp
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
 00158$:
-;src/gameplay.c:953: if (player.reversed) {
+;src/gameplay.c:945: if (player.reversed) {
 	ldhl	sp,	#18
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00160$
-;src/gameplay.c:955: scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
+;src/gameplay.c:947: scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
 	ld	hl, #220
 	add	hl, sp
 	ld	a, (hl+)
@@ -6046,13 +6002,13 @@ _play_level::
 	ld	a, c
 	adc	a, #0xff
 	ld	d, a
-;src/gameplay.c:956: sprite_x_final = 128; // Mirrored player position
+;src/gameplay.c:948: sprite_x_final = 128; // Mirrored player position
 	ld	hl, #218
 	add	hl, sp
 	ld	(hl), #0x80
 	jr	00161$
 00160$:
-;src/gameplay.c:958: scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
+;src/gameplay.c:950: scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
 	ld	hl, #220
 	add	hl, sp
 	ld	a, (hl)
@@ -6087,7 +6043,7 @@ _play_level::
 00251$:
 	ld	e, c
 	ld	d, a
-;src/gameplay.c:959: sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
+;src/gameplay.c:951: sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
 	ldhl	sp,	#2
 	ld	a, (hl+)
 	sub	a, #0x20
@@ -6105,7 +6061,7 @@ _play_level::
 	add	hl, sp
 	ld	(hl), a
 00161$:
-;src/gameplay.c:961: int16_t final_py = player_screen_y(&player, cam_py);
+;src/gameplay.c:953: int16_t final_py = player_screen_y(&player, cam_py);
 	push	de
 	ld	hl, #195
 	add	hl, sp
@@ -6122,9 +6078,9 @@ _play_level::
 	ld	(hl+), a
 	ld	(hl), b
 	pop	de
-;src/gameplay.c:963: wait_vbl_done();
+;src/gameplay.c:955: wait_vbl_done();
 	call	_wait_vbl_done
-;src/gameplay.c:964: BGP_REG = bg_pals[target_bg_idx];
+;src/gameplay.c:956: BGP_REG = bg_pals[target_bg_idx];
 	push	de
 	push	hl
 	ld	hl, #8
@@ -6142,7 +6098,7 @@ _play_level::
 	ld	b, h
 	ld	a, (bc)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:965: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+;src/gameplay.c:957: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 	ld	hl, #193
 	add	hl, sp
 	ld	c, (hl)
@@ -6151,13 +6107,13 @@ _play_level::
 ;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
 	ld	a, c
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:967: if (needs_render) {
+;src/gameplay.c:959: if (needs_render) {
 	ld	hl, #215
 	add	hl, sp
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00165$
-;src/gameplay.c:968: loaded_r = need_col;
+;src/gameplay.c:960: loaded_r = need_col;
 	inc	hl
 	ld	a, (hl)
 	ld	hl, #197
@@ -6169,16 +6125,16 @@ _play_level::
 	ld	hl, #198
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:969: uint8_t vram_slot = (uint8_t)(need_col & 15);
+;src/gameplay.c:961: uint8_t vram_slot = (uint8_t)(need_col & 15);
 	ld	hl, #216
 	add	hl, sp
 	ld	a, (hl)
 	and	a, #0x0f
 	ld	c, a
-;src/gameplay.c:834: uint8_t prev_reversed = player.reversed;
+;src/gameplay.c:826: uint8_t prev_reversed = player.reversed;
 	ldhl	sp,	#18
 	ld	b, (hl)
-;src/gameplay.c:971: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+;src/gameplay.c:963: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
 	ld	a, b
 	or	a, a
 	jr	Z, 00163$
@@ -6187,7 +6143,7 @@ _play_level::
 	and	a, #0x0f
 	ld	c, a
 00163$:
-;src/gameplay.c:972: draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
+;src/gameplay.c:964: draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
 	push	bc
 	inc	sp
 	ld	hl, #191
@@ -6215,7 +6171,7 @@ _play_level::
 	ld	a, c
 	call	_draw_mt_column
 00165$:
-;src/gameplay.c:975: uint8_t oam_index = draw_sprites(
+;src/gameplay.c:967: uint8_t oam_index = draw_sprites(
 	ldhl	sp,	#18
 	ld	b, (hl)
 	xor	a, a
@@ -6242,30 +6198,30 @@ _play_level::
 	ld	hl, #214
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:980: if (player.mode == MODE_SHIP) {
+;src/gameplay.c:972: if (player.mode == MODE_SHIP) {
 	ldhl	sp,	#17
 	ld	a, (hl)
 	ld	hl, #215
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:834: uint8_t prev_reversed = player.reversed;
+;src/gameplay.c:826: uint8_t prev_reversed = player.reversed;
 	ldhl	sp,	#18
 	ld	a, (hl)
 	ld	hl, #216
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:982: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+;src/gameplay.c:974: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ld	hl, #217
 	add	hl, sp
-;src/gameplay.c:980: if (player.mode == MODE_SHIP) {
+;src/gameplay.c:972: if (player.mode == MODE_SHIP) {
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl)
 	dec	a
 	jp	NZ, 00197$
-;src/gameplay.c:981: if (player.gravity_flipped) {
+;src/gameplay.c:973: if (player.gravity_flipped) {
 	ldhl	sp,	#16
 	ld	a, (hl)
 	or	a, a
@@ -6275,7 +6231,7 @@ _play_level::
 	and	a, #0x04
 	ld	hl, #215
 	add	hl, sp
-;src/gameplay.c:982: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+;src/gameplay.c:974: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
 	ld	(hl+), a
 	ld	a, (hl)
 	or	a, a
@@ -6362,7 +6318,7 @@ _play_level::
 	ld	d, a
 	ld	a, (hl)
 	call	___move_metasprite_hvflip
-;src/gameplay.c:982: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+;src/gameplay.c:974: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6371,7 +6327,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00167$:
-;src/gameplay.c:983: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+;src/gameplay.c:975: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl)
@@ -6436,7 +6392,7 @@ _play_level::
 	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hflip
-;src/gameplay.c:983: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+;src/gameplay.c:975: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6445,7 +6401,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00173$:
-;src/gameplay.c:985: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+;src/gameplay.c:977: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl-)
@@ -6484,7 +6440,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite_vflip
-;src/gameplay.c:985: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+;src/gameplay.c:977: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6493,7 +6449,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00170$:
-;src/gameplay.c:986: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:978: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
@@ -6521,7 +6477,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:986: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:978: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6530,30 +6486,30 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00197$:
-;src/gameplay.c:988: } else if (player.mode == MODE_BALL) {
+;src/gameplay.c:980: } else if (player.mode == MODE_BALL) {
 	ld	hl, #215
 	add	hl, sp
 	ld	a, (hl)
 	sub	a, #0x02
 	jp	NZ, 00194$
-;src/gameplay.c:989: if (player.gravity_flipped) {
+;src/gameplay.c:981: if (player.gravity_flipped) {
 	ldhl	sp,	#16
 	ld	c, (hl)
-;src/gameplay.c:983: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+;src/gameplay.c:975: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
 	add	a, #0x08
-;src/gameplay.c:985: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+;src/gameplay.c:977: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
 	ld	(hl-), a
 	ld	a, (hl)
 	add	a, #0x10
 	ld	(hl), a
-;src/gameplay.c:989: if (player.gravity_flipped) {
+;src/gameplay.c:981: if (player.gravity_flipped) {
 	ld	a, c
 	or	a, a
 	jr	Z, 00182$
-;src/gameplay.c:990: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:982: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	dec	hl
 	ld	a, (hl)
 	or	a, a
@@ -6585,7 +6541,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:990: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:982: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6594,7 +6550,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00176$:
-;src/gameplay.c:991: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:983: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl+)
@@ -6623,7 +6579,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:991: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:983: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6632,7 +6588,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00182$:
-;src/gameplay.c:993: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:985: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #216
 	add	hl, sp
 	ld	a, (hl)
@@ -6665,7 +6621,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:993: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:985: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6674,7 +6630,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00179$:
-;src/gameplay.c:994: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:986: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl+)
@@ -6702,7 +6658,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:994: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:986: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6711,12 +6667,12 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00194$:
-;src/gameplay.c:997: if (player.gravity_flipped) {
+;src/gameplay.c:989: if (player.gravity_flipped) {
 	ldhl	sp,	#16
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00191$
-;src/gameplay.c:998: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+;src/gameplay.c:990: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
 	ld	hl, #216
 	add	hl, sp
 	ld	a, (hl)
@@ -6775,7 +6731,7 @@ _play_level::
 	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hvflip
-;src/gameplay.c:998: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+;src/gameplay.c:990: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6784,7 +6740,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00185$:
-;src/gameplay.c:999: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+;src/gameplay.c:991: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl+)
@@ -6823,7 +6779,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite_vflip
-;src/gameplay.c:999: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+;src/gameplay.c:991: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6832,7 +6788,7 @@ _play_level::
 	ld	(hl), a
 	jp	00198$
 00191$:
-;src/gameplay.c:1001: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+;src/gameplay.c:993: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
 	ld	hl, #216
 	add	hl, sp
 	ld	a, (hl)
@@ -6889,7 +6845,7 @@ _play_level::
 	ld	e, a
 	ld	a, (hl)
 	call	___move_metasprite_hflip
-;src/gameplay.c:1001: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+;src/gameplay.c:993: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6898,7 +6854,7 @@ _play_level::
 	ld	(hl), a
 	jr	00198$
 00188$:
-;src/gameplay.c:1002: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:994: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #217
 	add	hl, sp
 	ld	a, (hl+)
@@ -6935,7 +6891,7 @@ _play_level::
 	add	hl, sp
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1002: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+;src/gameplay.c:994: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
 	ld	hl, #214
 	add	hl, sp
 	add	a, (hl)
@@ -6943,7 +6899,7 @@ _play_level::
 	add	hl, sp
 	ld	(hl), a
 00198$:
-;src/gameplay.c:1007: if (oam_index < previous_oam_index) {
+;src/gameplay.c:999: if (oam_index < previous_oam_index) {
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
@@ -6951,54 +6907,54 @@ _play_level::
 	add	hl, sp
 	sub	a, (hl)
 	jr	NC, 00200$
-;src/gameplay.c:1008: hide_sprites_range(oam_index, previous_oam_index);
+;src/gameplay.c:1000: hide_sprites_range(oam_index, previous_oam_index);
 	ld	e, (hl)
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
 	call	_hide_sprites_range
 00200$:
-;src/gameplay.c:1010: previous_oam_index = oam_index;
+;src/gameplay.c:1002: previous_oam_index = oam_index;
 	ld	hl, #218
 	add	hl, sp
 	ld	a, (hl)
 	ld	hl, #201
 	add	hl, sp
 	ld	(hl), a
-;src/gameplay.c:1012: if (died) {
+;src/gameplay.c:1004: if (died) {
 	ld	hl, #213
 	add	hl, sp
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00209$
-;src/gameplay.c:1013: TAC_REG = 0x00;
+;src/gameplay.c:1005: TAC_REG = 0x00;
 	xor	a, a
 	ldh	(_TAC_REG + 0), a
-;src/gameplay.c:1014: NR52_REG = 0x00;
+;src/gameplay.c:1006: NR52_REG = 0x00;
 	xor	a, a
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:1015: NR52_REG = 0x80;
+;src/gameplay.c:1007: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:1016: NR51_REG = 0xFF;
+;src/gameplay.c:1008: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/gameplay.c:1017: NR50_REG = 0x77;
+;src/gameplay.c:1009: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/gameplay.c:1018: NR41_REG = 0x00;
+;src/gameplay.c:1010: NR41_REG = 0x00;
 	xor	a, a
 	ldh	(_NR41_REG + 0), a
-;src/gameplay.c:1019: NR42_REG = 0xF2;
+;src/gameplay.c:1011: NR42_REG = 0xF2;
 	ld	a, #0xf2
 	ldh	(_NR42_REG + 0), a
-;src/gameplay.c:1020: NR43_REG = 0x43;
+;src/gameplay.c:1012: NR43_REG = 0x43;
 	ld	a, #0x43
 	ldh	(_NR43_REG + 0), a
-;src/gameplay.c:1021: NR44_REG = 0x80;
+;src/gameplay.c:1013: NR44_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR44_REG + 0), a
-;src/gameplay.c:1022: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
+;src/gameplay.c:1014: for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
 	ld	c, #0x00
 00242$:
 	ld	a, c
@@ -7008,16 +6964,16 @@ _play_level::
 	inc	c
 	jr	00242$
 00201$:
-;src/gameplay.c:1023: NR52_REG = 0x80;
+;src/gameplay.c:1015: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/gameplay.c:1024: NR51_REG = 0xFF;
+;src/gameplay.c:1016: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/gameplay.c:1025: NR50_REG = 0x77;
+;src/gameplay.c:1017: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/gameplay.c:1026: if (level_songs[idx]) {
+;src/gameplay.c:1018: if (level_songs[idx]) {
 	ld	hl,#0xbf
 	add	hl,sp
 	ld	a, (hl+)
@@ -7030,7 +6986,7 @@ _play_level::
 	ld	b, a
 	or	a, c
 	jr	Z, 00203$
-;src/gameplay.c:1027: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+;src/gameplay.c:1019: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
 	ld	hl,#0xd1
 	add	hl,sp
 	ld	a, (hl+)
@@ -7047,7 +7003,7 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	call	_init_music_banked
-;src/gameplay.c:1028: current_song_bank = song_bank[idx];
+;src/gameplay.c:1020: current_song_bank = song_bank[idx];
 	ld	hl,#0xd3
 	add	hl,sp
 	ld	a, (hl+)
@@ -7059,9 +7015,9 @@ _play_level::
 00203$:
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:1031: DISPLAY_OFF;
+;src/gameplay.c:1023: DISPLAY_OFF;
 	call	_display_off
-;src/gameplay.c:1038: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+;src/gameplay.c:1030: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
 	ld	hl, #189
 	add	hl, sp
 	ld	a, (hl)
@@ -7078,51 +7034,51 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_load_bkg_tileset
-;src/gameplay.c:1041: set_sprite_data(0, 8, icon1_tiles);
+;src/gameplay.c:1033: set_sprite_data(0, 8, icon1_tiles);
 	ld	de, #_icon1_tiles
 	push	de
 	ld	hl, #0x800
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:1042: set_sprite_data(8, 4, ship_tiles);
+;src/gameplay.c:1034: set_sprite_data(8, 4, ship_tiles);
 	ld	de, #_ship_tiles
 	push	de
 	ld	hl, #0x408
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:1043: set_sprite_data(12, 4, ball_tiles);
+;src/gameplay.c:1035: set_sprite_data(12, 4, ball_tiles);
 	ld	de, #_ball_tiles
 	push	de
 	ld	hl, #0x40c
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:1044: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
+;src/gameplay.c:1036: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 	ld	de, #_famidash_sprites_tiles
 	push	de
 	ld	hl, #0x5c70
 	push	hl
 	call	_set_sprite_data
 	add	sp, #4
-;src/gameplay.c:1046: cam_px = 0;
+;src/gameplay.c:1038: cam_px = 0;
 	xor	a, a
 	ld	hl, #220
 	add	hl, sp
 	ld	(hl+), a
 	ld	(hl), a
-;src/gameplay.c:1047: cam_py = 112;
+;src/gameplay.c:1039: cam_py = 112;
 	ld	hl, #193
 	add	hl, sp
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:1048: scroll_acc = 0;
+;src/gameplay.c:1040: scroll_acc = 0;
 	ld	hl, #199
 	add	hl, sp
-;src/gameplay.c:1049: loaded_r = BKG_MT_W - 1;
+;src/gameplay.c:1041: loaded_r = BKG_MT_W - 1;
 	xor	a, a
 	ld	(hl-), a
 	dec	hl
@@ -7130,11 +7086,11 @@ _play_level::
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
-;src/gameplay.c:1050: target_bg_idx = 0;
+;src/gameplay.c:1042: target_bg_idx = 0;
 	ld	hl, #219
 	add	hl, sp
 	ld	(hl), #0x00
-;src/gameplay.c:1051: player_init(&player, 0, 240);
+;src/gameplay.c:1043: player_init(&player, 0, 240);
 	ld	hl, #8
 	add	hl, sp
 	ld	de, #0x00f0
@@ -7143,7 +7099,7 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_player_init
-;src/gameplay.c:1052: sp_cache_reset(&active_sp, &sp_stream_idx);
+;src/gameplay.c:1044: sp_cache_reset(&active_sp, &sp_stream_idx);
 	ld	hl, #143
 	add	hl, sp
 	ld	c, l
@@ -7153,16 +7109,16 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	call	_sp_cache_reset
-;src/gameplay.c:1053: sp_cache_col = 0xFFFF;
+;src/gameplay.c:1045: sp_cache_col = 0xFFFF;
 	ld	hl, #202
 	add	hl, sp
-;src/gameplay.c:1054: previous_oam_index = MAX_HARDWARE_SPRITES;
+;src/gameplay.c:1046: previous_oam_index = MAX_HARDWARE_SPRITES;
 	ld	a,#0xff
 	ld	(hl+),a
 	ld	(hl-), a
 	dec	hl
 	ld	(hl), #0x28
-;src/gameplay.c:1055: cached_collision_col = 0xFFFF;
+;src/gameplay.c:1047: cached_collision_col = 0xFFFF;
 	ld	hl, #204
 	add	hl, sp
 	ld	a, #0xff
@@ -7173,18 +7129,18 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:1057: BGP_REG = bg_pals[0];
+;src/gameplay.c:1049: BGP_REG = bg_pals[0];
 	ldhl	sp,	#4
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:1058: if (_cpu == CGB_TYPE) {
+;src/gameplay.c:1050: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00205$
-;src/gameplay.c:1062: famidash_reset_bg_palettes();
+;src/gameplay.c:1054: famidash_reset_bg_palettes();
 	call	_famidash_reset_bg_palettes
 00205$:
-;src/gameplay.c:1064: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
+;src/gameplay.c:1056: fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -7204,22 +7160,22 @@ _play_level::
 	ld	e, a
 	ld	d, (hl)
 	call	_fill_scroll_bg
-;src/gameplay.c:1065: DISPLAY_ON;
+;src/gameplay.c:1057: DISPLAY_ON;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x80
 	ldh	(_LCDC_REG + 0), a
-;src/gameplay.c:1066: TAC_REG = 0x04;
+;src/gameplay.c:1058: TAC_REG = 0x04;
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
-;src/gameplay.c:1067: music_ready = 1;
+;src/gameplay.c:1059: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:1068: enable_interrupts();
+;src/gameplay.c:1060: enable_interrupts();
 	jp	00209$
 00210$:
-;src/gameplay.c:1072: HIDE_SPRITES;
+;src/gameplay.c:1064: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0xfd
 	ldh	(_LCDC_REG + 0), a
@@ -7228,20 +7184,20 @@ _play_level::
 	ldh	(_SCX_REG + 0), a
 	xor	a, a
 	ldh	(_SCY_REG + 0), a
-;src/gameplay.c:1074: waitpadup();
+;src/gameplay.c:1066: waitpadup();
 	call	_waitpadup
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/gameplay.c:1076: setup_menu_font();
+;src/gameplay.c:1068: setup_menu_font();
 	ld	e, #b_setup_menu_font
 	ld	hl, #_setup_menu_font
 	call	___sdcc_bcall_ehl
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/gameplay.c:1078: redraw = 1;
+;src/gameplay.c:1070: redraw = 1;
 	ld	hl, #_redraw
 	ld	(hl), #0x01
-;src/gameplay.c:1079: }
+;src/gameplay.c:1071: }
 	ld	hl, #222
 	add	hl, sp
 	ld	sp, hl

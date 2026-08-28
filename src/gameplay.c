@@ -12,6 +12,7 @@
 #include "ship1.h"
 #include "ball.h"
 #include "famidash_sprites.h"
+#include "gbc_palettes.h"
 #include "../levels/chr_data/chr_gb.h"
 
 #define DEBUG_MODE
@@ -127,13 +128,6 @@ static const uint8_t level_sprite_cost_table[38] = {
 //    RGB8(50,50,50), RGB8(30,30,30), RGB8(10,10,10), RGB8(0,0,0)                 // 15: Black
 //};
 
-/* FamiDash's paletteDefault: level, ground, decorations and text. */
-static const palette_color_t famidash_default_bg_palettes[16] = {
-    RGB8(0,31,157), RGB8(0,29,154), RGB8(0,0,0), RGB8(255,255,255),
-    RGB8(102,103,101), RGB8(0,29,154), RGB8(0,31,157), RGB8(255,255,255),
-    RGB8(102,103,101), RGB8(0,29,154), RGB8(0,0,0), RGB8(71,200,32),
-    RGB8(0,31,157), RGB8(0,29,154), RGB8(0,0,0), RGB8(0,0,0)
-};
 static palette_color_t famidash_bg_palettes[16];
 
 static palette_color_t famidash_darker(palette_color_t color) {
@@ -144,27 +138,25 @@ static palette_color_t famidash_darker(palette_color_t color) {
 
 static void famidash_reset_bg_palettes(void) {
     uint8_t i;
-    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = famidash_default_bg_palettes[i];
+    for (i = 0; i != 16; i++) famidash_bg_palettes[i] = paletteDefault[i];
     set_bkg_palette(0, 4, famidash_bg_palettes);
 }
 
 static void famidash_apply_bg_trigger(uint8_t color_id) {
     palette_color_t color;
-    static const palette_color_t hues[16] = {
-        RGB8(102,103,101), RGB8(0,29,154), RGB8(0,0,255), RGB8(66,0,150),
-        RGB8(138,0,126), RGB8(161,0,94), RGB8(166,0,40), RGB8(152,0,0),
-        RGB8(125,8,0), RGB8(92,46,0), RGB8(16,69,0), RGB8(5,74,0),
-        RGB8(0,71,46), RGB8(0,69,102), RGB8(0,0,0), RGB8(0,0,0)
-    };
 
-    if (color_id == 31u) color = RGB8(0, 240, 255); /* FamiDash $9F */
-    else if (color_id == 46u) {                       /* FamiDash $AE */
-        color = RGB8(0, 255, 0);
+    if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Use Aqua as default player color */
+    else if (color_id == 46u) {                       /* FamiDash $AE: Ground Color 2 Trigger */
+        color = RGB(0, 28, 0); /* Neon Green */
         famidash_bg_palettes[6] = color;
         famidash_bg_palettes[5] = famidash_darker(color);
         set_bkg_palette(0, 4, famidash_bg_palettes);
         return;
-    } else color = hues[color_id & 0x0Fu];
+    } else {
+        // FamiDash color triggers are 0x80 + NES_COLOR_ID or 0xC0 + NES_COLOR_ID
+        // We use get_nes_color to map the color ID directly.
+        color = get_nes_color(color_id);
+    }
 
     famidash_bg_palettes[0] = color;
     color = famidash_darker(color);
