@@ -26,12 +26,8 @@ GameState update_menu_state(void) {
     OBP1_REG = 0xD2;
 
     if (_cpu == CGB_TYPE) {
-        static const uint16_t menu_pal[] = {
-            RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
-        };
-        for (uint8_t i = 0; i < 8; i++) {
-            set_bkg_palette(i, 1, menu_pal);
-        }
+        extern const uint16_t rainbow_palettes[64][4];
+        set_bkg_palette(0, 1, rainbow_palettes[0]);
     }
 
     extern const uint8_t menu_bg_tiles[];
@@ -95,5 +91,12 @@ GameState update_menu_state(void) {
             bg_x += 1;
         }
         ground_x += 3;
+
+        if (_cpu == CGB_TYPE && (frame_counter & 3) == 0) {
+            extern const uint16_t rainbow_palettes[64][4];
+            uint8_t color_index = (frame_counter >> 2) & 63;
+            // Update palette 0 (used by background and ground)
+            set_bkg_palette(0, 1, rainbow_palettes[color_index]);
+        }
     }
 }
