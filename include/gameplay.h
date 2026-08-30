@@ -10,6 +10,7 @@ extern uint8_t redraw;
 extern uint8_t selected;
 extern volatile uint8_t current_song_bank;
 
+void draw_text(uint8_t x, uint8_t y, const char *str) BANKED;
 void setup_menu_font(void) BANKED;
 void draw_levels(void) BANKED;
 void play_level(uint8_t idx) BANKED;

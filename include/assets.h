@@ -51,6 +51,9 @@ extern const uint8_t song_bank[];
 extern const Level * const game_levels[];
 BANKREF_EXTERN(game_levels)
 
+extern const uint8_t chr_gb_tiles[];
+BANKREF_EXTERN(chr_gb)
+
 extern const uint8_t MAX_LEVELS;
 
 #endif

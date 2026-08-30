@@ -1,7 +1,8 @@
 #include "states.h"
-#include "logo.h"
 #include "gameplay.h"
+#include "assets.h"
 #include <gb/gb.h>
+#include <gb/cgb.h>
 
 static uint8_t bg_x = 0;
 static uint8_t ground_x = 0;
@@ -19,24 +20,44 @@ void menu_stat_isr(void) {
 GameState update_menu_state(void) {
     DISPLAY_OFF;
 
-    // Clear VRAM tiles and map
+    // Restore standard palettes
+    BGP_REG = 0xE4;
+    OBP0_REG = 0xE4;
+    OBP1_REG = 0xD2;
+
+    if (_cpu == CGB_TYPE) {
+        // Initialize menu palette for CGB
+        static const uint16_t menu_pal[] = {
+            RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
+        };
+        for (uint8_t i = 0; i < 8; i++) {
+            set_bkg_palette(i, 1, menu_pal);
+        }
+    }
+
+    // Clear VRAM
     fill_bkg_rect(0, 0, 32, 32, 0);
 
-    // Load logo tiles (limiting to 256 for DMG compatibility in one go)
-    // If the logo needs more, we'd need CGB or different mapping.
-    // For now, let's load the first 256 tiles.
+    // Load font and level tiles
+    setup_menu_font();
+
     uint8_t prev_bank = _current_bank;
-    SWITCH_ROM(BANK(logo_tiles));
-    set_bkg_data(0, 255, logo_tiles);
+    SWITCH_ROM(BANK(chr_gb));
+    set_bkg_data(0, 128, chr_gb_tiles); // Load first 128 tiles of the level set
     SWITCH_ROM(prev_bank);
 
-    // Draw logo grid (centeralized 20x12 or similar if 256 tiles)
-    // 256 tiles = 16x16 grid.
-    uint16_t tile_idx = 0;
-    for (uint8_t y = 3; y < 15; y++) {
-        for (uint8_t x = 2; x < 18; x++) {
-            set_bkg_tile_xy(x, y, (uint8_t)tile_idx++);
-        }
+    // Draw stationary title
+    draw_text(0, 1, "GEOMETRY DASH POCKET");
+
+    // Draw ground pattern at the bottom
+    // We'll use tiles 10, 11 for the top of the ground and 26, 27 for the bottom
+    // Repeating across the whole 32-tile wide buffer
+    for (uint8_t x = 0; x < 32; x++) {
+        uint8_t t_top = (x & 1) ? 11 : 10;
+        uint8_t t_bot = (x & 1) ? 27 : 26;
+        set_bkg_tile_xy(x, 15, t_top);
+        set_bkg_tile_xy(x, 16, t_bot);
+        set_bkg_tile_xy(x, 17, t_bot); // Repeat bot for height
     }
 
     bg_x = 0;

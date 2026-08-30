@@ -738,7 +738,7 @@ void setup_menu_font(void) BANKED {
     set_bkg_data(FONT_PUSAB_START, 39, FontPusab);
 }
 
-static void draw_text(uint8_t x, uint8_t y, const char *str) {
+void draw_text(uint8_t x, uint8_t y, const char *str) BANKED {
     uint8_t tile;
     while (*str) {
         char c = *str;

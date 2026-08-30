@@ -31,6 +31,8 @@
 	.globl _sp_cache_update
 	.globl b_setup_menu_font
 	.globl _setup_menu_font
+	.globl b_draw_text
+	.globl _draw_text
 	.globl b_draw_levels
 	.globl _draw_levels
 	.globl b_play_level
@@ -4434,18 +4436,19 @@ _setup_menu_font::
 	add	sp, #4
 ;src/gameplay.c:739: }
 	ret
-;src/gameplay.c:741: static void draw_text(uint8_t x, uint8_t y, const char *str) {
+;src/gameplay.c:741: void draw_text(uint8_t x, uint8_t y, const char *str) BANKED {
 ;	---------------------------------
 ; Function draw_text
 ; ---------------------------------
-_draw_text:
+	b_draw_text	= 10
+_draw_text::
 	dec	sp
-	dec	sp
-	ldhl	sp,	#1
-	ld	(hl-), a
-	ld	(hl), e
 ;src/gameplay.c:743: while (*str) {
-	ldhl	sp,	#4
+	ldhl	sp,	#7
+	ld	a, (hl)
+	ldhl	sp,	#0
+	ld	(hl), a
+	ldhl	sp,	#9
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
@@ -4516,11 +4519,15 @@ _draw_text:
 00121$:
 ;src/gameplay.c:752: set_bkg_tile_xy(x++, y, FONT_PUSAB_START + tile);
 	add	a, #0xd0
-	ldhl	sp,	#1
+	ld	e, a
+	ldhl	sp,	#0
 	ld	d, (hl)
 	inc	(hl)
-	dec	hl
+	ld	a, (hl)
+	ldhl	sp,	#7
+	ld	(hl+), a
 	push	bc
+	ld	a, e
 	push	af
 	inc	sp
 	ld	e, (hl)
@@ -4533,10 +4540,7 @@ _draw_text:
 00125$:
 ;src/gameplay.c:755: }
 	inc	sp
-	inc	sp
-	pop	hl
-	pop	af
-	jp	(hl)
+	ret
 ;src/gameplay.c:757: void draw_levels(void) BANKED {
 ;	---------------------------------
 ; Function draw_levels
@@ -4548,7 +4552,7 @@ _draw_levels::
 	sub	a, #0x11
 	jr	NZ, 00102$
 ;src/gameplay.c:763: set_bkg_palette(0, 1, menu_pal);
-	ld	de, #_draw_levels_menu_pal_30000_388
+	ld	de, #_draw_levels_menu_pal_30000_389
 	push	de
 	xor	a, a
 	inc	a
@@ -4595,8 +4599,12 @@ _draw_levels::
 	ld	de, #___str_0
 	push	de
 	xor	a, a
-	ld	e, a
-	call	_draw_text
+	rrca
+	push	af
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 ;src/gameplay.c:774: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
 	ld	c, #0x00
 00108$:
@@ -4625,9 +4633,12 @@ _draw_levels::
 	push	bc
 	ld	de, #___str_1
 	push	de
-	ld	e, b
-	ld	a, #0x01
-	call	_draw_text
+	ld	c, #0x01
+	push	bc
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 	pop	bc
 	pop	hl
 ;src/gameplay.c:777: draw_text(3, 2 + i, game_levels[i]->name);
@@ -4641,9 +4652,12 @@ _draw_levels::
 	ld	l, a
 	push	bc
 	push	hl
-	ld	e, b
-	ld	a, #0x03
-	call	_draw_text
+	ld	c, #0x03
+	push	bc
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 	pop	bc
 	jr	00109$
 00104$:
@@ -4658,9 +4672,12 @@ _draw_levels::
 	ld	l, a
 	push	bc
 	push	hl
-	ld	e, b
-	ld	a, #0x03
-	call	_draw_text
+	ld	c, #0x03
+	push	bc
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 	pop	bc
 00109$:
 ;src/gameplay.c:774: for (uint8_t i = 0; i < MAX_LEVELS; i++) {
@@ -4670,9 +4687,12 @@ _draw_levels::
 ;src/gameplay.c:782: draw_text(0, 16, "SOTOSPRO24");
 	ld	de, #___str_2
 	push	de
-	ld	e, #0x10
-	xor	a, a
-	call	_draw_text
+	ld	hl, #0x1000
+	push	hl
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 ;src/gameplay.c:783: SHOW_BKG;
 	ldh	a, (_LCDC_REG + 0)
 	or	a, #0x01
@@ -4682,7 +4702,7 @@ _draw_levels::
 	ld	(#_redraw),a
 ;src/gameplay.c:785: }
 	ret
-_draw_levels_menu_pal_30000_388:
+_draw_levels_menu_pal_30000_389:
 	.dw #0x1442
 	.dw #0x498c
 	.dw #0x7f39
@@ -5241,7 +5261,7 @@ _play_level::
 	ldhl	sp,	#26
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00116$
+	jp	Z, 00116$
 00115$:
 ;src/gameplay.c:880: HIDE_SPRITES;
 	ldh	a, (_LCDC_REG + 0)
@@ -5295,15 +5315,29 @@ _play_level::
 ;src/gameplay.c:889: draw_text(3, 6, "LEVEL COMPLETE");
 	ld	de, #___str_3
 	push	de
-	ld	e, #0x06
+	ld	a, #0x06
+	push	af
+	inc	sp
 	ld	a, #0x03
-	call	_draw_text
+	push	af
+	inc	sp
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 ;src/gameplay.c:890: draw_text(3, 12, "PRESS A TO EXIT");
 	ld	de, #___str_4
 	push	de
-	ld	e, #0x0c
+	ld	a, #0x0c
+	push	af
+	inc	sp
 	ld	a, #0x03
-	call	_draw_text
+	push	af
+	inc	sp
+	ld	e, #b_draw_text
+	ld	hl, #_draw_text
+	call	___sdcc_bcall_ehl
+	add	sp, #4
 ;src/gameplay.c:891: waitpadup();
 	call	_waitpadup
 ;src/gameplay.c:892: while (!(joypad() & J_A)) wait_vbl_done();
