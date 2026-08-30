@@ -31,8 +31,8 @@
 	.globl _sp_cache_update
 	.globl b_setup_menu_font
 	.globl _setup_menu_font
-	.globl b_draw_menu
-	.globl _draw_menu
+	.globl b_draw_levels
+	.globl _draw_levels
 	.globl b_play_level
 	.globl _play_level
 ;--------------------------------------------------------
@@ -4537,18 +4537,18 @@ _draw_text:
 	pop	hl
 	pop	af
 	jp	(hl)
-;src/gameplay.c:757: void draw_menu(void) BANKED {
+;src/gameplay.c:757: void draw_levels(void) BANKED {
 ;	---------------------------------
-; Function draw_menu
+; Function draw_levels
 ; ---------------------------------
-	b_draw_menu	= 10
-_draw_menu::
+	b_draw_levels	= 10
+_draw_levels::
 ;src/gameplay.c:758: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00102$
 ;src/gameplay.c:763: set_bkg_palette(0, 1, menu_pal);
-	ld	de, #_draw_menu_menu_pal_30000_388
+	ld	de, #_draw_levels_menu_pal_30000_388
 	push	de
 	xor	a, a
 	inc	a
@@ -4682,7 +4682,7 @@ _draw_menu::
 	ld	(#_redraw),a
 ;src/gameplay.c:785: }
 	ret
-_draw_menu_menu_pal_30000_388:
+_draw_levels_menu_pal_30000_388:
 	.dw #0x1442
 	.dw #0x498c
 	.dw #0x7f39

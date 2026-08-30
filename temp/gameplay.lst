@@ -31,8 +31,8 @@
                                      31 	.globl _sp_cache_update
                                      32 	.globl b_setup_menu_font
                                      33 	.globl _setup_menu_font
-                                     34 	.globl b_draw_menu
-                                     35 	.globl _draw_menu
+                                     34 	.globl b_draw_levels
+                                     35 	.globl _draw_levels
                                      36 	.globl b_play_level
                                      37 	.globl _play_level
                                      38 ;--------------------------------------------------------
@@ -4537,18 +4537,18 @@
     00001564 E1               [12] 4537 	pop	hl
     00001565 F1               [12] 4538 	pop	af
     00001566 E9               [ 4] 4539 	jp	(hl)
-                                   4540 ;src/gameplay.c:757: void draw_menu(void) BANKED {
+                                   4540 ;src/gameplay.c:757: void draw_levels(void) BANKED {
                                    4541 ;	---------------------------------
-                                   4542 ; Function draw_menu
+                                   4542 ; Function draw_levels
                                    4543 ; ---------------------------------
-                         0000000A  4544 	b_draw_menu	= 10
-    00001567                       4545 _draw_menu::
+                         0000000A  4544 	b_draw_levels	= 10
+    00001567                       4545 _draw_levels::
                                    4546 ;src/gameplay.c:758: if (_cpu == CGB_TYPE) {
     00001567 FAr00r00         [16] 4547 	ld	a, (#__cpu)
     0000156A D6 11            [ 8] 4548 	sub	a, #0x11
     0000156C 20 24            [12] 4549 	jr	NZ, 00102$
                                    4550 ;src/gameplay.c:763: set_bkg_palette(0, 1, menu_pal);
-    0000156E 11r15r16         [12] 4551 	ld	de, #_draw_menu_menu_pal_30000_388
+    0000156E 11r15r16         [12] 4551 	ld	de, #_draw_levels_menu_pal_30000_388
     00001571 D5               [16] 4552 	push	de
     00001572 AF               [ 4] 4553 	xor	a, a
     00001573 3C               [ 4] 4554 	inc	a
@@ -4682,7 +4682,7 @@
     00001611 EAr00r00         [16] 4682 	ld	(#_redraw),a
                                    4683 ;src/gameplay.c:785: }
     00001614 C9               [16] 4684 	ret
-    00001615                       4685 _draw_menu_menu_pal_30000_388:
+    00001615                       4685 _draw_levels_menu_pal_30000_388:
     00001615 42 14                 4686 	.dw #0x1442
     00001617 8C 49                 4687 	.dw #0x498c
     00001619 39 7F                 4688 	.dw #0x7f39

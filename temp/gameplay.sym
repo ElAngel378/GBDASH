@@ -45,8 +45,8 @@ Symbol Table
     _chr_gb_cgb_tiles_rev                                           ******** GX
     _current_song_bank                                              ******** GX
     _display_off                                                    ******** GX
-  8 _draw_menu                                                      00001567 GR
-  8 _draw_menu_menu_pal_30000_388                                   00001615 R
+  8 _draw_levels                                                    00001567 GR
+  8 _draw_levels_menu_pal_30000_388                                 00001615 R
     _draw_mt_column                                                 ******** GX
   8 _draw_oam_2x1                                                   000003FF R
   8 _draw_oam_2x2                                                   000004D5 R
@@ -104,7 +104,7 @@ Symbol Table
   8 _vibrant_palette_default                                        000000F3 R
     _wait_vbl_done                                                  ******** GX
     _waitpadup                                                      ******** GX
-    b_draw_menu                                                 =   0000000A G
+    b_draw_levels                                               =   0000000A G
     b_play_level                                                =   0000000A G
     b_setup_menu_font                                           =   0000000A G
 

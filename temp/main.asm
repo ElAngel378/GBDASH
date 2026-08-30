@@ -9,20 +9,15 @@
 ;--------------------------------------------------------
 	.globl _main
 	.globl _play_music_safe
-	.globl b_play_level
-	.globl _play_level
-	.globl b_draw_menu
-	.globl _draw_menu
-	.globl b_setup_menu_font
-	.globl _setup_menu_font
+	.globl _update_play_level_state
+	.globl _update_level_select_state
+	.globl _update_menu_state
 	.globl _init_music_banked
 	.globl _hUGE_dosound
 	.globl _cpu_fast
-	.globl _wait_vbl_done
 	.globl _set_interrupts
-	.globl _waitpadup
-	.globl _joypad
 	.globl _add_TIM
+	.globl _current_state
 	.globl _current_song_bank
 	.globl _selected
 	.globl _redraw
@@ -49,6 +44,8 @@ _current_song_bank::
 	.ds 1
 _cgb_music_tick:
 	.ds 1
+_current_state::
+	.ds 1
 ;--------------------------------------------------------
 ; absolute external ram data
 ;--------------------------------------------------------
@@ -69,12 +66,12 @@ _cgb_music_tick:
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;src/main.c:17: void play_music_safe(void) {
+;src/main.c:19: void play_music_safe(void) {
 ;	---------------------------------
 ; Function play_music_safe
 ; ---------------------------------
 _play_music_safe::
-;src/main.c:18: if (music_ready) {
+;src/main.c:20: if (music_ready) {
 	ld	a, (#_music_ready)
 	or	a, a
 	ret	Z
@@ -114,193 +111,80 @@ _play_music_safe::
 ; Function main
 ; ---------------------------------
 _main::
-	dec	sp
-	dec	sp
 ;src/main.c:30: music_ready = 0;
 	xor	a, a
 	ld	(#_music_ready),a
-;src/main.c:34: if (_cpu == CGB_TYPE) cpu_fast();
+;src/main.c:32: if (_cpu == CGB_TYPE) cpu_fast();
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00102$
 	call	_cpu_fast
 00102$:
-;src/main.c:37: NR52_REG = 0x80;
+;src/main.c:35: NR52_REG = 0x80;
 	ld	a, #0x80
 	ldh	(_NR52_REG + 0), a
-;src/main.c:38: NR51_REG = 0xFF;
+;src/main.c:36: NR51_REG = 0xFF;
 	ld	a, #0xff
 	ldh	(_NR51_REG + 0), a
-;src/main.c:39: NR50_REG = 0x77;
+;src/main.c:37: NR50_REG = 0x77;
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
-;src/main.c:41: TAC_REG = 0x04;
+;src/main.c:39: TAC_REG = 0x04;
 	ld	a, #0x04
 	ldh	(_TAC_REG + 0), a
-;src/main.c:42: add_TIM(play_music_safe);
+;src/main.c:40: add_TIM(play_music_safe);
 	ld	de, #_play_music_safe
 	call	_add_TIM
-;src/main.c:43: set_interrupts(VBL_IFLAG | TIM_IFLAG);
+;src/main.c:41: set_interrupts(VBL_IFLAG | TIM_IFLAG);
 	ld	a, #0x05
 	call	_set_interrupts
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/main.c:46: setup_menu_font();
-	ld	e, #b_setup_menu_font
-	ld	hl, #_setup_menu_font
-	call	___sdcc_bcall_ehl
-;src/main.c:48: init_music_banked(&menuloop, 1, 176);
+;src/main.c:44: init_music_banked(&menuloop, 1, 176);
 	ld	a, #0xb0
 	push	af
 	inc	sp
 	ld	a, #0x01
 	ld	de, #_menuloop
 	call	_init_music_banked
-;src/main.c:50: while (1) {
-00118$:
-;src/main.c:51: if (redraw) draw_menu();
-	ld	hl, #_redraw
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00104$
-	ld	e, #b_draw_menu
-	ld	hl, #_draw_menu
-	call	___sdcc_bcall_ehl
-00104$:
-;src/main.c:53: uint8_t joy = joypad();
-	call	_joypad
-;src/main.c:56: if (joy & J_UP) {
-	bit	2, a
-	jr	Z, 00115$
-;src/main.c:57: if (selected > 0) { selected--; redraw = 1; }
-	ld	hl, #_selected
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00106$
-	dec	(hl)
-	ld	hl, #_redraw
+;src/main.c:45: music_ready = 1; // Explicitly ensure music starts
+	ld	hl, #_music_ready
 	ld	(hl), #0x01
-00106$:
-;src/main.c:58: waitpadup();
-	call	_waitpadup
-	jp	00116$
-00115$:
-;src/main.c:59: } else if (joy & J_DOWN) {
-	bit	3, a
-	jr	Z, 00112$
-;src/main.c:60: if (selected < MAX_LEVELS - 1) { selected++; redraw = 1; }
-	ld	a, (#_MAX_LEVELS)
-	ldhl	sp,	#0
-	ld	(hl+), a
-	ld	(hl), #0x00
-	pop	bc
-	push	bc
-	dec	bc
-	ld	a, (_selected)
-	ld	l, a
-	ld	h, #0x00
-	ld	e, b
-	ld	d, h
-	ld	a, l
-	sub	a, c
-	ld	a, h
-	sbc	a, b
-	bit	7, e
-	jr	Z, 00185$
-	bit	7, d
-	jr	NZ, 00186$
-	cp	a, a
-	jr	00186$
-00185$:
-	bit	7, d
-	jr	Z, 00186$
-	scf
-00186$:
-	jr	NC, 00108$
-	ld	hl, #_selected
-	inc	(hl)
-	ld	hl, #_redraw
-	ld	(hl), #0x01
+;src/main.c:47: while (1) {
 00108$:
-;src/main.c:61: waitpadup();
-	call	_waitpadup
-	jr	00116$
-00112$:
-;src/main.c:62: } else if (joy & J_A) {
-	bit	4, a
-	jr	Z, 00116$
-;c:\gbdk\include\gb\gb.h:811: __asm__("di");
-	di
-;src/main.c:64: music_ready = 0;
-	xor	a, a
-	ld	(#_music_ready),a
-;src/main.c:65: TAC_REG = 0x00;
-	ld	a, #0x00
-	ldh	(_TAC_REG + 0), a
-;src/main.c:66: NR52_REG = 0x00;
-	ld	a, #0x00
-	ldh	(_NR52_REG + 0), a
-;src/main.c:67: NR52_REG = 0x80;
-	ld	a, #0x80
-	ldh	(_NR52_REG + 0), a
-;src/main.c:68: NR51_REG = 0xFF;
-	ld	a, #0xff
-	ldh	(_NR51_REG + 0), a
-;src/main.c:69: NR50_REG = 0x77;
-	ld	a, #0x77
-	ldh	(_NR50_REG + 0), a
-;src/main.c:70: play_level(selected);
-	ld	a, (_selected)
-	push	af
-	inc	sp
-	ld	e, #b_play_level
-	ld	hl, #_play_level
-	call	___sdcc_bcall_ehl
-	inc	sp
-;src/main.c:73: music_ready = 0;
-;src/main.c:74: TAC_REG = 0x00;
-	xor	a, a
-	ld	(#_music_ready), a
-	ldh	(_TAC_REG + 0), a
-;src/main.c:75: NR52_REG = 0x00;
-	xor	a, a
-	ldh	(_NR52_REG + 0), a
-;src/main.c:76: NR52_REG = 0x80;
-	ld	a, #0x80
-	ldh	(_NR52_REG + 0), a
-;src/main.c:77: NR51_REG = 0xFF;
-	ld	a, #0xff
-	ldh	(_NR51_REG + 0), a
-;src/main.c:78: NR50_REG = 0x77;
-	ld	a, #0x77
-	ldh	(_NR50_REG + 0), a
-;src/main.c:80: setup_menu_font(); // Re-setup font just in case
-	ld	e, #b_setup_menu_font
-	ld	hl, #_setup_menu_font
-	call	___sdcc_bcall_ehl
-;src/main.c:81: init_music_banked(&menuloop, 1, 176);
-	ld	a, #0xb0
-	push	af
-	inc	sp
-	ld	a, #0x01
-	ld	de, #_menuloop
-	call	_init_music_banked
-;src/main.c:82: TAC_REG = 0x04;    // Start timer
-	ld	a, #0x04
-	ldh	(_TAC_REG + 0), a
-;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
-	ei
-;src/main.c:84: redraw = 1;
-	ld	hl, #_redraw
-	ld	(hl), #0x01
-00116$:
-;src/main.c:87: wait_vbl_done();
-	call	_wait_vbl_done
-	jp	00118$
-;src/main.c:89: }
-	inc	sp
-	inc	sp
-	ret
+;src/main.c:48: switch (current_state) {
+	ld	a, (#_current_state)
+	or	a, a
+	jr	Z, 00103$
+	ld	a, (#_current_state)
+	dec	a
+	jr	Z, 00104$
+	ld	a, (#_current_state)
+	sub	a, #0x02
+	jr	Z, 00105$
+	jr	00108$
+;src/main.c:49: case STATE_MENU:
+00103$:
+;src/main.c:50: current_state = update_menu_state();
+	call	_update_menu_state
+	ld	(#_current_state),a
+;src/main.c:51: break;
+	jr	00108$
+;src/main.c:52: case STATE_LEVEL_SELECT:
+00104$:
+;src/main.c:53: current_state = update_level_select_state();
+	call	_update_level_select_state
+	ld	(#_current_state),a
+;src/main.c:54: break;
+	jr	00108$
+;src/main.c:55: case STATE_PLAY_LEVEL:
+00105$:
+;src/main.c:56: current_state = update_play_level_state();
+	call	_update_play_level_state
+	ld	(#_current_state),a
+;src/main.c:58: }
+;src/main.c:60: }
+	jr	00108$
 	.area _CODE
 	.area _INITIALIZER
 __xinit__music_ready:
@@ -312,5 +196,7 @@ __xinit__selected:
 __xinit__current_song_bank:
 	.db #0x00	; 0
 __xinit__cgb_music_tick:
+	.db #0x00	; 0
+__xinit__current_state:
 	.db #0x00	; 0
 	.area _CABS (ABS)

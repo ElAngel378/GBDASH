@@ -754,7 +754,7 @@ static void draw_text(uint8_t x, uint8_t y, const char *str) {
     }
 }
 
-void draw_menu(void) BANKED {
+void draw_levels(void) BANKED {
     if (_cpu == CGB_TYPE) {
         // Simple dark blue/gray palette for menu
         static const uint16_t menu_pal[] = {
