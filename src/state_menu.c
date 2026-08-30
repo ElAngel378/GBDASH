@@ -34,23 +34,34 @@ GameState update_menu_state(void) {
         }
     }
 
-    fill_bkg_rect(0, 0, 32, 32, 0);
-    setup_menu_font();
+    extern const uint8_t menu_bg_tiles[];
+    extern const uint8_t menu_bg_map[];
+    BANKREF_EXTERN(menu_bg)
 
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(BANK(chr_gb));
     set_bkg_data(0, 128, chr_gb_tiles);
+    SWITCH_ROM(BANK(menu_bg));
+    set_bkg_data(28, 87, menu_bg_tiles); // Load bg_tiles at index 28-114
+    
+    // Draw background map
+    set_bkg_tiles(0, 0, 32, 32, menu_bg_map);
     SWITCH_ROM(prev_bank);
 
+    setup_menu_font();
+
     // Title (20 chars fits exactly)
+    // Clear a small box for the text so it's readable over the background
+    fill_bkg_rect(0, 1, 20, 1, 0); 
     draw_text(0, 1, "GEOMETRY DASH POCKET");
 
-    // Ground Bars (Tiles 62 and 64)
+    // Ground Parallax (16 lines + gap pattern)
     for (uint8_t x = 0; x < 32; x++) {
-        uint8_t t_bar = (x & 1) ? 64 : 62;
-        set_bkg_tile_xy(x, 15, t_bar);
-        set_bkg_tile_xy(x, 16, t_bar);
-        set_bkg_tile_xy(x, 17, t_bar);
+        uint8_t body_tile = ((x & 3) == 0) ? 25 : 26;
+        
+        set_bkg_tile_xy(x, 15, 0); // Empty sky for the top 8 pixels
+        set_bkg_tile_xy(x, 16, body_tile);
+        set_bkg_tile_xy(x, 17, body_tile);
     }
 
     bg_x = 0;
