@@ -48,10 +48,10 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000010FC  l__CODE_2 |    000016C4  l__CODE_2 |    000017BE  l__CODE_2
      000018CE  l__CODE_2 |    00001DDC  l__CODE_2 |    00002000  ___size_l
      00002000  _rROMB0   |    00002000  l__CODE_1 |    00002218  l__CODE_2
-     00002766  l__CODE_2 |    000029B0  l__CODE_2 |    00002C69  l__CODE  
-     00002E69  s__HOME   |    00002E86  l__CODE_1 |    00003000  _rROMB1  
-     0000305A  s__BASE   |    0000305A  s__CODE_0 |    0000305A  s__INITIA
-     0000305A  s__LIT    |    00003065  s__GSINIT |    00003071  s__GSFINA
+     00002766  l__CODE_2 |    000029B0  l__CODE_2 |    00002C7F  l__CODE  
+     00002E7F  s__HOME   |    00002E86  l__CODE_1 |    00003000  _rROMB1  
+     00003070  s__BASE   |    00003070  s__CODE_0 |    00003070  s__INITIA
+     00003070  s__LIT    |    0000307B  s__GSINIT |    00003087  s__GSFINA
      00003370  ___size_c |    00003370  l__CODE_1 |    00003450  ___size_c
      00003450  l__CODE_7 |    000034A0  ___size_d |    000034A0  l__CODE_4
      000034E0  ___size_b |    000034E0  l__CODE_3 |    00003650  ___size_b
@@ -113,7 +113,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE                  00000200    00002C69 =       11369. bytes (REL,CON)
+_CODE                  00000200    00002C7F =       11391. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -132,23 +132,23 @@ _CODE                  00000200    00002C69 =       11369. bytes (REL,CON)
      000014C8  _oldsplas |    000014E8  _splashMe |    00001508  _paletteL
      00001528  _play_mus |    00001559  _main     |    000015C1  _player_i
      00001636  _player_s |    000016A3  _player_u |    0000209A  _sp_cache
-     0000223E  _update_l |    00002312  _menu_sta |    0000232C  _update_m
-     000023DE  _update_p |    00002408  _hUGE_ini |    0000240A  hUGE_init
-     00002460  _hUGE_mut |    00002462  hUGE_mute |    000026B0  _hUGE_set
-     000026B2  hUGE_set_ |    00002877  _hUGE_dos |    00002877  hUGE_doso
-     00002BA3  _set_spri |    00002BA8  _set_bkg_ |    00002BAB  .set_pale
-     00002BCA  _set_spri |    00002BCF  _set_bkg_ |    00002BD2  .set_pale
-     00002BEE  _hide_spr |    00002C1D  __divsuch |    00002C23  __modsuch
-     00002C2C  __divusch |    00002C35  __modusch |    00002C41  __divscha
-     00002C46  __modscha |    00002C4D  __divsint |    00002C56  __modsint
-     00002C62  __divucha |    00002C67  __moducha |    00002C6E  __divuint
-     00002C77  __moduint |    00002C83  .div8     |    00002C83  .mod8    
-     00002C8B  .div16    |    00002C8B  .mod16    |    00002CC1  .divu8   
-     00002CC1  .modu8    |    00002CC4  .divu16   |    00002CC4  .modu16  
-     00002D04  ___move_m |    00002D04  ___move_m |    00002D45  ___move_m
-     00002D45  ___move_m |    00002D86  ___move_m |    00002D86  ___move_m
-     00002DC9  _set_vram |    00002DD2  _set_win_ |    00002DDB  _set_bkg_
-     00002E0A  ___move_m |    00002E47  _cpu_slow |    00002E62  _cpu_fast
+     0000223E  _update_l |    0000231C  _menu_sta |    00002336  _update_m
+     000023E8  _update_p |    0000241E  _hUGE_ini |    00002420  hUGE_init
+     00002476  _hUGE_mut |    00002478  hUGE_mute |    000026C6  _hUGE_set
+     000026C8  hUGE_set_ |    0000288D  _hUGE_dos |    0000288D  hUGE_doso
+     00002BB9  _set_spri |    00002BBE  _set_bkg_ |    00002BC1  .set_pale
+     00002BE0  _set_spri |    00002BE5  _set_bkg_ |    00002BE8  .set_pale
+     00002C04  _hide_spr |    00002C33  __divsuch |    00002C39  __modsuch
+     00002C42  __divusch |    00002C4B  __modusch |    00002C57  __divscha
+     00002C5C  __modscha |    00002C63  __divsint |    00002C6C  __modsint
+     00002C78  __divucha |    00002C7D  __moducha |    00002C84  __divuint
+     00002C8D  __moduint |    00002C99  .div8     |    00002C99  .mod8    
+     00002CA1  .div16    |    00002CA1  .mod16    |    00002CD7  .divu8   
+     00002CD7  .modu8    |    00002CDA  .divu16   |    00002CDA  .modu16  
+     00002D1A  ___move_m |    00002D1A  ___move_m |    00002D5B  ___move_m
+     00002D5B  ___move_m |    00002D9C  ___move_m |    00002D9C  ___move_m
+     00002DDF  _set_vram |    00002DE8  _set_win_ |    00002DF1  _set_bkg_
+     00002E20  ___move_m |    00002E5D  _cpu_slow |    00002E78  _cpu_fast
 ASxxxx Linker V03.00/V05.40 + sdld,  page 4.
 Hexadecimal  [32-Bits]
 
@@ -326,26 +326,26 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_HOME                  00002E69    000001F1 =         497. bytes (REL,CON)
+_HOME                  00002E7F    000001F1 =         497. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00002E69  .memset_s |    00002E72  .memcpy_s |    00002E8F  .display_
-     00002E8F  _display_ |    00002EA7  _add_TIM  |    00002EAA  _set_tile
-     00002EAF  _set_bkg_ |    00002EAF  _set_win_ |    00002EB7  _set_spri
-     00002F16  .add_LCD  |    00002F16  _add_LCD  |    00002F1C  .remove_L
-     00002F1C  _remove_L |    00002F22  .add_TIM  |    00002F28  .remove_T
-     00002F28  _remove_T |    00002F2E  _fill_bkg |    00002F40  .padup   
-     00002F40  _waitpadu |    00002F50  .jpad     |    00002F50  _joypad  
-     00002F78  _waitpad  |    00002F79  .wait_pad |    00002F80  ___sdcc_b
-     00002F94  _set_bkg_ |    00002FA8  .fill_rec |    00002FB1  .fill_rec
-     00002FFE  .set_xy_w |    00003007  .set_xy_b |    00003016  .set_xy_t
+     00002E7F  .memset_s |    00002E88  .memcpy_s |    00002EA5  .display_
+     00002EA5  _display_ |    00002EBD  _add_TIM  |    00002EC0  _set_tile
+     00002EC5  _set_bkg_ |    00002EC5  _set_win_ |    00002ECD  _set_spri
+     00002F2C  .add_LCD  |    00002F2C  _add_LCD  |    00002F32  .remove_L
+     00002F32  _remove_L |    00002F38  .add_TIM  |    00002F3E  .remove_T
+     00002F3E  _remove_T |    00002F44  _fill_bkg |    00002F56  .padup   
+     00002F56  _waitpadu |    00002F66  .jpad     |    00002F66  _joypad  
+     00002F8E  _waitpad  |    00002F8F  .wait_pad |    00002F96  ___sdcc_b
+     00002FAA  _set_bkg_ |    00002FBE  .fill_rec |    00002FC7  .fill_rec
+     00003014  .set_xy_w |    0000301D  .set_xy_b |    0000302C  .set_xy_t
 ASxxxx Linker V03.00/V05.40 + sdld,  page 23.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_INITIALIZER           0000305A    0000000B =          11. bytes (REL,CON)
+_INITIALIZER           00003070    0000000B =          11. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -354,17 +354,17 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSINIT                00003065    0000000C =          12. bytes (REL,CON)
+_GSINIT                0000307B    0000000C =          12. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00003065  gsinit   
+     0000307B  gsinit   
 ASxxxx Linker V03.00/V05.40 + sdld,  page 25.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSFINAL               00003071    00000001 =           1. bytes (REL,CON)
+_GSFINAL               00003087    00000001 =           1. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    

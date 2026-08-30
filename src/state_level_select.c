@@ -38,6 +38,9 @@ GameState update_level_select_state(void) {
         } else if (joy & J_A) {
             waitpadup();
             return STATE_PLAY_LEVEL;
+        } else if (joy & J_B) {
+            waitpadup();
+            return STATE_MENU;
         }
 
         wait_vbl_done();

@@ -1,9 +1,11 @@
 #include "states.h"
 #include "gameplay.h"
+#include "hUGEDriver.h"
 #include <gb/gb.h>
 
 extern uint8_t selected;
 extern uint8_t music_ready;
+extern const hUGESong_t menuloop;
 
 GameState update_play_level_state(void) {
     // Reset sound hardware for gameplay
@@ -18,5 +20,8 @@ GameState update_play_level_state(void) {
     play_level(selected);
 
     // After play_level returns (win/death), return to level select
+    // Restore menu music
+    init_music_banked(&menuloop, 1, 176);
+
     return STATE_LEVEL_SELECT;
 }
