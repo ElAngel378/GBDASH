@@ -26,7 +26,6 @@ GameState update_menu_state(void) {
     OBP1_REG = 0xD2;
 
     if (_cpu == CGB_TYPE) {
-        // Initialize menu palette for CGB
         static const uint16_t menu_pal[] = {
             RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
         };
@@ -35,29 +34,23 @@ GameState update_menu_state(void) {
         }
     }
 
-    // Clear VRAM
     fill_bkg_rect(0, 0, 32, 32, 0);
-
-    // Load font and level tiles
     setup_menu_font();
 
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(BANK(chr_gb));
-    set_bkg_data(0, 128, chr_gb_tiles); // Load first 128 tiles of the level set
+    set_bkg_data(0, 128, chr_gb_tiles);
     SWITCH_ROM(prev_bank);
 
-    // Draw stationary title
+    // Title (20 chars fits exactly)
     draw_text(0, 1, "GEOMETRY DASH POCKET");
 
-    // Draw ground pattern at the bottom
-    // We'll use tiles 10, 11 for the top of the ground and 26, 27 for the bottom
-    // Repeating across the whole 32-tile wide buffer
+    // Ground Bars (Tiles 62 and 64)
     for (uint8_t x = 0; x < 32; x++) {
-        uint8_t t_top = (x & 1) ? 11 : 10;
-        uint8_t t_bot = (x & 1) ? 27 : 26;
-        set_bkg_tile_xy(x, 15, t_top);
-        set_bkg_tile_xy(x, 16, t_bot);
-        set_bkg_tile_xy(x, 17, t_bot); // Repeat bot for height
+        uint8_t t_bar = (x & 1) ? 64 : 62;
+        set_bkg_tile_xy(x, 15, t_bar);
+        set_bkg_tile_xy(x, 16, t_bar);
+        set_bkg_tile_xy(x, 17, t_bar);
     }
 
     bg_x = 0;
@@ -74,11 +67,10 @@ GameState update_menu_state(void) {
     DISPLAY_ON;
 
     while (1) {
-        SCX_REG = 0; // Header stays at 0
+        SCX_REG = 0; // Header
 
         if (joypad() & J_A) {
             waitpadup();
-            // Teardown parallax
             disable_interrupts();
             remove_LCD(menu_stat_isr);
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
