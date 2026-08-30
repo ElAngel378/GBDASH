@@ -482,8 +482,9 @@ static void process_sprite_logic(
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
 
-    // PRE-CALCULATE CONSTANTS OUTSIDE THE LOOP
-    uint16_t p_front = px + 15;
+    uint8_t player_col = (uint8_t)(px >> 4);
+
+    uint16_t p_front = px + 15u;
     uint16_t p_bottom = py + PLAYER_SIZE;
     uint16_t p_feet = py + PLAYER_SIZE;
 
@@ -494,49 +495,54 @@ static void process_sprite_logic(
         if (obj_x > cam_px + 176u) break;
 
         uint8_t obj = cache->obj[i];
-        uint16_t obj_y = cache->py[i];
 
         if (obj == OBJ_LEVEL_END) {
-            if (px >= (obj_x - 180)) p->level_complete = 1;
+            if (px >= (obj_x - 180u)) {
+                p->level_complete = 1;
+            }
             continue;
         }
 
-        // Decoration has no gameplay behavior. Keep it out of the collision
-        // and trigger tests below; deco-heavy levels can contain many of
-        // these objects, so this early exit matters on every frame.
         if (obj == 45) continue;
 
-        /* BG color triggers fire several tiles early so the palette swap
-         * lands ahead of the obstacle. Bypasses the normal overlap gate.
-         * Clamp avoids uint16 underflow for triggers near x=0.
-         * NOTE: must still honor the far-ahead break below, otherwise the
-         * scan walks the full cache every frame and costs frame budget. */
-        // 121 and 126 are mirror objects, not palette triggers.  They sit
-        // numerically inside the expanded GBC palette range.
-        if (obj >= 100 && obj <= 147 && obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
+        // Background trigger objects do not need Y coordinates.
+        if (obj >= 100 && obj <= 147 &&
+            obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
+
             if (!cache->activated[i]) {
-                uint16_t trig_x = (obj_x > BG_TRIGGER_LEAD_PX)
-                                ? (uint16_t)(obj_x - BG_TRIGGER_LEAD_PX) : 0;
-                if (px >= trig_x) {
-                    uint8_t pal_idx = obj - 100;
+                uint8_t obj_col = (uint8_t)(obj_x >> 4);
+
+                uint8_t trigger_col;
+                if (obj_col > BG_TRIGGER_LEAD_TILES) {
+                    trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
+                } else {
+                    trigger_col = 0;
+                }
+
+                if (player_col >= trigger_col) {
+                    uint8_t pal_idx = (uint8_t)(obj - 100);
+
                     if (_cpu == CGB_TYPE) {
                         famidash_apply_bg_trigger(pal_idx);
                     }
 
-                    // DMG mapping: identical to pre-GBC behavior.
-                    // Original export: top row -> 102 (dark grey), top col15 -> 103 (dark),
-                    // mid row -> 101 (light grey), bottom row -> 100 (light).
-                    uint8_t row = pal_idx >> 4;
-                    if (row == 0)      *target_bg_idx = ((pal_idx & 15) == 15) ? 3 : 2;
-                    else if (row == 1) *target_bg_idx = 1;
-                    else               *target_bg_idx = 0;
+                    if (pal_idx < 16) {
+                        *target_bg_idx = (pal_idx == 15) ? 3 : 2;
+                    } else if (pal_idx < 32) {
+                        *target_bg_idx = 1;
+                    } else {
+                        *target_bg_idx = 0;
+                    }
 
                     cache->activated[i] = 1;
                 }
             }
-            if (obj_x > p_front + 16) break;
+
+            if (obj_x > p_front + 16u) break;
             continue;
         }
+
+        uint16_t obj_y = cache->py[i];
 
         if (obj >= 16 && obj <= 19) {
             // 48-pixel (3 tile) wide horizontal gravity portal
