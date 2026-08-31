@@ -41,14 +41,14 @@ GameState update_menu_state(void) {
     set_bkg_data(0, 128, chr_gb_tiles);
     SWITCH_ROM(BANK(menu_bg));
     set_bkg_data(28, 87, menu_bg_tiles);    // BG tiles at index 28-114
-    set_bkg_data(115, 10, menu_ground_tiles); // Ground tiles at 115-124
+    set_bkg_data(115, 6, menu_ground_tiles); // Ground tiles at 115-120
     
     // Clear the whole map first (so top 16px is empty sky/color 0)
     fill_bkg_rect(0, 0, 32, 32, 0);
 
     // Draw background map starting at row 2 (16px down), drawing only 28 rows to not wrap
     set_bkg_tiles(0, 2, 32, 28, menu_bg_map);
-    // Draw ground map at row 15 (120px)
+    // Draw ground map at row 15 (120px) - 3 rows tall
     set_bkg_tiles(0, 15, 32, 3, menu_ground_map);
     SWITCH_ROM(prev_bank);
 

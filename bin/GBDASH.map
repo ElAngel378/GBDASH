@@ -37,22 +37,22 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00000014  ___bank_c |    00000015  ___bank_m |    00000015  ___bank_m
      00000015  ___bank_m |    00000015  ___bank_m |    00000015  ___bank_m
      00000030  l__HEADER |    00000058  l__CODE_1 |    00000060  ___size_m
-     00000060  l__HEADER |    00000064  ___bank_l |    00000077  ___bank_t
-     00000078  ___bank_t |    00000079  ___bank_s |    0000007A  ___bank_p
-     0000007B  ___bank_j |    0000007C  ___bank_d |    0000007D  ___bank_c
-     0000007E  ___bank_c |    0000007F  ___bank_b |    00000080  ___bank_b
-     00000084  l__CODE_1 |    00000084  l__CODE_1 |    000000A0  ___size_m
+     00000060  ___size_m |    00000060  l__HEADER |    00000064  ___bank_l
+     00000077  ___bank_t |    00000078  ___bank_t |    00000079  ___bank_s
+     0000007A  ___bank_p |    0000007B  ___bank_j |    0000007C  ___bank_d
+     0000007D  ___bank_c |    0000007E  ___bank_c |    0000007F  ___bank_b
+     00000080  ___bank_b |    00000084  l__CODE_1 |    00000084  l__CODE_1
      000000AB  l__HEADER |    000000AC  l__CODE_1 |    000000D4  l__CODE_1
      000000F4  l__CODE_1 |    00000104  l__CODE_1 |    0000012D  l__DATA  
      0000015C  l__CODE_1 |    0000017C  l__CODE_1 |    000001F1  l__HOME  
      00000200  s__CODE   |    00000400  ___size_m |    00000570  ___size_m
-     000005C0  ___size_f |    00000902  l__CODE_1 |    00000A70  l__CODE_2
+     000005C0  ___size_f |    00000902  l__CODE_1 |    00000A30  l__CODE_2
      00000EBC  l__CODE_2 |    00001000  ___size_c |    00001000  ___size_c
      00001000  ___size_c |    00001000  ___size_c |    000010FC  l__CODE_2
      000016C4  l__CODE_2 |    000017BE  l__CODE_2 |    000018CE  l__CODE_2
      00001DDC  l__CODE_2 |    00002000  ___size_l |    00002000  _rROMB0  
      00002000  l__CODE_1 |    00002218  l__CODE_2 |    00002766  l__CODE_2
-     000029B0  l__CODE_2 |    00002EC5  l__CODE_1 |    00002F1F  l__CODE  
+     000029B0  l__CODE_2 |    00002F0A  l__CODE_1 |    00002F1F  l__CODE  
      00003000  _rROMB1   |    0000311F  s__HOME   |    00003310  s__BASE  
      00003310  s__CODE_0 |    00003310  s__INITIA |    00003310  s__LIT   
      0000331B  s__GSINIT |    0000332C  s__GSFINA |    00003370  ___size_c
@@ -435,7 +435,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_10               000A4000    00002EC5 =       11973. bytes (REL,CON)
+_CODE_10               000A4000    00002F0A =       12042. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -449,17 +449,17 @@ _CODE_10               000A4000    00002EC5 =       11973. bytes (REL,CON)
      000A47C2  _famidash |    000A47CE  _famidash |    000A47E2  _famidash
      000A4A04  _sp_cache |    000A4A4D  _sp_cache |    000A5D12  _setup_me
      000A5D20  _draw_tex |    000A5D98  _draw_lev |    000A5E92  _play_lev
-     000A6C91  _icon1_pa |    000A6C99  _icon1_ti |    000A6D19  _icon1_me
-     000A6D25  _icon1_me |    000A6D31  _icon1_me |    000A6D3D  _icon1_me
-     000A6D49  _icon1_me |    000A6D55  _icon1_me |    000A6D61  _icon1_me
-     000A6D6D  _icon1_me |    000A6D79  _icon1_me |    000A6D85  _icon1_me
-     000A6D91  _icon1_me |    000A6D9D  _icon1_me |    000A6DA9  _icon1_me
-     000A6DB5  _icon1_me |    000A6DC1  _icon1_me |    000A6DCD  _icon1_me
-     000A6DD9  _icon1_me |    000A6DE5  _icon1_me |    000A6DF1  _icon1_me
-     000A6DFD  _icon1_me |    000A6E09  _icon1_me |    000A6E15  _icon1_me
-     000A6E21  _icon1_me |    000A6E2D  _icon1_me |    000A6E39  _icon1_me
-     000A6E45  _icon1_me |    000A6E77  _ship_til |    000A6EB7  _ship_met
-     000A6EC3  _ship_met
+     000A6CD6  _icon1_pa |    000A6CDE  _icon1_ti |    000A6D5E  _icon1_me
+     000A6D6A  _icon1_me |    000A6D76  _icon1_me |    000A6D82  _icon1_me
+     000A6D8E  _icon1_me |    000A6D9A  _icon1_me |    000A6DA6  _icon1_me
+     000A6DB2  _icon1_me |    000A6DBE  _icon1_me |    000A6DCA  _icon1_me
+     000A6DD6  _icon1_me |    000A6DE2  _icon1_me |    000A6DEE  _icon1_me
+     000A6DFA  _icon1_me |    000A6E06  _icon1_me |    000A6E12  _icon1_me
+     000A6E1E  _icon1_me |    000A6E2A  _icon1_me |    000A6E36  _icon1_me
+     000A6E42  _icon1_me |    000A6E4E  _icon1_me |    000A6E5A  _icon1_me
+     000A6E66  _icon1_me |    000A6E72  _icon1_me |    000A6E7E  _icon1_me
+     000A6E8A  _icon1_me |    000A6EBC  _ship_til |    000A6EFC  _ship_met
+     000A6F08  _ship_met
 ASxxxx Linker V03.00/V05.40 + sdld,  page 32.
 Hexadecimal  [32-Bits]
 
@@ -665,13 +665,13 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_21               00154000    00000A70 =        2672. bytes (REL,CON)
+_CODE_21               00154000    00000A30 =        2608. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00154000  ___func_m |    00154000  ___func_m |    00154000  _menu_bg_
      00154570  ___func_m |    00154570  _menu_bg_ |    00154970  ___func_m
-     00154970  _menu_gro |    00154A10  ___func_m |    00154A10  _menu_gro
+     00154970  _menu_gro |    001549D0  ___func_m |    001549D0  _menu_gro
 ASxxxx Linker V03.00/V05.40 + sdld,  page 53.
 Hexadecimal  [32-Bits]
 

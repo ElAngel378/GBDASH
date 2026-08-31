@@ -871,6 +871,7 @@ void play_level(uint8_t idx) BANKED {
     uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
     uint8_t prev_reversed = player.reversed;
+    uint8_t reduce_flash = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
@@ -895,15 +896,9 @@ void play_level(uint8_t idx) BANKED {
 
 
         if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
-#ifdef DEBUG_MODE
         if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
-            target_bg_idx++;
-            if (target_bg_idx > 3) target_bg_idx = 0;
-            if (_cpu == CGB_TYPE) {
-                famidash_apply_bg_trigger((uint8_t)(target_bg_idx << 2));
-            }
+            reduce_flash = !reduce_flash;
         }
-#endif
         prev_joy = joy;
 
         uint16_t px_prev = cam_px >> 4;
@@ -1003,9 +998,13 @@ void play_level(uint8_t idx) BANKED {
         int16_t final_py = player_screen_y(&player, cam_py);
 
         wait_vbl_done();
-        BGP_REG = bg_pals[target_bg_idx];
-        OBP0_REG = bg_pals[target_bg_idx];
-        OBP1_REG = bg_pals[target_bg_idx];
+        uint8_t apply_idx = target_bg_idx;
+        if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
+            apply_idx = 0;
+        }
+        BGP_REG = bg_pals[apply_idx];
+        OBP0_REG = bg_pals[apply_idx];
+        OBP1_REG = bg_pals[apply_idx];
         move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
         if (needs_render) {
