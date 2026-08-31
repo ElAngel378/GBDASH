@@ -535,7 +535,8 @@ static void process_sprite_logic(
             continue;
         }
 
-        if (obj == 45) continue;
+        // Bypass collision entirely for all decorations to save CPU cycles
+        if (obj >= 38 && obj < 64) continue;
 
         // Background trigger objects do not need Y coordinates.
         if (obj >= 100 && obj <= 147 &&
@@ -700,6 +701,9 @@ static uint8_t draw_sprites(
 ) {
     uint8_t i;
     uint8_t dist_x, screen_x, screen_y;
+    uint8_t deco_drawn = 0;
+    // Cap decorations to maintain 60 FPS: 4 on DMG, 12 on CGB
+    uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         if (!cache->active[i]) break;
@@ -730,18 +734,16 @@ static uint8_t draw_sprites(
         if (screen_y > 160 && screen_y < 208) continue;
 
         if (obj >= 38) {
+            if (deco_drawn >= deco_max) continue;
+            
             if (_cpu == CGB_TYPE && obj < 64) {
                 const FamidashDeco *deco = famidash_deco_table[obj];
                 if (deco) {
                     if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;
+                    deco_drawn++;
                     oam_start += draw_oam_deco(deco, FAMIDASH_SPRITE_TILE_BASE,
                                                oam_start, screen_x, screen_y, reversed);
                 }
-            } else if (obj == 45) {
-                // Fallback for DMG: still draw the chain blocks (since they were kept before)
-                if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
-                oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
-                                          oam_start, screen_x, screen_y - 8, reversed);
             }
             continue;
         }
@@ -820,6 +822,10 @@ void draw_levels(void) BANKED {
     SHOW_BKG;
     redraw = 0;
 }
+
+// Globals for play_level to avoid slow stack-relative addressing
+SpCache active_sp;
+uint8_t collision_columns[32];
 
 void play_level(uint8_t idx) BANKED {
     const Level* l;
@@ -902,10 +908,8 @@ void play_level(uint8_t idx) BANKED {
     uint16_t scroll_acc = 0;
     uint8_t prev_joy = 0;
     uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
-    SpCache active_sp;
     uint16_t sp_stream_idx = 0;
     uint16_t sp_cache_col = 0xFFFF;
-    uint8_t collision_columns[32];
     uint16_t cached_collision_col = 0xFFFF;
     uint8_t prev_reversed = player.reversed;
     uint8_t reduce_flash = 0;
@@ -985,7 +989,8 @@ void play_level(uint8_t idx) BANKED {
                 if (curr_col < level_map_w) {
                     uint8_t vram_slot = (uint8_t)(curr_col & 15);
                     if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-                    draw_mt_column(vram_slot, curr_col, level_map, level_map_w, level_map_bank, player.reversed);
+                    prepare_mt_column(curr_col, level_map, level_map_bank, player.reversed);
+                    flush_mt_column(vram_slot);
                 }
             }
             // Reinit sprites
@@ -1034,6 +1039,16 @@ void play_level(uint8_t idx) BANKED {
         }
         int16_t final_py = player_screen_y(&player, cam_py);
 
+        uint8_t vram_slot = 0;
+        if (needs_render) {
+            loaded_r = need_col;
+            vram_slot = (uint8_t)(need_col & 15);
+            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+            
+            // Do the heavy 16-bit math and array formatting BEFORE VBlank starts
+            prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
+        }
+
         wait_vbl_done();
         uint8_t apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
@@ -1045,11 +1060,8 @@ void play_level(uint8_t idx) BANKED {
         move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
 
         if (needs_render) {
-            loaded_r = need_col;
-            uint8_t vram_slot = (uint8_t)(need_col & 15);
-            // Reverse tile mapping in VRAM ring buffer to create mirrored level layout
-            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-            draw_mt_column(vram_slot, need_col, level_map, level_map_w, level_map_bank, player.reversed);
+            // Only execute the actual VRAM writes inside VBlank
+            flush_mt_column(vram_slot);
         }
 
         uint8_t oam_index = draw_sprites(

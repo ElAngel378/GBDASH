@@ -110,41 +110,36 @@ void load_collision_columns(uint16_t map_col, const uint8_t* map,
   SWITCH_ROM(_prev);
 }
 
-void draw_mt_column(uint8_t ring_col, uint16_t map_col,
-  const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
-  (void)map_w;
-  uint8_t bx = ring_col << 1;
-
+void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(map_bank);
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
-  // DMG Optimization: Select table once per column instead of 16 times
   const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
 
-    for (uint8_t r = 0; r < BKG_MT_H; r++) {
-        uint8_t metatile_id = *map_ptr++;
-        const uint8_t *tiles = mt_table[metatile_id];
-        uint8_t offset = r << 2;
+  for (uint8_t r = 0; r < BKG_MT_H; r++) {
+      uint8_t metatile_id = *map_ptr++;
+      const uint8_t *tiles = mt_table[metatile_id];
+      uint8_t offset = r << 2;
 
-        metatile_column_tiles[offset] = tiles[0];
-        metatile_column_tiles[offset + 1] = tiles[1];
-        metatile_column_tiles[offset + 2] = tiles[2];
-        metatile_column_tiles[offset + 3] = tiles[3];
+      metatile_column_tiles[offset] = tiles[0];
+      metatile_column_tiles[offset + 1] = tiles[1];
+      metatile_column_tiles[offset + 2] = tiles[2];
+      metatile_column_tiles[offset + 3] = tiles[3];
 
-        // DMG Optimization: Completely skip attributes if not on GBC
-        if (_cpu == CGB_TYPE) {
-            uint8_t palette = famidash_metatile_palettes[metatile_id];
-            metatile_column_attributes[offset] = palette;
-            metatile_column_attributes[offset + 1] = palette;
-            metatile_column_attributes[offset + 2] = palette;
-            metatile_column_attributes[offset + 3] = palette;
-        }
-    }
-
+      if (_cpu == CGB_TYPE) {
+          uint8_t palette = famidash_metatile_palettes[metatile_id];
+          metatile_column_attributes[offset] = palette;
+          metatile_column_attributes[offset + 1] = palette;
+          metatile_column_attributes[offset + 2] = palette;
+          metatile_column_attributes[offset + 3] = palette;
+      }
+  }
   SWITCH_ROM(_prev);
-  // set_bkg_tiles writes either tile numbers or CGB attributes depending on
-  // VBK_REG.  Mirror redraws must update tile numbers in bank 0.
+}
+
+void flush_mt_column(uint8_t ring_col) {
+  uint8_t bx = ring_col << 1;
   VBK_REG = VBK_TILES;
   set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
   if (_cpu == CGB_TYPE) {
@@ -157,7 +152,8 @@ void draw_mt_column(uint8_t ring_col, uint16_t map_col,
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
   uint16_t cols = (map_w < 16) ? map_w : 16;
   for (uint16_t c = 0; c < cols; c++) {
-    draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank, reversed);
+    prepare_mt_column(c, map, map_bank, reversed);
+    flush_mt_column((uint8_t)(c % 16));
   }
 }
 

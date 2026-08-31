@@ -17,7 +17,8 @@
 	.globl _col_at
 	.globl _load_bkg_tileset
 	.globl _load_collision_columns
-	.globl _draw_mt_column
+	.globl _prepare_mt_column
+	.globl _flush_mt_column
 	.globl _fill_scroll_bg
 	.globl _init_music_banked
 ;--------------------------------------------------------
@@ -491,86 +492,78 @@ _load_collision_columns::
 	pop	hl
 	add	sp, #5
 	jp	(hl)
-;src/collision.c:113: void draw_mt_column(uint8_t ring_col, uint16_t map_col,
+;src/collision.c:113: void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) {
 ;	---------------------------------
-; Function draw_mt_column
+; Function prepare_mt_column
 ; ---------------------------------
-_draw_mt_column::
-	add	sp, #-12
-;src/collision.c:116: uint8_t bx = ring_col << 1;
-	add	a, a
-	ldhl	sp,	#0
-;src/collision.c:118: uint8_t _prev = _current_bank;
-	ld	(hl+), a
+_prepare_mt_column::
+	add	sp, #-11
+;src/collision.c:114: uint8_t _prev = _current_bank;
 	ldh	a, (__current_bank + 0)
+	ldhl	sp,	#0
 	ld	(hl), a
-;src/collision.c:119: SWITCH_ROM(map_bank);
-	ldhl	sp,	#18
+;src/collision.c:115: SWITCH_ROM(map_bank);
+	ldhl	sp,	#13
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	(#_rROMB0),a
-;src/collision.c:121: const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
-	ld	a, e
-	add	a, a
-	rl	d
-	add	a, a
-	rl	d
-	add	a, a
-	rl	d
-	add	a, a
-	rl	d
-	ld	e, a
+;src/collision.c:117: const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
+	ld	l, e
+	ld	h, d
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	ld	c, l
+	ld	b, h
+;src/collision.c:118: const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
 	ldhl	sp,	#14
-	ld	a,	(hl+)
-	ld	h, (hl)
-	ld	l, a
-	add	hl, de
-	push	hl
-	ld	a, l
-	ldhl	sp,	#12
-	ld	(hl), a
-	pop	hl
-	ld	a, h
-	ldhl	sp,	#11
-	ld	(hl), a
-;src/collision.c:123: const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
-	ldhl	sp,	#19
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00111$
-	ld	bc, #_metatiles_rev+0
-	jr	00112$
-00111$:
-	ld	bc, #_metatiles+0
-00112$:
-	ldhl	sp,	#2
+	jr	Z, 00109$
+	ld	de, #_metatiles_rev+0
+	jr	00110$
+00109$:
+	ld	de, #_metatiles+0
+00110$:
+	ldhl	sp,	#1
+	ld	a, e
+	ld	(hl+), a
+	ld	(hl), d
+;src/collision.c:120: for (uint8_t r = 0; r < BKG_MT_H; r++) {
+	ldhl	sp,	#8
 	ld	a, c
 	ld	(hl+), a
-	ld	(hl), b
-;src/collision.c:125: for (uint8_t r = 0; r < BKG_MT_H; r++) {
-	ld	c, #0x00
-00107$:
-	ld	a, c
+	ld	a, b
+	ld	(hl+), a
+	ld	(hl), #0x00
+00105$:
+	ldhl	sp,	#10
+	ld	a, (hl)
 	sub	a, #0x10
 	jp	NC, 00103$
-;src/collision.c:126: uint8_t metatile_id = *map_ptr++;
-	ldhl	sp,#10
+;src/collision.c:121: uint8_t metatile_id = *map_ptr++;
+	dec	hl
+	dec	hl
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	a, (de)
-	ldhl	sp,	#4
+	ldhl	sp,	#3
 	ld	(hl), a
-	ldhl	sp,	#10
+	ldhl	sp,	#8
 	inc	(hl)
-	jr	NZ, 00150$
+	jr	NZ, 00140$
 	inc	hl
 	inc	(hl)
-00150$:
-;src/collision.c:127: const uint8_t *tiles = mt_table[metatile_id];
-	ldhl	sp,	#4
+00140$:
+;src/collision.c:122: const uint8_t *tiles = mt_table[metatile_id];
+	ldhl	sp,	#3
 	ld	a, (hl-)
+	ld	e, a
 	ld	d, #0x00
+	ld	a, e
 	add	a, a
 	rl	d
 	add	a, a
@@ -580,43 +573,31 @@ _draw_mt_column::
 	ld	l, (hl)
 	ld	h, a
 	add	hl, de
-	push	hl
-	ld	a, l
+	ld	c, l
+	ld	b, h
+;src/collision.c:123: uint8_t offset = r << 2;
+	ldhl	sp,	#10
+	ld	a, (hl)
+	add	a, a
+	add	a, a
+	ldhl	sp,	#4
+	ld	(hl), a
+;src/collision.c:125: metatile_column_tiles[offset] = tiles[0];
+	ld	de, #_metatile_column_tiles
+	ld	l, (hl)
+	ld	h, #0x00
+	add	hl, de
+	ld	e, l
+	ld	d, h
+	ld	a, (bc)
+	ld	(de), a
+;src/collision.c:126: metatile_column_tiles[offset + 1] = tiles[1];
+	ldhl	sp,	#4
+	ld	a, (hl)
 	ldhl	sp,	#7
 	ld	(hl), a
-	pop	hl
-	ld	a, h
-	ldhl	sp,	#6
-;src/collision.c:128: uint8_t offset = r << 2;
-	ld	(hl+), a
-	ld	a, c
-	add	a, a
-	add	a, a
-	ld	(hl), a
-;src/collision.c:130: metatile_column_tiles[offset] = tiles[0];
-	ld	de, #_metatile_column_tiles
-	ld	l, (hl)
-	ld	h, #0x00
-	add	hl, de
-	ld	b, l
-	ld	a, h
-	ldhl	sp,#5
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	push	af
-	ld	a, (de)
-	ldhl	sp,	#11
-	ld	(hl), a
-	pop	af
-	ld	e, b
-	ld	d, a
-;src/collision.c:131: metatile_column_tiles[offset + 1] = tiles[1];
 	ld	a, (hl-)
 	dec	hl
-	ld	(de), a
-	ld	a, (hl+)
-	ld	b, a
 	inc	a
 	ld	(hl), a
 	ld	de, #_metatile_column_tiles
@@ -625,18 +606,16 @@ _draw_mt_column::
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#5
-	ld	a, (hl+)
-	ld	h, (hl)
-	ld	l, a
+	ld	l, c
+	ld	h, b
 	inc	hl
 	ld	a, (hl)
 	ld	(de), a
-;src/collision.c:132: metatile_column_tiles[offset + 2] = tiles[2];
-	ld	a, b
+;src/collision.c:127: metatile_column_tiles[offset + 2] = tiles[2];
+	ldhl	sp,	#7
+	ld	a, (hl-)
 	inc	a
 	inc	a
-	ldhl	sp,	#9
 	ld	(hl), a
 	ld	de, #_metatile_column_tiles
 	ld	l, (hl)
@@ -644,125 +623,132 @@ _draw_mt_column::
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#5
-	ld	a, (hl+)
-	ld	h, (hl)
-	ld	l, a
+	ld	l, c
+	ld	h, b
 	inc	hl
 	inc	hl
 	ld	a, (hl)
 	ld	(de), a
-;src/collision.c:133: metatile_column_tiles[offset + 3] = tiles[3];
-	inc	b
-	inc	b
-	inc	b
-	ld	a, #<(_metatile_column_tiles)
-	add	a, b
-	ld	e, a
-	ld	a, #>(_metatile_column_tiles)
-	adc	a, #0x00
-	ld	d, a
-	ldhl	sp,	#5
-	ld	a, (hl+)
-	ld	h, (hl)
-	ld	l, a
-	inc	hl
-	inc	hl
-	inc	hl
+;src/collision.c:128: metatile_column_tiles[offset + 3] = tiles[3];
+	ldhl	sp,	#7
 	ld	a, (hl)
+	inc	a
+	inc	a
+	inc	a
+	ld	(hl), a
+	ld	de, #_metatile_column_tiles
+	ld	l, (hl)
+	ld	h, #0x00
+	add	hl, de
+	ld	e, l
+	ld	d, h
+	inc	bc
+	inc	bc
+	inc	bc
+	ld	a, (bc)
 	ld	(de), a
-;src/collision.c:136: if (_cpu == CGB_TYPE) {
+;src/collision.c:130: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
-	jr	NZ, 00108$
-;src/collision.c:137: uint8_t palette = famidash_metatile_palettes[metatile_id];
+	jr	NZ, 00106$
+;src/collision.c:131: uint8_t palette = famidash_metatile_palettes[metatile_id];
 	ld	de, #_famidash_metatile_palettes
+	ldhl	sp,	#3
+	ld	l, (hl)
+	ld	h, #0x00
+	add	hl, de
+	ld	c, l
+	ld	b, h
+	ld	a, (bc)
+	ld	c, a
+;src/collision.c:132: metatile_column_attributes[offset] = palette;
+	ld	de, #_metatile_column_attributes
 	ldhl	sp,	#4
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ld	a, (de)
-	ldhl	sp,	#6
-;src/collision.c:138: metatile_column_attributes[offset] = palette;
-	ld	(hl+), a
+	ld	a, c
+	ld	(de), a
+;src/collision.c:133: metatile_column_attributes[offset + 1] = palette;
 	ld	de, #_metatile_column_attributes
+	ldhl	sp,	#5
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#6
-;src/collision.c:139: metatile_column_attributes[offset + 1] = palette;
-	ld	a, (hl+)
-	inc	hl
+	ld	a, c
 	ld	(de), a
+;src/collision.c:134: metatile_column_attributes[offset + 2] = palette;
 	ld	de, #_metatile_column_attributes
+	ldhl	sp,	#6
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#6
-	ld	a, (hl)
+	ld	a, c
 	ld	(de), a
-;src/collision.c:140: metatile_column_attributes[offset + 2] = palette;
+;src/collision.c:135: metatile_column_attributes[offset + 3] = palette;
 	ld	de, #_metatile_column_attributes
-	ldhl	sp,	#9
+	ldhl	sp,	#7
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#6
-	ld	a, (hl)
+	ld	a, c
 	ld	(de), a
-;src/collision.c:141: metatile_column_attributes[offset + 3] = palette;
-	ld	a, #<(_metatile_column_attributes)
-	add	a, b
-	ld	e, a
-	ld	a, #>(_metatile_column_attributes)
-	adc	a, #0x00
-	ld	d, a
-	ld	a, (hl)
-	ld	(de), a
-00108$:
-;src/collision.c:125: for (uint8_t r = 0; r < BKG_MT_H; r++) {
-	inc	c
-	jp	00107$
+00106$:
+;src/collision.c:120: for (uint8_t r = 0; r < BKG_MT_H; r++) {
+	ldhl	sp,	#10
+	inc	(hl)
+	jp	00105$
 00103$:
-;src/collision.c:145: SWITCH_ROM(_prev);
-	ldhl	sp,	#1
+;src/collision.c:138: SWITCH_ROM(_prev);
+	ldhl	sp,	#0
 	ld	a, (hl)
 	ldh	(__current_bank + 0), a
 	ld	a, (hl)
 	ld	(#_rROMB0),a
-;src/collision.c:148: VBK_REG = VBK_TILES;
+;src/collision.c:139: }
+	add	sp, #11
+	pop	hl
+	pop	af
+	jp	(hl)
+;src/collision.c:141: void flush_mt_column(uint8_t ring_col) {
+;	---------------------------------
+; Function flush_mt_column
+; ---------------------------------
+_flush_mt_column::
+;src/collision.c:142: uint8_t bx = ring_col << 1;
+	add	a, a
+	ld	b, a
+;src/collision.c:143: VBK_REG = VBK_TILES;
 	xor	a, a
 	ldh	(_VBK_REG + 0), a
-;src/collision.c:149: set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
-	ld	bc, #_metatile_column_tiles
-	push	bc
+;src/collision.c:144: set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
+	ld	de, #_metatile_column_tiles
+	push	de
 	ld	hl, #0x2002
 	push	hl
 	xor	a, a
 	push	af
 	inc	sp
-	ldhl	sp,	#5
-	ld	a, (hl)
-	push	af
+	push	bc
 	inc	sp
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/collision.c:150: if (_cpu == CGB_TYPE) {
+;src/collision.c:145: if (_cpu == CGB_TYPE) {
 	ld	a, (#__cpu)
 	sub	a, #0x11
-	jr	NZ, 00109$
-;src/collision.c:151: VBK_REG = VBK_ATTRIBUTES;
+	ret	NZ
+;src/collision.c:146: VBK_REG = VBK_ATTRIBUTES;
 	ld	a, #0x01
 	ldh	(_VBK_REG + 0), a
-;src/collision.c:152: set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_attributes);
+;src/collision.c:147: set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_attributes);
 	ld	de, #_metatile_column_attributes
 	push	de
 	ld	hl, #0x2002
@@ -770,40 +756,26 @@ _draw_mt_column::
 	xor	a, a
 	push	af
 	inc	sp
-	ldhl	sp,	#5
-	ld	a, (hl)
-	push	af
+	push	bc
 	inc	sp
 	call	_set_bkg_tiles
 	add	sp, #6
-;src/collision.c:153: VBK_REG = VBK_TILES;
-	ld	a, #0x00
+;src/collision.c:148: VBK_REG = VBK_TILES;
+	xor	a, a
 	ldh	(_VBK_REG + 0), a
-00109$:
-;src/collision.c:155: }
-	add	sp, #12
-	pop	hl
-	add	sp, #6
-	jp	(hl)
-;src/collision.c:157: void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
+;src/collision.c:150: }
+	ret
+;src/collision.c:152: void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
 ;	---------------------------------
 ; Function fill_scroll_bg
 ; ---------------------------------
 _fill_scroll_bg::
-	add	sp, #-6
-	ldhl	sp,	#4
+	add	sp, #-4
+	ldhl	sp,	#2
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
-	ldhl	sp,	#2
-	ld	a, c
-	ld	(hl+), a
-;src/collision.c:158: uint16_t cols = (map_w < 16) ? map_w : 16;
-	ld	a, b
-	ld	(hl-), a
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
+;src/collision.c:153: uint16_t cols = (map_w < 16) ? map_w : 16;
 	ld	a, c
 	sub	a, #0x10
 	ld	a, b
@@ -814,7 +786,7 @@ _fill_scroll_bg::
 	ldhl	sp,	#0
 	ld	a, c
 	ld	(hl+), a
-;src/collision.c:159: for (uint16_t c = 0; c < cols; c++) {
+;src/collision.c:154: for (uint16_t c = 0; c < cols; c++) {
 	ld	de, #0x0000
 	ld	(hl), e
 00103$:
@@ -825,80 +797,75 @@ _fill_scroll_bg::
 	ld	a, d
 	sbc	a, (hl)
 	jr	NC, 00105$
-;src/collision.c:160: draw_mt_column((uint8_t)(c % 16), c, map, map_w, map_bank, reversed);
+;src/collision.c:155: prepare_mt_column(c, map, map_bank, reversed);
+	push	de
+	ldhl	sp,	#9
+	ld	a, (hl-)
+	ld	b, a
+	ld	c, (hl)
+	push	bc
+	ldhl	sp,	#6
+	ld	a, (hl+)
+	ld	c, a
+	ld	b, (hl)
+	call	_prepare_mt_column
+	pop	de
+;src/collision.c:156: flush_mt_column((uint8_t)(c % 16));
 	ld	a, e
 	and	a, #0x0f
 	push	de
-	ldhl	sp,	#11
-	ld	h, (hl)
-	push	hl
-	inc	sp
-	ldhl	sp,	#11
-	ld	h, (hl)
-	push	hl
-	inc	sp
-	ldhl	sp,	#6
-	ld	c, (hl)
-	inc	hl
-	ld	b, (hl)
-	inc	hl
-	push	bc
-	ld	c, (hl)
-	inc	hl
-	ld	b, (hl)
-	push	bc
-	call	_draw_mt_column
+	call	_flush_mt_column
 	pop	de
-;src/collision.c:159: for (uint16_t c = 0; c < cols; c++) {
+;src/collision.c:154: for (uint16_t c = 0; c < cols; c++) {
 	inc	de
 	jr	00103$
 00105$:
-;src/collision.c:162: }
-	add	sp, #6
+;src/collision.c:158: }
+	add	sp, #4
 	pop	hl
 	pop	af
 	jp	(hl)
-;src/collision.c:168: void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
+;src/collision.c:164: void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
 ;	---------------------------------
 ; Function init_music_banked
 ; ---------------------------------
 _init_music_banked::
 	ld	c, a
-;src/collision.c:169: uint8_t _prev = _current_bank;
+;src/collision.c:165: uint8_t _prev = _current_bank;
 	ldh	a, (__current_bank + 0)
 	ld	b, a
-;src/collision.c:170: music_ready = 0;
+;src/collision.c:166: music_ready = 0;
 	xor	a, a
 	ld	(#_music_ready),a
-;src/collision.c:171: current_song_bank = bank;
+;src/collision.c:167: current_song_bank = bank;
 	ld	hl, #_current_song_bank
 	ld	(hl), c
-;src/collision.c:172: SWITCH_ROM(bank);
+;src/collision.c:168: SWITCH_ROM(bank);
 	ld	a, c
 	ldh	(__current_bank + 0), a
 	ld	hl, #_rROMB0
 	ld	(hl), c
 ;c:\gbdk\include\gb\gb.h:811: __asm__("di");
 	di
-;src/collision.c:174: hUGE_init(song);
+;src/collision.c:170: hUGE_init(song);
 	push	bc
 	call	_hUGE_init
 	pop	bc
-;src/collision.c:175: TMA_REG = divider;
+;src/collision.c:171: TMA_REG = divider;
 	ldhl	sp,	#2
 	ld	a, (hl)
 	ldh	(_TMA_REG + 0), a
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
-;src/collision.c:177: SWITCH_ROM(_prev);
+;src/collision.c:173: SWITCH_ROM(_prev);
 	ld	a, b
 	ldh	(__current_bank + 0), a
 	ld	hl, #_rROMB0
 	ld	(hl), b
-;src/collision.c:178: music_ready = 1;
+;src/collision.c:174: music_ready = 1;
 	ld	hl, #_music_ready
 	ld	(hl), #0x01
-;src/collision.c:179: }
+;src/collision.c:175: }
 	pop	hl
 	inc	sp
 	jp	(hl)

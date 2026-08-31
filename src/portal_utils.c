@@ -28,11 +28,38 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
     if (sp_bank == 0 || sp_list == 0) return;
     SWITCH_ROM(sp_bank);
     while (count < MAX_ACTIVE_SP_OBJECTS && cache->active[count]) count++;
-    while (count < MAX_ACTIVE_SP_OBJECTS && sp_list[*stream_idx].c != 0xFFFF) {
+    
+    while (sp_list[*stream_idx].c != 0xFFFF) {
         uint16_t object_x = (uint16_t)sp_list[*stream_idx].c << 4;
+        
+        // If it's too far ahead, stop evaluating
         if (object_x > cam_px + 176u) break;
 
-        cache->obj[count] = sp_list[*stream_idx].obj;
+        // If it's already behind the camera, skip it and advance to prevent stalling
+        if (object_x + 32u < cam_px) {
+            (*stream_idx)++;
+            continue;
+        }
+
+        uint8_t obj_id = sp_list[*stream_idx].obj;
+
+        // DMG optimization: We don't draw decorations on DMG anymore, so completely 
+        // skip loading them into the cache to save all associated CPU processing time.
+        if (_cpu != CGB_TYPE && obj_id >= 38 && obj_id < 64) {
+            (*stream_idx)++;
+            continue;
+        }
+
+        // Prioritize gameplay elements on CGB: If cache is nearing full, drop decorations
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 64) {
+            (*stream_idx)++;
+            continue;
+        }
+
+        // Add to cache if room
+        if (count >= MAX_ACTIVE_SP_OBJECTS) break;
+
+        cache->obj[count] = obj_id;
         cache->px[count] = object_x;
         cache->py[count] = (uint16_t)(map_h - 1u - sp_list[*stream_idx].r) << 4;
         cache->active[count] = 1;
