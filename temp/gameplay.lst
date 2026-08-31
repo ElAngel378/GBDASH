@@ -4715,7 +4715,7 @@
     00001611 2A               [ 8] 4715 	ld	a, (hl+)
     00001612 57               [ 4] 4716 	ld	d, a
     00001613 1A               [ 8] 4717 	ld	a, (de)
-    00001614 C6 70            [ 8] 4718 	add	a, #0x70
+    00001614 C6 90            [ 8] 4718 	add	a, #0x90
     00001616 02               [ 8] 4719 	ld	(bc), a
     00001617 03               [ 8] 4720 	inc	bc
     00001618 2A               [ 8] 4721 	ld	a, (hl+)
@@ -4758,7 +4758,7 @@
     00001642 57               [ 4] 4758 	ld	d, a
     00001643 13               [ 8] 4759 	inc	de
     00001644 1A               [ 8] 4760 	ld	a, (de)
-    00001645 C6 70            [ 8] 4761 	add	a, #0x70
+    00001645 C6 90            [ 8] 4761 	add	a, #0x90
     00001647 02               [ 8] 4762 	ld	(bc), a
     00001648 03               [ 8] 4763 	inc	bc
     00001649 2A               [ 8] 4764 	ld	a, (hl+)
@@ -4804,7 +4804,7 @@
     00001678 13               [ 8] 4804 	inc	de
     00001679 13               [ 8] 4805 	inc	de
     0000167A 1A               [ 8] 4806 	ld	a, (de)
-    0000167B C6 70            [ 8] 4807 	add	a, #0x70
+    0000167B C6 90            [ 8] 4807 	add	a, #0x90
     0000167D 02               [ 8] 4808 	ld	(bc), a
     0000167E 03               [ 8] 4809 	inc	bc
     0000167F 2A               [ 8] 4810 	ld	a, (hl+)
@@ -4859,7 +4859,7 @@
     000016B8 2A               [ 8] 4859 	ld	a, (hl+)
     000016B9 57               [ 4] 4860 	ld	d, a
     000016BA 1A               [ 8] 4861 	ld	a, (de)
-    000016BB C6 70            [ 8] 4862 	add	a, #0x70
+    000016BB C6 90            [ 8] 4862 	add	a, #0x90
     000016BD 02               [ 8] 4863 	ld	(bc), a
     000016BE 03               [ 8] 4864 	inc	bc
     000016BF 2A               [ 8] 4865 	ld	a, (hl+)
@@ -4905,7 +4905,7 @@
     000016EC 57               [ 4] 4905 	ld	d, a
     000016ED 13               [ 8] 4906 	inc	de
     000016EE 1A               [ 8] 4907 	ld	a, (de)
-    000016EF C6 70            [ 8] 4908 	add	a, #0x70
+    000016EF C6 90            [ 8] 4908 	add	a, #0x90
     000016F1 02               [ 8] 4909 	ld	(bc), a
     000016F2 03               [ 8] 4910 	inc	bc
     000016F3 2A               [ 8] 4911 	ld	a, (hl+)
@@ -4954,7 +4954,7 @@
     00001725 13               [ 8] 4954 	inc	de
     00001726 13               [ 8] 4955 	inc	de
     00001727 1A               [ 8] 4956 	ld	a, (de)
-    00001728 C6 70            [ 8] 4957 	add	a, #0x70
+    00001728 C6 90            [ 8] 4957 	add	a, #0x90
     0000172A 02               [ 8] 4958 	ld	(bc), a
     0000172B 03               [ 8] 4959 	inc	bc
     0000172C 2A               [ 8] 4960 	ld	a, (hl+)
@@ -5076,7 +5076,7 @@
     000017D3 70               [ 8] 5076 	ld	(hl), b
                                    5077 ;c:\gbdk\include\gb\metasprites.h:251: __current_base_tile = base_tile;
     000017D4 21r00r00         [12] 5078 	ld	hl, #___current_base_tile
-    000017D7 36 70            [12] 5079 	ld	(hl), #0x70
+    000017D7 36 90            [12] 5079 	ld	(hl), #0x90
                                    5080 ;c:\gbdk\include\gb\metasprites.h:252: __current_base_prop = 0;
     000017D9 AF               [ 4] 5081 	xor	a, a
     000017DA EAr00r00         [16] 5082 	ld	(#___current_base_prop),a
@@ -5150,7 +5150,7 @@
     00001832 EAr01r00         [16] 5150 	ld	(#___current_metasprite + 1),a
                                    5151 ;c:\gbdk\include\gb\metasprites.h:170: __current_base_tile = base_tile;
     00001835 21r00r00         [12] 5152 	ld	hl, #___current_base_tile
-    00001838 36 70            [12] 5153 	ld	(hl), #0x70
+    00001838 36 90            [12] 5153 	ld	(hl), #0x90
                                    5154 ;c:\gbdk\include\gb\metasprites.h:171: __current_base_prop = 0;
     0000183A AF               [ 4] 5155 	xor	a, a
     0000183B EAr00r00         [16] 5156 	ld	(#___current_base_prop),a
@@ -5228,7 +5228,7 @@
     0000189A 7E               [ 8] 5228 	ld	a, (hl)
     0000189B F5               [16] 5229 	push	af
     0000189C 33               [ 8] 5230 	inc	sp
-    0000189D 3E 70            [ 8] 5231 	ld	a, #0x70
+    0000189D 3E 90            [ 8] 5231 	ld	a, #0x90
     0000189F F8 19            [12] 5232 	ldhl	sp,	#25
     000018A1 5E               [ 8] 5233 	ld	e, (hl)
     000018A2 23               [ 8] 5234 	inc	hl
@@ -5266,7 +5266,7 @@
     000018CC 7E               [ 8] 5266 	ld	a, (hl)
     000018CD F5               [16] 5267 	push	af
     000018CE 33               [ 8] 5268 	inc	sp
-    000018CF 3E 70            [ 8] 5269 	ld	a, #0x70
+    000018CF 3E 90            [ 8] 5269 	ld	a, #0x90
     000018D1 F8 19            [12] 5270 	ldhl	sp,	#25
     000018D3 5E               [ 8] 5271 	ld	e, (hl)
     000018D4 23               [ 8] 5272 	inc	hl
@@ -5294,7 +5294,7 @@
     000018F0 7E               [ 8] 5294 	ld	a, (hl)
     000018F1 F5               [16] 5295 	push	af
     000018F2 33               [ 8] 5296 	inc	sp
-    000018F3 3E 70            [ 8] 5297 	ld	a, #0x70
+    000018F3 3E 90            [ 8] 5297 	ld	a, #0x90
     000018F5 F8 19            [12] 5298 	ldhl	sp,	#25
     000018F7 5E               [ 8] 5299 	ld	e, (hl)
     000018F8 23               [ 8] 5300 	inc	hl
@@ -5939,7 +5939,7 @@
                                    5936 ;src/gameplay.c:884: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     00001C25 11r00r00         [12] 5937 	ld	de, #_famidash_sprites_tiles
     00001C28 D5               [16] 5938 	push	de
-    00001C29 21 70 5C         [12] 5939 	ld	hl, #0x5c70
+    00001C29 21 90 5C         [12] 5939 	ld	hl, #0x5c90
     00001C2C E5               [16] 5940 	push	hl
     00001C2D CDr00r00         [24] 5941 	call	_set_sprite_data
     00001C30 E8 04            [16] 5942 	add	sp, #4
@@ -6681,7 +6681,7 @@
                                    6678 ;src/gameplay.c:997: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     00001FF2 11r00r00         [12] 6679 	ld	de, #_famidash_sprites_tiles
     00001FF5 D5               [16] 6680 	push	de
-    00001FF6 21 70 5C         [12] 6681 	ld	hl, #0x5c70
+    00001FF6 21 90 5C         [12] 6681 	ld	hl, #0x5c90
     00001FF9 E5               [16] 6682 	push	hl
     00001FFA CDr00r00         [24] 6683 	call	_set_sprite_data
     00001FFD E8 04            [16] 6684 	add	sp, #4
@@ -7978,7 +7978,7 @@
                                    7975 ;src/gameplay.c:1133: set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     00002667 11r00r00         [12] 7976 	ld	de, #_famidash_sprites_tiles
     0000266A D5               [16] 7977 	push	de
-    0000266B 21 70 5C         [12] 7978 	ld	hl, #0x5c70
+    0000266B 21 90 5C         [12] 7978 	ld	hl, #0x5c90
     0000266E E5               [16] 7979 	push	hl
     0000266F CDr00r00         [24] 7980 	call	_set_sprite_data
     00002672 E8 04            [16] 7981 	add	sp, #4
