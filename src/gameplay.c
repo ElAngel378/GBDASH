@@ -471,7 +471,39 @@ static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
         *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
         *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
     }
+
     return 9;
+}
+
+inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
+                             uint8_t oam_idx, uint8_t sx, uint8_t sy,
+                             uint8_t reversed) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t count = deco->count;
+    const int8_t *dx = deco->x;
+    const int8_t *dy = deco->y;
+    const uint8_t *dt = deco->tile;
+    const uint8_t *dp = deco->props;
+
+    if (!reversed) {
+        *oam++ = sy + dy[0]; *oam++ = sx + dx[0]; *oam++ = dt[0] + tile_base; *oam++ = dp[0];
+        if (count > 1) {
+            *oam++ = sy + dy[1]; *oam++ = sx + dx[1]; *oam++ = dt[1] + tile_base; *oam++ = dp[1];
+            if (count > 2) {
+                *oam++ = sy + dy[2]; *oam++ = sx + dx[2]; *oam++ = dt[2] + tile_base; *oam++ = dp[2];
+            }
+        }
+    } else {
+        uint8_t rx = sx + deco->width - 8;
+        *oam++ = sy + dy[0]; *oam++ = rx - dx[0]; *oam++ = dt[0] + tile_base; *oam++ = dp[0] ^ S_FLIPX;
+        if (count > 1) {
+            *oam++ = sy + dy[1]; *oam++ = rx - dx[1]; *oam++ = dt[1] + tile_base; *oam++ = dp[1] ^ S_FLIPX;
+            if (count > 2) {
+                *oam++ = sy + dy[2]; *oam++ = rx - dx[2]; *oam++ = dt[2] + tile_base; *oam++ = dp[2] ^ S_FLIPX;
+            }
+        }
+    }
+    return count;
 }
 
 static void process_sprite_logic(
@@ -697,20 +729,25 @@ static uint8_t draw_sprites(
         if (screen_x > 160 && screen_x < 232) continue;
         if (screen_y > 160 && screen_y < 208) continue;
 
-        if (obj >= 46) continue;
-
-        // ID45 is a fixed 2x2 graphic. Handle it before the generic
-        // metasprite path: this avoids a table lookup and all of the generic
-        // sprite classification for the most expensive decoration object.
-        if (obj == 45) {
-            if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
-            oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
-                                      oam_start, screen_x, screen_y - 8, reversed);
+        if (obj >= 38) {
+            if (_cpu == CGB_TYPE && obj < 64) {
+                const FamidashDeco *deco = famidash_deco_table[obj];
+                if (deco) {
+                    if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;
+                    oam_start += draw_oam_deco(deco, FAMIDASH_SPRITE_TILE_BASE,
+                                               oam_start, screen_x, screen_y, reversed);
+                }
+            } else if (obj == 45) {
+                // Fallback for DMG: still draw the chain blocks (since they were kept before)
+                if (oam_start > MAX_HARDWARE_SPRITES - 4) break;
+                oam_start += draw_oam_2x2(FAMIDASH_SPRITE_TILE_BASE + CHAIN_BLOCK_TILE,
+                                          oam_start, screen_x, screen_y - 8, reversed);
+            }
             continue;
         }
 
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
-        const metasprite_t *sprite = (obj < 38) ? famidash_sprite_table[obj] : 0;
+        const metasprite_t *sprite = famidash_sprite_table[obj];
         if (sprite == 0) continue;
 
         // Temporary: Disable orb and pad graphics

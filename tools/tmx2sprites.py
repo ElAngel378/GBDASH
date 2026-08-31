@@ -65,8 +65,11 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sprites_firstgid + 19: 19,  # Inverted gravity portal (horizontal up)
         sprites_firstgid + 126: 126,  # test
         sprites_firstgid + 121: 121,  # test
-#         sprites_firstgid + 45: 45,   # Decoration (chain block)
     }
+
+    # Deco objects
+    for i in range(42, 64):
+        portals_map[sprites_firstgid + i] = i
 
     # BG Color mappings (Rows 8, 9, 10):
     # Mapping unique indices 128-175 to obj_ids 100-147

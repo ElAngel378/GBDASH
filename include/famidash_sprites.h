@@ -50,4 +50,15 @@ extern const metasprite_t * const famidash_sprite_table[38];
 
 extern const metasprite_t famidash_deco_45[];
 
+typedef struct {
+    uint8_t count;
+    uint8_t width;
+    int8_t x[3];
+    int8_t y[3];
+    uint8_t tile[3];
+    uint8_t props[3];
+} FamidashDeco;
+
+extern const FamidashDeco * const famidash_deco_table[64];
+
 #endif

@@ -7,6 +7,7 @@
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
+	.globl _famidash_deco_table
 	.globl _famidash_sprite_table
 	.globl _famidash_deco_45
 	.globl _famidash_pink_orb
@@ -601,5 +602,400 @@ _famidash_sprite_table:
 	.dw #0x0000
 	.dw #0x0000
 	.dw _famidash_pink_pad
+_deco_long_light:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0xf0	; -16
+	.db #0x00	;  0
+	.db #0x30	; 48	'0'
+	.db #0x32	; 50	'2'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_medium_light:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0xf0	; -16
+	.db #0x00	;  0
+	.db #0x30	; 48	'0'
+	.db #0x34	; 52	'4'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_short_light:
+	.db #0x01	; 1
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x36	; 54	'6'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x00	; 0
+	.db #0x00	; 0
+_deco_chain:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0xf0	; -16
+	.db #0x00	;  0
+	.db #0x38	; 56	'8'
+	.db #0x3a	; 58
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_spike_g1:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x00	;  0
+	.db #0x3c	; 60
+	.db #0x3e	; 62
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_spike_g2:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x3c	; 60
+	.db #0x3e	; 62
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+_deco_spike_g3:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x00	;  0
+	.db #0x40	; 64
+	.db #0x42	; 66	'B'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_spike_g4:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x40	; 64
+	.db #0x42	; 66	'B'
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+_deco_diamond:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x44	; 68	'D'
+	.db #0x44	; 68	'D'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x23	; 35
+	.db #0x00	; 0
+_deco_diamond_half:
+	.db #0x01	; 1
+	.db #0x10	; 16
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x44	; 68	'D'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x23	; 35
+	.db #0x00	; 0
+	.db #0x00	; 0
+_deco_question:
+	.db #0x01	; 1
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x46	; 70	'F'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x00	; 0
+	.db #0x00	; 0
+_deco_exclamation:
+	.db #0x01	; 1
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x48	; 72	'H'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x00	; 0
+	.db #0x00	; 0
+_deco_arrow:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x4a	; 74	'J'
+	.db #0x4a	; 74	'J'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x23	; 35
+	.db #0x00	; 0
+_deco_x:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x4c	; 76	'L'
+	.db #0x4c	; 76	'L'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x23	; 35
+	.db #0x00	; 0
+_deco_short_right:
+	.db #0x02	; 2
+	.db #0x18	; 24
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x00	;  0
+	.db #0x4e	; 78	'N'
+	.db #0x50	; 80	'P'
+	.db #0x00	; 0
+	.db #0x23	; 35
+	.db #0x23	; 35
+	.db #0x00	; 0
+_deco_short_left:
+	.db #0x02	; 2
+	.db #0x18	; 24
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x00	;  0
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x00	;  0
+	.db #0x4e	; 78	'N'
+	.db #0x50	; 80	'P'
+	.db #0x00	; 0
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x00	; 0
+_deco_long_up:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x10	;  16
+	.db #0x00	;  0
+	.db #0x30	; 48	'0'
+	.db #0x32	; 50	'2'
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+_deco_medium_up:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x10	;  16
+	.db #0x00	;  0
+	.db #0x30	; 48	'0'
+	.db #0x34	; 52	'4'
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+_deco_short_up:
+	.db #0x01	; 1
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x36	; 54	'6'
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+	.db #0x00	; 0
+_deco_chain_up:
+	.db #0x02	; 2
+	.db #0x10	; 16
+	.db #0x04	;  4
+	.db #0x04	;  4
+	.db #0x00	;  0
+	.db #0x10	;  16
+	.db #0x00	;  0
+	.db #0x00	;  0
+	.db #0x3a	; 58
+	.db #0x38	; 56	'8'
+	.db #0x00	; 0
+	.db #0x43	; 67	'C'
+	.db #0x43	; 67	'C'
+	.db #0x00	; 0
+_deco_medium_right:
+	.db #0x03	; 3
+	.db #0x18	; 24
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x10	;  16
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x50	; 80	'P'
+	.db #0x52	; 82	'R'
+	.db #0x4e	; 78	'N'
+	.db #0x23	; 35
+	.db #0x23	; 35
+	.db #0x23	; 35
+_deco_medium_left:
+	.db #0x03	; 3
+	.db #0x18	; 24
+	.db #0x00	;  0
+	.db #0x08	;  8
+	.db #0x10	;  16
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0xfc	; -4
+	.db #0x50	; 80	'P'
+	.db #0x52	; 82	'R'
+	.db #0x4e	; 78	'N'
+	.db #0x03	; 3
+	.db #0x03	; 3
+	.db #0x03	; 3
+_famidash_deco_table:
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw #0x0000
+	.dw _deco_long_light
+	.dw _deco_medium_light
+	.dw _deco_short_light
+	.dw _deco_chain
+	.dw _deco_spike_g1
+	.dw _deco_spike_g2
+	.dw _deco_spike_g3
+	.dw _deco_spike_g4
+	.dw _deco_diamond
+	.dw _deco_diamond_half
+	.dw _deco_question
+	.dw _deco_exclamation
+	.dw _deco_arrow
+	.dw _deco_x
+	.dw _deco_short_right
+	.dw _deco_short_left
+	.dw _deco_long_up
+	.dw _deco_medium_up
+	.dw _deco_short_up
+	.dw _deco_chain_up
+	.dw _deco_medium_right
+	.dw _deco_medium_left
 	.area _INITIALIZER
 	.area _CABS (ABS)

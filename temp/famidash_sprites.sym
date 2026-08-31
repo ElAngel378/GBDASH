@@ -10,12 +10,35 @@ Symbol Table
     ___bank_famidash_sprites_tiles                              =   0000000A G
   8 ___func_famidash_sprites_tiles                                  00000000 GR
     ___size_famidash_sprites_tiles                              =   000005C0 G
+  8 _deco_arrow                                                     00000888 R
+  8 _deco_chain                                                     0000080A R
+  8 _deco_chain_up                                                  000008EA R
+  8 _deco_diamond                                                   00000850 R
+  8 _deco_diamond_half                                              0000085E R
+  8 _deco_exclamation                                               0000087A R
+  8 _deco_long_light                                                000007E0 R
+  8 _deco_long_up                                                   000008C0 R
+  8 _deco_medium_left                                               00000906 R
+  8 _deco_medium_light                                              000007EE R
+  8 _deco_medium_right                                              000008F8 R
+  8 _deco_medium_up                                                 000008CE R
+  8 _deco_question                                                  0000086C R
+  8 _deco_short_left                                                000008B2 R
+  8 _deco_short_light                                               000007FC R
+  8 _deco_short_right                                               000008A4 R
+  8 _deco_short_up                                                  000008DC R
+  8 _deco_spike_g1                                                  00000818 R
+  8 _deco_spike_g2                                                  00000826 R
+  8 _deco_spike_g3                                                  00000834 R
+  8 _deco_spike_g4                                                  00000842 R
+  8 _deco_x                                                         00000896 R
   8 _famidash_ball_portal                                           00000610 GR
   8 _famidash_blue_orb                                              00000768 GR
   8 _famidash_blue_pad                                              00000738 GR
   8 _famidash_blue_pad_up                                           00000744 GR
   8 _famidash_cube_portal                                           000005C0 GR
   8 _famidash_deco_45                                               00000780 GR
+  8 _famidash_deco_table                                            00000914 GR
   8 _famidash_gravity_down                                          000006E8 GR
   8 _famidash_gravity_up                                            00000704 GR
   8 _famidash_pink_orb                                              00000774 GR
@@ -32,7 +55,6 @@ Symbol Table
   8 _famidash_yellow_pad_up                                         0000072C GR
     b___func_famidash_sprites_tiles                             =   0000000A L
 
-
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
@@ -46,7 +68,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size      7E0   flags    0
+   8 _CODE_10                                   size      994   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 
