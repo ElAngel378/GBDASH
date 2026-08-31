@@ -5670,15 +5670,15 @@ ___str_2:
 ; ---------------------------------
 	b_play_level	= 10
 _play_level::
-	add	sp, #-79
+	add	sp, #-84
 ;src/gameplay.c:841: l = game_levels[idx];
 	ld	bc, #_game_levels+0
-	ldhl	sp,	#85
+	ldhl	sp,	#90
 	ld	e, (hl)
 	xor	a, a
 	sla	e
 	adc	a, a
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	(hl), e
 	inc	hl
 	ld	(hl-), a
@@ -5691,7 +5691,7 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#34
+	ldhl	sp,	#30
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
@@ -5723,13 +5723,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#38
+	ldhl	sp,	#34
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:844: level_tile_count = l->tile_count;
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -5740,13 +5740,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#40
+	ldhl	sp,	#36
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:845: level_map_w = l->map_width;
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -5757,13 +5757,13 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#42
+	ldhl	sp,	#38
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
 	ld	(hl), a
 ;src/gameplay.c:846: level_map_h = l->map_height;
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -5774,7 +5774,7 @@ _play_level::
 	ld	e, c
 	ld	d, b
 	ld	a, (de)
-	ldhl	sp,	#44
+	ldhl	sp,	#40
 	ld	(hl+), a
 	inc	de
 	ld	a, (de)
@@ -5782,7 +5782,7 @@ _play_level::
 	ld	(hl+), a
 	ld	(hl), #<(___bank_chr_gb)
 ;src/gameplay.c:848: level_map_bank = l->map_bank;
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -5791,13 +5791,13 @@ _play_level::
 	ld	c, l
 	ld	b, h
 	ld	a, (bc)
-	ldhl	sp,	#47
+	ldhl	sp,	#43
 	ld	(hl), a
 ;src/gameplay.c:849: if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 	ld	a, (#__cpu)
 	sub	a, #0x11
 	jr	NZ, 00102$
-	ldhl	sp,	#36
+	ldhl	sp,	#32
 	ld	a, #<(_chr_gb_cgb_tiles)
 	ld	(hl+), a
 	ld	(hl), #>(_chr_gb_cgb_tiles)
@@ -5813,18 +5813,18 @@ _play_level::
 	ldh	(_NR50_REG + 0), a
 ;src/gameplay.c:855: if (level_songs[idx]) {
 	ld	de, #_level_songs
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#49
+	ldhl	sp,	#45
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
@@ -5837,7 +5837,7 @@ _play_level::
 	or	a, c
 	jr	Z, 00104$
 ;src/gameplay.c:856: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -5846,10 +5846,10 @@ _play_level::
 	ld	e, l
 	ld	d, h
 	ld	a, (de)
-	ldhl	sp,	#78
+	ldhl	sp,	#83
 	ld	(hl), a
 	ld	de, #_song_bank+0
-	ldhl	sp,	#85
+	ldhl	sp,	#90
 	ld	l, (hl)
 	ld	h, #0x00
 	add	hl, de
@@ -5857,7 +5857,7 @@ _play_level::
 	ld	d, h
 	ld	a, (de)
 	push	de
-	ldhl	sp,	#80
+	ldhl	sp,	#85
 	ld	h, (hl)
 	push	hl
 	inc	sp
@@ -5874,17 +5874,17 @@ _play_level::
 00104$:
 ;src/gameplay.c:861: uint16_t cam_px = 0;
 	xor	a, a
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:862: uint16_t cam_py = 112;
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
 ;src/gameplay.c:863: uint16_t cam_py_max = (level_map_h << 4);
-	ldhl	sp,	#44
+	ldhl	sp,	#40
 	ld	a, (hl+)
 	ld	b, (hl)
 	add	a, a
@@ -5907,7 +5907,7 @@ _play_level::
 	ld	c, a
 	ld	a, b
 	adc	a, #0xff
-	ldhl	sp,	#52
+	ldhl	sp,	#48
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
@@ -5915,18 +5915,18 @@ _play_level::
 00106$:
 ;src/gameplay.c:865: else cam_py_max = 0;
 	xor	a, a
-	ldhl	sp,	#52
+	ldhl	sp,	#48
 	ld	(hl+), a
 	ld	(hl), a
 00107$:
 ;src/gameplay.c:866: uint16_t loaded_r = BKG_MT_W - 1;
-	ldhl	sp,	#54
+	ldhl	sp,	#50
 	ld	a, #0x0f
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
 ;src/gameplay.c:871: uint8_t target_bg_idx = 0;
-	ldhl	sp,	#4
+	ldhl	sp,	#0
 ;src/gameplay.c:872: const uint8_t bg_pals[] = {
 	xor	a, a
 	ld	(hl+), a
@@ -5941,7 +5941,7 @@ _play_level::
 	ld	de, #0x00f0
 	push	de
 	ld	bc, #0x0000
-	ld	hl, #11
+	ld	hl, #7
 	add	hl, sp
 	ld	e, l
 	ld	d, h
@@ -5951,15 +5951,15 @@ _play_level::
 ;src/gameplay.c:883: DISPLAY_OFF;
 	call	_display_off
 ;src/gameplay.c:884: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-	ldhl	sp,	#46
+	ldhl	sp,	#42
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#41
+	ldhl	sp,	#37
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#37
+	ldhl	sp,	#33
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6001,15 +6001,15 @@ _play_level::
 	xor	a, a
 	push	af
 	inc	sp
-	ldhl	sp,	#48
+	ldhl	sp,	#44
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#44
+	ldhl	sp,	#40
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#40
+	ldhl	sp,	#36
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6029,7 +6029,7 @@ _play_level::
 	add	sp, #4
 00109$:
 ;src/gameplay.c:899: BGP_REG = bg_pals[0];
-	ldhl	sp,	#5
+	ldhl	sp,	#1
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
 ;src/gameplay.c:900: OBP0_REG = bg_pals[0];
@@ -6060,7 +6060,7 @@ _play_level::
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
 ;src/gameplay.c:909: uint16_t scroll_acc = 0;
-	ldhl	sp,	#56
+	ldhl	sp,	#52
 ;src/gameplay.c:910: uint8_t prev_joy = 0;
 ;src/gameplay.c:911: uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
 	xor	a, a
@@ -6069,11 +6069,11 @@ _play_level::
 	ld	(hl), #0x28
 ;src/gameplay.c:912: uint16_t sp_stream_idx = 0;
 	xor	a, a
-	ldhl	sp,	#32
+	ldhl	sp,	#28
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:913: uint16_t sp_cache_col = 0xFFFF;
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 ;src/gameplay.c:914: uint16_t cached_collision_col = 0xFFFF;
 	ld	a,#0xff
 	ld	(hl+),a
@@ -6082,25 +6082,52 @@ _play_level::
 	ld	(hl+), a
 	ld	(hl), #0xff
 ;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
-	ldhl	sp,	#19
+	ldhl	sp,	#15
 	ld	a, (hl)
-	ldhl	sp,	#63
+	ldhl	sp,	#59
 ;src/gameplay.c:916: uint8_t reduce_flash = 0;
 	ld	(hl+), a
 	ld	(hl), #0x00
 ;src/gameplay.c:917: sp_cache_reset(&active_sp, &sp_stream_idx);
-	ld	hl, #32
+	ld	hl, #28
 	add	hl, sp
 	ld	c, l
 	ld	b, h
 	ld	de, #_active_sp
 	call	_sp_cache_reset
 ;src/gameplay.c:918: while (1) {
-	ldhl	sp,#34
+	ldhl	sp,#30
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	ld	hl, #0x0004
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#63
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#62
+	ld	(hl), a
+	ldhl	sp,#30
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #0x0011
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#65
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#64
+	ld	(hl), a
+	ld	de, #_song_bank
+	ldhl	sp,	#90
+	ld	l, (hl)
+	ld	h, #0x00
 	add	hl, de
 	push	hl
 	ld	a, l
@@ -6110,51 +6137,24 @@ _play_level::
 	ld	a, h
 	ldhl	sp,	#66
 	ld	(hl), a
-	ldhl	sp,#34
-	ld	a, (hl+)
-	ld	e, a
-	ld	d, (hl)
-	ld	hl, #0x0011
-	add	hl, de
-	push	hl
-	ld	a, l
-	ldhl	sp,	#69
-	ld	(hl), a
-	pop	hl
-	ld	a, h
-	ldhl	sp,	#68
-	ld	(hl), a
-	ld	de, #_song_bank
-	ldhl	sp,	#85
-	ld	l, (hl)
-	ld	h, #0x00
-	add	hl, de
-	push	hl
-	ld	a, l
-	ldhl	sp,	#71
-	ld	(hl), a
-	pop	hl
-	ld	a, h
-	ldhl	sp,	#70
-	ld	(hl), a
 00211$:
 ;src/gameplay.c:919: uint8_t joy = joypad();
 	call	_joypad
-	ldhl	sp,	#71
+	ldhl	sp,	#77
 	ld	(hl), a
 ;src/gameplay.c:920: if (joy & J_START) break;
 	push	hl
-	ldhl	sp,	#73
+	ldhl	sp,	#79
 	bit	7, (hl)
 	pop	hl
 	jp	NZ, 00212$
 ;src/gameplay.c:922: if ((joy & J_UP) || player.level_complete) {
 	push	hl
-	ldhl	sp,	#73
+	ldhl	sp,	#79
 	bit	2, (hl)
 	pop	hl
 	jr	NZ, 00115$
-	ldhl	sp,	#27
+	ldhl	sp,	#23
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00116$
@@ -6247,12 +6247,12 @@ _play_level::
 00116$:
 ;src/gameplay.c:940: if ((joy & J_B) && !(prev_joy & J_B)) player_noclip = !player_noclip;
 	push	hl
-	ldhl	sp,	#73
+	ldhl	sp,	#79
 	bit	5, (hl)
 	pop	hl
 	jr	Z, 00119$
 	push	hl
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 	bit	5, (hl)
 	pop	hl
 	jr	NZ, 00119$
@@ -6265,17 +6265,17 @@ _play_level::
 00119$:
 ;src/gameplay.c:941: if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
 	push	hl
-	ldhl	sp,	#73
+	ldhl	sp,	#79
 	bit	6, (hl)
 	pop	hl
 	jr	Z, 00122$
 	push	hl
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 	bit	6, (hl)
 	pop	hl
 	jr	NZ, 00122$
 ;src/gameplay.c:942: reduce_flash = !reduce_flash;
-	ldhl	sp,	#64
+	ldhl	sp,	#60
 	ld	a, (hl)
 	sub	a, #0x01
 	ld	a, #0x00
@@ -6283,18 +6283,18 @@ _play_level::
 	ld	(hl), a
 00122$:
 ;src/gameplay.c:944: prev_joy = joy;
-	ldhl	sp,	#71
-	ld	a, (hl)
-	ldhl	sp,	#57
-	ld	(hl), a
-;src/gameplay.c:946: uint16_t px_prev = cam_px >> 4;
 	ldhl	sp,	#77
 	ld	a, (hl)
-	ldhl	sp,	#73
+	ldhl	sp,	#53
 	ld	(hl), a
-	ldhl	sp,	#78
+;src/gameplay.c:946: uint16_t px_prev = cam_px >> 4;
+	ldhl	sp,	#82
 	ld	a, (hl)
-	ldhl	sp,	#74
+	ldhl	sp,	#78
+	ld	(hl), a
+	ldhl	sp,	#83
+	ld	a, (hl)
+	ldhl	sp,	#79
 	ld	(hl), a
 	srl	(hl)
 	dec	hl
@@ -6318,15 +6318,14 @@ _play_level::
 	inc	hl
 	ld	(hl), a
 ;src/gameplay.c:947: uint8_t needs_render = 0;
-	ldhl	sp,	#72
-	ld	(hl), #0x00
+	ldhl	sp,	#67
 ;src/gameplay.c:948: uint16_t need_col = 0;
 	xor	a, a
-	ldhl	sp,	#0
+	ld	(hl+), a
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:951: if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
-	ldhl	sp,	#42
+	ldhl	sp,	#38
 	ld	a, (hl+)
 	ld	c, (hl)
 	add	a, #0xf6
@@ -6340,7 +6339,7 @@ _play_level::
 	add	hl, hl
 	ld	c, l
 	ld	b, h
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6350,9 +6349,9 @@ _play_level::
 	sbc	a, b
 	jp	NC, 00130$
 ;src/gameplay.c:952: scroll_acc += SCROLL_SPEED_FP;
-	ldhl	sp,	#56
+	ldhl	sp,	#52
 	ld	a, (hl)
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl-), a
@@ -6363,56 +6362,56 @@ _play_level::
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#4
+	ldhl	sp,	#77
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#3
+	ldhl	sp,	#76
 	ld	(hl-), a
 	ld	a, (hl)
-	ldhl	sp,	#73
-	ld	(hl), a
-	ldhl	sp,	#3
+	ldhl	sp,	#78
+	ld	(hl-), a
+	dec	hl
 	ld	a, (hl)
-	ldhl	sp,	#74
+	ldhl	sp,	#79
 	ld	(hl), a
 ;src/gameplay.c:953: cam_px += scroll_acc >> 8;
 	ld	a, (hl)
-	ldhl	sp,	#2
+	ldhl	sp,	#75
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl-), a
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a,	(hl+)
 	ld	h, (hl)
 	ld	l, a
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#79
+	ldhl	sp,	#84
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#78
+	ldhl	sp,	#83
 	ld	(hl), a
 ;src/gameplay.c:954: scroll_acc &= 0xFF;
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	a, (hl+)
 	ld	c, a
 	ld	a, (hl)
-	ldhl	sp,	#56
+	ldhl	sp,	#52
 	ld	(hl), c
 ;src/gameplay.c:946: uint16_t px_prev = cam_px >> 4;
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a, (hl)
-	ldhl	sp,	#73
-	ld	(hl), a
 	ldhl	sp,	#78
+	ld	(hl), a
+	ldhl	sp,	#83
 	ld	a, (hl)
-	ldhl	sp,	#74
+	ldhl	sp,	#79
 	ld	(hl), a
 	srl	(hl)
 	dec	hl
@@ -6444,7 +6443,7 @@ _play_level::
 	jr	Z, 00130$
 00711$:
 ;src/gameplay.c:957: uint16_t need = px_curr + VIEW_MT_W;
-	ldhl	sp,	#2
+	ldhl	sp,	#75
 	ld	a, c
 	ld	(hl+), a
 	ld	a, b
@@ -6456,17 +6455,17 @@ _play_level::
 	add	hl, de
 	push	hl
 	ld	a, l
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	(hl), a
 	pop	hl
 	ld	a, h
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
 ;src/gameplay.c:958: if (need > loaded_r && need < level_map_w) {
-	ldhl	sp,	#54
+	ldhl	sp,	#50
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (de)
 	inc	de
 	sub	a, (hl)
@@ -6474,10 +6473,10 @@ _play_level::
 	ld	a, (de)
 	sbc	a, (hl)
 	jr	NC, 00130$
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#42
+	ldhl	sp,	#38
 	ld	a, (de)
 	inc	de
 	sub	a, (hl)
@@ -6486,85 +6485,85 @@ _play_level::
 	sbc	a, (hl)
 	jr	NC, 00130$
 ;src/gameplay.c:959: needs_render = 1;
-	ldhl	sp,	#72
+	ldhl	sp,	#67
 	ld	(hl), #0x01
 ;src/gameplay.c:960: need_col = need;
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (hl)
-	ldhl	sp,	#0
+	ldhl	sp,	#68
 	ld	(hl), a
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ldhl	sp,	#1
+	ldhl	sp,	#69
 	ld	(hl), a
 00130$:
 ;src/gameplay.c:965: player.world_x = cam_px;
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a, (hl)
-	ldhl	sp,	#9
+	ldhl	sp,	#5
 	ld	(hl), a
-	ldhl	sp,	#78
+	ldhl	sp,	#83
 	ld	a, (hl)
-	ldhl	sp,	#10
+	ldhl	sp,	#6
 	ld	(hl), a
 ;src/gameplay.c:917: sp_cache_reset(&active_sp, &sp_stream_idx);
 ;src/gameplay.c:968: if ((cam_px >> 4) != sp_cache_col) {
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	a, (hl)
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 	sub	a, (hl)
 	jr	NZ, 00712$
-	ldhl	sp,	#74
+	ldhl	sp,	#79
 	ld	a, (hl)
-	ldhl	sp,	#60
+	ldhl	sp,	#56
 	sub	a, (hl)
 	jr	Z, 00132$
 00712$:
 ;src/gameplay.c:969: sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
-	ld	hl, #32
+	ld	hl, #28
 	add	hl, sp
 	push	hl
 	ld	de, #_active_sp
 	push	de
-	ldhl	sp,	#81
+	ldhl	sp,	#86
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#38
+	ldhl	sp,	#34
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	call	_sp_cache_update
 ;src/gameplay.c:970: sp_cache_col = cam_px >> 4;
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	a, (hl)
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 	ld	(hl), a
-	ldhl	sp,	#74
+	ldhl	sp,	#79
 	ld	a, (hl)
-	ldhl	sp,	#60
+	ldhl	sp,	#56
 	ld	(hl), a
 00132$:
 ;src/gameplay.c:975: process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
-	ldhl	sp,	#4
+	ldhl	sp,	#0
 	push	hl
-	ldhl	sp,	#73
+	ldhl	sp,	#79
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ld	hl, #12
+	ld	hl, #8
 	add	hl, sp
 	push	hl
-	ldhl	sp,	#82
+	ldhl	sp,	#87
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	ld	de, #_active_sp
 	call	_process_sprite_logic
 ;src/gameplay.c:977: if (player.reversed != prev_reversed) {
-	ldhl	sp,	#19
+	ldhl	sp,	#15
 	ld	c, (hl)
-	ldhl	sp,	#63
+	ldhl	sp,	#59
 	ld	a, (hl)
 	sub	a, c
 	jp	Z, 00139$
@@ -6580,7 +6579,7 @@ _play_level::
 	ld	bc, #_chr_gb_cgb_tiles_rev
 	jr	00251$
 00250$:
-	ldhl	sp,#65
+	ldhl	sp,#61
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6594,42 +6593,42 @@ _play_level::
 	ld	d, b
 	jr	00249$
 00248$:
-	ldhl	sp,	#36
+	ldhl	sp,	#32
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 00249$:
 ;src/gameplay.c:984: load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-	ldhl	sp,	#46
+	ldhl	sp,	#42
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#41
+	ldhl	sp,	#37
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	call	_load_bkg_tileset
 ;src/gameplay.c:987: uint16_t start_col = cam_px >> 4;
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	a, (hl)
-	ldhl	sp,	#54
+	ldhl	sp,	#75
 	ld	(hl), a
-	ldhl	sp,	#74
+	ldhl	sp,	#79
 	ld	a, (hl)
-	ldhl	sp,	#55
+	ldhl	sp,	#76
 	ld	(hl), a
 ;src/gameplay.c:988: for (uint8_t i = 0; i < 16; i++) {
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), #0x00
 00241$:
 ;src/gameplay.c:989: uint16_t curr_col = start_col + i;
-	ldhl	sp,	#54
-	ld	a, (hl)
-	ldhl	sp,	#74
-	ld	(hl), a
-	ldhl	sp,	#55
-	ld	a, (hl)
 	ldhl	sp,	#75
+	ld	a, (hl)
+	ldhl	sp,	#79
+	ld	(hl), a
+	ldhl	sp,	#76
+	ld	a, (hl)
+	ldhl	sp,	#80
 ;src/gameplay.c:988: for (uint8_t i = 0; i < 16; i++) {
 	ld	(hl+), a
 	ld	a, (hl)
@@ -6645,15 +6644,15 @@ _play_level::
 	add	hl, bc
 	ld	c, l
 	ld	a, h
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
 ;src/gameplay.c:990: if (curr_col < level_map_w) {
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	e, l
 	ld	d, h
-	ldhl	sp,	#42
+	ldhl	sp,	#38
 	ld	a, (de)
 	inc	de
 	sub	a, (hl)
@@ -6662,19 +6661,19 @@ _play_level::
 	sbc	a, (hl)
 	jr	NC, 00242$
 ;src/gameplay.c:991: uint8_t vram_slot = (uint8_t)(curr_col & 15);
-	ldhl	sp,	#73
+	ldhl	sp,	#78
 	ld	a, (hl+)
 	inc	hl
 	and	a, #0x0f
 	ld	(hl), a
 ;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
-	ldhl	sp,	#19
+	ldhl	sp,	#15
 	ld	b, (hl)
 ;src/gameplay.c:992: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
 	ld	a, b
 	or	a, a
 	jr	Z, 00134$
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	xor	a, a
 	sub	a, (hl)
 	ld	c, a
@@ -6684,26 +6683,26 @@ _play_level::
 ;src/gameplay.c:993: prepare_mt_column(curr_col, level_map, level_map_bank, player.reversed);
 	push	bc
 	inc	sp
-	ldhl	sp,	#48
+	ldhl	sp,	#44
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#40
+	ldhl	sp,	#36
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	call	_prepare_mt_column
 ;src/gameplay.c:994: flush_mt_column(vram_slot);
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (hl)
 	call	_flush_mt_column
 00242$:
 ;src/gameplay.c:988: for (uint8_t i = 0; i < 16; i++) {
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	inc	(hl)
 	jr	00241$
 00137$:
@@ -6738,7 +6737,7 @@ _play_level::
 ;c:\gbdk\include\gb\gb.h:795: __asm__("ei");
 	ei
 ;src/gameplay.c:1004: loaded_r = start_col + 15;
-	ldhl	sp,#74
+	ldhl	sp,#79
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6746,18 +6745,18 @@ _play_level::
 	add	hl, de
 	ld	c, l
 	ld	a, h
-	ldhl	sp,	#54
+	ldhl	sp,	#50
 	ld	(hl), c
 	inc	hl
 	ld	(hl), a
 ;src/gameplay.c:1005: prev_reversed = player.reversed;
-	ldhl	sp,	#19
+	ldhl	sp,	#15
 	ld	a, (hl)
-	ldhl	sp,	#63
+	ldhl	sp,	#59
 	ld	(hl), a
 00139$:
 ;src/gameplay.c:1008: uint16_t collision_col = cam_px >> 4;
-	ldhl	sp,#77
+	ldhl	sp,#82
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -6770,7 +6769,7 @@ _play_level::
 	srl	d
 	rr	e
 ;src/gameplay.c:1009: if (collision_col != cached_collision_col) {
-	ldhl	sp,	#61
+	ldhl	sp,	#57
 	ld	a, (hl)
 	sub	a, e
 	jr	NZ, 00716$
@@ -6784,23 +6783,23 @@ _play_level::
 	push	de
 	ld	bc, #_collision_columns
 	push	bc
-	ldhl	sp,	#51
+	ldhl	sp,	#47
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#47
+	ldhl	sp,	#43
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	push	bc
-	ldhl	sp,	#45
+	ldhl	sp,	#41
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	call	_load_collision_columns
 	pop	de
 ;src/gameplay.c:1012: cached_collision_col = collision_col;
-	ldhl	sp,	#61
+	ldhl	sp,	#57
 	ld	a, e
 	ld	(hl+), a
 	ld	(hl), d
@@ -6808,34 +6807,34 @@ _play_level::
 ;src/gameplay.c:1015: died = player_update(&player, joy, collision_columns, level_map_h);
 ;src/gameplay.c:880: player_init(&player, 0, 240);
 ;src/gameplay.c:1015: died = player_update(&player, joy, collision_columns, level_map_h);
-	ldhl	sp,	#44
+	ldhl	sp,	#40
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	push	de
 	ld	de, #_collision_columns
 	push	de
-	ldhl	sp,	#75
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ld	hl, #13
+	ld	hl, #9
 	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_update
-	ldhl	sp,	#71
+	ldhl	sp,	#70
 	ld	(hl), a
 ;src/gameplay.c:1017: py = player_screen_y(&player, cam_py);
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ld	hl, #9
+	ld	hl, #5
 	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_screen_y
 ;src/gameplay.c:1018: if (py < CAM_Y_TOP_ZONE) {
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, c
 	ld	(hl+), a
 	ld	a, b
@@ -6859,7 +6858,7 @@ _play_level::
 00718$:
 	jr	NC, 00153$
 ;src/gameplay.c:1019: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
-	ldhl	sp,	#12
+	ldhl	sp,	#8
 	ld	c, (hl)
 	ld	b, #0x00
 	ld	de, #0x0014
@@ -6868,14 +6867,14 @@ _play_level::
 	ld	e, a
 	ld	a, b
 	sbc	a, d
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl-), a
 	ld	(hl), e
 ;src/gameplay.c:1020: if (target_cam_py < 0) target_cam_py = 0;
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
@@ -6887,11 +6886,11 @@ _play_level::
 	ld	(hl), a
 00143$:
 ;src/gameplay.c:1021: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#52
+	ldhl	sp,	#48
 	ld	a, (hl+)
 	sub	a, c
 	ld	a, (hl)
@@ -6899,26 +6898,26 @@ _play_level::
 	jr	NC, 00145$
 	dec	hl
 	ld	a, (hl)
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	(hl), a
-	ldhl	sp,	#53
+	ldhl	sp,	#49
 	ld	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
 00145$:
 ;src/gameplay.c:1022: cam_py = (uint16_t)target_cam_py;
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, (hl)
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	(hl), a
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ldhl	sp,	#51
+	ldhl	sp,	#47
 	ld	(hl), a
 	jr	00154$
 00153$:
 ;src/gameplay.c:1024: else if (py > CAM_Y_BOTTOM_ZONE) {
-	ldhl	sp,	#75
+	ldhl	sp,	#80
 	ld	a, #0x64
 	sub	a, (hl)
 	inc	hl
@@ -6926,7 +6925,7 @@ _play_level::
 	sbc	a, (hl)
 	jr	NC, 00154$
 ;src/gameplay.c:1025: int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
-	ldhl	sp,	#12
+	ldhl	sp,	#8
 	ld	a, (hl)
 	ld	b, #0x00
 	add	a, #0x9c
@@ -6943,7 +6942,7 @@ _play_level::
 ;src/gameplay.c:1027: if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
 	ld	e, c
 	ld	d, b
-	ldhl	sp,	#52
+	ldhl	sp,	#48
 	ld	a, (hl+)
 	sub	a, e
 	ld	a, (hl)
@@ -6955,18 +6954,18 @@ _play_level::
 	ld	b, (hl)
 00149$:
 ;src/gameplay.c:1028: cam_py = (uint16_t)target_cam_py;
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
 00154$:
 ;src/gameplay.c:1033: if (player.reversed) {
-	ldhl	sp,	#19
+	ldhl	sp,	#15
 	ld	a, (hl)
 	or	a, a
 	jr	Z, 00156$
 ;src/gameplay.c:1035: scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
@@ -6981,21 +6980,21 @@ _play_level::
 	ld	c, a
 	ld	a, b
 	adc	a, #0xff
-	ldhl	sp,	#73
+	ldhl	sp,	#71
 	ld	(hl), c
 	inc	hl
+	ld	(hl), a
 ;src/gameplay.c:1036: sprite_x_final = 128; // Mirrored player position
-	ld	(hl+), a
-	inc	hl
+	ldhl	sp,	#81
 	ld	(hl), #0x80
 	jr	00157$
 00156$:
 ;src/gameplay.c:1038: scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl), a
-	ldhl	sp,	#78
+	ldhl	sp,	#83
 	ld	a, (hl-)
 	dec	hl
 	ld	(hl-), a
@@ -7005,7 +7004,7 @@ _play_level::
 	ld	a, #0x00
 	sbc	a, (hl)
 	jr	NC, 00252$
-	ldhl	sp,#75
+	ldhl	sp,#80
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -7021,11 +7020,12 @@ _play_level::
 	xor	a, a
 	ld	c, a
 00253$:
-	ldhl	sp,	#73
+	ldhl	sp,	#71
 	ld	(hl), c
 	inc	hl
+	ld	(hl), a
 ;src/gameplay.c:1039: sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
-	ld	(hl+), a
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	sub	a, #0x20
 	ld	a, (hl)
@@ -7037,181 +7037,78 @@ _play_level::
 00254$:
 	ld	a, #0x20
 00255$:
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
 00157$:
 ;src/gameplay.c:1041: int16_t final_py = player_screen_y(&player, cam_py);
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ld	hl, #9
+	ld	hl, #5
 	add	hl, sp
 	ld	e, l
 	ld	d, h
 	call	_player_screen_y
-	ldhl	sp,	#2
+	ldhl	sp,	#76
 	ld	a, c
 	ld	(hl+), a
 	ld	(hl), b
-;src/gameplay.c:1043: uint8_t vram_slot = 0;
-	ldhl	sp,	#75
-	ld	(hl), #0x00
-;src/gameplay.c:1044: if (needs_render) {
-	ldhl	sp,	#72
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00161$
-;src/gameplay.c:1045: loaded_r = need_col;
-	ldhl	sp,	#0
-	ld	a, (hl)
-	ldhl	sp,	#54
-	ld	(hl), a
-	ldhl	sp,	#1
-	ld	a, (hl)
-	ldhl	sp,	#55
-	ld	(hl), a
-;src/gameplay.c:1046: vram_slot = (uint8_t)(need_col & 15);
-	ldhl	sp,	#0
-	ld	a, (hl)
-	and	a, #0x0f
-	ldhl	sp,	#75
-	ld	(hl), a
-;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
-	ldhl	sp,	#19
+;src/gameplay.c:1043: uint8_t oam_index = draw_sprites(
+	ldhl	sp,	#15
 	ld	b, (hl)
-;src/gameplay.c:1047: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-	ld	a, b
-	or	a, a
-	jr	Z, 00159$
-	ldhl	sp,	#75
 	xor	a, a
-	sub	a, (hl)
-	ld	c, a
-	and	a, #0x0f
-	ld	(hl), a
-00159$:
-;src/gameplay.c:1050: prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
+	push	af
+	inc	sp
 	push	bc
 	inc	sp
 	ldhl	sp,	#48
-	ld	a, (hl)
-	push	af
-	inc	sp
-	ldhl	sp,	#40
-	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	ldhl	sp,	#2
-	ld	a, (hl+)
-	ld	e, a
-	ld	d, (hl)
-	call	_prepare_mt_column
-00161$:
-;src/gameplay.c:1053: wait_vbl_done();
-	call	_wait_vbl_done
-;src/gameplay.c:1054: uint8_t apply_idx = target_bg_idx;
-	ldhl	sp,	#4
-	ld	e, (hl)
-;src/gameplay.c:1055: if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
-	ldhl	sp,	#64
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00163$
-	ld	a, e
-	dec	a
-	jr	Z, 00162$
-	ld	a, e
-	sub	a, #0x02
-	jr	NZ, 00163$
-00162$:
-;src/gameplay.c:1056: apply_idx = 0;
-	ld	e, #0x00
-00163$:
-;src/gameplay.c:1058: BGP_REG = bg_pals[apply_idx];
-	ld	d, #0x00
-	ld	hl, #5
-	add	hl, sp
-	add	hl, de
-	ld	a, (hl)
-	ldh	(_BGP_REG + 0), a
-;src/gameplay.c:1059: OBP0_REG = bg_pals[apply_idx];
-	ldh	(_OBP0_REG + 0), a
-;src/gameplay.c:1060: OBP1_REG = bg_pals[apply_idx];
-	ldh	(_OBP1_REG + 0), a
-;src/gameplay.c:1061: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-	ldhl	sp,	#50
-	ld	c, (hl)
-	ldhl	sp,	#73
-;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
-;src/gameplay.c:1063: if (needs_render) {
-	ld	a, (hl-)
-	ldh	(_SCX_REG + 0), a
-	ld	a, c
-	ldh	(_SCY_REG + 0), a
-	ld	a, (hl)
-	or	a, a
-	jr	Z, 00167$
-;src/gameplay.c:1065: flush_mt_column(vram_slot);
-	ldhl	sp,	#75
-	ld	a, (hl)
-	call	_flush_mt_column
-00167$:
-;src/gameplay.c:1068: uint8_t oam_index = draw_sprites(
-	ldhl	sp,	#19
-	ld	b, (hl)
-	xor	a, a
-	push	af
-	inc	sp
-	push	bc
-	inc	sp
-	ldhl	sp,	#52
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
 	push	de
-	ldhl	sp,	#81
+	ldhl	sp,	#86
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
 	ld	de, #_active_sp
 	call	_draw_sprites
-	ldhl	sp,	#72
-	ld	(hl), a
-;src/gameplay.c:1073: if (player.mode == MODE_SHIP) {
-	ldhl	sp,	#18
-	ld	a, (hl)
 	ldhl	sp,	#73
 	ld	(hl), a
-;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
-	ldhl	sp,	#19
+;src/gameplay.c:1048: if (player.mode == MODE_SHIP) {
+	ldhl	sp,	#14
 	ld	a, (hl)
-	ldhl	sp,	#74
+	ldhl	sp,	#78
 	ld	(hl), a
-;src/gameplay.c:1075: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
-	ldhl	sp,	#2
+;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
+	ldhl	sp,	#15
 	ld	a, (hl)
-	ldhl	sp,	#75
-;src/gameplay.c:1073: if (player.mode == MODE_SHIP) {
+	ldhl	sp,	#79
+	ld	(hl), a
+;src/gameplay.c:1050: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+	ldhl	sp,	#76
+	ld	a, (hl)
+	ldhl	sp,	#80
+;src/gameplay.c:1048: if (player.mode == MODE_SHIP) {
 	ld	(hl-), a
 	dec	hl
 	ld	a, (hl)
 	dec	a
-	jp	NZ, 00199$
-;src/gameplay.c:1074: if (player.gravity_flipped) {
-	ldhl	sp,	#17
+	jp	NZ, 00189$
+;src/gameplay.c:1049: if (player.gravity_flipped) {
+	ldhl	sp,	#13
 	ld	a, (hl)
 	or	a, a
-	jp	Z, 00175$
+	jp	Z, 00165$
 ;c:\gbdk\include\gb\metasprites.h:293: return __move_metasprite_hvflip(base_sprite, ((y - ((LCDC_REG & LCDCF_OBJ16) ? 16u : 8u)) << 8) | (uint8_t)(x - 8));
 	ldh	a, (_LCDC_REG + 0)
 	and	a, #0x04
-	ldhl	sp,	#73
-;src/gameplay.c:1075: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
-	ld	(hl+), a
+	ld	c, a
+;src/gameplay.c:1050: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+	ldhl	sp,	#79
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00169$
+	jr	Z, 00159$
 	inc	hl
 	ld	a, (hl)
 	add	a, #0x18
@@ -7221,82 +7118,53 @@ _play_level::
 	ld	(hl), a
 	ld	hl, #_ship_metasprites
 	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	ldhl	sp,	#72
-	ld	a, (hl+)
-	inc	hl
+	ld	b, a
+	ld	a, (hl)
+	push	af
+	ldhl	sp,	#75
+	ld	a, (hl)
+	ldhl	sp,	#81
 	ld	(hl), a
+	pop	af
 ;c:\gbdk\include\gb\metasprites.h:290: __current_metasprite = metasprite;
 	ld	hl, #___current_metasprite
-	ld	a, c
-	ld	(hl+), a
 	ld	(hl), b
+	inc	hl
+	ld	(hl), a
 ;c:\gbdk\include\gb\metasprites.h:291: __current_base_tile = base_tile;
 ;c:\gbdk\include\gb\metasprites.h:292: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_tile), a
 	ld	(#___current_base_prop),a
 ;c:\gbdk\include\gb\metasprites.h:293: return __move_metasprite_hvflip(base_sprite, ((y - ((LCDC_REG & LCDCF_OBJ16) ? 16u : 8u)) << 8) | (uint8_t)(x - 8));
-	ldhl	sp,	#73
-	ld	a, (hl)
+	ld	a, c
 	or	a, a
 	jr	Z, 00256$
-	ldhl	sp,	#2
-	ld	a, #0x10
-	ld	(hl+), a
-	xor	a, a
-	ld	(hl), a
+	ld	de, #0x0010
 	jr	00257$
 00256$:
-	ldhl	sp,	#2
-	ld	a, #0x08
-	ld	(hl+), a
-	xor	a, a
-	ld	(hl), a
+	ld	de, #0x0008
 00257$:
-	ldhl	sp,	#75
-	ld	c, (hl)
-	ldhl	sp,#2
+	ldhl	sp,	#80
 	ld	a, (hl+)
-	ld	e, a
-	ld	d, (hl)
-	ld	a, c
 	sub	a, e
-	ld	(hl-), a
-	ld	(hl), #0x00
-	ldhl	sp,	#76
-	ld	a, (hl)
-	add	a, #0xf8
-	ld	(hl), a
-	ld	a, (hl)
-	ldhl	sp,	#0
-	ld	(hl+), a
-	xor	a, a
-	ld	(hl-), a
-	ld	a, (hl)
-	ldhl	sp,	#75
-	ld	(hl), a
-	ldhl	sp,	#3
-	ld	a, (hl)
-	ldhl	sp,	#76
-	ld	(hl-), a
-	ld	a, (hl+)
-	ld	e, a
+	ld	b, a
 	ld	a, (hl-)
 	dec	hl
-	ld	d, a
+	add	a, #0xf8
+	ld	e, a
+	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hvflip
-;src/gameplay.c:1075: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
-	ldhl	sp,	#72
+;src/gameplay.c:1050: if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00169$:
-;src/gameplay.c:1076: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
-	ldhl	sp,	#75
+	jp	00190$
+00159$:
+;src/gameplay.c:1051: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+	ldhl	sp,	#80
 	ld	a, (hl)
 	add	a, #0x20
 	ld	(hl+), a
@@ -7305,71 +7173,58 @@ _play_level::
 	ld	(hl), a
 	ld	hl, #_ship_metasprites
 	ld	a, (hl+)
-	ld	c, a
-	ld	b, (hl)
-	ldhl	sp,	#72
-	ld	a, (hl+)
-	inc	hl
+	ld	b, a
+	ld	a, (hl)
+	push	af
+	ldhl	sp,	#75
+	ld	a, (hl)
+	ldhl	sp,	#81
 	ld	(hl), a
+	pop	af
 ;c:\gbdk\include\gb\metasprites.h:250: __current_metasprite = metasprite;
 	ld	hl, #___current_metasprite
-	ld	a, c
-	ld	(hl+), a
 	ld	(hl), b
+	inc	hl
+	ld	(hl), a
 ;c:\gbdk\include\gb\metasprites.h:251: __current_base_tile = base_tile;
 ;c:\gbdk\include\gb\metasprites.h:252: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_tile), a
 	ld	(#___current_base_prop),a
 ;c:\gbdk\include\gb\metasprites.h:253: return __move_metasprite_hflip(base_sprite, ((y - ((LCDC_REG & LCDCF_OBJ16) ? 16u : 8u)) << 8) | x);
-	ldhl	sp,	#73
-	ld	a, (hl)
+	ld	a, c
 	or	a, a
 	jr	Z, 00258$
-	ldhl	sp,	#2
-	ld	a, #0x10
-	ld	(hl+), a
-	xor	a, a
-	ld	(hl), a
+	ld	de, #0x0010
 	jr	00259$
 00258$:
-	ldhl	sp,	#2
-	ld	a, #0x08
-	ld	(hl+), a
-	xor	a, a
-	ld	(hl), a
+	ld	de, #0x0008
 00259$:
-	ldhl	sp,	#75
-	ld	e, (hl)
-	ldhl	sp,	#2
-	ld	a,	(hl+)
-	ld	h, (hl)
-	ld	l, a
-	ld	a, e
-	sub	a, l
+	ldhl	sp,	#80
+	ld	a, (hl+)
+	sub	a, e
 	ld	b, a
-	ldhl	sp,	#76
 	ld	a, (hl-)
 	dec	hl
 	ld	e, a
 	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hflip
-;src/gameplay.c:1076: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
-	ldhl	sp,	#72
+;src/gameplay.c:1051: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00175$:
-;src/gameplay.c:1078: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
-	ldhl	sp,	#75
+	jp	00190$
+00165$:
+;src/gameplay.c:1053: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+	ldhl	sp,	#80
 	ld	a, (hl-)
 	add	a, #0x10
 	ld	b, a
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00172$
+	jr	Z, 00162$
 	inc	hl
 	inc	hl
 	ld	a, (hl)
@@ -7390,23 +7245,23 @@ _play_level::
 	ld	(#___current_base_tile), a
 	ld	(#___current_base_prop),a
 ;c:\gbdk\include\gb\metasprites.h:212: return __move_metasprite_vflip(base_sprite, (y << 8) | (uint8_t)(x - 8u));
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl)
 	add	a, #0xf8
 	ld	e, a
 	ld	d, b
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite_vflip
-;src/gameplay.c:1078: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1053: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00172$:
-;src/gameplay.c:1079: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#76
+	jp	00190$
+00162$:
+;src/gameplay.c:1054: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#81
 	ld	a, (hl)
 	add	a, #0x08
 	ld	c, a
@@ -7428,42 +7283,42 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
 	ld	d, b
 	ld	e, c
-	ldhl	sp,	#72
-	ld	a, (hl)
-	call	___move_metasprite
-;src/gameplay.c:1079: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
-	add	a, (hl)
-	ldhl	sp,	#76
-	ld	(hl), a
-	jp	00200$
-00199$:
-;src/gameplay.c:1081: } else if (player.mode == MODE_BALL) {
 	ldhl	sp,	#73
 	ld	a, (hl)
+	call	___move_metasprite
+;src/gameplay.c:1054: else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
+	add	a, (hl)
+	ldhl	sp,	#81
+	ld	(hl), a
+	jp	00190$
+00189$:
+;src/gameplay.c:1056: } else if (player.mode == MODE_BALL) {
+	ldhl	sp,	#78
+	ld	a, (hl)
 	sub	a, #0x02
-	jp	NZ, 00196$
-;src/gameplay.c:1082: if (player.gravity_flipped) {
-	ldhl	sp,	#17
+	jp	NZ, 00186$
+;src/gameplay.c:1057: if (player.gravity_flipped) {
+	ldhl	sp,	#13
 	ld	c, (hl)
-;src/gameplay.c:1076: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
-	ldhl	sp,	#76
+;src/gameplay.c:1051: else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+	ldhl	sp,	#81
 	ld	a, (hl)
 	add	a, #0x08
-;src/gameplay.c:1078: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
+;src/gameplay.c:1053: if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
 	ld	(hl-), a
 	ld	a, (hl)
 	add	a, #0x10
 	ld	(hl), a
-;src/gameplay.c:1082: if (player.gravity_flipped) {
+;src/gameplay.c:1057: if (player.gravity_flipped) {
 	ld	a, c
 	or	a, a
-	jr	Z, 00184$
-;src/gameplay.c:1083: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	jr	Z, 00174$
+;src/gameplay.c:1058: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
 	dec	hl
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00178$
+	jr	Z, 00168$
 	inc	hl
 	ld	a, (hl+)
 	ld	b, a
@@ -7487,18 +7342,18 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
 	ld	d, b
 	ld	e, c
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1083: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1058: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00178$:
-;src/gameplay.c:1084: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#75
+	jp	00190$
+00168$:
+;src/gameplay.c:1059: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	b, a
 	ld	c, (hl)
@@ -7521,21 +7376,21 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
 	ld	d, b
 	ld	e, c
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1084: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1059: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00184$:
-;src/gameplay.c:1086: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#74
+	jp	00190$
+00174$:
+;src/gameplay.c:1061: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#79
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00181$
+	jr	Z, 00171$
 	inc	hl
 	ld	a, (hl+)
 	ld	b, a
@@ -7559,18 +7414,18 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
 	ld	d, b
 	ld	e, c
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1086: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1061: if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00181$:
-;src/gameplay.c:1087: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#75
+	jp	00190$
+00171$:
+;src/gameplay.c:1062: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	ld	b, a
 	ld	c, (hl)
@@ -7592,26 +7447,26 @@ _play_level::
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
 	ld	d, b
 	ld	e, c
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1087: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1062: else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00196$:
-;src/gameplay.c:1090: if (player.gravity_flipped) {
-	ldhl	sp,	#17
+	jp	00190$
+00186$:
+;src/gameplay.c:1065: if (player.gravity_flipped) {
+	ldhl	sp,	#13
 	ld	a, (hl)
 	or	a, a
-	jp	Z, 00193$
-;src/gameplay.c:1091: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
-	ldhl	sp,	#74
+	jp	Z, 00183$
+;src/gameplay.c:1066: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+	ldhl	sp,	#79
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00187$
+	jr	Z, 00177$
 	inc	hl
 	ld	a, (hl+)
 	add	a, #0x20
@@ -7619,7 +7474,7 @@ _play_level::
 	ld	a, (hl)
 	add	a, #0x18
 	ld	(hl), a
-	ldhl	sp,	#20
+	ldhl	sp,	#16
 	ld	l, (hl)
 	xor	a, a
 	ld	h, a
@@ -7629,9 +7484,9 @@ _play_level::
 	ld	a, (hl+)
 	ld	b, (hl)
 	push	af
-	ldhl	sp,	#74
+	ldhl	sp,	#75
 	ld	a, (hl)
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	(hl), a
 	pop	af
 ;c:\gbdk\include\gb\metasprites.h:290: __current_metasprite = metasprite;
@@ -7655,29 +7510,29 @@ _play_level::
 	ld	a, c
 	sub	a, e
 	ld	b, a
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl-)
 	add	a, #0xf8
 	ld	e, a
 	ld	d, b
 	ld	a, (hl)
 	call	___move_metasprite_hvflip
-;src/gameplay.c:1091: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
-	ldhl	sp,	#72
+;src/gameplay.c:1066: if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00187$:
-;src/gameplay.c:1092: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
-	ldhl	sp,	#75
+	jp	00190$
+00177$:
+;src/gameplay.c:1067: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+	ldhl	sp,	#80
 	ld	a, (hl+)
 	add	a, #0x10
 	ld	c, a
 	ld	a, (hl)
 	add	a, #0x16
 	ld	b, a
-	ldhl	sp,	#20
+	ldhl	sp,	#16
 	ld	l, (hl)
 	xor	a, a
 	ld	h, a
@@ -7703,29 +7558,30 @@ _play_level::
 	ld	a, b
 	add	a, #0xf8
 	ld	e, a
-	ldhl	sp,	#72
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite_vflip
-;src/gameplay.c:1092: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1067: else oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 22, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jp	00200$
-00193$:
-;src/gameplay.c:1094: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
-	ldhl	sp,	#74
+	jp	00190$
+00183$:
+;src/gameplay.c:1069: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+	ldhl	sp,	#79
 	ld	a, (hl)
 	or	a, a
-	jr	Z, 00190$
+	jp	Z, 00180$
 	inc	hl
 	ld	a, (hl+)
 	add	a, #0x20
 	ld	c, a
 	ld	a, (hl)
 	add	a, #0x0a
+	ldhl	sp,	#74
 	ld	(hl), a
-	ldhl	sp,	#20
+	ldhl	sp,	#16
 	ld	l, (hl)
 	xor	a, a
 	ld	h, a
@@ -7735,9 +7591,9 @@ _play_level::
 	ld	a, (hl+)
 	ld	b, (hl)
 	push	af
-	ldhl	sp,	#74
-	ld	a, (hl)
-	ldhl	sp,	#77
+	ldhl	sp,	#75
+	ld	a, (hl+)
+	inc	hl
 	ld	(hl), a
 	pop	af
 ;c:\gbdk\include\gb\metasprites.h:250: __current_metasprite = metasprite;
@@ -7753,86 +7609,296 @@ _play_level::
 	ldh	a, (_LCDC_REG + 0)
 	bit	2, a
 	jr	Z, 00262$
-	ld	hl, #0x0010
+	ldhl	sp,	#76
+	ld	a, #0x10
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl), a
 	jr	00263$
 00262$:
-	ld	hl, #0x0008
-00263$:
-	ld	a, c
-	sub	a, l
-	ld	d, a
 	ldhl	sp,	#76
-	ld	a, (hl-)
+	ld	a, #0x08
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl), a
+00263$:
+	ldhl	sp,	#78
+	ld	a, c
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl+)
 	ld	e, a
+	ld	d, (hl)
+	ldhl	sp,	#76
+	ld	a,	(hl+)
+	ld	h, (hl)
+	ld	l, a
+	ld	a, e
+	sub	a, l
+	ld	e, a
+	ld	a, d
+	sbc	a, h
+	ldhl	sp,	#81
+	ld	(hl-), a
+	ld	(hl), e
+	ld	a, (hl+)
+	ld	(hl-), a
+	ld	(hl), #0x00
+	ldhl	sp,	#74
+	ld	a, (hl)
+	ldhl	sp,	#78
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	ldhl	sp,	#81
+	ld	a, (hl)
+	ldhl	sp,	#77
+	ld	(hl-), a
+	ld	a, (hl)
+	ldhl	sp,	#80
+	ld	(hl), a
+	ldhl	sp,	#77
+	ld	a, (hl)
+	ldhl	sp,	#81
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ldhl	sp,	#75
 	ld	a, (hl)
 	call	___move_metasprite_hflip
-;src/gameplay.c:1094: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
-	ldhl	sp,	#72
+;src/gameplay.c:1069: if (player.reversed) oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 10, final_py + 32);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-	jr	00200$
-00190$:
-;src/gameplay.c:1095: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#75
-	ld	a, (hl+)
+	jr	00190$
+00180$:
+;src/gameplay.c:1070: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#80
+	ld	a, (hl)
 	add	a, #0x10
-	ld	b, a
+	ld	(hl+), a
 	ld	a, (hl)
 	add	a, #0x08
-	ld	c, a
-	ldhl	sp,	#20
-	ld	l, (hl)
-	xor	a, a
-	ld	h, a
-	add	hl, hl
-	ld	de, #_icon1_metasprites
-	add	hl, de
-	ld	a, (hl+)
-	ld	l, (hl)
-;c:\gbdk\include\gb\metasprites.h:169: __current_metasprite = metasprite;
-	ld	e, a
-	ld	d, l
-	ld	hl, #___current_metasprite
-	ld	a, e
+	ld	(hl), a
+	ldhl	sp,	#16
+	ld	a, (hl)
+	ldhl	sp,	#78
 	ld	(hl+), a
-	ld	(hl), d
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	sla	(hl)
+	inc	hl
+	rl	(hl)
+	dec	hl
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ld	hl, #_icon1_metasprites
+	add	hl, de
+	push	hl
+	ld	a, l
+	ldhl	sp,	#80
+	ld	(hl), a
+	pop	hl
+	ld	a, h
+	ldhl	sp,	#79
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	a, (hl-)
+	ld	d, a
+	ld	a, (de)
+	ld	(hl+), a
+	inc	de
+	ld	a, (de)
+;c:\gbdk\include\gb\metasprites.h:169: __current_metasprite = metasprite;
+	ld	(hl-), a
+	ld	a, (hl)
+	ld	(#___current_metasprite),a
+	ldhl	sp,	#79
+	ld	a, (hl)
+	ld	(#___current_metasprite + 1),a
 ;c:\gbdk\include\gb\metasprites.h:170: __current_base_tile = base_tile;
 ;c:\gbdk\include\gb\metasprites.h:171: __current_base_prop = 0;
 	xor	a, a
 	ld	(#___current_base_tile), a
 	ld	(#___current_base_prop),a
 ;c:\gbdk\include\gb\metasprites.h:172: return __move_metasprite(base_sprite, (y << 8) | (uint8_t)x);
-	ld	d, b
-	ld	e, c
-	ldhl	sp,	#72
+	ldhl	sp,	#80
+	ld	a, (hl-)
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	(hl-), a
+	xor	a, a
+	ld	(hl+), a
+	inc	hl
+	ld	a, (hl)
+	ldhl	sp,	#77
+	ld	(hl+), a
+	xor	a, a
+	ld	(hl-), a
+	ld	a, (hl-)
+	dec	hl
+	ld	(hl), a
+	ldhl	sp,	#80
+	ld	a, (hl)
+	ldhl	sp,	#76
+	ld	(hl-), a
+	ld	a, (hl)
+	ldhl	sp,	#80
+	ld	(hl), a
+	ldhl	sp,	#76
+	ld	a, (hl)
+	ldhl	sp,	#81
+	ld	(hl-), a
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	ldhl	sp,	#73
 	ld	a, (hl)
 	call	___move_metasprite
-;src/gameplay.c:1095: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
-	ldhl	sp,	#72
+;src/gameplay.c:1070: else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+	ldhl	sp,	#73
 	add	a, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	(hl), a
-00200$:
-;src/gameplay.c:1100: if (oam_index < previous_oam_index) {
-	ldhl	sp,	#76
+00190$:
+;src/gameplay.c:1075: if (oam_index < previous_oam_index) {
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ldhl	sp,	#58
+	ldhl	sp,	#54
 	sub	a, (hl)
-	jr	NC, 00202$
-;src/gameplay.c:1101: hide_sprites_range(oam_index, previous_oam_index);
+	jr	NC, 00192$
+;src/gameplay.c:1076: hide_sprites_range(oam_index, previous_oam_index);
 	ld	e, (hl)
-	ldhl	sp,	#76
+	ldhl	sp,	#81
 	ld	a, (hl)
 	call	_hide_sprites_range
-00202$:
-;src/gameplay.c:1103: previous_oam_index = oam_index;
-	ldhl	sp,	#76
+00192$:
+;src/gameplay.c:1078: previous_oam_index = oam_index;
+	ldhl	sp,	#81
 	ld	a, (hl)
-	ldhl	sp,	#58
+	ldhl	sp,	#54
 	ld	(hl), a
-;src/gameplay.c:1105: if (died) {
+;src/gameplay.c:1080: uint8_t vram_slot = 0;
+	ldhl	sp,	#81
+	ld	(hl), #0x00
+;src/gameplay.c:1081: if (needs_render) {
+	ldhl	sp,	#67
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00196$
+;src/gameplay.c:1082: loaded_r = need_col;
+	inc	hl
+	ld	a, (hl)
+	ldhl	sp,	#50
+	ld	(hl), a
+	ldhl	sp,	#69
+	ld	a, (hl)
+	ldhl	sp,	#51
+	ld	(hl), a
+;src/gameplay.c:1083: vram_slot = (uint8_t)(need_col & 15);
+	ldhl	sp,	#68
+	ld	a, (hl)
+	and	a, #0x0f
+	ldhl	sp,	#81
+	ld	(hl), a
+;src/gameplay.c:915: uint8_t prev_reversed = player.reversed;
+	ldhl	sp,	#15
+	ld	c, (hl)
+;src/gameplay.c:1084: if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+	ld	a, c
+	or	a, a
+	jr	Z, 00194$
+	ldhl	sp,	#81
+	xor	a, a
+	sub	a, (hl)
+	and	a, #0x0f
+	ld	(hl), a
+00194$:
+;src/gameplay.c:1087: prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
+	ld	a, c
+	push	af
+	inc	sp
+	ldhl	sp,	#44
+	ld	a, (hl)
+	push	af
+	inc	sp
+	ldhl	sp,	#36
+	ld	a, (hl+)
+	ld	c, a
+	ld	b, (hl)
+	ldhl	sp,	#70
+	ld	a, (hl+)
+	ld	e, a
+	ld	d, (hl)
+	call	_prepare_mt_column
+00196$:
+;src/gameplay.c:1090: wait_vbl_done();
+	call	_wait_vbl_done
+;src/gameplay.c:1091: uint8_t apply_idx = target_bg_idx;
+	ldhl	sp,	#0
+	ld	e, (hl)
+;src/gameplay.c:1092: if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
+	ldhl	sp,	#60
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00198$
+	ld	a, e
+	dec	a
+	jr	Z, 00197$
+	ld	a, e
+	sub	a, #0x02
+	jr	NZ, 00198$
+00197$:
+;src/gameplay.c:1093: apply_idx = 0;
+	ld	e, #0x00
+00198$:
+;src/gameplay.c:1095: BGP_REG = bg_pals[apply_idx];
+	ld	d, #0x00
+	ld	hl, #1
+	add	hl, sp
+	add	hl, de
+	ld	a, (hl)
+	ldh	(_BGP_REG + 0), a
+;src/gameplay.c:1096: OBP0_REG = bg_pals[apply_idx];
+	ldh	(_OBP0_REG + 0), a
+;src/gameplay.c:1097: OBP1_REG = bg_pals[apply_idx];
+	ldh	(_OBP1_REG + 0), a
+;src/gameplay.c:1098: move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+	ldhl	sp,	#46
+	ld	c, (hl)
 	ldhl	sp,	#71
+	ld	a, (hl)
+	ldh	(_SCX_REG + 0), a
+;c:\gbdk\include\gb\gb.h:1461: SCX_REG=x, SCY_REG=y;
+	ld	a, c
+	ldh	(_SCY_REG + 0), a
+;src/gameplay.c:1100: if (needs_render) {
+	ldhl	sp,	#67
+	ld	a, (hl)
+	or	a, a
+	jr	Z, 00202$
+;src/gameplay.c:1102: flush_mt_column(vram_slot);
+	ldhl	sp,	#81
+	ld	a, (hl)
+	call	_flush_mt_column
+00202$:
+;src/gameplay.c:1105: if (died) {
+	ldhl	sp,	#70
 	ld	a, (hl)
 	or	a, a
 	jp	Z, 00211$
@@ -7883,7 +7949,7 @@ _play_level::
 	ld	a, #0x77
 	ldh	(_NR50_REG + 0), a
 ;src/gameplay.c:1119: if (level_songs[idx]) {
-	ldhl	sp,#48
+	ldhl	sp,#44
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -7895,7 +7961,7 @@ _play_level::
 	or	a, c
 	jr	Z, 00205$
 ;src/gameplay.c:1120: init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-	ldhl	sp,#67
+	ldhl	sp,#63
 	ld	a, (hl+)
 	ld	e, a
 	ld	a, (hl+)
@@ -7911,7 +7977,7 @@ _play_level::
 	ld	d, b
 	call	_init_music_banked
 ;src/gameplay.c:1121: current_song_bank = song_bank[idx];
-	ldhl	sp,#69
+	ldhl	sp,#65
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -7924,15 +7990,15 @@ _play_level::
 ;src/gameplay.c:1124: DISPLAY_OFF;
 	call	_display_off
 ;src/gameplay.c:1131: load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-	ldhl	sp,	#46
+	ldhl	sp,	#42
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#41
+	ldhl	sp,	#37
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#37
+	ldhl	sp,	#33
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -7967,17 +8033,17 @@ _play_level::
 	add	sp, #4
 ;src/gameplay.c:1139: cam_px = 0;
 	xor	a, a
-	ldhl	sp,	#77
+	ldhl	sp,	#82
 	ld	(hl+), a
 	ld	(hl), a
 ;src/gameplay.c:1140: cam_py = 112;
-	ldhl	sp,	#50
+	ldhl	sp,	#46
 	ld	a, #0x70
 	ld	(hl+), a
 	xor	a, a
 	ld	(hl), a
 ;src/gameplay.c:1141: scroll_acc = 0;
-	ldhl	sp,	#56
+	ldhl	sp,	#52
 ;src/gameplay.c:1142: loaded_r = BKG_MT_W - 1;
 	xor	a, a
 	ld	(hl-), a
@@ -7987,10 +8053,10 @@ _play_level::
 	xor	a, a
 	ld	(hl), a
 ;src/gameplay.c:1143: target_bg_idx = 0;
-	ldhl	sp,	#4
+	ldhl	sp,	#0
 	ld	(hl), #0x00
 ;src/gameplay.c:1144: player_init(&player, 0, 240);
-	ld	hl, #9
+	ld	hl, #5
 	add	hl, sp
 	ld	de, #0x00f0
 	push	de
@@ -7999,14 +8065,14 @@ _play_level::
 	ld	d, h
 	call	_player_init
 ;src/gameplay.c:1145: sp_cache_reset(&active_sp, &sp_stream_idx);
-	ld	hl, #32
+	ld	hl, #28
 	add	hl, sp
 	ld	c, l
 	ld	b, h
 	ld	de, #_active_sp
 	call	_sp_cache_reset
 ;src/gameplay.c:1146: sp_cache_col = 0xFFFF;
-	ldhl	sp,	#59
+	ldhl	sp,	#55
 ;src/gameplay.c:1147: previous_oam_index = MAX_HARDWARE_SPRITES;
 	ld	a,#0xff
 	ld	(hl+),a
@@ -8014,7 +8080,7 @@ _play_level::
 	dec	hl
 	ld	(hl), #0x28
 ;src/gameplay.c:1148: cached_collision_col = 0xFFFF;
-	ldhl	sp,	#61
+	ldhl	sp,	#57
 	ld	a, #0xff
 	ld	(hl+), a
 	ld	(hl), #0xff
@@ -8024,7 +8090,7 @@ _play_level::
 	ld	a, #0x70
 	ldh	(_SCY_REG + 0), a
 ;src/gameplay.c:1150: BGP_REG = bg_pals[0];
-	ldhl	sp,	#5
+	ldhl	sp,	#1
 	ld	a, (hl)
 	ldh	(_BGP_REG + 0), a
 ;src/gameplay.c:1151: if (_cpu == CGB_TYPE) {
@@ -8038,15 +8104,15 @@ _play_level::
 	xor	a, a
 	push	af
 	inc	sp
-	ldhl	sp,	#48
+	ldhl	sp,	#44
 	ld	a, (hl)
 	push	af
 	inc	sp
-	ldhl	sp,	#44
+	ldhl	sp,	#40
 	ld	a, (hl+)
 	ld	c, a
 	ld	b, (hl)
-	ldhl	sp,	#40
+	ldhl	sp,	#36
 	ld	a, (hl+)
 	ld	e, a
 	ld	d, (hl)
@@ -8089,7 +8155,7 @@ _play_level::
 	ld	hl, #_redraw
 	ld	(hl), #0x01
 ;src/gameplay.c:1172: }
-	add	sp, #79
+	add	sp, #84
 	ret
 ___str_3:
 	.ascii "LEVEL COMPLETE"

@@ -103,12 +103,12 @@ const metasprite_t name[] = { \
         TWO_TILE(famidash_yellow_pad_up, PT_79, PT_7B, P3 | S_FLIPY, P3 | S_FLIPX | S_FLIPY);
         TWO_TILE(famidash_blue_pad,      PT_79, PT_7B, P2,           P2 | S_FLIPX);
         TWO_TILE(famidash_blue_pad_up,   PT_79, PT_7B, P2 | S_FLIPY, P2 | S_FLIPX | S_FLIPY);
-        TWO_TILE(famidash_pink_pad,      PT_59, PT_5B, P1,           P1 | S_FLIPX);
+        TWO_TILE(famidash_pink_pad,      PT_59, PT_5B, P4,           P4 | S_FLIPX);
 
 // Orbs (Restored the S_FLIPX on the right tile so the circle completes)
         TWO_TILE(famidash_yellow_orb,    MT_99, MT_9B, P3,           P3 | S_FLIPX);
         TWO_TILE(famidash_blue_orb,      MT_99, MT_9B, P2,           P2 | S_FLIPX);
-        TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P1,           P1 | S_FLIPX);
+        TWO_TILE(famidash_pink_orb,      MT_B9, MT_BB, P4,           P4 | S_FLIPX);
 
 const metasprite_t famidash_deco_45[] = {
     METASPR_ITEM(0, 0, CHAIN_BLOCK_TILE, DP),

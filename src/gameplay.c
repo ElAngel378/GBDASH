@@ -1040,31 +1040,6 @@ void play_level(uint8_t idx) BANKED {
         }
         int16_t final_py = player_screen_y(&player, cam_py);
 
-        uint8_t vram_slot = 0;
-        if (needs_render) {
-            loaded_r = need_col;
-            vram_slot = (uint8_t)(need_col & 15);
-            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-            
-            // Do the heavy 16-bit math and array formatting BEFORE VBlank starts
-            prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
-        }
-
-        wait_vbl_done();
-        uint8_t apply_idx = target_bg_idx;
-        if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
-            apply_idx = 0;
-        }
-        BGP_REG = bg_pals[apply_idx];
-        OBP0_REG = bg_pals[apply_idx];
-        OBP1_REG = bg_pals[apply_idx];
-        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-
-        if (needs_render) {
-            // Only execute the actual VRAM writes inside VBlank
-            flush_mt_column(vram_slot);
-        }
-
         uint8_t oam_index = draw_sprites(
             &active_sp, cam_px, cam_py,
             player.reversed, 0
@@ -1101,6 +1076,31 @@ void play_level(uint8_t idx) BANKED {
             hide_sprites_range(oam_index, previous_oam_index);
         }
         previous_oam_index = oam_index;
+
+        uint8_t vram_slot = 0;
+        if (needs_render) {
+            loaded_r = need_col;
+            vram_slot = (uint8_t)(need_col & 15);
+            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+            
+            // Do the heavy 16-bit math and array formatting BEFORE VBlank starts
+            prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
+        }
+
+        wait_vbl_done();
+        uint8_t apply_idx = target_bg_idx;
+        if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) {
+            apply_idx = 0;
+        }
+        BGP_REG = bg_pals[apply_idx];
+        OBP0_REG = bg_pals[apply_idx];
+        OBP1_REG = bg_pals[apply_idx];
+        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+
+        if (needs_render) {
+            // Only execute the actual VRAM writes inside VBlank
+            flush_mt_column(vram_slot);
+        }
 
         if (died) {
             TAC_REG = 0x00;

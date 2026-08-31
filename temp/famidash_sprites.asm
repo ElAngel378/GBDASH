@@ -494,11 +494,11 @@ _famidash_pink_pad:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x20	; 32
-	.db #0x01	; 1
+	.db #0x04	; 4
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x22	; 34
-	.db #0x21	; 33
+	.db #0x24	; 36
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -533,11 +533,11 @@ _famidash_pink_orb:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x1c	; 28
-	.db #0x01	; 1
+	.db #0x04	; 4
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x1e	; 30
-	.db #0x21	; 33
+	.db #0x24	; 36
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
