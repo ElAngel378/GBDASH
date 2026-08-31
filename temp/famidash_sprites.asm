@@ -546,19 +546,19 @@ _famidash_deco_45:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x54	; 84	'T'
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x56	; 86	'V'
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x10	;  16
 	.db #0xf0	; -16
 	.db #0x58	; 88	'X'
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x5a	; 90	'Z'
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -614,8 +614,8 @@ _deco_long_light:
 	.db #0x30	; 48	'0'
 	.db #0x32	; 50	'2'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_medium_light:
 	.db #0x02	; 2
@@ -629,8 +629,8 @@ _deco_medium_light:
 	.db #0x30	; 48	'0'
 	.db #0x34	; 52	'4'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_short_light:
 	.db #0x01	; 1
@@ -644,7 +644,7 @@ _deco_short_light:
 	.db #0x36	; 54	'6'
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x00	; 0
 	.db #0x00	; 0
 _deco_chain:
@@ -659,8 +659,8 @@ _deco_chain:
 	.db #0x38	; 56	'8'
 	.db #0x3a	; 58
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_spike_g1:
 	.db #0x02	; 2
@@ -674,8 +674,8 @@ _deco_spike_g1:
 	.db #0x3c	; 60
 	.db #0x3e	; 62
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_spike_g2:
 	.db #0x02	; 2
@@ -689,8 +689,8 @@ _deco_spike_g2:
 	.db #0x3c	; 60
 	.db #0x3e	; 62
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 _deco_spike_g3:
 	.db #0x02	; 2
@@ -704,8 +704,8 @@ _deco_spike_g3:
 	.db #0x40	; 64
 	.db #0x42	; 66	'B'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_spike_g4:
 	.db #0x02	; 2
@@ -719,8 +719,8 @@ _deco_spike_g4:
 	.db #0x40	; 64
 	.db #0x42	; 66	'B'
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 _deco_diamond:
 	.db #0x02	; 2
@@ -734,8 +734,8 @@ _deco_diamond:
 	.db #0x44	; 68	'D'
 	.db #0x44	; 68	'D'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x23	; 35
+	.db #0x01	; 1
+	.db #0x21	; 33
 	.db #0x00	; 0
 _deco_diamond_half:
 	.db #0x01	; 1
@@ -749,7 +749,7 @@ _deco_diamond_half:
 	.db #0x44	; 68	'D'
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x23	; 35
+	.db #0x21	; 33
 	.db #0x00	; 0
 	.db #0x00	; 0
 _deco_question:
@@ -764,7 +764,7 @@ _deco_question:
 	.db #0x46	; 70	'F'
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x00	; 0
 	.db #0x00	; 0
 _deco_exclamation:
@@ -779,7 +779,7 @@ _deco_exclamation:
 	.db #0x48	; 72	'H'
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x03	; 3
+	.db #0x01	; 1
 	.db #0x00	; 0
 	.db #0x00	; 0
 _deco_arrow:
@@ -794,8 +794,8 @@ _deco_arrow:
 	.db #0x4a	; 74	'J'
 	.db #0x4a	; 74	'J'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x23	; 35
+	.db #0x01	; 1
+	.db #0x21	; 33
 	.db #0x00	; 0
 _deco_x:
 	.db #0x02	; 2
@@ -809,8 +809,8 @@ _deco_x:
 	.db #0x4c	; 76	'L'
 	.db #0x4c	; 76	'L'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x23	; 35
+	.db #0x01	; 1
+	.db #0x21	; 33
 	.db #0x00	; 0
 _deco_short_right:
 	.db #0x02	; 2
@@ -824,8 +824,8 @@ _deco_short_right:
 	.db #0x4e	; 78	'N'
 	.db #0x50	; 80	'P'
 	.db #0x00	; 0
-	.db #0x23	; 35
-	.db #0x23	; 35
+	.db #0x21	; 33
+	.db #0x21	; 33
 	.db #0x00	; 0
 _deco_short_left:
 	.db #0x02	; 2
@@ -839,8 +839,8 @@ _deco_short_left:
 	.db #0x4e	; 78	'N'
 	.db #0x50	; 80	'P'
 	.db #0x00	; 0
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
 	.db #0x00	; 0
 _deco_long_up:
 	.db #0x02	; 2
@@ -854,8 +854,8 @@ _deco_long_up:
 	.db #0x30	; 48	'0'
 	.db #0x32	; 50	'2'
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 _deco_medium_up:
 	.db #0x02	; 2
@@ -869,8 +869,8 @@ _deco_medium_up:
 	.db #0x30	; 48	'0'
 	.db #0x34	; 52	'4'
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 _deco_short_up:
 	.db #0x01	; 1
@@ -884,7 +884,7 @@ _deco_short_up:
 	.db #0x36	; 54	'6'
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 	.db #0x00	; 0
 _deco_chain_up:
@@ -899,8 +899,8 @@ _deco_chain_up:
 	.db #0x3a	; 58
 	.db #0x38	; 56	'8'
 	.db #0x00	; 0
-	.db #0x43	; 67	'C'
-	.db #0x43	; 67	'C'
+	.db #0x41	; 65	'A'
+	.db #0x41	; 65	'A'
 	.db #0x00	; 0
 _deco_medium_right:
 	.db #0x03	; 3
@@ -914,9 +914,9 @@ _deco_medium_right:
 	.db #0x50	; 80	'P'
 	.db #0x52	; 82	'R'
 	.db #0x4e	; 78	'N'
-	.db #0x23	; 35
-	.db #0x23	; 35
-	.db #0x23	; 35
+	.db #0x21	; 33
+	.db #0x21	; 33
+	.db #0x21	; 33
 _deco_medium_left:
 	.db #0x03	; 3
 	.db #0x18	; 24
@@ -929,9 +929,9 @@ _deco_medium_left:
 	.db #0x50	; 80	'P'
 	.db #0x52	; 82	'R'
 	.db #0x4e	; 78	'N'
-	.db #0x03	; 3
-	.db #0x03	; 3
-	.db #0x03	; 3
+	.db #0x01	; 1
+	.db #0x01	; 1
+	.db #0x01	; 1
 _famidash_deco_table:
 	.dw #0x0000
 	.dw #0x0000

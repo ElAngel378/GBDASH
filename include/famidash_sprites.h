@@ -26,7 +26,7 @@ extern const metasprite_t famidash_pink_orb[];
 extern const metasprite_t famidash_pink_pad[];
 extern const metasprite_t * const famidash_sprite_table[38];
 
-#define DP S_PAL(3)
+#define DP S_PAL(1)
 /* Decoration tile pairs follow the 18 gameplay pairs in VRAM. */
 // 24 gameplay pairs occupy tiles 0..47; decoration pairs start at 48.
 #define D_CF 48
