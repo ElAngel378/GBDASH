@@ -3,6 +3,13 @@
 
 uint8_t player_noclip = 0;
 
+static const uint8_t mod6_table[24] = {
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5
+};
+
 void player_init(Player* p, uint16_t start_x, int16_t start_y) {
     p->world_x = start_x;
     p->world_y.w = (uint16_t)start_y << 8;
@@ -118,6 +125,7 @@ uint8_t player_update(
     uint8_t x_mod_16 = (uint8_t)p->world_x & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
 
+
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
     p->on_ground = 0;
@@ -126,12 +134,15 @@ uint8_t player_update(
     // Check Floor (only when falling or stationary, matching FamiDash)
     if (p->vel_y.w >= 0) {
         int16_t foot_y = py + PLAYER_SIZE;
-        uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(0), foot_y);
-        uint8_t cm_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
-        uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
-        if (IS_SOLID(cl_f) || IS_SOLID(cm_f) || IS_SOLID(cr_f)) {
+        uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), foot_y);
+        if (!IS_SOLID(hit_col)) {
+            hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
+            if (!IS_SOLID(hit_col)) {
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
+            }
+        }
+        if (IS_SOLID(hit_col)) {
             if (!p->gravity_flipped || p->mode == MODE_SHIP) {
-                uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : (IS_SOLID(cm_f) ? cm_f : cr_f);
                 if (hit_col == COL_BOTTOM) {
                     p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
                 } else {
@@ -150,12 +161,15 @@ uint8_t player_update(
     // Check Ceiling (only when rising, matching FamiDash)
     if (p->vel_y.w < 0) {
         int16_t head_y = py;
-        uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(0), head_y);
-        uint8_t cm_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
-        uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
-        if (IS_SOLID(cl_h) || IS_SOLID(cm_h) || IS_SOLID(cr_h)) {
+        uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), head_y);
+        if (!IS_SOLID(hit_col)) {
+            hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
+            if (!IS_SOLID(hit_col)) {
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
+            }
+        }
+        if (IS_SOLID(hit_col)) {
             if (p->gravity_flipped || p->mode == MODE_SHIP) {
-                uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : (IS_SOLID(cm_h) ? cm_h : cr_h);
                 if (hit_col == COL_TOP) {
                     p->world_y.b.h = (head_y & ~15) + 8;
                 } else {
@@ -174,10 +188,14 @@ uint8_t player_update(
     // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
     if (!p->on_ground) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
-        uint8_t gl = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
-        uint8_t gm = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
-        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
-        if (IS_SOLID(gl) || IS_SOLID(gm) || IS_SOLID(gr)) {
+        uint8_t stick_col = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
+        if (!IS_SOLID(stick_col)) {
+            stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
+            if (!IS_SOLID(stick_col)) {
+                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
+            }
+        }
+        if (IS_SOLID(stick_col)) {
             p->on_ground = 1;
             p->vel_y.w = 0;
             p->orb_buffered = 0;
@@ -194,14 +212,23 @@ uint8_t player_update(
     }
 
     // --- Hazard Collision (Spikes) ---
-    uint8_t hz_tl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_tr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    uint8_t hz_bl = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    uint8_t hz_br = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    if (hazard_kills(p, hz_tl, PLAYER_HBOX) ||
-        hazard_kills(p, hz_tr, PLAYER_SIZE - PLAYER_HBOX) ||
-        hazard_kills(p, hz_bl, PLAYER_HBOX) ||
-        hazard_kills(p, hz_br, PLAYER_SIZE - PLAYER_HBOX)) {
+    uint8_t hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
+    if (hazard_kills(p, hz, PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
+    if (hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    if (hazard_kills(p, hz, PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    if (hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }
@@ -230,7 +257,7 @@ uint8_t player_update(
         // A quarter turn is 6 frames (90 deg), so the midpoint of the
         // quarter is 45 deg. Past the midpoint -> finish the spin
         // forwards; before the midpoint -> roll backwards instead.
-        uint8_t q = p->anim_frame % 6;
+        uint8_t q = (p->anim_frame < 24) ? mod6_table[p->anim_frame] : (p->anim_frame % 6);
         if (q != 0) {
             p->anim_timer += 20; // double speed while settling
             if (p->anim_timer >= 21) {

@@ -233,26 +233,22 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     uint8_t sp_bank = l->sp_bank;
     const SpDef *sp_list = l->sp_list;
 
-    /* Retire old entries */
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
-        if (!cache->active[i]) continue;
-        if (cache->px[i] + 32u < cam_px) cache->active[i] = 0;
-    }
-
-    /* Compact arrays */
+    /* Retire old entries and compact in a single pass */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (cache->active[i]) {
-            if (count != i) {
-                cache->obj[count] = cache->obj[i];
-                cache->px[count] = cache->px[i];
-                cache->py[count] = cache->py[i];
-                cache->active[count] = cache->active[i];
-                cache->activated[count] = cache->activated[i];
+            if (cache->px[i] + 32u >= cam_px) {
+                if (count != i) {
+                    cache->obj[count] = cache->obj[i];
+                    cache->px[count] = cache->px[i];
+                    cache->py[count] = cache->py[i];
+                    cache->active[count] = 1;
+                    cache->activated[count] = cache->activated[i];
+                }
+                count++;
             }
-            count++;
         }
     }
-    while (count < MAX_ACTIVE_SP_OBJECTS) cache->active[count++] = 0;
+    for (i = count; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 }

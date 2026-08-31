@@ -10,18 +10,20 @@ Symbol Table
     __moduchar                                                      ******** GX
   8 __xinit__player_noclip                                          00000000 R
     _col_at_raw_cached                                              ******** GX
-  0 _hazard_kills                                                   0000007F R
+  0 _hazard_kills                                                   00000097 R
+  0 _mod6_table                                                     00000075 R
   0 _player_init                                                    00000000 GR
   3 _player_noclip                                                  00000000 GR
-  0 _player_screen_y                                                00000075 GR
-  0 _player_update                                                  000000E2 GR
+  0 _player_screen_y                                                0000008D GR
+  0 _player_update                                                  000000FA GR
+
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      B50   flags    0
+   0 _CODE                                      size      AFD   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        1   flags    0
