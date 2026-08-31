@@ -7,7 +7,7 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  0 _MAX_LEVELS                                                     000000EA GR
+  0 _MAX_LEVELS                                                     00000104 GR
     ___bank_backontrack_map                                         ******** GX
     ___bank_backontrack_sp                                          ******** GX
     ___bank_baseafterbase_map                                       ******** GX
@@ -27,16 +27,19 @@ Symbol Table
     ___bank_stereomadness_sp                                        ******** GX
     ___bank_timemachine_map                                         ******** GX
     ___bank_timemachine_sp                                          ******** GX
+    ___bank_xstep_map                                               ******** GX
+    ___bank_xstep_sp                                                ******** GX
   0 ___func_game_levels                                             00000000 GR
-  0 __str_0                                                         000000EB R
-  0 __str_1                                                         000000FA R
-  0 __str_2                                                         00000108 R
-  0 __str_3                                                         00000113 R
-  0 __str_4                                                         0000011B R
-  0 __str_5                                                         0000012B R
-  0 __str_6                                                         00000137 R
-  0 __str_7                                                         0000013E R
-  0 __str_8                                                         0000014B R
+  0 __str_0                                                         00000105 R
+  0 __str_1                                                         00000114 R
+  0 __str_2                                                         00000122 R
+  0 __str_3                                                         0000012D R
+  0 __str_4                                                         00000135 R
+  0 __str_5                                                         00000145 R
+  0 __str_6                                                         00000151 R
+  0 __str_7                                                         00000158 R
+  0 __str_8                                                         00000165 R
+  0 __str_9                                                         0000016C R
     _backontrack                                                    ******** GX
     _backontrack_map                                                ******** GX
     _backontrack_sp                                                 ******** GX
@@ -54,35 +57,39 @@ Symbol Table
     _dryout                                                         ******** GX
     _dryout_map                                                     ******** GX
     _dryout_sp                                                      ******** GX
-  0 _game_levels                                                    000000D8 GR
-    _jumper                                                         ******** GX
-    _jumper_map                                                     ******** GX
-    _jumper_sp                                                      ******** GX
+  0 _game_levels                                                    000000F0 GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
-  0 _level_bab                                                      0000006F GR
-  0 _level_bot                                                      00000030 GR
-  0 _level_clg                                                      00000084 GR
-  0 _level_cy                                                       000000C3 GR
-  0 _level_du                                                       0000005A GR
-  0 _level_ju                                                       00000099 GR
-  0 _level_pg                                                       00000045 GR
-  0 _level_sm                                                       0000001B GR
+    _jumper                                                         ******** GX
+    _jumper_map                                                     ******** GX
+    _jumper_sp                                                      ******** GX
+  0 _level_bab                                                      00000072 GR
+  0 _level_bot                                                      00000033 GR
+  0 _level_clg                                                      00000087 GR
+  0 _level_cy                                                       000000C6 GR
+  0 _level_du                                                       0000005D GR
+  0 _level_ju                                                       0000009C GR
+  0 _level_pg                                                       00000048 GR
+  0 _level_sm                                                       0000001E GR
   0 _level_songs                                                    00000000 GR
-  0 _level_tm                                                       000000AE GR
+  0 _level_tm                                                       000000B1 GR
+  0 _level_xs                                                       000000DB GR
     _polargeist                                                     ******** GX
     _polargeist_map                                                 ******** GX
     _polargeist_sp                                                  ******** GX
-  0 _song_bank                                                      00000012 GR
+  0 _song_bank                                                      00000014 GR
     _stereomadness                                                  ******** GX
     _stereomadness_map                                              ******** GX
     _stereomadness_sp                                               ******** GX
     _timemachine                                                    ******** GX
     _timemachine_map                                                ******** GX
     _timemachine_sp                                                 ******** GX
+    _xstep                                                          ******** GX
+    _xstep_map                                                      ******** GX
+    _xstep_sp                                                       ******** GX
     b___func_game_levels                                        =   00000000 L
 
 
@@ -91,7 +98,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      152   flags    0
+   0 _CODE                                      size      172   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        0   flags    0
