@@ -753,9 +753,10 @@ static uint8_t draw_sprites(
         if (sprite == 0) continue;
 
         // Temporary: Disable orb and pad graphics
-        if (obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
+        if (_cpu != CGB_TYPE && (
+            obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
             obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
-            obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK) {
+            obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK)) {
             continue;
         }
 

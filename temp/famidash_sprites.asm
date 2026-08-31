@@ -442,11 +442,11 @@ _famidash_yellow_pad:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x14	; 20
-	.db #0x01	; 1
+	.db #0x03	; 3
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x16	; 22
-	.db #0x21	; 33
+	.db #0x23	; 35
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -455,11 +455,11 @@ _famidash_yellow_pad_up:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x14	; 20
-	.db #0x41	; 65	'A'
+	.db #0x43	; 67	'C'
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x16	; 22
-	.db #0x61	; 97	'a'
+	.db #0x63	; 99	'c'
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -468,11 +468,11 @@ _famidash_blue_pad:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x14	; 20
-	.db #0x00	; 0
+	.db #0x02	; 2
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x16	; 22
-	.db #0x20	; 32
+	.db #0x22	; 34
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -481,11 +481,11 @@ _famidash_blue_pad_up:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x14	; 20
-	.db #0x40	; 64
+	.db #0x42	; 66	'B'
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x16	; 22
-	.db #0x60	; 96
+	.db #0x62	; 98	'b'
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -507,11 +507,11 @@ _famidash_yellow_orb:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x18	; 24
-	.db #0x01	; 1
+	.db #0x03	; 3
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x1a	; 26
-	.db #0x21	; 33
+	.db #0x23	; 35
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
@@ -520,11 +520,11 @@ _famidash_blue_orb:
 	.db #0x00	;  0
 	.db #0x00	;  0
 	.db #0x18	; 24
-	.db #0x00	; 0
+	.db #0x02	; 2
 	.db #0x00	;  0
 	.db #0x08	;  8
 	.db #0x1a	; 26
-	.db #0x20	; 32
+	.db #0x22	; 34
 	.db #0x80	; -128
 	.db #0x00	;  0
 	.db #0x00	; 0
