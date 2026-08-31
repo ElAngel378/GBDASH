@@ -652,7 +652,7 @@ _polargeist_sp:
 	.db #0x2e	; 46
 	.dw #0x032e
 	.db #0x01	; 1
-	.db #0x7e	; 126
+	.db #0x6e	; 110	'n'
 	.dw #0x0335
 	.db #0x01	; 1
 	.db #0x8e	; 142
