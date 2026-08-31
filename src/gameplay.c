@@ -770,7 +770,7 @@ void draw_levels(void) BANKED {
     }
     BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
     fill_bkg_rect(0, 0, 20, 18, 0x00);
-    draw_text(0, 0, "GD POCKET DEMO 02");
+    draw_text(0, 0, "LEVEL SELECT");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
         if (i == selected) {
             draw_text(1, 2 + i, "0"); // cursor icon
@@ -779,7 +779,7 @@ void draw_levels(void) BANKED {
             draw_text(3, 2 + i, game_levels[i]->name);
         }
     }
-    draw_text(0, 16, "SOTOSPRO24");
+    draw_text(0, 16, "PRESS START TO PLAY");
     SHOW_BKG;
     redraw = 0;
 }

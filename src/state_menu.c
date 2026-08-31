@@ -41,7 +41,7 @@ GameState update_menu_state(void) {
     set_bkg_data(0, 128, chr_gb_tiles);
     SWITCH_ROM(BANK(menu_bg));
     set_bkg_data(28, 87, menu_bg_tiles);    // BG tiles at index 28-114
-    set_bkg_data(115, 6, menu_ground_tiles); // Ground tiles at 115-120
+    set_bkg_data(115, 9, menu_ground_tiles); // Ground tiles at 115-123
     
     // Clear the whole map first (so top 16px is empty sky/color 0)
     fill_bkg_rect(0, 0, 32, 32, 0);
@@ -84,7 +84,7 @@ GameState update_menu_state(void) {
 
         wait_vbl_done();
         
-        static uint8_t frame_counter = 0;
+        static uint16_t frame_counter = 0;
         frame_counter++;
         
         if ((frame_counter & 1) == 0) {
@@ -92,9 +92,9 @@ GameState update_menu_state(void) {
         }
         ground_x += 3;
 
-        if (_cpu == CGB_TYPE && (frame_counter & 3) == 0) {
-            extern const uint16_t rainbow_palettes[64][4];
-            uint8_t color_index = (frame_counter >> 2) & 63;
+        if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
+            extern const uint16_t rainbow_palettes[128][4];
+            uint8_t color_index = (frame_counter >> 4) & 127;
             // Update palette 0 (used by background and ground)
             set_bkg_palette(0, 1, rainbow_palettes[color_index]);
         }

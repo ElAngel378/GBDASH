@@ -13,7 +13,7 @@
 #define menu_ground_TILE_H 8
 #define menu_ground_WIDTH 256
 #define menu_ground_HEIGHT 24
-#define menu_ground_TILE_COUNT 6
+#define menu_ground_TILE_COUNT 9
 #define menu_ground_PALETTE_COUNT 1
 #define menu_ground_COLORS_PER_PALETTE 4
 #define menu_ground_TOTAL_COLORS 4
@@ -24,6 +24,6 @@ extern const unsigned char menu_ground_map[96];
 BANKREF_EXTERN(menu_ground)
 
 extern const palette_color_t menu_ground_palettes[4];
-extern const uint8_t menu_ground_tiles[96];
+extern const uint8_t menu_ground_tiles[144];
 
 #endif

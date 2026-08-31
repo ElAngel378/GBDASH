@@ -34,10 +34,10 @@ Symbol Table
     ___move_metasprite_vflip                                        ******** GX
     ___sdcc_bcall_ehl                                               ******** GX
   8 ___str_0                                                        00001645 R
-  8 ___str_1                                                        00001657 R
-  8 ___str_2                                                        00001659 R
-  8 ___str_3                                                        00002489 R
-  8 ___str_4                                                        00002498 R
+  8 ___str_1                                                        00001652 R
+  8 ___str_2                                                        00001654 R
+  8 ___str_3                                                        0000248D R
+  8 ___str_4                                                        0000249C R
     __cpu                                                           ******** GX
     _ball_metasprites                                               ******** GX
     _ball_tiles                                                     ******** GX
@@ -80,7 +80,7 @@ Symbol Table
     _load_collision_columns                                         ******** GX
     _music_ready                                                    ******** GX
   8 _nes_master_palette                                             00000073 R
-  8 _play_level                                                     00001664 GR
+  8 _play_level                                                     00001668 GR
     _player_init                                                    ******** GX
     _player_noclip                                                  ******** GX
     _player_screen_y                                                ******** GX
@@ -123,7 +123,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_10                                   size     24A8   flags    0
+   8 _CODE_10                                   size     24AC   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

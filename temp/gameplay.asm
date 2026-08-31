@@ -4595,7 +4595,7 @@ _draw_levels::
 	push	af
 	call	_fill_bkg_rect
 	add	sp, #5
-;src/gameplay.c:773: draw_text(0, 0, "GD POCKET DEMO 02");
+;src/gameplay.c:773: draw_text(0, 0, "LEVEL SELECT");
 	ld	de, #___str_0
 	push	de
 	xor	a, a
@@ -4684,7 +4684,7 @@ _draw_levels::
 	inc	c
 	jr	00108$
 00106$:
-;src/gameplay.c:782: draw_text(0, 16, "SOTOSPRO24");
+;src/gameplay.c:782: draw_text(0, 16, "PRESS START TO PLAY");
 	ld	de, #___str_2
 	push	de
 	ld	hl, #0x1000
@@ -4708,13 +4708,13 @@ _draw_levels_menu_pal_30000_389:
 	.dw #0x7f39
 	.dw #0x7fff
 ___str_0:
-	.ascii "GD POCKET DEMO 02"
+	.ascii "LEVEL SELECT"
 	.db 0x00
 ___str_1:
 	.ascii "0"
 	.db 0x00
 ___str_2:
-	.ascii "SOTOSPRO24"
+	.ascii "PRESS START TO PLAY"
 	.db 0x00
 ;src/gameplay.c:787: void play_level(uint8_t idx) BANKED {
 ;	---------------------------------

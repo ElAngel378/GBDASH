@@ -123,44 +123,50 @@ uint8_t player_update(
     p->on_ground = 0;
 
     // --- Vertical Ejection ---
-    // Check Floor
-    int16_t foot_y = py + PLAYER_SIZE;
-    uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(3), foot_y);
-    uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), foot_y);
-    if (IS_SOLID(cl_f) || IS_SOLID(cr_f)) {
-        if (!p->gravity_flipped || p->mode == MODE_SHIP) {
-            uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : cr_f;
-            if (hit_col == COL_BOTTOM) {
-                p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
-            } else {
-                p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
-            }
-            p->world_y.b.l = 0;
-            p->vel_y.w = 0;
-            if (!p->gravity_flipped) {
-                p->on_ground = 1;
-                p->orb_buffered = 0;
+    // Check Floor (only when falling or stationary, matching FamiDash)
+    if (p->vel_y.w >= 0) {
+        int16_t foot_y = py + PLAYER_SIZE;
+        uint8_t cl_f = COL_AT_PTR(GET_COL_FAST(0), foot_y);
+        uint8_t cm_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
+        uint8_t cr_f = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
+        if (IS_SOLID(cl_f) || IS_SOLID(cm_f) || IS_SOLID(cr_f)) {
+            if (!p->gravity_flipped || p->mode == MODE_SHIP) {
+                uint8_t hit_col = IS_SOLID(cl_f) ? cl_f : (IS_SOLID(cm_f) ? cm_f : cr_f);
+                if (hit_col == COL_BOTTOM) {
+                    p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
+                } else {
+                    p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
+                }
+                p->world_y.b.l = 0;
+                p->vel_y.w = 0;
+                if (!p->gravity_flipped) {
+                    p->on_ground = 1;
+                    p->orb_buffered = 0;
+                }
             }
         }
     }
 
-    // Check Ceiling
-    int16_t head_y = py;
-    uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(3), head_y);
-    uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), head_y);
-    if (IS_SOLID(cl_h) || IS_SOLID(cr_h)) {
-        if (p->gravity_flipped || p->mode == MODE_SHIP) {
-            uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : cr_h;
-            if (hit_col == COL_TOP) {
-                p->world_y.b.h = (head_y & ~15) + 8;
-            } else {
-                p->world_y.b.h = (head_y & ~15) + 16;
-            }
-            p->world_y.b.l = 0;
-            p->vel_y.w = 0;
-            if (p->gravity_flipped) {
-                p->on_ground = 1;
-                p->orb_buffered = 0;
+    // Check Ceiling (only when rising, matching FamiDash)
+    if (p->vel_y.w < 0) {
+        int16_t head_y = py;
+        uint8_t cl_h = COL_AT_PTR(GET_COL_FAST(0), head_y);
+        uint8_t cm_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
+        uint8_t cr_h = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
+        if (IS_SOLID(cl_h) || IS_SOLID(cm_h) || IS_SOLID(cr_h)) {
+            if (p->gravity_flipped || p->mode == MODE_SHIP) {
+                uint8_t hit_col = IS_SOLID(cl_h) ? cl_h : (IS_SOLID(cm_h) ? cm_h : cr_h);
+                if (hit_col == COL_TOP) {
+                    p->world_y.b.h = (head_y & ~15) + 8;
+                } else {
+                    p->world_y.b.h = (head_y & ~15) + 16;
+                }
+                p->world_y.b.l = 0;
+                p->vel_y.w = 0;
+                if (p->gravity_flipped) {
+                    p->on_ground = 1;
+                    p->orb_buffered = 0;
+                }
             }
         }
     }
@@ -168,21 +174,21 @@ uint8_t player_update(
     // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
     if (!p->on_ground) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
-        uint8_t gl = COL_AT_PTR(GET_COL_FAST(3), sticky_y);
-        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 3), sticky_y);
-        if (IS_SOLID(gl) || IS_SOLID(gr)) {
+        uint8_t gl = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
+        uint8_t gm = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
+        uint8_t gr = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
+        if (IS_SOLID(gl) || IS_SOLID(gm) || IS_SOLID(gr)) {
             p->on_ground = 1;
             p->vel_y.w = 0;
             p->orb_buffered = 0;
         }
     }
 
-    // --- Wall / Front Collision (Death) ---
+    // --- Wall / Front Collision (Death) — single center probe like FamiDash ---
     py = p->world_y.b.h;
     const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
-    uint8_t front_head = COL_AT_PTR(c_front, py + PLAYER_HBOX);
-    uint8_t front_foot = COL_AT_PTR(c_front, py + PLAYER_SIZE - PLAYER_HBOX);
-    if (IS_SOLID(front_head) || IS_SOLID(front_foot)) {
+    uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
+    if (IS_SOLID(front_center)) {
         p->dead = 1;
         return 1;
     }
