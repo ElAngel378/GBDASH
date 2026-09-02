@@ -67,6 +67,7 @@ extern const hUGESong_t jumper;
 extern const hUGESong_t timemachine;
 extern const hUGESong_t cycles;
 extern const hUGESong_t xstep;
+extern const hUGESong_t ultiatedestruction;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
@@ -80,7 +81,7 @@ const hUGESong_t * const level_songs[] = {
   &timemachine, // level_tm
   &cycles, // level_cy
   &xstep, // level_xs
-  NULL, // level_ultiatedestruction (silent)
+  &ultiatedestruction, // level_ultiatedestruction
 };
 
 // Per-level song banks: matches level_songs[]; 0 = silent
@@ -95,7 +96,7 @@ const uint8_t song_bank[] = {
   207u, // level_tm
   208u, // level_cy
   209u, // level_xs
-  0u, // level_ultiatedestruction
+  210u, // level_ultiatedestruction
 };
 
 // Level definitions with dimensions and bank info
@@ -226,7 +227,7 @@ const Level level_ultiatedestruction = {
   ultiatedestruction_map,
   chr_gb_TILE_COUNT, 675, 16, 0, 0,
   BANK(ultiatedestruction_map),
-  180,
+  183,
   ultiatedestruction_sp,
   BANK(ultiatedestruction_sp)
 };

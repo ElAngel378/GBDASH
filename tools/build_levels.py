@@ -88,7 +88,11 @@ def update_music_bank(music_path, target_bank):
     with open(music_path, 'r') as f:
         content = f.read()
 
-    new_content = re.sub(r'#pragma\s+bank\s+\d+', f'#pragma bank {target_bank}', content)
+    if re.search(r'#pragma\s+bank', content):
+        new_content = re.sub(r'#pragma\s+bank\s+\d+', f'#pragma bank {target_bank}', content)
+    else:
+        new_content = f'#pragma bank {target_bank}\n\n' + content
+
     if new_content != content:
         with open(music_path, 'w') as f:
             f.write(new_content)

@@ -48,15 +48,15 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00000368  l__CODE_1 |    00000394  l__CODE_1 |    000003BC  l__CODE_1
      00000400  ___size_m |    00000570  ___size_m |    000005C0  ___size_f
      0000062C  l__CODE_1 |    000006F4  l__CODE_1 |    0000077C  l__CODE_1
-     00000902  l__CODE_1 |    00000A60  l__CODE_2 |    00000EBC  l__CODE_2
-     00001000  ___size_c |    00001000  ___size_c |    00001000  ___size_c
-     00001000  ___size_c |    000010FC  l__CODE_2 |    000016C4  l__CODE_2
-     000017BE  l__CODE_2 |    000018CE  l__CODE_2 |    00001C52  l__CODE_2
-     00001DDC  l__CODE_2 |    00002000  ___size_l |    00002000  _rROMB0  
-     00002218  l__CODE_2 |    00002340  l__CODE_1 |    00002766  l__CODE_2
-     000029B0  l__CODE_2 |    00002A30  ___size_u |    00002A30  l__CODE_4
-     00003000  _rROMB1   |    00003335  l__CODE_1 |    00003370  ___size_c
-     00003370  l__CODE_3 |    00003450  ___size_c |    00003450  l__CODE_3
+     00000902  l__CODE_1 |    00000A5A  l__CODE_2 |    00000A60  l__CODE_2
+     00000EBC  l__CODE_2 |    00001000  ___size_c |    00001000  ___size_c
+     00001000  ___size_c |    00001000  ___size_c |    000010FC  l__CODE_2
+     000016C4  l__CODE_2 |    000017BE  l__CODE_2 |    000018CE  l__CODE_2
+     00001C52  l__CODE_2 |    00001DDC  l__CODE_2 |    00002000  ___size_l
+     00002000  _rROMB0   |    00002218  l__CODE_2 |    00002340  l__CODE_1
+     00002766  l__CODE_2 |    000029B0  l__CODE_2 |    00002A30  ___size_u
+     00002A30  l__CODE_4 |    00003000  _rROMB1   |    00003335  l__CODE_1
+     00003370  ___size_c |    00003370  l__CODE_3 |    00003450  ___size_c
 ASxxxx Linker V03.00/V05.40 + sdld,  page 2.
 Hexadecimal  [32-Bits]
 
@@ -66,56 +66,57 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     000034A0  ___size_d |    000034A0  l__CODE_3 |    000034C0  ___size_x
-     000034C0  l__CODE_3 |    000034E0  ___size_b |    000034E0  l__CODE_3
-     00003650  ___size_b |    00003650  l__CODE_3 |    000037E0  ___size_s
-     000037E0  l__CODE_3 |    00003810  ___size_j |    00003810  l__CODE_3
-     00003A70  ___size_p |    00003A70  l__CODE_3 |    00003A7C  l__CODE  
-     00003C7C  s__HOME   |    00003E50  ___size_t |    00003E50  l__CODE_3
-     00003E6D  s__BASE   |    00003E6D  s__CODE_0 |    00003E6D  s__INITIA
-     00003E6D  s__LIT    |    00003E78  s__GSINIT |    00003E8A  s__GSFINA
-     00004000  _rMBC7_SR |    00004000  _rRAMB    |    00004000  l__CODE_2
-     00008000  __VRAM    |    00008000  __VRAM800 |    00008800  __VRAM880
-     00009000  __VRAM900 |    00009800  __SCRN0   |    00009C00  __SCRN1  
-     0000A000  __SRAM    |    0000A000  _rMBC7_LA |    0000A010  _rMBC7_LA
-     0000A020  _rMBC7_AC |    0000A030  _rMBC7_AC |    0000A040  _rMBC7_AC
-     0000A050  _rMBC7_AC |    0000C000  __RAM     |    0000C000  _shadow_O
-     0000C0A0  s__DATA   |    0000C25E  s__BSS    |    0000C25E  s__INITIA
-     0000C269  s__HEAP   |    0000C269  s__HEAP_E |    0000D000  __RAMBANK
-     0000E000  .STACK    |    0000FE00  __OAMRAM  |    0000FF00  _P1_REG  
-     0000FF00  __IO      |    0000FF01  _SB_REG   |    0000FF02  _SC_REG  
-     0000FF04  _DIV_REG  |    0000FF05  _TIMA_REG |    0000FF06  _TMA_REG 
-     0000FF07  _TAC_REG  |    0000FF0F  _IF_REG   |    0000FF10  _NR10_REG
-     0000FF11  _NR11_REG |    0000FF12  _NR12_REG |    0000FF13  _NR13_REG
-     0000FF14  _NR14_REG |    0000FF16  _NR21_REG |    0000FF17  _NR22_REG
-     0000FF18  _NR23_REG |    0000FF19  _NR24_REG |    0000FF1A  _NR30_REG
-     0000FF1B  _NR31_REG |    0000FF1C  _NR32_REG |    0000FF1D  _NR33_REG
-     0000FF1E  _NR34_REG |    0000FF20  _NR41_REG |    0000FF21  _NR42_REG
-     0000FF22  _NR43_REG |    0000FF23  _NR44_REG |    0000FF24  _NR50_REG
-     0000FF25  _NR51_REG |    0000FF26  _NR52_REG |    0000FF30  _AUD3WAVE
-     0000FF30  _PCM_SAMP |    0000FF30  __AUD3WAV |    0000FF40  _LCDC_REG
-     0000FF41  _STAT_REG |    0000FF42  _SCY_REG  |    0000FF43  _SCX_REG 
-     0000FF44  _LY_REG   |    0000FF45  _LYC_REG  |    0000FF46  _DMA_REG 
-     0000FF47  _BGP_REG  |    0000FF48  _OBP0_REG |    0000FF49  _OBP1_REG
-     0000FF4A  _WY_REG   |    0000FF4B  _WX_REG   |    0000FF4D  _KEY1_REG
-     0000FF4F  _VBK_REG  |    0000FF51  _HDMA1_RE |    0000FF52  _HDMA2_RE
-     0000FF53  _HDMA3_RE |    0000FF54  _HDMA4_RE |    0000FF55  _HDMA5_RE
-     0000FF56  _RP_REG   |    0000FF68  _BCPS_REG |    0000FF69  _BCPD_REG
-     0000FF6A  _OCPS_REG |    0000FF6B  _OCPD_REG |    0000FF70  _SVBK_REG
-     0000FF76  _PCM12_RE |    0000FF77  _PCM34_RE |    0000FF80  __HRAM   
-     0000FF80  s__HRAM   |    0000FFFF  _IE_REG   |    00014000  s__CODE_1
-     000A4000  s__CODE_1 |    00144000  s__CODE_2 |    00154000  s__CODE_2
-     001E4000  s__CODE_3 |    001F4000  s__CODE_3 |    00204000  s__CODE_3
-     00214000  s__CODE_3 |    00224000  s__CODE_3 |    00234000  s__CODE_3
-     00244000  s__CODE_3 |    00254000  s__CODE_3 |    00264000  s__CODE_3
-     00274000  s__CODE_3 |    00284000  s__CODE_4 |    00644000  s__CODE_1
-     00654000  s__CODE_1 |    00664000  s__CODE_1 |    00674000  s__CODE_1
-     00684000  s__CODE_1 |    00694000  s__CODE_1 |    006A4000  s__CODE_1
-     006B4000  s__CODE_1 |    006C4000  s__CODE_1 |    006D4000  s__CODE_1
-     006E4000  s__CODE_1 |    00784000  s__CODE_1 |    00C84000  s__CODE_2
-     00C94000  s__CODE_2 |    00CA4000  s__CODE_2 |    00CB4000  s__CODE_2
-     00CC4000  s__CODE_2 |    00CD4000  s__CODE_2 |    00CE4000  s__CODE_2
-     00CF4000  s__CODE_2 |    00D04000  s__CODE_2 |    00D14000  s__CODE_2
+     00003450  l__CODE_3 |    000034A0  ___size_d |    000034A0  l__CODE_3
+     000034C0  ___size_x |    000034C0  l__CODE_3 |    000034E0  ___size_b
+     000034E0  l__CODE_3 |    00003650  ___size_b |    00003650  l__CODE_3
+     000037E0  ___size_s |    000037E0  l__CODE_3 |    00003810  ___size_j
+     00003810  l__CODE_3 |    00003A70  ___size_p |    00003A70  l__CODE_3
+     00003A7C  l__CODE   |    00003C7C  s__HOME   |    00003E50  ___size_t
+     00003E50  l__CODE_3 |    00003E6D  s__BASE   |    00003E6D  s__CODE_0
+     00003E6D  s__INITIA |    00003E6D  s__LIT    |    00003E78  s__GSINIT
+     00003E8A  s__GSFINA |    00004000  _rMBC7_SR |    00004000  _rRAMB   
+     00004000  l__CODE_2 |    00008000  __VRAM    |    00008000  __VRAM800
+     00008800  __VRAM880 |    00009000  __VRAM900 |    00009800  __SCRN0  
+     00009C00  __SCRN1   |    0000A000  __SRAM    |    0000A000  _rMBC7_LA
+     0000A010  _rMBC7_LA |    0000A020  _rMBC7_AC |    0000A030  _rMBC7_AC
+     0000A040  _rMBC7_AC |    0000A050  _rMBC7_AC |    0000C000  __RAM    
+     0000C000  _shadow_O |    0000C0A0  s__DATA   |    0000C25E  s__BSS   
+     0000C25E  s__INITIA |    0000C269  s__HEAP   |    0000C269  s__HEAP_E
+     0000D000  __RAMBANK |    0000E000  .STACK    |    0000FE00  __OAMRAM 
+     0000FF00  _P1_REG   |    0000FF00  __IO      |    0000FF01  _SB_REG  
+     0000FF02  _SC_REG   |    0000FF04  _DIV_REG  |    0000FF05  _TIMA_REG
+     0000FF06  _TMA_REG  |    0000FF07  _TAC_REG  |    0000FF0F  _IF_REG  
+     0000FF10  _NR10_REG |    0000FF11  _NR11_REG |    0000FF12  _NR12_REG
+     0000FF13  _NR13_REG |    0000FF14  _NR14_REG |    0000FF16  _NR21_REG
+     0000FF17  _NR22_REG |    0000FF18  _NR23_REG |    0000FF19  _NR24_REG
+     0000FF1A  _NR30_REG |    0000FF1B  _NR31_REG |    0000FF1C  _NR32_REG
+     0000FF1D  _NR33_REG |    0000FF1E  _NR34_REG |    0000FF20  _NR41_REG
+     0000FF21  _NR42_REG |    0000FF22  _NR43_REG |    0000FF23  _NR44_REG
+     0000FF24  _NR50_REG |    0000FF25  _NR51_REG |    0000FF26  _NR52_REG
+     0000FF30  _AUD3WAVE |    0000FF30  _PCM_SAMP |    0000FF30  __AUD3WAV
+     0000FF40  _LCDC_REG |    0000FF41  _STAT_REG |    0000FF42  _SCY_REG 
+     0000FF43  _SCX_REG  |    0000FF44  _LY_REG   |    0000FF45  _LYC_REG 
+     0000FF46  _DMA_REG  |    0000FF47  _BGP_REG  |    0000FF48  _OBP0_REG
+     0000FF49  _OBP1_REG |    0000FF4A  _WY_REG   |    0000FF4B  _WX_REG  
+     0000FF4D  _KEY1_REG |    0000FF4F  _VBK_REG  |    0000FF51  _HDMA1_RE
+     0000FF52  _HDMA2_RE |    0000FF53  _HDMA3_RE |    0000FF54  _HDMA4_RE
+     0000FF55  _HDMA5_RE |    0000FF56  _RP_REG   |    0000FF68  _BCPS_REG
+     0000FF69  _BCPD_REG |    0000FF6A  _OCPS_REG |    0000FF6B  _OCPD_REG
+     0000FF70  _SVBK_REG |    0000FF76  _PCM12_RE |    0000FF77  _PCM34_RE
+     0000FF80  __HRAM    |    0000FF80  s__HRAM   |    0000FFFF  _IE_REG  
+     00014000  s__CODE_1 |    000A4000  s__CODE_1 |    00144000  s__CODE_2
+     00154000  s__CODE_2 |    001E4000  s__CODE_3 |    001F4000  s__CODE_3
+     00204000  s__CODE_3 |    00214000  s__CODE_3 |    00224000  s__CODE_3
+     00234000  s__CODE_3 |    00244000  s__CODE_3 |    00254000  s__CODE_3
+     00264000  s__CODE_3 |    00274000  s__CODE_3 |    00284000  s__CODE_4
+     00644000  s__CODE_1 |    00654000  s__CODE_1 |    00664000  s__CODE_1
+     00674000  s__CODE_1 |    00684000  s__CODE_1 |    00694000  s__CODE_1
+     006A4000  s__CODE_1 |    006B4000  s__CODE_1 |    006C4000  s__CODE_1
+     006D4000  s__CODE_1 |    006E4000  s__CODE_1 |    00784000  s__CODE_1
+     00C84000  s__CODE_2 |    00C94000  s__CODE_2 |    00CA4000  s__CODE_2
+     00CB4000  s__CODE_2 |    00CC4000  s__CODE_2 |    00CD4000  s__CODE_2
+     00CE4000  s__CODE_2 |    00CF4000  s__CODE_2 |    00D04000  s__CODE_2
+     00D14000  s__CODE_2 |    00D24000  s__CODE_2
 ASxxxx Linker V03.00/V05.40 + sdld,  page 3.
 Hexadecimal  [32-Bits]
 
@@ -696,12 +697,22 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
+_CODE_210              00D24000    00000A5A =        2650. bytes (REL,CON)
+
+        Value  Global            Value  Global            Value  Global    
+        -----  ------            -----  ------            -----  ------    
+     00D24A45  _ultiated
+ASxxxx Linker V03.00/V05.40 + sdld,  page 55.
+Hexadecimal  [32-Bits]
+
+Area                       Addr        Size        Decimal Bytes (Attributes)
+--------------------       ----        ----        ------- ----- ------------
 _CODE_209              00D14000    00001C52 =        7250. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00D15C3D  _xstep   
-ASxxxx Linker V03.00/V05.40 + sdld,  page 55.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 56.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -711,7 +722,7 @@ _CODE_101              00654000    000002B4 =         692. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00654000  ___func_b |    00654000  _backontr
-ASxxxx Linker V03.00/V05.40 + sdld,  page 56.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 57.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -721,7 +732,7 @@ _CODE_104              00684000    00000368 =         872. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00684000  ___func_b |    00684000  _baseafte
-ASxxxx Linker V03.00/V05.40 + sdld,  page 57.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 58.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -731,7 +742,7 @@ _CODE_105              00694000    0000028C =         652. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00694000  ___func_c |    00694000  _cantletg
-ASxxxx Linker V03.00/V05.40 + sdld,  page 58.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 59.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -741,7 +752,7 @@ _CODE_108              006C4000    0000062C =        1580. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      006C4000  ___func_c |    006C4000  _cycles_s
-ASxxxx Linker V03.00/V05.40 + sdld,  page 59.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 60.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -751,7 +762,7 @@ _CODE_103              00674000    000002F4 =         756. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00674000  ___func_d |    00674000  _dryout_s
-ASxxxx Linker V03.00/V05.40 + sdld,  page 60.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 61.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -761,7 +772,7 @@ _CODE_106              006A4000    000003BC =         956. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      006A4000  ___func_j |    006A4000  _jumper_s
-ASxxxx Linker V03.00/V05.40 + sdld,  page 61.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 62.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -771,7 +782,7 @@ _CODE_102              00664000    00000394 =         916. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00664000  ___func_p |    00664000  _polargei
-ASxxxx Linker V03.00/V05.40 + sdld,  page 62.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 63.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -781,7 +792,7 @@ _CODE_120              00784000    00000004 =           4. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00784000  ___func_t |    00784000  _template
-ASxxxx Linker V03.00/V05.40 + sdld,  page 63.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 64.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -791,7 +802,7 @@ _CODE_107              006B4000    000006F4 =        1780. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      006B4000  ___func_t |    006B4000  _timemach
-ASxxxx Linker V03.00/V05.40 + sdld,  page 64.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 65.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -801,7 +812,7 @@ _CODE_110              006E4000    00000178 =         376. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      006E4000  ___func_u |    006E4000  _ultiated
-ASxxxx Linker V03.00/V05.40 + sdld,  page 65.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 66.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -811,7 +822,7 @@ _CODE_109              006D4000    0000077C =        1916. bytes (REL,CON)
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      006D4000  ___func_x |    006D4000  _xstep_sp
-ASxxxx Linker V03.00/V05.40 + sdld,  page 66.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 67.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -820,7 +831,7 @@ _HEADER_TIM0           00000000    00000008 =           8. bytes (ABS,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-ASxxxx Linker V03.00/V05.40 + sdld,  page 67.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 68.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
@@ -829,7 +840,7 @@ _HEADER_LCD0           00000000    00000003 =           3. bytes (ABS,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-ASxxxx Linker V03.00/V05.40 + sdld,  page 68.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 69.
 
 Files Linked                              [ module(s) ]
 
@@ -875,6 +886,7 @@ temp/jumper.o                             [ jumper ]
 temp/polargeist.o                         [ polargeist ]
 temp/stereomadness.o                      [ stereomadness ]
 temp/timemachine.o                        [ timemachine ]
+temp/ultiatedestruction.o                 [ ultiatedestruction ]
 temp/xstep.o                              [ xstep ]
 temp/backontrack_sprites.o                [ backontrack_sprites ]
 temp/baseafterbase_sprites.o              [ baseafterbase_sprites ]
@@ -913,14 +925,14 @@ C:\gbdk\lib/gb/gb.lib                     [ set_bk_t.o ]
 C:\gbdk\lib/gb/gb.lib                     [ fill_rect.o ]
 C:\gbdk\lib/gb/gb.lib                     [ set_xy_t.o ]
 
-ASxxxx Linker V03.00/V05.40 + sdld,  page 69.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 70.
 
 User Base Address Definitions
 
 _DATA=0xC0A0
 _CODE=0x0200
 _HRAM=0xFF80
-ASxxxx Linker V03.00/V05.40 + sdld,  page 70.
+ASxxxx Linker V03.00/V05.40 + sdld,  page 71.
 
 User Global Definitions
 

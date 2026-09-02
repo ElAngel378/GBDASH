@@ -122,6 +122,7 @@ DEF l__CODE_108 0x62C
 DEF l__CODE_107 0x6F4
 DEF l__CODE_109 0x77C
 DEF l__CODE_1 0x902
+DEF l__CODE_210 0xA5A
 DEF l__CODE_21 0xA60
 DEF l__CODE_200 0xEBC
 DEF ___size_chr_gb_cgb_tiles 0x1000
@@ -298,6 +299,7 @@ DEF s__CODE_206 0xCE4000
 DEF s__CODE_207 0xCF4000
 DEF s__CODE_208 0xD04000
 DEF s__CODE_209 0xD14000
+DEF s__CODE_210 0xD24000
 DEF _FontPusab 0x200
 DEF ___func_game_levels 0x470
 DEF _level_songs 0x470
@@ -595,6 +597,7 @@ DEF _jumper 0xCE58B9
 DEF _polargeist 0xCA699B
 DEF _stereomadness 0xC84EA7
 DEF _timemachine 0xCF6751
+DEF _ultiatedestruction 0xD24A45
 DEF _xstep 0xD15C3D
 DEF ___func_backontrack_sp 0x654000
 DEF _backontrack_sp 0x654000
