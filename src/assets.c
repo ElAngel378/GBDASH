@@ -220,7 +220,7 @@ const Level level_xs = {
 };
 
 const Level level_ultiatedestruction = {
-  "ULTIATEDESTRUCTION",
+  " ",
   chr_gb_tiles,
   chr_gb_tiles_rev,
   ultiatedestruction_map,

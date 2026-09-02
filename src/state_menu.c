@@ -62,21 +62,64 @@ GameState update_menu_state(void) {
     // Tiles 1-16 (skip tile 0 which is empty)
     set_sprite_data(0, 16, &playbutton[16]);
 
+    // Dedicated underlay tiles (8x16 each)
+    static const uint8_t yellow_fill_tile[32] = {
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00
+    };
+    // Top blue box: rows 1..5 in first 8x8, second 8x8 empty
+    static const uint8_t top_blue_tile[32] = {
+        0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00,
+        0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    // Bottom blue box: rows 6..7 in first 8x8, rows 0..2 in second 8x8
+    static const uint8_t bot_blue_tile[32] = {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00,
+        0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    set_sprite_data(16, 2, yellow_fill_tile);
+    set_sprite_data(18, 2, top_blue_tile);
+    set_sprite_data(20, 2, bot_blue_tile);
+
     if (_cpu == CGB_TYPE) {
+        // Green palette for the button cross
         static const uint16_t play_button_palette[] = {
             RGB8(255, 255, 255), // Trans
             RGB8(138, 245, 30),  // Light Green
             RGB8(30, 140, 20),   // Dark Green
             RGB8(0, 0, 0)        // Black Outline
         };
+        // Yellow palette for the triangle interior fill
+        static const uint16_t play_button_yellow_palette[] = {
+            RGB8(255, 255, 255), // Trans
+            RGB8(255, 240, 0),   // Bright Yellow
+            RGB8(255, 210, 0),   // Yellow
+            RGB8(220, 160, 0)    // Dark Yellow
+        };
+        // Blue palette for the 4 corner squares
+        static const uint16_t play_button_blue_palette[] = {
+            RGB8(255, 255, 255), // Trans
+            RGB8(0, 240, 255),   // Cyan / Bright Blue
+            RGB8(0, 160, 255),   // Medium Blue
+            RGB8(0, 80, 220)     // Dark Blue
+        };
         set_sprite_palette(0, 1, play_button_palette);
+        set_sprite_palette(1, 1, play_button_yellow_palette);
+        set_sprite_palette(2, 1, play_button_blue_palette);
     }
 
     SPRITES_8x16;
     uint8_t bx = 72; // Centered X (64 + 8)
     uint8_t by = 68; // Centered Y (52 + 16)
 
-    // Set 8 8x16 hardware sprites for the 32x32 button
+    // Foreground Green Button (OAM 0..7)
     set_sprite_tile(0, 0);  move_sprite(0, bx, by);           set_sprite_prop(0, 0);
     set_sprite_tile(1, 2);  move_sprite(1, bx, by + 16);      set_sprite_prop(1, 0);
     set_sprite_tile(2, 4);  move_sprite(2, bx + 8, by);       set_sprite_prop(2, 0);
@@ -85,6 +128,15 @@ GameState update_menu_state(void) {
     set_sprite_tile(5, 10); move_sprite(5, bx + 16, by + 16); set_sprite_prop(5, 0);
     set_sprite_tile(6, 12); move_sprite(6, bx + 24, by);      set_sprite_prop(6, 0);
     set_sprite_tile(7, 14); move_sprite(7, bx + 24, by + 16); set_sprite_prop(7, 0);
+
+    // Yellow Triangle Underlay (OAM 8)
+    set_sprite_tile(8, 16); move_sprite(8, bx + 12, by + 8);  set_sprite_prop(8, 1);
+
+    // Blue Corner Square Underlays (OAM 9..12) - exact 5x5 bounds
+    set_sprite_tile(9, 18);  move_sprite(9, bx + 4, by + 4);   set_sprite_prop(9, 2);  // Top-Left
+    set_sprite_tile(10, 18); move_sprite(10, bx + 21, by + 4);  set_sprite_prop(10, 2); // Top-Right
+    set_sprite_tile(11, 20); move_sprite(11, bx + 4, by + 16);  set_sprite_prop(11, 2); // Bottom-Left
+    set_sprite_tile(12, 20); move_sprite(12, bx + 21, by + 16); set_sprite_prop(12, 2); // Bottom-Right
 
     bg_x = 0;
     ground_x = 0;
@@ -110,7 +162,7 @@ GameState update_menu_state(void) {
             remove_LCD(menu_stat_isr);
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             HIDE_SPRITES;
-            for (uint8_t s = 0; s < 8; s++) hide_sprite(s);
+            for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
             enable_interrupts();
             return STATE_LEVEL_SELECT;
         }
