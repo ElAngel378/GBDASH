@@ -23,4 +23,6 @@ for %%f in (levels\chr_data\tmx\*.tmx) do (
 popd
 echo.
 echo Conversion complete.
+echo Running make...
+start make
 pause

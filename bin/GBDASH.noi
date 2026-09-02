@@ -117,8 +117,8 @@ DEF ___size_menu_bg_map 0x400
 DEF ___size_menu_bg_tiles 0x570
 DEF ___size_famidash_sprites_tiles 0x5C0
 DEF l__CODE_125 0x62C
-DEF l__CODE_118 0x688
 DEF l__CODE_119 0x6F4
+DEF l__CODE_118 0x77C
 DEF l__CODE_1 0x902
 DEF l__CODE_21 0xA60
 DEF l__CODE_255 0xEBC

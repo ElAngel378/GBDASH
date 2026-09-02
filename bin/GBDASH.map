@@ -46,8 +46,8 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      0000028C  l__CODE_1 |    000002B4  l__CODE_1 |    000002F4  l__CODE_1
      00000340  l__CODE_1 |    00000368  l__CODE_1 |    00000394  l__CODE_1
      000003BC  l__CODE_1 |    00000400  ___size_m |    00000570  ___size_m
-     000005C0  ___size_f |    0000062C  l__CODE_1 |    00000688  l__CODE_1
-     000006F4  l__CODE_1 |    00000902  l__CODE_1 |    00000A60  l__CODE_2
+     000005C0  ___size_f |    0000062C  l__CODE_1 |    000006F4  l__CODE_1
+     0000077C  l__CODE_1 |    00000902  l__CODE_1 |    00000A60  l__CODE_2
      00000EBC  l__CODE_2 |    00001000  ___size_c |    00001000  ___size_c
      00001000  ___size_c |    00001000  ___size_c |    000010FC  l__CODE_2
      000016C4  l__CODE_2 |    000017BE  l__CODE_2 |    000018CE  l__CODE_2
@@ -793,7 +793,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_118              00764000    00000688 =        1672. bytes (REL,CON)
+_CODE_118              00764000    0000077C =        1916. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    

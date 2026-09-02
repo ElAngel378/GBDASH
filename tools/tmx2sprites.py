@@ -65,6 +65,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
         sprites_firstgid + 19: 19,  # Inverted gravity portal (horizontal up)
         sprites_firstgid + 126: 126,  # test
         sprites_firstgid + 121: 121,  # test
+        sprites_firstgid + 253: 13,  # Blue Pad (invisible)
+        sprites_firstgid + 254: 14,  # Blue Pad (invisible)
     }
 
     # Deco objects
