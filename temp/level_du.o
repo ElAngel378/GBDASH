@@ -1,7 +1,7 @@
 XL4
 H B areas 5 global symbols
 M level_du
-S ___bank_dryout_map Def00000004
+S ___bank_dryout_map Def00000021
 S .__.ABS. Def00000000
 S ___size_dryout_map Def000034A0
 A _CODE size 0 flags 0 addr 0
@@ -12,7 +12,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_4 size 34A0 flags 0 addr 0
+A _CODE_33 size 34A0 flags 0 addr 0
 S _dryout_map Def00000000
 S ___func_dryout_map Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

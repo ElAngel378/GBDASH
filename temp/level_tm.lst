@@ -40,12 +40,12 @@
                                      40 ;--------------------------------------------------------
                                      41 ; code
                                      42 ;--------------------------------------------------------
-                                     43 	.area _CODE_9
-                                     44 ;src/level_tm.c:4: INCBIN(timemachine_map, "levels/level_data/timemachine_16high.bin")
+                                     43 	.area _CODE_37
+                                     44 ;src/levels/level_tm.c:4: INCBIN(timemachine_map, "levels/level_data/timemachine_16high.bin")
                                      45 ;	---------------------------------
                                      46 ; Function __func_timemachine_map
                                      47 ; ---------------------------------
-                         00000009    48 	b___func_timemachine_map	= 9
+                         00000025    48 	b___func_timemachine_map	= 37
     00000000                         49 ___func_timemachine_map::
     00000000                         50 _timemachine_map::
     00000000                         51 1$:
@@ -72,8 +72,8 @@
                          00003E50    54 	___size_timemachine_map = (2$-1$) 
                                      55 	.globl ___size_timemachine_map 
                                      56 	.local b___func_timemachine_map 
-                         00000009    57 	___bank_timemachine_map = b___func_timemachine_map 
+                         00000025    57 	___bank_timemachine_map = b___func_timemachine_map 
                                      58 	.globl ___bank_timemachine_map 
-                                     59 	.area _CODE_9
+                                     59 	.area _CODE_37
                                      60 	.area _INITIALIZER
                                      61 	.area _CABS (ABS)

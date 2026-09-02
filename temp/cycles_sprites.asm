@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_125
-;src/cycles_sprites.c:4: BANKREF(cycles_sp)
+	.area _CODE_108
+;src/sprites/cycles_sprites.c:4: BANKREF(cycles_sp)
 ;	---------------------------------
 ; Function __func_cycles_sp
 ; ---------------------------------
-	b___func_cycles_sp	= 125
+	b___func_cycles_sp	= 108
 ___func_cycles_sp::
 	.local b___func_cycles_sp 
 	___bank_cycles_sp = b___func_cycles_sp 
 	.globl ___bank_cycles_sp 
-	.area _CODE_125
+	.area _CODE_108
 _cycles_sp:
 	.dw #0x0000
 	.db #0x00	; 0

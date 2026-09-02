@@ -40,12 +40,12 @@
                                      40 ;--------------------------------------------------------
                                      41 ; code
                                      42 ;--------------------------------------------------------
-                                     43 	.area _CODE_3
-                                     44 ;src/level_bot.c:4: INCBIN(backontrack_map, "levels/level_data/backontrack_16high.bin")
+                                     43 	.area _CODE_31
+                                     44 ;src/levels/level_bot.c:4: INCBIN(backontrack_map, "levels/level_data/backontrack_16high.bin")
                                      45 ;	---------------------------------
                                      46 ; Function __func_backontrack_map
                                      47 ; ---------------------------------
-                         00000003    48 	b___func_backontrack_map	= 3
+                         0000001F    48 	b___func_backontrack_map	= 31
     00000000                         49 ___func_backontrack_map::
     00000000                         50 _backontrack_map::
     00000000                         51 1$:
@@ -72,8 +72,8 @@
                          000034E0    54 	___size_backontrack_map = (2$-1$) 
                                      55 	.globl ___size_backontrack_map 
                                      56 	.local b___func_backontrack_map 
-                         00000003    57 	___bank_backontrack_map = b___func_backontrack_map 
+                         0000001F    57 	___bank_backontrack_map = b___func_backontrack_map 
                                      58 	.globl ___bank_backontrack_map 
-                                     59 	.area _CODE_3
+                                     59 	.area _CODE_31
                                      60 	.area _INITIALIZER
                                      61 	.area _CABS (ABS)

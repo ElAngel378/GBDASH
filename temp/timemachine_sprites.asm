@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_119
-;src/timemachine_sprites.c:4: BANKREF(timemachine_sp)
+	.area _CODE_107
+;src/sprites/timemachine_sprites.c:4: BANKREF(timemachine_sp)
 ;	---------------------------------
 ; Function __func_timemachine_sp
 ; ---------------------------------
-	b___func_timemachine_sp	= 119
+	b___func_timemachine_sp	= 107
 ___func_timemachine_sp::
 	.local b___func_timemachine_sp 
 	___bank_timemachine_sp = b___func_timemachine_sp 
 	.globl ___bank_timemachine_sp 
-	.area _CODE_119
+	.area _CODE_107
 _timemachine_sp:
 	.dw #0x0000
 	.db #0x02	; 2

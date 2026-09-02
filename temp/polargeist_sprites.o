@@ -1,7 +1,7 @@
 XL4
 H B areas 4 global symbols
 M polargeist_sprites
-S ___bank_polargeist_sp Def0000007A
+S ___bank_polargeist_sp Def00000066
 S .__.ABS. Def00000000
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_122 size 394 flags 0 addr 0
+A _CODE_102 size 394 flags 0 addr 0
 S _polargeist_sp Def00000000
 S ___func_polargeist_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

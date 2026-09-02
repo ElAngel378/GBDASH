@@ -3,7 +3,7 @@ H B areas 5 global symbols
 M level_bot
 S ___size_backontrack_map Def000034E0
 S .__.ABS. Def00000000
-S ___bank_backontrack_map Def00000003
+S ___bank_backontrack_map Def0000001F
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -12,7 +12,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_3 size 34E0 flags 0 addr 0
+A _CODE_31 size 34E0 flags 0 addr 0
 S ___func_backontrack_map Def00000000
 S _backontrack_map Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

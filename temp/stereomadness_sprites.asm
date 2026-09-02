@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_121
-;src/stereomadness_sprites.c:4: BANKREF(stereomadness_sp)
+	.area _CODE_100
+;src/sprites/stereomadness_sprites.c:4: BANKREF(stereomadness_sp)
 ;	---------------------------------
 ; Function __func_stereomadness_sp
 ; ---------------------------------
-	b___func_stereomadness_sp	= 121
+	b___func_stereomadness_sp	= 100
 ___func_stereomadness_sp::
 	.local b___func_stereomadness_sp 
 	___bank_stereomadness_sp = b___func_stereomadness_sp 
 	.globl ___bank_stereomadness_sp 
-	.area _CODE_121
+	.area _CODE_100
 _stereomadness_sp:
 	.dw #0x0000
 	.db #0x02	; 2

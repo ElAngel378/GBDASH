@@ -1,7 +1,7 @@
 XL4
 H B areas 5 global symbols
 M level_ju
-S ___bank_jumper_map Def00000008
+S ___bank_jumper_map Def00000024
 S .__.ABS. Def00000000
 S ___size_jumper_map Def00003810
 A _CODE size 0 flags 0 addr 0
@@ -12,7 +12,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_8 size 3810 flags 0 addr 0
+A _CODE_36 size 3810 flags 0 addr 0
 S _jumper_map Def00000000
 S ___func_jumper_map Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

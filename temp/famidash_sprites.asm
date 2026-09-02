@@ -61,7 +61,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE_10
-;src/famidash_sprites.c:9: INCBIN(famidash_sprites_tiles, "levels/chr_data/famidash/famidash_sprites_dmg_tiles.bin")
+;src/sprites/famidash_sprites.c:9: INCBIN(famidash_sprites_tiles, "levels/chr_data/famidash/famidash_sprites_dmg_tiles.bin")
 ;	---------------------------------
 ; Function __func_famidash_sprites_tiles
 ; ---------------------------------

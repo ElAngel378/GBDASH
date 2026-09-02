@@ -7,10 +7,10 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-    ___bank_backontrack_sp                                      =   00000080 G
+    ___bank_backontrack_sp                                      =   00000065 G
   8 ___func_backontrack_sp                                          00000000 GR
   8 _backontrack_sp                                                 00000000 GR
-    b___func_backontrack_sp                                     =   00000080 L
+    b___func_backontrack_sp                                     =   00000065 L
 
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
@@ -26,7 +26,7 @@ Area Table
    5 _HOME                                      size        0   flags    0
    6 _GSINIT                                    size        0   flags    0
    7 _GSFINAL                                   size        0   flags    0
-   8 _CODE_128                                  size      2B4   flags    0
+   8 _CODE_101                                  size      2B4   flags    0
    9 _INITIALIZER                               size        0   flags    0
    A _CABS                                      size        0   flags    8
 

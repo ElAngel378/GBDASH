@@ -9,8 +9,10 @@ TEMPDIR = temp
 BINDIR = bin
 LIBDIR = lib
 
-SRCS = $(wildcard $(SRCDIR)/*.c)
-OBJS = $(patsubst $(SRCDIR)/%.c, $(TEMPDIR)/%.o, $(SRCS))
+SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c)
+OBJS = $(foreach src, $(SRCS), $(TEMPDIR)/$(notdir $(src:.c=.o)))
+
+vpath %.c $(SRCDIR) $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels
 
 # SDCC optimizes almost nothing by default, and lcc has no -O option
 # (unrecognized options go to the linker!). Compiler flags must be forwarded
@@ -26,7 +28,7 @@ prepare:
 	@mkdir -p $(TEMPDIR)
 	@mkdir -p $(BINDIR)
 
-$(TEMPDIR)/%.o: $(SRCDIR)/%.c
+$(TEMPDIR)/%.o: %.c
 	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)

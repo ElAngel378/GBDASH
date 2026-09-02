@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_122
-;src/polargeist_sprites.c:4: BANKREF(polargeist_sp)
+	.area _CODE_102
+;src/sprites/polargeist_sprites.c:4: BANKREF(polargeist_sp)
 ;	---------------------------------
 ; Function __func_polargeist_sp
 ; ---------------------------------
-	b___func_polargeist_sp	= 122
+	b___func_polargeist_sp	= 102
 ___func_polargeist_sp::
 	.local b___func_polargeist_sp 
 	___bank_polargeist_sp = b___func_polargeist_sp 
 	.globl ___bank_polargeist_sp 
-	.area _CODE_122
+	.area _CODE_102
 _polargeist_sp:
 	.dw #0x0000
 	.db #0x02	; 2

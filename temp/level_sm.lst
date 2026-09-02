@@ -40,12 +40,12 @@
                                      40 ;--------------------------------------------------------
                                      41 ; code
                                      42 ;--------------------------------------------------------
-                                     43 	.area _CODE_2
-                                     44 ;src/level_sm.c:4: INCBIN(stereomadness_map, "levels/level_data/stereomadness_16high.bin")
+                                     43 	.area _CODE_30
+                                     44 ;src/levels/level_sm.c:4: INCBIN(stereomadness_map, "levels/level_data/stereomadness_16high.bin")
                                      45 ;	---------------------------------
                                      46 ; Function __func_stereomadness_map
                                      47 ; ---------------------------------
-                         00000002    48 	b___func_stereomadness_map	= 2
+                         0000001E    48 	b___func_stereomadness_map	= 30
     00000000                         49 ___func_stereomadness_map::
     00000000                         50 _stereomadness_map::
     00000000                         51 1$:
@@ -72,8 +72,8 @@
                          000037E0    54 	___size_stereomadness_map = (2$-1$) 
                                      55 	.globl ___size_stereomadness_map 
                                      56 	.local b___func_stereomadness_map 
-                         00000002    57 	___bank_stereomadness_map = b___func_stereomadness_map 
+                         0000001E    57 	___bank_stereomadness_map = b___func_stereomadness_map 
                                      58 	.globl ___bank_stereomadness_map 
-                                     59 	.area _CODE_2
+                                     59 	.area _CODE_30
                                      60 	.area _INITIALIZER
                                      61 	.area _CABS (ABS)

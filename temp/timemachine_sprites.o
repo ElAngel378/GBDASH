@@ -1,7 +1,7 @@
 XL4
 H B areas 4 global symbols
 M timemachine_sprites
-S ___bank_timemachine_sp Def00000077
+S ___bank_timemachine_sp Def0000006B
 S .__.ABS. Def00000000
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_119 size 6F4 flags 0 addr 0
+A _CODE_107 size 6F4 flags 0 addr 0
 S _timemachine_sp Def00000000
 S ___func_timemachine_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

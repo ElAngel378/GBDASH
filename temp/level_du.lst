@@ -40,12 +40,12 @@
                                      40 ;--------------------------------------------------------
                                      41 ; code
                                      42 ;--------------------------------------------------------
-                                     43 	.area _CODE_4
-                                     44 ;src/level_du.c:4: INCBIN(dryout_map, "levels/level_data/dryout_16high.bin")
+                                     43 	.area _CODE_33
+                                     44 ;src/levels/level_du.c:4: INCBIN(dryout_map, "levels/level_data/dryout_16high.bin")
                                      45 ;	---------------------------------
                                      46 ; Function __func_dryout_map
                                      47 ; ---------------------------------
-                         00000004    48 	b___func_dryout_map	= 4
+                         00000021    48 	b___func_dryout_map	= 33
     00000000                         49 ___func_dryout_map::
     00000000                         50 _dryout_map::
     00000000                         51 1$:
@@ -72,8 +72,8 @@
                          000034A0    54 	___size_dryout_map = (2$-1$) 
                                      55 	.globl ___size_dryout_map 
                                      56 	.local b___func_dryout_map 
-                         00000004    57 	___bank_dryout_map = b___func_dryout_map 
+                         00000021    57 	___bank_dryout_map = b___func_dryout_map 
                                      58 	.globl ___bank_dryout_map 
-                                     59 	.area _CODE_4
+                                     59 	.area _CODE_33
                                      60 	.area _INITIALIZER
                                      61 	.area _CABS (ABS)

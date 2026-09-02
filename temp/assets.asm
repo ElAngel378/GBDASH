@@ -9,6 +9,7 @@
 ;--------------------------------------------------------
 	.globl _MAX_LEVELS
 	.globl _game_levels
+	.globl _level_ultiatedestruction
 	.globl _level_xs
 	.globl _level_cy
 	.globl _level_tm
@@ -55,7 +56,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;src/assets.c:5: BANKREF(game_levels)
+;src/assets.c:6: BANKREF(game_levels)
 ;	---------------------------------
 ; Function __func_game_levels
 ; ---------------------------------
@@ -76,17 +77,19 @@ _level_songs:
 	.dw _timemachine
 	.dw _cycles
 	.dw _xstep
+	.dw #0x0000
 _song_bank:
-	.db #0xff	; 255
-	.db #0xfe	; 254
-	.db #0xfd	; 253
-	.db #0xfc	; 252
-	.db #0xfb	; 251
-	.db #0xfa	; 250
-	.db #0xf9	; 249
-	.db #0xf8	; 248
-	.db #0xf7	; 247
-	.db #0xf6	; 246
+	.db #0xc8	; 200
+	.db #0xc9	; 201
+	.db #0xca	; 202
+	.db #0xcb	; 203
+	.db #0xcc	; 204
+	.db #0xcd	; 205
+	.db #0xce	; 206
+	.db #0xcf	; 207
+	.db #0xd0	; 208
+	.db #0xd1	; 209
+	.db #0x00	; 0
 _level_sm:
 	.dw __str_0
 	.dw _chr_gb_tiles
@@ -121,7 +124,7 @@ _level_pg:
 	.dw _chr_gb_tiles_rev
 	.dw _polargeist_map
 	.dw #0x0100
-	.dw #0x03a6
+	.dw #0x03a7
 	.dw #0x0010
 	.db #0x00	; 0
 	.db #0x00	; 0
@@ -227,6 +230,20 @@ _level_xs:
 	.db #0x8a	; 138
 	.dw _xstep_sp
 	.byte ___bank_xstep_sp
+_level_ultiatedestruction:
+	.dw __str_10
+	.dw _chr_gb_tiles
+	.dw _chr_gb_tiles_rev
+	.dw _ultiatedestruction_map
+	.dw #0x0100
+	.dw #0x02a3
+	.dw #0x0010
+	.db #0x00	; 0
+	.db #0x00	; 0
+	.byte ___bank_ultiatedestruction_map
+	.db #0xb4	; 180
+	.dw _ultiatedestruction_sp
+	.byte ___bank_ultiatedestruction_sp
 _game_levels:
 	.dw _level_sm
 	.dw _level_bot
@@ -238,8 +255,9 @@ _game_levels:
 	.dw _level_tm
 	.dw _level_cy
 	.dw _level_xs
+	.dw _level_ultiatedestruction
 _MAX_LEVELS:
-	.db #0x0a	; 10
+	.db #0x0b	; 11
 __str_0:
 	.ascii "STEREO MADNESS"
 	.db 0x00
@@ -269,6 +287,9 @@ __str_8:
 	.db 0x00
 __str_9:
 	.ascii "XSTEP"
+	.db 0x00
+__str_10:
+	.ascii " "
 	.db 0x00
 	.area _INITIALIZER
 	.area _CABS (ABS)

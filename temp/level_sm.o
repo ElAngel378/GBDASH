@@ -3,7 +3,7 @@ H B areas 5 global symbols
 M level_sm
 S ___size_stereomadness_map Def000037E0
 S .__.ABS. Def00000000
-S ___bank_stereomadness_map Def00000002
+S ___bank_stereomadness_map Def0000001E
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -12,7 +12,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_2 size 37E0 flags 0 addr 0
+A _CODE_30 size 37E0 flags 0 addr 0
 S ___func_stereomadness_map Def00000000
 S _stereomadness_map Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

@@ -40,12 +40,12 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_11
-;src/level_cy.c:4: INCBIN(cycles_map, "levels/level_data/cycles_16high.bin")
+	.area _CODE_38
+;src/levels/level_cy.c:4: INCBIN(cycles_map, "levels/level_data/cycles_16high.bin")
 ;	---------------------------------
 ; Function __func_cycles_map
 ; ---------------------------------
-	b___func_cycles_map	= 11
+	b___func_cycles_map	= 38
 ___func_cycles_map::
 _cycles_map::
 1$:
@@ -56,6 +56,6 @@ _cycles_map::
 	.local b___func_cycles_map 
 	___bank_cycles_map = b___func_cycles_map 
 	.globl ___bank_cycles_map 
-	.area _CODE_11
+	.area _CODE_38
 	.area _INITIALIZER
 	.area _CABS (ABS)

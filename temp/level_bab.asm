@@ -40,12 +40,12 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_6
-;src/level_bab.c:4: INCBIN(baseafterbase_map, "levels/level_data/baseafterbase_16high.bin")
+	.area _CODE_34
+;src/levels/level_bab.c:4: INCBIN(baseafterbase_map, "levels/level_data/baseafterbase_16high.bin")
 ;	---------------------------------
 ; Function __func_baseafterbase_map
 ; ---------------------------------
-	b___func_baseafterbase_map	= 6
+	b___func_baseafterbase_map	= 34
 ___func_baseafterbase_map::
 _baseafterbase_map::
 1$:
@@ -56,6 +56,6 @@ _baseafterbase_map::
 	.local b___func_baseafterbase_map 
 	___bank_baseafterbase_map = b___func_baseafterbase_map 
 	.globl ___bank_baseafterbase_map 
-	.area _CODE_6
+	.area _CODE_34
 	.area _INITIALIZER
 	.area _CABS (ABS)

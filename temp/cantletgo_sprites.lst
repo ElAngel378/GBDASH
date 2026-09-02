@@ -41,17 +41,17 @@
                                      41 ;--------------------------------------------------------
                                      42 ; code
                                      43 ;--------------------------------------------------------
-                                     44 	.area _CODE_126
-                                     45 ;src/cantletgo_sprites.c:4: BANKREF(cantletgo_sp)
+                                     44 	.area _CODE_105
+                                     45 ;src/sprites/cantletgo_sprites.c:4: BANKREF(cantletgo_sp)
                                      46 ;	---------------------------------
                                      47 ; Function __func_cantletgo_sp
                                      48 ; ---------------------------------
-                         0000007E    49 	b___func_cantletgo_sp	= 126
+                         00000069    49 	b___func_cantletgo_sp	= 105
     00000000                         50 ___func_cantletgo_sp::
                                      51 	.local b___func_cantletgo_sp 
-                         0000007E    52 	___bank_cantletgo_sp = b___func_cantletgo_sp 
+                         00000069    52 	___bank_cantletgo_sp = b___func_cantletgo_sp 
                                      53 	.globl ___bank_cantletgo_sp 
-                                     54 	.area _CODE_126
+                                     54 	.area _CODE_105
     00000000                         55 _cantletgo_sp:
     00000000 00 00                   56 	.dw #0x0000
     00000002 02                      57 	.db #0x02	; 2

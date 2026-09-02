@@ -830,7 +830,7 @@ void draw_levels(void) BANKED {
             draw_text(3, 2 + i, game_levels[i]->name);
         }
     }
-    draw_text(0, 16, "PRESS START TO PLAY");
+    draw_text(0, 16, "PRESS A TO PLAY");
     SHOW_BKG;
     redraw = 0;
 }

@@ -41,17 +41,17 @@
                                      41 ;--------------------------------------------------------
                                      42 ; code
                                      43 ;--------------------------------------------------------
-                                     44 	.area _CODE_128
-                                     45 ;src/backontrack_sprites.c:4: BANKREF(backontrack_sp)
+                                     44 	.area _CODE_101
+                                     45 ;src/sprites/backontrack_sprites.c:4: BANKREF(backontrack_sp)
                                      46 ;	---------------------------------
                                      47 ; Function __func_backontrack_sp
                                      48 ; ---------------------------------
-                         00000080    49 	b___func_backontrack_sp	= 128
+                         00000065    49 	b___func_backontrack_sp	= 101
     00000000                         50 ___func_backontrack_sp::
                                      51 	.local b___func_backontrack_sp 
-                         00000080    52 	___bank_backontrack_sp = b___func_backontrack_sp 
+                         00000065    52 	___bank_backontrack_sp = b___func_backontrack_sp 
                                      53 	.globl ___bank_backontrack_sp 
-                                     54 	.area _CODE_128
+                                     54 	.area _CODE_101
     00000000                         55 _backontrack_sp:
     00000000 00 00                   56 	.dw #0x0000
     00000002 02                      57 	.db #0x02	; 2

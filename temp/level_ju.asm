@@ -40,12 +40,12 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_8
-;src/level_ju.c:4: INCBIN(jumper_map, "levels/level_data/jumper_16high.bin")
+	.area _CODE_36
+;src/levels/level_ju.c:4: INCBIN(jumper_map, "levels/level_data/jumper_16high.bin")
 ;	---------------------------------
 ; Function __func_jumper_map
 ; ---------------------------------
-	b___func_jumper_map	= 8
+	b___func_jumper_map	= 36
 ___func_jumper_map::
 _jumper_map::
 1$:
@@ -56,6 +56,6 @@ _jumper_map::
 	.local b___func_jumper_map 
 	___bank_jumper_map = b___func_jumper_map 
 	.globl ___bank_jumper_map 
-	.area _CODE_8
+	.area _CODE_36
 	.area _INITIALIZER
 	.area _CABS (ABS)

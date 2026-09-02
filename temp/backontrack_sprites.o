@@ -1,7 +1,7 @@
 XL4
 H B areas 4 global symbols
 M backontrack_sprites
-S ___bank_backontrack_sp Def00000080
+S ___bank_backontrack_sp Def00000065
 S .__.ABS. Def00000000
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_128 size 2B4 flags 0 addr 0
+A _CODE_101 size 2B4 flags 0 addr 0
 S _backontrack_sp Def00000000
 S ___func_backontrack_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

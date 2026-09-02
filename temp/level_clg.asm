@@ -40,12 +40,12 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_7
-;src/level_clg.c:4: INCBIN(cantletgo_map, "levels/level_data/cantletgo_16high.bin")
+	.area _CODE_35
+;src/levels/level_clg.c:4: INCBIN(cantletgo_map, "levels/level_data/cantletgo_16high.bin")
 ;	---------------------------------
 ; Function __func_cantletgo_map
 ; ---------------------------------
-	b___func_cantletgo_map	= 7
+	b___func_cantletgo_map	= 35
 ___func_cantletgo_map::
 _cantletgo_map::
 1$:
@@ -56,6 +56,6 @@ _cantletgo_map::
 	.local b___func_cantletgo_map 
 	___bank_cantletgo_map = b___func_cantletgo_map 
 	.globl ___bank_cantletgo_map 
-	.area _CODE_7
+	.area _CODE_35
 	.area _INITIALIZER
 	.area _CABS (ABS)

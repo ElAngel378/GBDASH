@@ -7,7 +7,7 @@ Symbol Table
     .__.ABS.                                                    =   00000000 G
     .__.CPU.                                                    =   00000000 L
     .__.H$L.                                                    =   00000000 L
-  0 _MAX_LEVELS                                                     00000104 GR
+  0 _MAX_LEVELS                                                     0000011E GR
     ___bank_backontrack_map                                         ******** GX
     ___bank_backontrack_sp                                          ******** GX
     ___bank_baseafterbase_map                                       ******** GX
@@ -27,19 +27,22 @@ Symbol Table
     ___bank_stereomadness_sp                                        ******** GX
     ___bank_timemachine_map                                         ******** GX
     ___bank_timemachine_sp                                          ******** GX
+    ___bank_ultiatedestruction_map                                  ******** GX
+    ___bank_ultiatedestruction_sp                                   ******** GX
     ___bank_xstep_map                                               ******** GX
     ___bank_xstep_sp                                                ******** GX
   0 ___func_game_levels                                             00000000 GR
-  0 __str_0                                                         00000105 R
-  0 __str_1                                                         00000114 R
-  0 __str_2                                                         00000122 R
-  0 __str_3                                                         0000012D R
-  0 __str_4                                                         00000135 R
-  0 __str_5                                                         00000145 R
-  0 __str_6                                                         00000151 R
-  0 __str_7                                                         00000158 R
-  0 __str_8                                                         00000165 R
-  0 __str_9                                                         0000016C R
+  0 __str_0                                                         0000011F R
+  0 __str_1                                                         0000012E R
+  0 __str_10                                                        0000018C R
+  0 __str_2                                                         0000013C R
+  0 __str_3                                                         00000147 R
+  0 __str_4                                                         0000014F R
+  0 __str_5                                                         0000015F R
+  0 __str_6                                                         0000016B R
+  0 __str_7                                                         00000172 R
+  0 __str_8                                                         0000017F R
+  0 __str_9                                                         00000186 R
     _backontrack                                                    ******** GX
     _backontrack_map                                                ******** GX
     _backontrack_sp                                                 ******** GX
@@ -55,38 +58,41 @@ Symbol Table
     _cycles_map                                                     ******** GX
     _cycles_sp                                                      ******** GX
     _dryout                                                         ******** GX
-    _dryout_map                                                     ******** GX
-    _dryout_sp                                                      ******** GX
-  0 _game_levels                                                    000000F0 GR
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy)                  Page 2
 Hexadecimal [32-Bits]
 
 Symbol Table
 
+    _dryout_map                                                     ******** GX
+    _dryout_sp                                                      ******** GX
+  0 _game_levels                                                    00000108 GR
     _jumper                                                         ******** GX
     _jumper_map                                                     ******** GX
     _jumper_sp                                                      ******** GX
-  0 _level_bab                                                      00000072 GR
-  0 _level_bot                                                      00000033 GR
-  0 _level_clg                                                      00000087 GR
-  0 _level_cy                                                       000000C6 GR
-  0 _level_du                                                       0000005D GR
-  0 _level_ju                                                       0000009C GR
-  0 _level_pg                                                       00000048 GR
-  0 _level_sm                                                       0000001E GR
+  0 _level_bab                                                      00000075 GR
+  0 _level_bot                                                      00000036 GR
+  0 _level_clg                                                      0000008A GR
+  0 _level_cy                                                       000000C9 GR
+  0 _level_du                                                       00000060 GR
+  0 _level_ju                                                       0000009F GR
+  0 _level_pg                                                       0000004B GR
+  0 _level_sm                                                       00000021 GR
   0 _level_songs                                                    00000000 GR
-  0 _level_tm                                                       000000B1 GR
-  0 _level_xs                                                       000000DB GR
+  0 _level_tm                                                       000000B4 GR
+  0 _level_ultiatedestruction                                       000000F3 GR
+  0 _level_xs                                                       000000DE GR
     _polargeist                                                     ******** GX
     _polargeist_map                                                 ******** GX
     _polargeist_sp                                                  ******** GX
-  0 _song_bank                                                      00000014 GR
+  0 _song_bank                                                      00000016 GR
     _stereomadness                                                  ******** GX
     _stereomadness_map                                              ******** GX
     _stereomadness_sp                                               ******** GX
     _timemachine                                                    ******** GX
     _timemachine_map                                                ******** GX
     _timemachine_sp                                                 ******** GX
+    _ultiatedestruction_map                                         ******** GX
+    _ultiatedestruction_sp                                          ******** GX
     _xstep                                                          ******** GX
     _xstep_map                                                      ******** GX
     _xstep_sp                                                       ******** GX
@@ -98,7 +104,7 @@ Hexadecimal [32-Bits]
 
 Area Table
 
-   0 _CODE                                      size      172   flags    0
+   0 _CODE                                      size      18E   flags    0
    1 _HRAM                                      size        0   flags    0
    2 _DATA                                      size        0   flags    0
    3 _INITIALIZED                               size        0   flags    0

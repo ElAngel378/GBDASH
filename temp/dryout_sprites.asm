@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_124
-;src/dryout_sprites.c:4: BANKREF(dryout_sp)
+	.area _CODE_103
+;src/sprites/dryout_sprites.c:4: BANKREF(dryout_sp)
 ;	---------------------------------
 ; Function __func_dryout_sp
 ; ---------------------------------
-	b___func_dryout_sp	= 124
+	b___func_dryout_sp	= 103
 ___func_dryout_sp::
 	.local b___func_dryout_sp 
 	___bank_dryout_sp = b___func_dryout_sp 
 	.globl ___bank_dryout_sp 
-	.area _CODE_124
+	.area _CODE_103
 _dryout_sp:
 	.dw #0x0000
 	.db #0x02	; 2

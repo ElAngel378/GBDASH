@@ -3,7 +3,7 @@ H B areas 5 global symbols
 M level_cy
 S ___size_cycles_map Def00003370
 S .__.ABS. Def00000000
-S ___bank_cycles_map Def0000000B
+S ___bank_cycles_map Def00000026
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -12,7 +12,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_11 size 3370 flags 0 addr 0
+A _CODE_38 size 3370 flags 0 addr 0
 S ___func_cycles_map Def00000000
 S _cycles_map Def00000000
 A _INITIALIZER size 0 flags 0 addr 0

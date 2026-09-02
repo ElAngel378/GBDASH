@@ -41,17 +41,17 @@
                                      41 ;--------------------------------------------------------
                                      42 ; code
                                      43 ;--------------------------------------------------------
-                                     44 	.area _CODE_125
-                                     45 ;src/cycles_sprites.c:4: BANKREF(cycles_sp)
+                                     44 	.area _CODE_108
+                                     45 ;src/sprites/cycles_sprites.c:4: BANKREF(cycles_sp)
                                      46 ;	---------------------------------
                                      47 ; Function __func_cycles_sp
                                      48 ; ---------------------------------
-                         0000007D    49 	b___func_cycles_sp	= 125
+                         0000006C    49 	b___func_cycles_sp	= 108
     00000000                         50 ___func_cycles_sp::
                                      51 	.local b___func_cycles_sp 
-                         0000007D    52 	___bank_cycles_sp = b___func_cycles_sp 
+                         0000006C    52 	___bank_cycles_sp = b___func_cycles_sp 
                                      53 	.globl ___bank_cycles_sp 
-                                     54 	.area _CODE_125
+                                     54 	.area _CODE_108
     00000000                         55 _cycles_sp:
     00000000 00 00                   56 	.dw #0x0000
     00000002 00                      57 	.db #0x00	; 0

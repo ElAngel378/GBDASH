@@ -41,17 +41,17 @@
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
-	.area _CODE_127
-;src/baseafterbase_sprites.c:4: BANKREF(baseafterbase_sp)
+	.area _CODE_104
+;src/sprites/baseafterbase_sprites.c:4: BANKREF(baseafterbase_sp)
 ;	---------------------------------
 ; Function __func_baseafterbase_sp
 ; ---------------------------------
-	b___func_baseafterbase_sp	= 127
+	b___func_baseafterbase_sp	= 104
 ___func_baseafterbase_sp::
 	.local b___func_baseafterbase_sp 
 	___bank_baseafterbase_sp = b___func_baseafterbase_sp 
 	.globl ___bank_baseafterbase_sp 
-	.area _CODE_127
+	.area _CODE_104
 _baseafterbase_sp:
 	.dw #0x0000
 	.db #0x02	; 2

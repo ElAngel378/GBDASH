@@ -40,12 +40,12 @@
                                      40 ;--------------------------------------------------------
                                      41 ; code
                                      42 ;--------------------------------------------------------
-                                     43 	.area _CODE_5
-                                     44 ;src/level_pg.c:4: INCBIN(polargeist_map, "levels/level_data/polargeist_16high.bin")
+                                     43 	.area _CODE_32
+                                     44 ;src/levels/level_pg.c:4: INCBIN(polargeist_map, "levels/level_data/polargeist_16high.bin")
                                      45 ;	---------------------------------
                                      46 ; Function __func_polargeist_map
                                      47 ; ---------------------------------
-                         00000005    48 	b___func_polargeist_map	= 5
+                         00000020    48 	b___func_polargeist_map	= 32
     00000000                         49 ___func_polargeist_map::
     00000000                         50 _polargeist_map::
     00000000                         51 1$:
@@ -72,8 +72,8 @@
                          00003A70    54 	___size_polargeist_map = (2$-1$) 
                                      55 	.globl ___size_polargeist_map 
                                      56 	.local b___func_polargeist_map 
-                         00000005    57 	___bank_polargeist_map = b___func_polargeist_map 
+                         00000020    57 	___bank_polargeist_map = b___func_polargeist_map 
                                      58 	.globl ___bank_polargeist_map 
-                                     59 	.area _CODE_5
+                                     59 	.area _CODE_32
                                      60 	.area _INITIALIZER
                                      61 	.area _CABS (ABS)

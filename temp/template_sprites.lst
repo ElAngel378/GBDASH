@@ -42,7 +42,7 @@
                                      42 ; code
                                      43 ;--------------------------------------------------------
                                      44 	.area _CODE_120
-                                     45 ;src/template_sprites.c:4: BANKREF(template_sp)
+                                     45 ;src/sprites/template_sprites.c:4: BANKREF(template_sp)
                                      46 ;	---------------------------------
                                      47 ; Function __func_template_sp
                                      48 ; ---------------------------------

@@ -2,7 +2,7 @@ XL4
 H B areas 4 global symbols
 M baseafterbase_sprites
 S .__.ABS. Def00000000
-S ___bank_baseafterbase_sp Def0000007F
+S ___bank_baseafterbase_sp Def00000068
 A _CODE size 0 flags 0 addr 0
 A _HRAM size 0 flags 0 addr 0
 A _DATA size 0 flags 0 addr 0
@@ -11,7 +11,7 @@ A _DABS size 0 flags 8 addr 0
 A _HOME size 0 flags 0 addr 0
 A _GSINIT size 0 flags 0 addr 0
 A _GSFINAL size 0 flags 0 addr 0
-A _CODE_127 size 368 flags 0 addr 0
+A _CODE_104 size 368 flags 0 addr 0
 S _baseafterbase_sp Def00000000
 S ___func_baseafterbase_sp Def00000000
 A _INITIALIZER size 0 flags 0 addr 0
