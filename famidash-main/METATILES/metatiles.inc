@@ -68,27 +68,27 @@ Metatile "WAVY_PLATFORM_MIDDLE_TOP_WAVYPIT_BOTTOM", 				$03, $03, $6E, $6E, PAL_
 Metatile "WAVY_PLATFORM_RIGHT_TOP_WAVYPIT_BOTTOM", 					$03, $04, $6E, $6E, PAL_0, COL_ALL
 Metatile "WAVY_PLATFORM_STANDALONE_TOP_WAVYPIT_BOTTOM", 			$01, $04, $6E, $6E, PAL_0, COL_ALL
 
-Metatile "X_FULL_OUTLINE", 											$60, $61, $70, $71, PAL_0, COL_ALL
-Metatile "X_TOP_OUTLINE", 											$64, $65, $76, $77, PAL_0, COL_ALL
-Metatile "X_RIGHT_OUTLINE", 										$66, $63, $76, $73, PAL_0, COL_ALL
-Metatile "X_BOTTOM_OUTLINE", 										$66, $67, $74, $75, PAL_0, COL_ALL
-Metatile "X_LEFT_OUTLINE", 											$62, $67, $72, $77, PAL_0, COL_ALL
-Metatile "X_TOP_LEFT_OUTLINE", 										$60, $65, $72, $77, PAL_0, COL_ALL
-Metatile "X_TOP_RIGHT_OUTLINE", 									$64, $61, $76, $73, PAL_0, COL_ALL
-Metatile "X_BOTTOM_RIGHT_OUTLINE", 									$66, $63, $74, $71, PAL_0, COL_ALL
-Metatile "X_BOTTOM_LEFT_OUTLINE", 									$62, $67, $70, $75, PAL_0, COL_ALL
-Metatile "X_TOP_LEFT_DOT", 											$68, $67, $76, $77, PAL_0, COL_ALL
-Metatile "X_TOP_RIGHT_DOT", 										$66, $69, $76, $77, PAL_0, COL_ALL
-Metatile "X_BOTTOM_RIGHT_DOT", 										$66, $67, $76, $79, PAL_0, COL_ALL
-Metatile "X_BOTTOM_LEFT_DOT", 										$66, $67, $78, $77, PAL_0, COL_ALL
-Metatile "X_LEFT_RIGHT_OUTLINE", 									$62, $63, $72, $73, PAL_0, COL_ALL
-Metatile "X_TOP_BOTTOM_OUTLINE", 									$64, $65, $74, $75, PAL_0, COL_ALL
-Metatile "X_NO_OUTLINE", 											$66, $67, $76, $77 , PAL_0, COL_NONE
+Metatile "X_FULL_OUTLINE", 											$E0, $E1, $F0, $F1, PAL_0, COL_ALL
+Metatile "X_TOP_OUTLINE", 											$E4, $E5, $F6, $F7, PAL_0, COL_ALL
+Metatile "X_RIGHT_OUTLINE", 										$E6, $E3, $F6, $F3, PAL_0, COL_ALL
+Metatile "X_BOTTOM_OUTLINE", 										$E6, $E7, $F4, $F5, PAL_0, COL_ALL
+Metatile "X_LEFT_OUTLINE", 											$E2, $E7, $F2, $F7, PAL_0, COL_ALL
+Metatile "X_TOP_LEFT_OUTLINE", 										$E0, $E5, $F2, $F7, PAL_0, COL_ALL
+Metatile "X_TOP_RIGHT_OUTLINE", 									$E4, $E1, $F6, $F3, PAL_0, COL_ALL
+Metatile "X_BOTTOM_RIGHT_OUTLINE", 									$E6, $E3, $F4, $F1, PAL_0, COL_ALL
+Metatile "X_BOTTOM_LEFT_OUTLINE", 									$E2, $E7, $F0, $F5, PAL_0, COL_ALL
+Metatile "X_TOP_LEFT_DOT", 											$E8, $E7, $F6, $F7, PAL_0, COL_ALL
+Metatile "X_TOP_RIGHT_DOT", 										$E6, $E9, $F6, $F7, PAL_0, COL_ALL
+Metatile "X_BOTTOM_RIGHT_DOT", 										$E6, $E7, $F6, $F9, PAL_0, COL_ALL
+Metatile "X_BOTTOM_LEFT_DOT", 										$E6, $E7, $F8, $F7, PAL_0, COL_ALL
+Metatile "X_LEFT_RIGHT_OUTLINE", 									$E2, $E3, $F2, $F3, PAL_0, COL_ALL
+Metatile "X_TOP_BOTTOM_OUTLINE", 									$E4, $E5, $F4, $F5, PAL_0, COL_ALL
+Metatile "X_NO_OUTLINE", 											$E6, $E7, $F6, $F7 , PAL_0, COL_NONE
 
-Metatile "X_LEFT_TOP_RIGHT_OUTLINE", 								$60, $61, $72, $73, PAL_0, COL_ALL
-Metatile "X_TOP_RIGHT_BOTTOM_OUTLINE", 								$64, $61, $74, $71, PAL_0, COL_ALL
-Metatile "X_LEFT_RIGHT_BOTTOM_OUTLINE", 							$62, $63, $70, $71, PAL_0, COL_ALL
-Metatile "X_TOP_LEFT_BOTTOM_OUTLINE", 								$60, $65, $70, $75, PAL_0, COL_ALL
+Metatile "X_LEFT_TOP_RIGHT_OUTLINE", 								$E0, $E1, $F2, $F3, PAL_0, COL_ALL
+Metatile "X_TOP_RIGHT_BOTTOM_OUTLINE", 								$E4, $E1, $F4, $F1, PAL_0, COL_ALL
+Metatile "X_LEFT_RIGHT_BOTTOM_OUTLINE", 							$E2, $E3, $F0, $F1, PAL_0, COL_ALL
+Metatile "X_TOP_LEFT_BOTTOM_OUTLINE", 								$E0, $E5, $F0, $F5, PAL_0, COL_ALL
 Metatile "TOP_WAVY_PLATFORM_LEFT", 									$02, $03, $00, $00, PAL_0, COL_TOP
 Metatile "TOP_WAVY_PLATFORM_MIDDLE", 								$03, $03, $00, $00, PAL_0, COL_TOP
 Metatile "TOP_WAVY_PLATFORM_RIGHT", 								$03, $04, $00, $00, PAL_0, COL_TOP
@@ -262,8 +262,8 @@ Metatile "RIGHT_HALF_HALF_SPIKE_TOP", 								$2D, $00, $00, $00, PAL_0, COL_UP_
 Metatile "LEFT_HALF_SPIKE_UP", 										$00, $22, $00, $32, PAL_0, COL_DOWN_RIGHT_SPIKE
 Metatile "RIGHT_HALF_SPIKE_UP", 									$23, $00, $33, $00, PAL_0, COL_DOWN_LEFT_SPIKE
 Metatile "DOUBLE_HALF_SPIKE_UP", 									$23, $22, $33, $32, PAL_0, COL_DEATH
-Metatile "LEFT_HALF_X_FULL_OUTLINE", 								$00, $60, $00, $70, PAL_0, COL_RIGHT
-Metatile "RIGHT_HALF_X_FULL_OUTLINE", 								$61, $00, $71, $00, PAL_0, COL_LEFT
+Metatile "LEFT_HALF_X_FULL_OUTLINE", 								$00, $E0, $00, $F0, PAL_0, COL_RIGHT
+Metatile "RIGHT_HALF_X_FULL_OUTLINE", 								$E1, $00, $F1, $00, PAL_0, COL_LEFT
 Metatile "LEFT_HALF_SPIKE_TOP", 									$00, $24, $00, $34, PAL_0, COL_UP_RIGHT_SPIKE
 Metatile "RIGHT_HALF_SPIKE_TOP", 									$25, $00, $35, $00, PAL_0, COL_UP_LEFT_SPIKE
 Metatile "DOUBLE_HALF_SPIKE_TOP", 									$25, $24, $35, $34, PAL_0, COL_DEATH

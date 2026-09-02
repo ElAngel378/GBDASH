@@ -322,26 +322,26 @@ const uint8_t metatiles[FAMIDASH_NUM_METATILES][4] = {
     { 3, 3, 110, 110 }, /* WAVY_PLATFORM_MIDDLE_TOP_WAVYPIT_BOTTOM */
     { 3, 4, 110, 110 }, /* WAVY_PLATFORM_RIGHT_TOP_WAVYPIT_BOTTOM */
     { 1, 4, 110, 110 }, /* WAVY_PLATFORM_STANDALONE_TOP_WAVYPIT_BOTTOM */
-    { 96, 97, 112, 113 }, /* X_FULL_OUTLINE */
-    { 100, 101, 118, 119 }, /* X_TOP_OUTLINE */
-    { 102, 99, 118, 115 }, /* X_RIGHT_OUTLINE */
-    { 102, 103, 116, 117 }, /* X_BOTTOM_OUTLINE */
-    { 98, 103, 114, 119 }, /* X_LEFT_OUTLINE */
-    { 96, 101, 114, 119 }, /* X_TOP_LEFT_OUTLINE */
-    { 100, 97, 118, 115 }, /* X_TOP_RIGHT_OUTLINE */
-    { 102, 99, 116, 113 }, /* X_BOTTOM_RIGHT_OUTLINE */
-    { 98, 103, 112, 117 }, /* X_BOTTOM_LEFT_OUTLINE */
-    { 104, 103, 118, 119 }, /* X_TOP_LEFT_DOT */
-    { 102, 105, 118, 119 }, /* X_TOP_RIGHT_DOT */
-    { 102, 103, 118, 121 }, /* X_BOTTOM_RIGHT_DOT */
-    { 102, 103, 120, 119 }, /* X_BOTTOM_LEFT_DOT */
-    { 98, 99, 114, 115 }, /* X_LEFT_RIGHT_OUTLINE */
-    { 100, 101, 116, 117 }, /* X_TOP_BOTTOM_OUTLINE */
-    { 102, 103, 118, 119 }, /* X_NO_OUTLINE */
-    { 96, 97, 114, 115 }, /* X_LEFT_TOP_RIGHT_OUTLINE */
-    { 100, 97, 116, 113 }, /* X_TOP_RIGHT_BOTTOM_OUTLINE */
-    { 98, 99, 112, 113 }, /* X_LEFT_RIGHT_BOTTOM_OUTLINE */
-    { 96, 101, 112, 117 }, /* X_TOP_LEFT_BOTTOM_OUTLINE */
+    { 224, 225, 240, 241 }, /* X_FULL_OUTLINE */
+    { 228, 229, 246, 247 }, /* X_TOP_OUTLINE */
+    { 230, 227, 246, 243 }, /* X_RIGHT_OUTLINE */
+    { 230, 231, 244, 245 }, /* X_BOTTOM_OUTLINE */
+    { 226, 231, 242, 247 }, /* X_LEFT_OUTLINE */
+    { 224, 229, 242, 247 }, /* X_TOP_LEFT_OUTLINE */
+    { 228, 225, 246, 243 }, /* X_TOP_RIGHT_OUTLINE */
+    { 230, 227, 244, 241 }, /* X_BOTTOM_RIGHT_OUTLINE */
+    { 226, 231, 240, 245 }, /* X_BOTTOM_LEFT_OUTLINE */
+    { 232, 231, 246, 247 }, /* X_TOP_LEFT_DOT */
+    { 230, 233, 246, 247 }, /* X_TOP_RIGHT_DOT */
+    { 230, 231, 246, 249 }, /* X_BOTTOM_RIGHT_DOT */
+    { 230, 231, 248, 247 }, /* X_BOTTOM_LEFT_DOT */
+    { 226, 227, 242, 243 }, /* X_LEFT_RIGHT_OUTLINE */
+    { 228, 229, 244, 245 }, /* X_TOP_BOTTOM_OUTLINE */
+    { 230, 231, 246, 247 }, /* X_NO_OUTLINE */
+    { 224, 225, 242, 243 }, /* X_LEFT_TOP_RIGHT_OUTLINE */
+    { 228, 225, 244, 241 }, /* X_TOP_RIGHT_BOTTOM_OUTLINE */
+    { 226, 227, 240, 241 }, /* X_LEFT_RIGHT_BOTTOM_OUTLINE */
+    { 224, 229, 240, 245 }, /* X_TOP_LEFT_BOTTOM_OUTLINE */
     { 2, 3, 0, 0 }, /* TOP_WAVY_PLATFORM_LEFT */
     { 3, 3, 0, 0 }, /* TOP_WAVY_PLATFORM_MIDDLE */
     { 3, 4, 0, 0 }, /* TOP_WAVY_PLATFORM_RIGHT */
@@ -505,8 +505,8 @@ const uint8_t metatiles[FAMIDASH_NUM_METATILES][4] = {
     { 0, 34, 0, 50 }, /* LEFT_HALF_SPIKE_UP */
     { 35, 0, 51, 0 }, /* RIGHT_HALF_SPIKE_UP */
     { 35, 34, 51, 50 }, /* DOUBLE_HALF_SPIKE_UP */
-    { 0, 96, 0, 112 }, /* LEFT_HALF_X_FULL_OUTLINE */
-    { 97, 0, 113, 0 }, /* RIGHT_HALF_X_FULL_OUTLINE */
+    { 0, 224, 0, 240 }, /* LEFT_HALF_X_FULL_OUTLINE */
+    { 225, 0, 241, 0 }, /* RIGHT_HALF_X_FULL_OUTLINE */
     { 0, 36, 0, 52 }, /* LEFT_HALF_SPIKE_TOP */
     { 37, 0, 53, 0 }, /* RIGHT_HALF_SPIKE_TOP */
     { 37, 36, 53, 52 }, /* DOUBLE_HALF_SPIKE_TOP */
@@ -619,26 +619,26 @@ const uint8_t metatiles_rev[FAMIDASH_NUM_METATILES][4] = {
     { 3, 3, 110, 110 }, /* WAVY_PLATFORM_MIDDLE_TOP_WAVYPIT_BOTTOM */
     { 4, 3, 110, 110 }, /* WAVY_PLATFORM_RIGHT_TOP_WAVYPIT_BOTTOM */
     { 4, 1, 110, 110 }, /* WAVY_PLATFORM_STANDALONE_TOP_WAVYPIT_BOTTOM */
-    { 97, 96, 113, 112 }, /* X_FULL_OUTLINE */
-    { 101, 100, 119, 118 }, /* X_TOP_OUTLINE */
-    { 99, 102, 115, 118 }, /* X_RIGHT_OUTLINE */
-    { 103, 102, 117, 116 }, /* X_BOTTOM_OUTLINE */
-    { 103, 98, 119, 114 }, /* X_LEFT_OUTLINE */
-    { 101, 96, 119, 114 }, /* X_TOP_LEFT_OUTLINE */
-    { 97, 100, 115, 118 }, /* X_TOP_RIGHT_OUTLINE */
-    { 99, 102, 113, 116 }, /* X_BOTTOM_RIGHT_OUTLINE */
-    { 103, 98, 117, 112 }, /* X_BOTTOM_LEFT_OUTLINE */
-    { 103, 104, 119, 118 }, /* X_TOP_LEFT_DOT */
-    { 105, 102, 119, 118 }, /* X_TOP_RIGHT_DOT */
-    { 103, 102, 121, 118 }, /* X_BOTTOM_RIGHT_DOT */
-    { 103, 102, 119, 120 }, /* X_BOTTOM_LEFT_DOT */
-    { 99, 98, 115, 114 }, /* X_LEFT_RIGHT_OUTLINE */
-    { 101, 100, 117, 116 }, /* X_TOP_BOTTOM_OUTLINE */
-    { 103, 102, 119, 118 }, /* X_NO_OUTLINE */
-    { 97, 96, 115, 114 }, /* X_LEFT_TOP_RIGHT_OUTLINE */
-    { 97, 100, 113, 116 }, /* X_TOP_RIGHT_BOTTOM_OUTLINE */
-    { 99, 98, 113, 112 }, /* X_LEFT_RIGHT_BOTTOM_OUTLINE */
-    { 101, 96, 117, 112 }, /* X_TOP_LEFT_BOTTOM_OUTLINE */
+    { 225, 224, 241, 240 }, /* X_FULL_OUTLINE */
+    { 229, 228, 247, 246 }, /* X_TOP_OUTLINE */
+    { 227, 230, 243, 246 }, /* X_RIGHT_OUTLINE */
+    { 231, 230, 245, 244 }, /* X_BOTTOM_OUTLINE */
+    { 231, 226, 247, 242 }, /* X_LEFT_OUTLINE */
+    { 229, 224, 247, 242 }, /* X_TOP_LEFT_OUTLINE */
+    { 225, 228, 243, 246 }, /* X_TOP_RIGHT_OUTLINE */
+    { 227, 230, 241, 244 }, /* X_BOTTOM_RIGHT_OUTLINE */
+    { 231, 226, 245, 240 }, /* X_BOTTOM_LEFT_OUTLINE */
+    { 231, 232, 247, 246 }, /* X_TOP_LEFT_DOT */
+    { 233, 230, 247, 246 }, /* X_TOP_RIGHT_DOT */
+    { 231, 230, 249, 246 }, /* X_BOTTOM_RIGHT_DOT */
+    { 231, 230, 247, 248 }, /* X_BOTTOM_LEFT_DOT */
+    { 227, 226, 243, 242 }, /* X_LEFT_RIGHT_OUTLINE */
+    { 229, 228, 245, 244 }, /* X_TOP_BOTTOM_OUTLINE */
+    { 231, 230, 247, 246 }, /* X_NO_OUTLINE */
+    { 225, 224, 243, 242 }, /* X_LEFT_TOP_RIGHT_OUTLINE */
+    { 225, 228, 241, 244 }, /* X_TOP_RIGHT_BOTTOM_OUTLINE */
+    { 227, 226, 241, 240 }, /* X_LEFT_RIGHT_BOTTOM_OUTLINE */
+    { 229, 224, 245, 240 }, /* X_TOP_LEFT_BOTTOM_OUTLINE */
     { 3, 2, 0, 0 }, /* TOP_WAVY_PLATFORM_LEFT */
     { 3, 3, 0, 0 }, /* TOP_WAVY_PLATFORM_MIDDLE */
     { 4, 3, 0, 0 }, /* TOP_WAVY_PLATFORM_RIGHT */
@@ -802,8 +802,8 @@ const uint8_t metatiles_rev[FAMIDASH_NUM_METATILES][4] = {
     { 34, 0, 50, 0 }, /* LEFT_HALF_SPIKE_UP */
     { 0, 35, 0, 51 }, /* RIGHT_HALF_SPIKE_UP */
     { 34, 35, 50, 51 }, /* DOUBLE_HALF_SPIKE_UP */
-    { 96, 0, 112, 0 }, /* LEFT_HALF_X_FULL_OUTLINE */
-    { 0, 97, 0, 113 }, /* RIGHT_HALF_X_FULL_OUTLINE */
+    { 224, 0, 240, 0 }, /* LEFT_HALF_X_FULL_OUTLINE */
+    { 0, 225, 0, 241 }, /* RIGHT_HALF_X_FULL_OUTLINE */
     { 36, 0, 52, 0 }, /* LEFT_HALF_SPIKE_TOP */
     { 0, 37, 0, 53 }, /* RIGHT_HALF_SPIKE_TOP */
     { 36, 37, 52, 53 }, /* DOUBLE_HALF_SPIKE_TOP */

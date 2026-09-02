@@ -5,7 +5,7 @@
 #include <gbdk/metasprites.h>
 #include "assets.h"
 
-#define FAMIDASH_SPRITE_TILE_BASE 144
+#define FAMIDASH_SPRITE_TILE_BASE 160
 #define FAMIDASH_SPRITE_TILE_COUNT 92
 #define CHAIN_BLOCK_TILE 84
 

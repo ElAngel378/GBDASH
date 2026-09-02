@@ -101,8 +101,8 @@ static const uint16_t nes_master_palette[64] = {
  */
 static const uint16_t vibrant_palette_default[16] = {
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(31, 31, 31), // palette 0
-    RGB(10, 10, 10), RGB(0, 0, 17), RGB(0, 7, 19), RGB(31, 31, 31), // palette 1
-    RGB(10, 10, 10), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 28, 0), // palette 2
+    RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 7, 19), RGB(31, 31, 31), // palette 1
+    RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 28, 0), // palette 2
     RGB(0, 7, 19), RGB(0, 0, 17), RGB(0, 0, 0), RGB(0, 0, 0)  // palette 3
 };
 
@@ -159,13 +159,18 @@ static const uint8_t level_sprite_cost_table[38] = {
 //    RGB8(200,80,140), RGB8(255,140,180), RGB8(255,190,220), RGB8(255,240,250),  // 6: Pink
 //    RGB8(200,80,80), RGB8(255,140,140), RGB8(255,190,190), RGB8(255,240,240),   // 7: Red
 //    RGB8(200,120,80), RGB8(255,180,140), RGB8(255,220,190), RGB8(255,250,240),  // 8: Orange
-//    RGB8(200,200,80), RGB8(255,255,140), RGB8(255,255,190), RGB8(255,255,240),  // 9: Yellow
-//    RGB8(140,200,80), RGB8(190,255,140), RGB8(220,255,190), RGB8(250,255,240),  // 10: Lime
-//    RGB8(80,200,80), RGB8(140,255,140), RGB8(190,255,190), RGB8(240,255,240),   // 11: Green
-//    RGB8(80,200,180), RGB8(140,255,230), RGB8(190,255,245), RGB8(240,255,250),  // 12: Teal
-//    RGB8(80,120,200), RGB8(140,180,255), RGB8(190,220,255), RGB8(240,240,255),  // 13: Navy
-//    RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), RGB8(255,255,255), // 14: White
-//    RGB8(50,50,50), RGB8(30,30,30), RGB8(10,10,10), RGB8(0,0,0)                 // 15: Black
+//    RGB8(20,0,20), RGB8(40,0,40), RGB8(80,0,80), RGB8(120,0,120),      // 4: Magenta
+//    RGB8(20,0,10), RGB8(40,0,20), RGB8(80,0,40), RGB8(120,0,60),       // 5: Red
+//    RGB8(20,10,0), RGB8(40,20,0), RGB8(80,40,0), RGB8(120,60,0),       // 6: Orange
+//    RGB8(20,20,0), RGB8(40,40,0), RGB8(80,80,0), RGB8(120,120,0),      // 7: Yellow
+//    RGB8(0,20,0), RGB8(0,40,0), RGB8(0,80,0), RGB8(0,120,0),           // 8: Green
+//    RGB8(0,20,20), RGB8(0,40,40), RGB8(0,80,80), RGB8(0,120,120),      // 9: Cyan
+//    RGB8(10,10,10), RGB8(20,20,20), RGB8(30,30,30), RGB8(40,40,40),    // 10: Charcoal
+//    RGB8(10,0,0), RGB8(20,0,0), RGB8(40,0,0), RGB8(60,0,0),            // 11: Maroon
+//    RGB8(0,10,0), RGB8(0,20,0), RGB8(0,40,0), RGB8(0,60,0),            // 12: Forest Green
+//    RGB8(0,0,10), RGB8(0,0,20), RGB8(0,0,40), RGB8(0,0,60),            // 13: Navy Blue
+//    RGB8(10,10,0), RGB8(20,20,0), RGB8(40,40,0), RGB8(60,60,0),        // 14: Olive
+//    RGB8(10,0,10), RGB8(20,0,20), RGB8(40,0,40), RGB8(60,0,60)         // 15: Purple
 //};
 
 static palette_color_t famidash_bg_palettes[16];
@@ -198,8 +203,12 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     }
 
     famidash_bg_palettes[0] = color;
+    famidash_bg_palettes[4] = color;
+    famidash_bg_palettes[8] = color;
+    famidash_bg_palettes[12] = color;
     color = famidash_darker(color);
     famidash_bg_palettes[1] = color;
+    famidash_bg_palettes[5] = color;
     famidash_bg_palettes[9] = color;
     famidash_bg_palettes[13] = color;
     set_bkg_palette(0, 4, famidash_bg_palettes);
