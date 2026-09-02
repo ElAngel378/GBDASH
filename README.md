@@ -1,11 +1,11 @@
 <p align="center">
-  <img src=".github/artwork/IMG_5761.jpeg" width="500">
+  <img src=".github/artwork/Untitled_design_-_2026-09-01T204022.293.png" width="500">
 </p>
 
-# GB DASH
+# Pocket Dash
 
-### GB Dash is a demake of Geometry Dash for the DMG GameBoy!
-Info: The project is going to be renamed to Geometry Dash Pocket soon.
+### Pocket Dash (or Geometry Dash Pocket/GDP) is a demake of Geometry Dash for the DMG and GBC Game Boy!
+Info: The project was renamed to Geometry Dash Pocket, and was formerly known as GB DASH
 
 ### Images:
 <p align="center">
@@ -26,17 +26,17 @@ Info: The project is going to be renamed to Geometry Dash Pocket soon.
 # About
 Experience the ultimate rage-inducing rhythm platformer, scaled down to 4 shades of green (or gray) and a crisp 160x144 resolution! Built from scratch for original Game Boy hardware.
 
-Unlike GB Dash by TiTi, this one features a famidash style gameplay with the actual levels, and support for the original (DMG) gameboy!
+Unlike GB Dash by TiTi, this one features a Famidash-style gameplay with the actual original levels, and support for the original (DMG) Game Boy!
 
 This game is being actively developed (coding and music) by Sotospro24 and ElAngel378
 
 # Features (as of now)
-- All levels up to Time Machine
-- Gameplay (Cube, Ship)
+- All levels up to Cycles
+- Gameplay (Cube, Ship, Ball)
 - Accurate Physics
 - Collision (Death and block collision)
 - Music Covers
-- All 1.0 - 1.1 mechanics including inverted graviry, mirror mode
+- All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
 - Level End screen
 
 ---
@@ -44,7 +44,7 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 # Download 
 ### Download the latest Nightly build here (Sotos24's branch): <a href="https://github.com/ElAngel378/GBDASH/releases/download/nightly/GBDASH.gb"><ins>DOWNLOAD</ins></a>
 **WARNING!** These are constantly changing and might be broken.
-
+### Alternatively, download the latest stable build in the releases tab.
 ---
 
 # Development Info
@@ -52,8 +52,8 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 | Contributor | Contribution |
 |---|---|
 |[**Sotos_24**](https://github.com/Soteris24) **and** [**ElAngel378**](https://github.com/ElAngel378)|**Project creators and lead developers**|
-|[Sotos_24](https://github.com/Soteris24) |Code (main code), Music, Graphics when I feel like it|
-|[ElAngel378](https://github.com/ElAngel378) |Code (optimise), Music, Graphics|
+|[Sotos_24](https://github.com/Soteris24) | Code (main code), Music, Graphics <sub>*when I feel like it*</sub> |
+|[ElAngel378](https://github.com/ElAngel378) |Code (optimize), Music, Graphics|
 |[Crafty Jumper](https://github.com/Crafty-Jumper) | Music, Graphics |
 |[Ziqiangao](https://github.com/ziqiangao/)| Tools, Music, Graphics|
 |Ranedom | Graphics |
@@ -63,18 +63,17 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 ---
 
-# To-Do (for 1.0 release)
+# TODO (for 1.0 release)
 - Add all objects, mechanics, levels up to 1.3
-- A proper menu and level select (font included)
-- Add Gameboy Color Support (palletes)
-- Decoration (not supported currently)
+- A proper menu and level select
+- Decoration (supported only in GBC mode)
 - Graphical improvements
 
 ---
 
-# Contibuting
+# Contributing 
 
-**Ways of contributing**
+**Ways of Contributing**
 1. Join the [Discord](https://discord.gg/cg8NRGxJTv)
 2. Pull Requests
 3. Contacting the main devs
@@ -83,4 +82,4 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 
 # Thank you
 ### To <a href="https://github.com/tfdsoft/famidash"><ins>TFDSoft</ins></a> , the Famidash team for assets (such as level files, graphics)
-### And the game we all love of course, Geometry Dash by RobTop Games.
+### And, of course, the game we all love: Geometry Dash by RobTop Games.
