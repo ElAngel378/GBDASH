@@ -55,10 +55,29 @@ static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
     return 1;
 }
 
-#define COL_AT_PTR(col, y) ( \
-    (((uint16_t)(y)) & 0xFF00) ? ((((int16_t)(y)) < 0) ? COL_NONE : COL_ALL) : \
-    col_at_raw_cached(col, (uint16_t)(y)) \
-)
+static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y) {
+    if ((uint16_t)y & 0xFF00) {
+        return (y < 0) ? COL_NONE : COL_ALL;
+    }
+    uint8_t py8 = (uint8_t)y;
+    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t inner_y = py8 & 0x0F;
+
+    if (col == COL_TOP) {
+        if (inner_y >= 8) return COL_NONE;
+    } else if (col == COL_BOTTOM) {
+        if (inner_y < 8) return COL_NONE;
+    } else if (col == COL_DEATH_TOP_HALF) {
+        if (inner_y < 8) return COL_NONE;
+        return COL_DEATH;
+    } else if (col == COL_DEATH_BOTTOM_HALF) {
+        if (inner_y >= 8) return COL_NONE;
+        return COL_DEATH;
+    }
+    return col;
+}
+
+#define COL_AT_PTR(col, y) inline_col_at((col), (int16_t)(y))
 
 uint8_t player_update(
         Player* p,
@@ -185,8 +204,8 @@ uint8_t player_update(
         }
     }
 
-    // --- 1-Pixel Sticky Ground Check (FamiDash Hack) ---
-    if (!p->on_ground) {
+    // --- 1-Pixel Sticky Ground Check (FamiDash Hack) - Cube & Ball only ---
+    if (!p->on_ground && p->mode != MODE_SHIP) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
         uint8_t stick_col = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
         if (!IS_SOLID(stick_col)) {

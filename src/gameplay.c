@@ -540,6 +540,10 @@ static void process_sprite_logic(
             continue;
         }
 
+        // Fast skip already-activated objects or objects behind the player
+        if (cache->activated[i]) continue;
+        if (obj_x + 48u < px) continue;
+
         // Bypass collision entirely for all decorations to save CPU cycles
         if (obj >= 38 && obj < 64) continue;
 
@@ -547,33 +551,30 @@ static void process_sprite_logic(
         if (obj >= 100 && obj <= 147 &&
             obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
 
-            if (!cache->activated[i]) {
-                uint8_t obj_col = (uint8_t)(obj_x >> 4);
+            uint8_t obj_col = (uint8_t)(obj_x >> 4);
+            uint8_t trigger_col;
+            if (obj_col > BG_TRIGGER_LEAD_TILES) {
+                trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
+            } else {
+                trigger_col = 0;
+            }
 
-                uint8_t trigger_col;
-                if (obj_col > BG_TRIGGER_LEAD_TILES) {
-                    trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
+            if (player_col >= trigger_col) {
+                uint8_t pal_idx = (uint8_t)(obj - 100);
+
+                if (_cpu == CGB_TYPE) {
+                    famidash_apply_bg_trigger(pal_idx);
+                }
+
+                if (pal_idx < 16) {
+                    *target_bg_idx = (pal_idx == 15) ? 3 : 2;
+                } else if (pal_idx < 32) {
+                    *target_bg_idx = 1;
                 } else {
-                    trigger_col = 0;
+                    *target_bg_idx = 0;
                 }
 
-                if (player_col >= trigger_col) {
-                    uint8_t pal_idx = (uint8_t)(obj - 100);
-
-                    if (_cpu == CGB_TYPE) {
-                        famidash_apply_bg_trigger(pal_idx);
-                    }
-
-                    if (pal_idx < 16) {
-                        *target_bg_idx = (pal_idx == 15) ? 3 : 2;
-                    } else if (pal_idx < 32) {
-                        *target_bg_idx = 1;
-                    } else {
-                        *target_bg_idx = 0;
-                    }
-
-                    cache->activated[i] = 1;
-                }
+                cache->activated[i] = 1;
             }
 
             if (obj_x > p_front + 16u) break;
@@ -581,6 +582,10 @@ static void process_sprite_logic(
         }
 
         uint16_t obj_y = cache->py[i];
+
+        // Fast Y distance rejection: skip if vertical distance is > 40px
+        int16_t dy = (int16_t)py - (int16_t)obj_y;
+        if (dy > 40 || dy < -40) continue;
 
         if (obj >= 16 && obj <= 19) {
             // 48-pixel (3 tile) wide horizontal gravity portal
@@ -607,6 +612,7 @@ static void process_sprite_logic(
                             if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
                             else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
                             else p->mode = MODE_BALL;
+                            p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity on portal entry
                             cache->activated[i] = 1;
                         }
                     }
@@ -641,8 +647,8 @@ static void process_sprite_logic(
                         if (!cache->activated[i]) {
                             cache->activated[i] = 1;
                             if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
-                                p->gravity_flipped = !p->gravity_flipped;
-                                p->vel_y.w = (p->gravity_flipped) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+                                p->gravity_flipped = (obj == OBJ_PAD_BLUE) ? 1 : 0;
+                                p->vel_y.w = (obj == OBJ_PAD_BLUE) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
                             } else if (obj == OBJ_PAD_PINK) {
                                 int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
                                 p->vel_y.w = (p->gravity_flipped) ? -force : force;
