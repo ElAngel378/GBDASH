@@ -133,6 +133,12 @@ def collision_value(mt_name, col_name, tiles):
         return values["COL_PAD"]
     if "PAD_DOWN_OUTLINE" in mt_upper:
         return values["COL_PAD"]
+    if mt_upper == "FAMIDASH_MT_HALF_SPIKE_BACKGROUND":
+        return values["COL_DEATH_TOP_HALF"]
+    if mt_upper == "FAMIDASH_MT_HALF_SPIKE_BACKGROUND_TOP":
+        return values["COL_DEATH_BOTTOM_HALF"]
+    if mt_upper == "FAMIDASH_MT_PLATFORM_SPIKE":
+        return values["COL_ALL"]
 
     if "SPIKE" in mt_upper or "SAW" in mt_upper:
         if is_bottom_half:
