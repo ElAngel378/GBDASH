@@ -59,7 +59,7 @@ extern const unsigned char FontPusab[];
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
-#define BG_TRIGGER_LEAD_TILES 11
+#define BG_TRIGGER_LEAD_TILES 10
 #define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
 
 // Index (0-3) of the default theme in bg_pals:
@@ -541,8 +541,8 @@ static void process_sprite_logic(
         }
 
         // Early break: Active list is sorted by X ascending.
-        // If an object is more than 48px ahead of the player, no physical object or trigger can interact.
-        if (obj != OBJ_LEVEL_END && obj_x > px + 48u) break;
+        // If beyond the trigger lead window, no future trigger or object can interact.
+        if (obj != OBJ_LEVEL_END && obj_x > px + BG_TRIGGER_LEAD_PX) break;
 
         // Fast skip already-activated objects or objects behind the player
         if (cache->activated[i]) continue;
@@ -582,9 +582,11 @@ static void process_sprite_logic(
                 cache->active[i] = 0; // Deactivate one-shot trigger so it is never scanned again
             }
 
-            if (obj_x > p_front + 16u) break;
             continue;
         }
+
+        // Physical objects (portals, pads, orbs) only need collision check within 48px of player
+        if (obj_x > px + 48u) continue;
 
         uint16_t obj_y = cache->py[i];
 
