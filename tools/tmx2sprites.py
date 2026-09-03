@@ -78,6 +78,11 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
     for i in range(128, 176):
         portals_map[sprites_firstgid + i] = 100 + (i - 128)
 
+    # Ground Color mappings (Rows 12, 13, 14):
+    # Mapping unique indices 192-239 to obj_ids 192-239
+    for i in range(192, 240):
+        portals_map[sprites_firstgid + i] = i
+
     portal_data = []
 
     # Find the layer named 'SP'

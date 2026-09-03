@@ -191,11 +191,11 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     palette_color_t color;
 
     if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Use Aqua as default player color */
-    else if (color_id == 46u) {                       /* FamiDash $AE: Ground Color 2 Trigger */
+    else if (color_id == 46u) {                   /* FamiDash $AE: Ground Color 2 Trigger */
         color = RGB(0, 28, 0); /* Neon Green */
         famidash_bg_palettes[6] = color;
         famidash_bg_palettes[5] = famidash_darker(color);
-        set_bkg_palette(0, 4, famidash_bg_palettes);
+        set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
         return;
     } else {
         // Fast local lookup
@@ -208,10 +208,21 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     famidash_bg_palettes[12] = color;
     color = famidash_darker(color);
     famidash_bg_palettes[1] = color;
-    famidash_bg_palettes[5] = color;
+    // famidash_bg_palettes[5] is preserved for ground darker color
     famidash_bg_palettes[9] = color;
     famidash_bg_palettes[13] = color;
     set_bkg_palette(0, 4, famidash_bg_palettes);
+}
+
+static void famidash_apply_g_trigger(uint8_t color_id) {
+    palette_color_t color;
+
+    if (color_id == 31u) color = RGB(0, 29, 27); /* FamiDash $9F: Aqua */
+    else color = nes_master_palette[color_id & 0x3Fu];
+
+    famidash_bg_palettes[6] = color;
+    famidash_bg_palettes[5] = famidash_darker(color);
+    set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
 }
 
 static const uint16_t gbc_sprite_palettes[] = {
@@ -610,6 +621,28 @@ static void process_sprite_logic(
 
                 cache->activated[i] = 1;
                 cache->active[i] = 0; // Deactivate one-shot trigger so it is never scanned again
+            }
+
+            continue;
+        }
+
+        // Ground color trigger objects (CGB only)
+        if (obj >= 192 && obj <= 239) {
+            uint8_t obj_col = (uint8_t)(obj_x >> 4);
+            uint8_t trigger_col;
+            if (obj_col > BG_TRIGGER_LEAD_TILES) {
+                trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
+            } else {
+                trigger_col = 0;
+            }
+
+            if (player_col >= trigger_col) {
+                if (_cpu == CGB_TYPE) {
+                    uint8_t pal_idx = (uint8_t)(obj - 192);
+                    famidash_apply_g_trigger(pal_idx);
+                }
+                cache->activated[i] = 1;
+                cache->active[i] = 0; // Deactivate one-shot trigger
             }
 
             continue;
