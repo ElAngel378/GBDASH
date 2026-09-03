@@ -716,17 +716,27 @@ static void process_sprite_logic(
                     if (py <= pad_bot && p_bottom >= pad_top) {
                         if (!cache->activated[i]) {
                             cache->activated[i] = 1;
-                            if (obj == OBJ_PAD_BLUE || obj == OBJ_PAD_BLUE_UP) {
-                                p->gravity_flipped = (obj == OBJ_PAD_BLUE) ? 1 : 0;
-                                p->vel_y.w = (obj == OBJ_PAD_BLUE) ? -BLUE_PAD_FORCE : BLUE_PAD_FORCE;
+                            if (obj == OBJ_PAD_BLUE) {
+                                if (!p->gravity_flipped) {
+                                    p->gravity_flipped = 1;
+                                    p->vel_y.w = -BLUE_PAD_FORCE;
+                                    p->on_ground = 0;
+                                }
+                            } else if (obj == OBJ_PAD_BLUE_UP) {
+                                if (p->gravity_flipped) {
+                                    p->gravity_flipped = 0;
+                                    p->vel_y.w = BLUE_PAD_FORCE;
+                                    p->on_ground = 0;
+                                }
                             } else if (obj == OBJ_PAD_PINK) {
                                 int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
                                 p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                                p->on_ground = 0;
                             } else {
                                 int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_PAD : PAD_JUMP_FORCE;
                                 p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                                p->on_ground = 0;
                             }
-                            p->on_ground = 0;
                         }
                     }
                     break;
