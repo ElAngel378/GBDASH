@@ -11,8 +11,11 @@ void menu_stat_isr(void) {
     if (LYC_REG == 16) {
         SCX_REG = bg_x;
         LYC_REG = 120;
-    } else {
+    } else if (LYC_REG == 120) {
         SCX_REG = ground_x;
+        LYC_REG = 0;
+    } else {
+        SCX_REG = 0;
         LYC_REG = 16;
     }
 }
@@ -62,33 +65,33 @@ GameState update_menu_state(void) {
     // Tiles 1-16 (skip tile 0 which is empty)
     set_sprite_data(0, 16, &playbutton[16]);
 
-    // Dedicated underlay tiles (8x16 each)
-    static const uint8_t yellow_fill_tile[32] = {
-        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-        0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00
-    };
-    // Top blue box: rows 1..5 in first 8x8, second 8x8 empty
-    static const uint8_t top_blue_tile[32] = {
-        0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00,
-        0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
-    // Bottom blue box: rows 6..7 in first 8x8, rows 0..2 in second 8x8
-    static const uint8_t bot_blue_tile[32] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00,
-        0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
-
-    set_sprite_data(16, 2, yellow_fill_tile);
-    set_sprite_data(18, 2, top_blue_tile);
-    set_sprite_data(20, 2, bot_blue_tile);
-
     if (_cpu == CGB_TYPE) {
+        // Dedicated underlay tiles (8x16 each)
+        static const uint8_t yellow_fill_tile[32] = {
+            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00
+        };
+        // Top blue box: rows 1..5 in first 8x8, second 8x8 empty
+        static const uint8_t top_blue_tile[32] = {
+            0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00,
+            0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        };
+        // Bottom blue box: rows 6..7 in first 8x8, rows 0..2 in second 8x8
+        static const uint8_t bot_blue_tile[32] = {
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00,
+            0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        };
+
+        set_sprite_data(16, 2, yellow_fill_tile);
+        set_sprite_data(18, 2, top_blue_tile);
+        set_sprite_data(20, 2, bot_blue_tile);
+
         // Green palette for the button cross
         static const uint16_t play_button_palette[] = {
             RGB8(255, 255, 255), // Trans
@@ -119,7 +122,7 @@ GameState update_menu_state(void) {
     uint8_t bx = 72; // Centered X (64 + 8)
     uint8_t by = 68; // Centered Y (52 + 16)
 
-    // Foreground Green Button (OAM 0..7)
+    // Foreground Button (OAM 0..7)
     set_sprite_tile(0, 0);  move_sprite(0, bx, by);           set_sprite_prop(0, 0);
     set_sprite_tile(1, 2);  move_sprite(1, bx, by + 16);      set_sprite_prop(1, 0);
     set_sprite_tile(2, 4);  move_sprite(2, bx + 8, by);       set_sprite_prop(2, 0);
@@ -129,22 +132,28 @@ GameState update_menu_state(void) {
     set_sprite_tile(6, 12); move_sprite(6, bx + 24, by);      set_sprite_prop(6, 0);
     set_sprite_tile(7, 14); move_sprite(7, bx + 24, by + 16); set_sprite_prop(7, 0);
 
-    // Yellow Triangle Underlay (OAM 8)
-    set_sprite_tile(8, 16); move_sprite(8, bx + 12, by + 8);  set_sprite_prop(8, 1);
+    if (_cpu == CGB_TYPE) {
+        // Yellow Triangle Underlay (OAM 8) - CGB only
+        set_sprite_tile(8, 16); move_sprite(8, bx + 12, by + 8);  set_sprite_prop(8, 1);
 
-    // Blue Corner Square Underlays (OAM 9..12) - exact 5x5 bounds
-    set_sprite_tile(9, 18);  move_sprite(9, bx + 4, by + 4);   set_sprite_prop(9, 2);  // Top-Left
-    set_sprite_tile(10, 18); move_sprite(10, bx + 21, by + 4);  set_sprite_prop(10, 2); // Top-Right
-    set_sprite_tile(11, 20); move_sprite(11, bx + 4, by + 16);  set_sprite_prop(11, 2); // Bottom-Left
-    set_sprite_tile(12, 20); move_sprite(12, bx + 21, by + 16); set_sprite_prop(12, 2); // Bottom-Right
+        // Blue Corner Square Underlays (OAM 9..12) - CGB only
+        set_sprite_tile(9, 18);  move_sprite(9, bx + 4, by + 4);   set_sprite_prop(9, 2);  // Top-Left
+        set_sprite_tile(10, 18); move_sprite(10, bx + 21, by + 4);  set_sprite_prop(10, 2); // Top-Right
+        set_sprite_tile(11, 20); move_sprite(11, bx + 4, by + 16);  set_sprite_prop(11, 2); // Bottom-Left
+        set_sprite_tile(12, 20); move_sprite(12, bx + 21, by + 16); set_sprite_prop(12, 2); // Bottom-Right
+    } else {
+        // Hide color underlays on DMG so monochrome priority doesn't obscure the triangle
+        for (uint8_t s = 8; s < 13; s++) hide_sprite(s);
+    }
 
     bg_x = 0;
     ground_x = 0;
+    SCX_REG = 0;
 
     disable_interrupts();
     add_LCD(menu_stat_isr);
     STAT_REG |= STATF_LYC;
-    LYC_REG = 16;
+    LYC_REG = 0;
     set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
     enable_interrupts();
 
@@ -152,14 +161,17 @@ GameState update_menu_state(void) {
     SHOW_SPRITES;
     DISPLAY_ON;
 
+    static uint16_t frame_counter = 0;
+
     while (1) {
-        SCX_REG = 0; // Header
+        wait_vbl_done();
 
         uint8_t joy = joypad();
         if (joy & (J_A | J_START)) {
             waitpadup();
             disable_interrupts();
             remove_LCD(menu_stat_isr);
+            STAT_REG &= ~STATF_LYC;
             set_interrupts(VBL_IFLAG | TIM_IFLAG);
             HIDE_SPRITES;
             for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
@@ -167,11 +179,7 @@ GameState update_menu_state(void) {
             return STATE_LEVEL_SELECT;
         }
 
-        wait_vbl_done();
-        
-        static uint16_t frame_counter = 0;
         frame_counter++;
-        
         if ((frame_counter & 1) == 0) {
             bg_x += 1;
         }
@@ -180,7 +188,6 @@ GameState update_menu_state(void) {
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             extern const uint16_t rainbow_palettes[128][4];
             uint8_t color_index = (frame_counter >> 4) & 127;
-            // Update palette 0 (used by background and ground)
             set_bkg_palette(0, 1, rainbow_palettes[color_index]);
         }
     }
