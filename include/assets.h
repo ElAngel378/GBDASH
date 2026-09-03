@@ -8,8 +8,8 @@
 #ifndef SPDEF_TYPE
 #define SPDEF_TYPE
 typedef struct {
-    uint16_t c;   // Column (X coordinate >> 4)
-    uint8_t  r;   // Row (Y coordinate >> 4)
+    uint16_t x;   // X coordinate in pixels
+    uint16_t y;   // Y coordinate in pixels
     uint8_t  obj; // Object ID (0=Cube, 1=Ship, 10=Yellow Pad, etc.)
 } SpDef;
 

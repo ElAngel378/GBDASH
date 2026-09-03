@@ -29,8 +29,8 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
     SWITCH_ROM(sp_bank);
     while (count < MAX_ACTIVE_SP_OBJECTS && cache->active[count]) count++;
     
-    while (sp_list[*stream_idx].c != 0xFFFF) {
-        uint16_t object_x = (uint16_t)sp_list[*stream_idx].c << 4;
+    while (sp_list[*stream_idx].x != 0xFFFF) {
+        uint16_t object_x = sp_list[*stream_idx].x;
         
         // If it's too far ahead, stop evaluating
         if (object_x > cam_px + 176u) break;
@@ -61,7 +61,7 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         cache->obj[count] = obj_id;
         cache->px[count] = object_x;
-        cache->py[count] = (uint16_t)(map_h - 1u - sp_list[*stream_idx].r) << 4;
+        cache->py[count] = sp_list[*stream_idx].y;
         cache->active[count] = 1;
         cache->activated[count] = 0;
 
