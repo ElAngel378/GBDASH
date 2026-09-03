@@ -276,7 +276,7 @@ uint8_t player_update(
         // A quarter turn is 6 frames (90 deg), so the midpoint of the
         // quarter is 45 deg. Past the midpoint -> finish the spin
         // forwards; before the midpoint -> roll backwards instead.
-        uint8_t q = (p->anim_frame < 24) ? mod6_table[p->anim_frame] : (p->anim_frame % 6);
+        uint8_t q = mod6_table[p->anim_frame];
         if (q != 0) {
             p->anim_timer += 20; // double speed while settling
             if (p->anim_timer >= 21) {

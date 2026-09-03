@@ -540,12 +540,16 @@ static void process_sprite_logic(
             continue;
         }
 
+        // Early break: Active list is sorted by X ascending.
+        // If an object is more than 48px ahead of the player, no physical object or trigger can interact.
+        if (obj != OBJ_LEVEL_END && obj_x > px + 48u) break;
+
         // Fast skip already-activated objects or objects behind the player
         if (cache->activated[i]) continue;
         if (obj_x + 48u < px) continue;
 
         // Bypass collision entirely for all decorations to save CPU cycles
-        if (obj >= 38 && obj < 64) continue;
+        if (obj >= 38 && obj < 100) continue;
 
         // Background trigger objects do not need Y coordinates.
         if (obj >= 100 && obj <= 147 &&
@@ -575,6 +579,7 @@ static void process_sprite_logic(
                 }
 
                 cache->activated[i] = 1;
+                cache->active[i] = 0; // Deactivate one-shot trigger so it is never scanned again
             }
 
             if (obj_x > p_front + 16u) break;
@@ -725,6 +730,16 @@ static uint8_t draw_sprites(
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 100) continue;
 
+        // On DMG, only portals (0, 1, 2, 8, 9, 16..19, 121, 126) are drawn as sprites.
+        // Fast-reject all pads, orbs, and decorations immediately before any coordinate math!
+        if (_cpu != CGB_TYPE) {
+            if (obj > 2 && obj != OBJ_GRAVITY_DOWN && obj != OBJ_GRAVITY_UP &&
+                !(obj >= 16 && obj <= 19) &&
+                obj != OBJ_MIRROR_PORTAL && obj != OBJ_MIRROR_EXIT) {
+                continue;
+            }
+        }
+
         // --- PURE 8-BIT DISTANCE MATH ---
         // This eliminates the 16-bit rel_x calculation.
         // It uses native integer underflow to safely wrap off-screen objects.
@@ -762,14 +777,6 @@ static uint8_t draw_sprites(
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
         const metasprite_t *sprite = famidash_sprite_table[obj];
         if (sprite == 0) continue;
-
-        // Temporary: Disable orb and pad graphics
-        if (_cpu != CGB_TYPE && (
-            obj == OBJ_ORB_BLUE || obj == OBJ_ORB_PINK || obj == OBJ_ORB_YELLOW ||
-            obj == OBJ_PAD_YELLOW || obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE ||
-            obj == OBJ_PAD_BLUE_UP || obj == OBJ_PAD_PINK)) {
-            continue;
-        }
 
         if (obj >= 16 && obj <= 19) {
             if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
@@ -974,11 +981,13 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-        /* SP entries are aligned to 16-pixel columns, so the cache only
-         * needs banked stream work when entering a new column. */
-        if ((cam_px >> 4) != sp_cache_col) {
+        /* SP entries are aligned to 16-pixel columns. To avoid spiking on the
+         * same frame as prepare_mt_column and load_collision_columns (which run at cam_px & 15 == 0),
+         * stagger sp_cache_update to run halfway through each column (cam_px & 15 == 8). */
+        uint16_t sp_col = (cam_px + 8u) >> 4;
+        if (sp_col != sp_cache_col) {
             sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
-            sp_cache_col = cam_px >> 4;
+            sp_cache_col = sp_col;
         }
 
         // Apply object logic before testing the mirror state so the tile-map
@@ -1065,13 +1074,7 @@ void play_level(uint8_t idx) BANKED {
                 else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
             }
         } else if (player.mode == MODE_BALL) {
-            if (player.gravity_flipped) {
-                if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-                else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-            } else {
-                if (player.reversed) oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-                else oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
-            }
+            oam_index += move_metasprite(ball_metasprites[0], 12, oam_index, sprite_x_final + 8, final_py + 16);
         } else {
             if (player.gravity_flipped) {
                 if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);

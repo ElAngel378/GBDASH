@@ -45,13 +45,13 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         // DMG optimization: We don't draw decorations on DMG anymore, so completely 
         // skip loading them into the cache to save all associated CPU processing time.
-        if (_cpu != CGB_TYPE && obj_id >= 38 && obj_id < 64) {
+        if (_cpu != CGB_TYPE && obj_id >= 38 && obj_id < 100) {
             (*stream_idx)++;
             continue;
         }
 
         // Prioritize gameplay elements on CGB: If cache is nearing full, drop decorations
-        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 64) {
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 100) {
             (*stream_idx)++;
             continue;
         }
