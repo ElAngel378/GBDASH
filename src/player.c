@@ -250,22 +250,22 @@ uint8_t player_update(
 
     // --- Hazard Collision (Spikes) ---
     uint8_t hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
-    if (hazard_kills(p, hz, PLAYER_HBOX)) {
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }
     hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
-    if (hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }
     hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    if (hazard_kills(p, hz, PLAYER_HBOX)) {
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }
     hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
-    if (hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
         p->dead = 1;
         return 1;
     }

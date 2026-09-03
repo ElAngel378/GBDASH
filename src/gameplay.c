@@ -240,9 +240,22 @@ static const uint16_t gbc_sprite_palettes[] = {
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 0, 0), RGB8(255, 0, 0)
 };
 
+static const uint8_t is_dmg_portal[128] = {
+    1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0
+};
+static uint8_t sp_has_portals = 0;
+
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
     uint8_t i;
     *stream_idx = 0;
+    sp_has_portals = 0;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 }
 
@@ -256,6 +269,11 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     /* Retire old entries and compact in a single pass */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (cache->active[i]) {
+            // DMG: If already activated and not a portal, prune immediately so it frees cache space
+            if (_cpu != CGB_TYPE && cache->activated[i]) {
+                uint8_t o = cache->obj[i];
+                if (o >= 128 || !is_dmg_portal[o]) continue;
+            }
             if (cache->px[i] + 32u >= cam_px) {
                 if (count != i) {
                     cache->obj[count] = cache->obj[i];
@@ -271,6 +289,16 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     for (i = count; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
+
+    sp_has_portals = 0;
+    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        if (!cache->active[i]) break;
+        uint8_t o = cache->obj[i];
+        if (o < 128 && is_dmg_portal[o]) {
+            sp_has_portals = 1;
+            break;
+        }
+    }
 }
 
 // ==============================================================================
@@ -560,14 +588,13 @@ static void process_sprite_logic(
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
 
-    uint8_t player_col = (uint8_t)(px >> 4);
-
     uint16_t p_front = px + 15u;
     uint16_t p_bottom = py + PLAYER_SIZE;
     uint16_t p_feet = py + PLAYER_SIZE;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
+        if (cache->activated[i]) continue;
 
         uint16_t obj_x = cache->px[i];
         if (obj_x > cam_px + 176u) break;
@@ -596,15 +623,7 @@ static void process_sprite_logic(
         if (obj >= 100 && obj <= 147 &&
             obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
 
-            uint8_t obj_col = (uint8_t)(obj_x >> 4);
-            uint8_t trigger_col;
-            if (obj_col > BG_TRIGGER_LEAD_TILES) {
-                trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
-            } else {
-                trigger_col = 0;
-            }
-
-            if (player_col >= trigger_col) {
+            if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
                 uint8_t pal_idx = (uint8_t)(obj - 100);
 
                 if (_cpu == CGB_TYPE) {
@@ -628,15 +647,7 @@ static void process_sprite_logic(
 
         // Ground color trigger objects (CGB only)
         if (obj >= 192 && obj <= 239) {
-            uint8_t obj_col = (uint8_t)(obj_x >> 4);
-            uint8_t trigger_col;
-            if (obj_col > BG_TRIGGER_LEAD_TILES) {
-                trigger_col = obj_col - BG_TRIGGER_LEAD_TILES;
-            } else {
-                trigger_col = 0;
-            }
-
-            if (player_col >= trigger_col) {
+            if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
                 if (_cpu == CGB_TYPE) {
                     uint8_t pal_idx = (uint8_t)(obj - 192);
                     famidash_apply_g_trigger(pal_idx);
@@ -654,8 +665,7 @@ static void process_sprite_logic(
         uint16_t obj_y = cache->py[i];
 
         // Fast Y distance rejection: skip if vertical distance is > 40px
-        int16_t dy = (int16_t)py - (int16_t)obj_y;
-        if (dy > 40 || dy < -40) continue;
+        if ((uint8_t)((uint8_t)py - (uint8_t)obj_y + 40) > 80) continue;
 
         if (obj >= 16 && obj <= 19) {
             // 48-pixel (3 tile) wide horizontal gravity portal
@@ -796,6 +806,9 @@ static uint8_t draw_sprites(
     // Cap decorations to maintain 60 FPS: 4 on DMG, 12 on CGB
     uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
 
+    // Ultra-fast path on DMG: if no portals are in the active cache, draw nothing!
+    if (_cpu != CGB_TYPE && !sp_has_portals) return oam_start;
+
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         if (!cache->active[i]) break;
 
@@ -806,14 +819,8 @@ static uint8_t draw_sprites(
         if (obj == OBJ_LEVEL_END || obj >= 100) continue;
 
         // On DMG, only portals (0, 1, 2, 8, 9, 16..19, 121, 126) are drawn as sprites.
-        // Fast-reject all pads, orbs, and decorations immediately before any coordinate math!
-        if (_cpu != CGB_TYPE) {
-            if (obj > 2 && obj != OBJ_GRAVITY_DOWN && obj != OBJ_GRAVITY_UP &&
-                !(obj >= 16 && obj <= 19) &&
-                obj != OBJ_MIRROR_PORTAL && obj != OBJ_MIRROR_EXIT) {
-                continue;
-            }
-        }
+        // Fast-reject all pads, orbs, and decorations in 1 table lookup!
+        if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal[obj])) continue;
 
         // --- PURE 8-BIT DISTANCE MATH ---
         // This eliminates the 16-bit rel_x calculation.
@@ -920,16 +927,42 @@ void draw_levels(void) BANKED {
 SpCache active_sp;
 uint8_t collision_columns[32];
 
-void play_level(uint8_t idx) BANKED {
-    const Level* l;
-    const uint8_t* level_tiles;
-    const uint8_t* level_map;
-    uint16_t level_tile_count;
-    uint16_t level_map_w;
-    uint16_t level_map_h;
-    uint8_t level_tiles_bank;
-    uint8_t level_map_bank;
+static const Level* l;
+static const uint8_t* level_tiles;
+static const uint8_t* level_map;
+static uint16_t level_tile_count;
+static uint16_t level_map_w;
+static uint16_t level_map_h;
+static uint8_t level_tiles_bank;
+static uint8_t level_map_bank;
 
+static uint16_t cam_px;
+static uint16_t cam_py;
+static uint16_t cam_py_max;
+static uint16_t loaded_r;
+static uint16_t max_scroll_px;
+
+static uint16_t scroll_acc;
+static uint8_t prev_joy;
+static uint8_t previous_oam_index;
+static uint16_t sp_stream_idx;
+static uint16_t sp_cache_col;
+static uint16_t cached_collision_col;
+static uint8_t prev_reversed;
+static uint8_t reduce_flash;
+static uint8_t target_bg_idx;
+static uint8_t died;
+static int16_t py;
+static Player player;
+
+static const uint8_t bg_pals[] = {
+    0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
+    0x39, // 1: Inverse (W:LG, LG:DG, DG:B, B:W)
+    0x3E, // 2: Inverse (W:DG, LG:B, DG:B, B:W)
+    0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
+};
+
+void play_level(uint8_t idx) BANKED {
     l = game_levels[idx];
     level_tiles = l->tiles;
     level_map = l->map;
@@ -950,25 +983,15 @@ void play_level(uint8_t idx) BANKED {
         music_ready = 1;
     }
 
-    uint16_t cam_px = 0;
-    uint16_t cam_py = 112;
-    uint16_t cam_py_max = (level_map_h << 4);
+    cam_px = 0;
+    cam_py = 112;
+    cam_py_max = (level_map_h << 4);
     if (cam_py_max > 144u) cam_py_max -= 144u;
     else cam_py_max = 0;
-    uint16_t loaded_r = BKG_MT_W - 1;
+    loaded_r = BKG_MT_W - 1;
+    max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
-    uint8_t died;
-    int16_t py;
-
-    uint8_t target_bg_idx = 0;
-    const uint8_t bg_pals[] = {
-            0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
-            0x39, // 1: Inverse (W:LG, LG:DG, DG:B, B:W)
-            0x3E, // 2: Inverse (W:DG, LG:B, DG:B, B:W)
-            0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
-    };
-
-    Player player;
+    target_bg_idx = 0;
     player_init(&player, 0, 240);
 
     disable_interrupts();
@@ -998,14 +1021,14 @@ void play_level(uint8_t idx) BANKED {
     TAC_REG = 0x04;
     enable_interrupts();
 
-    uint16_t scroll_acc = 0;
-    uint8_t prev_joy = 0;
-    uint8_t previous_oam_index = MAX_HARDWARE_SPRITES;
-    uint16_t sp_stream_idx = 0;
-    uint16_t sp_cache_col = 0xFFFF;
-    uint16_t cached_collision_col = 0xFFFF;
-    uint8_t prev_reversed = player.reversed;
-    uint8_t reduce_flash = 0;
+    scroll_acc = 0;
+    prev_joy = 0;
+    previous_oam_index = MAX_HARDWARE_SPRITES;
+    sp_stream_idx = 0;
+    sp_cache_col = 0xFFFF;
+    cached_collision_col = 0xFFFF;
+    prev_reversed = player.reversed;
+    reduce_flash = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     while (1) {
         uint8_t joy = joypad();
@@ -1038,13 +1061,14 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_prev = cam_px >> 4;
         uint8_t needs_render = 0;
         uint16_t need_col = 0;
+        uint16_t px_curr = px_prev;
 
         // PROGRESS FORWARD through the level map
-        if (cam_px < ((level_map_w - VIEW_MT_W) << 4)) {
+        if (cam_px < max_scroll_px) {
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
             scroll_acc &= 0xFF;
-            uint16_t px_curr = cam_px >> 4;
+            px_curr = cam_px >> 4;
             if (px_curr != px_prev) {
                 uint16_t need = px_curr + VIEW_MT_W;
                 if (need > loaded_r && need < level_map_w) {
@@ -1099,16 +1123,15 @@ void play_level(uint8_t idx) BANKED {
             prev_reversed = player.reversed;
         }
 
-        uint16_t collision_col = cam_px >> 4;
-        if (collision_col != cached_collision_col) {
-            load_collision_columns(collision_col, level_map, level_map_w,
+        if (px_curr != cached_collision_col) {
+            load_collision_columns(px_curr, level_map, level_map_w,
                                    level_map_bank, collision_columns);
-            cached_collision_col = collision_col;
+            cached_collision_col = px_curr;
         }
 
         died = player_update(&player, joy, collision_columns, level_map_h);
 
-        py = player_screen_y(&player, cam_py);
+        py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
         if (py < CAM_Y_TOP_ZONE) {
             int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
             if (target_cam_py < 0) target_cam_py = 0;
@@ -1132,7 +1155,7 @@ void play_level(uint8_t idx) BANKED {
             scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
             sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
         }
-        int16_t final_py = player_screen_y(&player, cam_py);
+        int16_t final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
 
         // 1. Draw player sprite first at OAM index 0 so it has top hardware priority (always on top of all sprites)
         uint8_t oam_index = 0;
@@ -1163,9 +1186,14 @@ void play_level(uint8_t idx) BANKED {
             player.reversed, oam_index
         );
         // Only clear entries that were used by the previous frame but not by
-        // this one. Newly needed entries are overwritten below/above.
+        // this one. Direct pointer write avoids library call overhead.
         if (oam_index < previous_oam_index) {
-            hide_sprites_range(oam_index, previous_oam_index);
+            uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
+            while (oam_index < previous_oam_index) {
+                *oam_ptr = 0;
+                oam_ptr += 4;
+                oam_index++;
+            }
         }
         previous_oam_index = oam_index;
 

@@ -45,9 +45,11 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         // DMG optimization: We don't draw decorations or ground color triggers on DMG,
         // so completely skip loading them into the cache to save all associated CPU processing time.
-        if (_cpu != CGB_TYPE && ((obj_id >= 38 && obj_id < 100) || (obj_id >= 192 && obj_id <= 239))) {
-            (*stream_idx)++;
-            continue;
+        if (_cpu != CGB_TYPE && obj_id >= 38) {
+            if (obj_id < 100 || obj_id >= 192) {
+                (*stream_idx)++;
+                continue;
+            }
         }
 
         // Prioritize gameplay elements on CGB: If cache is nearing full, drop decorations

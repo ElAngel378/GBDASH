@@ -116,23 +116,27 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
 
   const uint8_t *map_ptr = &map[(uint16_t)map_col << 4];
   const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+  uint8_t *dst = metatile_column_tiles;
 
   for (uint8_t r = 0; r < BKG_MT_H; r++) {
       uint8_t metatile_id = *map_ptr++;
       const uint8_t *tiles = mt_table[metatile_id];
-      uint8_t offset = r << 2;
 
-      metatile_column_tiles[offset] = tiles[0];
-      metatile_column_tiles[offset + 1] = tiles[1];
-      metatile_column_tiles[offset + 2] = tiles[2];
-      metatile_column_tiles[offset + 3] = tiles[3];
+      *dst++ = tiles[0];
+      *dst++ = tiles[1];
+      *dst++ = tiles[2];
+      *dst++ = tiles[3];
+  }
 
-      if (_cpu == CGB_TYPE) {
-          uint8_t palette = famidash_metatile_palettes[metatile_id];
-          metatile_column_attributes[offset] = palette;
-          metatile_column_attributes[offset + 1] = palette;
-          metatile_column_attributes[offset + 2] = palette;
-          metatile_column_attributes[offset + 3] = palette;
+  if (_cpu == CGB_TYPE) {
+      map_ptr -= BKG_MT_H;
+      uint8_t *dst_attr = metatile_column_attributes;
+      for (uint8_t r = 0; r < BKG_MT_H; r++) {
+          uint8_t palette = famidash_metatile_palettes[*map_ptr++];
+          *dst_attr++ = palette;
+          *dst_attr++ = palette;
+          *dst_attr++ = palette;
+          *dst_attr++ = palette;
       }
   }
   SWITCH_ROM(_prev);
