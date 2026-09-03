@@ -21,7 +21,9 @@ void play_music_safe(void) {
     if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(current_song_bank);
+    enable_interrupts();
     hUGE_dosound();
+    disable_interrupts();
     SWITCH_ROM(prev_bank);
   }
 }

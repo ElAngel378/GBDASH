@@ -11,12 +11,9 @@ void menu_stat_isr(void) {
     if (LYC_REG == 16) {
         SCX_REG = bg_x;
         LYC_REG = 120;
-    } else if (LYC_REG == 120) {
-        SCX_REG = ground_x;
-        LYC_REG = 0;
     } else {
-        SCX_REG = 0;
-        LYC_REG = 16;
+        SCX_REG = ground_x;
+        LYC_REG = 255;
     }
 }
 
@@ -153,7 +150,7 @@ GameState update_menu_state(void) {
     disable_interrupts();
     add_LCD(menu_stat_isr);
     STAT_REG |= STATF_LYC;
-    LYC_REG = 0;
+    LYC_REG = 16;
     set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
     enable_interrupts();
 
@@ -165,6 +162,8 @@ GameState update_menu_state(void) {
 
     while (1) {
         wait_vbl_done();
+        SCX_REG = 0;
+        LYC_REG = 16;
 
         uint8_t joy = joypad();
         if (joy & (J_A | J_START)) {
