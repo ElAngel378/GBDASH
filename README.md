@@ -38,6 +38,7 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 - Music Covers
 - All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
 - Level End screen
+- Game Boy Original and Color support
 
 ---
 
