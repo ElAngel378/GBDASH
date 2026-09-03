@@ -34,26 +34,37 @@ extern const uint8_t ultiatedestruction_map[];
 
 // External sprite data definitions
 extern const SpDef stereomadness_sp[];
+extern const SpDef stereomadness_sp_dmg[];
 BANKREF_EXTERN(stereomadness_sp)
 extern const SpDef backontrack_sp[];
+extern const SpDef backontrack_sp_dmg[];
 BANKREF_EXTERN(backontrack_sp)
 extern const SpDef polargeist_sp[];
+extern const SpDef polargeist_sp_dmg[];
 BANKREF_EXTERN(polargeist_sp)
 extern const SpDef dryout_sp[];
+extern const SpDef dryout_sp_dmg[];
 BANKREF_EXTERN(dryout_sp)
 extern const SpDef baseafterbase_sp[];
+extern const SpDef baseafterbase_sp_dmg[];
 BANKREF_EXTERN(baseafterbase_sp)
 extern const SpDef cantletgo_sp[];
+extern const SpDef cantletgo_sp_dmg[];
 BANKREF_EXTERN(cantletgo_sp)
 extern const SpDef jumper_sp[];
+extern const SpDef jumper_sp_dmg[];
 BANKREF_EXTERN(jumper_sp)
 extern const SpDef timemachine_sp[];
+extern const SpDef timemachine_sp_dmg[];
 BANKREF_EXTERN(timemachine_sp)
 extern const SpDef cycles_sp[];
+extern const SpDef cycles_sp_dmg[];
 BANKREF_EXTERN(cycles_sp)
 extern const SpDef xstep_sp[];
+extern const SpDef xstep_sp_dmg[];
 BANKREF_EXTERN(xstep_sp)
 extern const SpDef ultiatedestruction_sp[];
+extern const SpDef ultiatedestruction_sp_dmg[];
 BANKREF_EXTERN(ultiatedestruction_sp)
 
 // Music songs
@@ -109,7 +120,8 @@ const Level level_sm = {
   BANK(stereomadness_map),
   191,
   stereomadness_sp,
-  BANK(stereomadness_sp)
+  BANK(stereomadness_sp),
+  stereomadness_sp_dmg
 };
 
 const Level level_bot = {
@@ -121,7 +133,8 @@ const Level level_bot = {
   BANK(backontrack_map),
   183,
   backontrack_sp,
-  BANK(backontrack_sp)
+  BANK(backontrack_sp),
+  backontrack_sp_dmg
 };
 
 const Level level_pg = {
@@ -133,7 +146,8 @@ const Level level_pg = {
   BANK(polargeist_map),
   193,
   polargeist_sp,
-  BANK(polargeist_sp)
+  BANK(polargeist_sp),
+  polargeist_sp_dmg
 };
 
 const Level level_du = {
@@ -145,7 +159,8 @@ const Level level_du = {
   BANK(dryout_map),
   185,
   dryout_sp,
-  BANK(dryout_sp)
+  BANK(dryout_sp),
+  dryout_sp_dmg
 };
 
 const Level level_bab = {
@@ -157,7 +172,8 @@ const Level level_bab = {
   BANK(baseafterbase_map),
   183,
   baseafterbase_sp,
-  BANK(baseafterbase_sp)
+  BANK(baseafterbase_sp),
+  baseafterbase_sp_dmg
 };
 
 const Level level_clg = {
@@ -169,7 +185,8 @@ const Level level_clg = {
   BANK(cantletgo_map),
   196,
   cantletgo_sp,
-  BANK(cantletgo_sp)
+  BANK(cantletgo_sp),
+  cantletgo_sp_dmg
 };
 
 const Level level_ju = {
@@ -181,7 +198,8 @@ const Level level_ju = {
   BANK(jumper_map),
   141,
   jumper_sp,
-  BANK(jumper_sp)
+  BANK(jumper_sp),
+  jumper_sp_dmg
 };
 
 const Level level_tm = {
@@ -193,7 +211,8 @@ const Level level_tm = {
   BANK(timemachine_map),
   41,
   timemachine_sp,
-  BANK(timemachine_sp)
+  BANK(timemachine_sp),
+  timemachine_sp_dmg
 };
 
 const Level level_cy = {
@@ -205,7 +224,8 @@ const Level level_cy = {
   BANK(cycles_map),
   183,
   cycles_sp,
-  BANK(cycles_sp)
+  BANK(cycles_sp),
+  cycles_sp_dmg
 };
 
 const Level level_xs = {
@@ -217,19 +237,21 @@ const Level level_xs = {
   BANK(xstep_map),
   138,
   xstep_sp,
-  BANK(xstep_sp)
+  BANK(xstep_sp),
+  xstep_sp_dmg
 };
 
 const Level level_ultiatedestruction = {
-  " ",
+  "ULTIATEDESTRUCTION",
   chr_gb_tiles,
   chr_gb_tiles_rev,
   ultiatedestruction_map,
   chr_gb_TILE_COUNT, 675, 16, 0, 0,
   BANK(ultiatedestruction_map),
-  183,
+  180,
   ultiatedestruction_sp,
-  BANK(ultiatedestruction_sp)
+  BANK(ultiatedestruction_sp),
+  ultiatedestruction_sp_dmg
 };
 
 // Global level list used by the menu and gameplay systems

@@ -264,7 +264,7 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     uint8_t i;
     uint8_t count = 0;
     uint8_t sp_bank = l->sp_bank;
-    const SpDef *sp_list = l->sp_list;
+    const SpDef *sp_list = (_cpu == CGB_TYPE || !l->sp_list_dmg) ? l->sp_list : l->sp_list_dmg;
 
     /* Retire old entries and compact in a single pass */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {

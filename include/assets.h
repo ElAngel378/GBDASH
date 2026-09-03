@@ -40,6 +40,7 @@ typedef struct {
   uint8_t timer_divider; // The TMA_REG value for hUGEDriver
   const SpDef *sp_list;
   uint8_t sp_bank;
+  const SpDef *sp_list_dmg;
 } Level;
 
 // Per-level song pointers (same order as game_levels[]; NULL = silent)

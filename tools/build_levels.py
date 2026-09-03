@@ -122,6 +122,7 @@ def generate_assets_c(levels):
         for lvl in levels:
             ident = lvl["ident"]
             f.write(f'extern const SpDef {ident}_sp[];\n')
+            f.write(f'extern const SpDef {ident}_sp_dmg[];\n')
             f.write(f'BANKREF_EXTERN({ident}_sp)\n')
         f.write('\n')
 
@@ -162,7 +163,8 @@ def generate_assets_c(levels):
             f.write(f'  BANK({ident}_map),\n')
             f.write(f'  {lvl["divider"]},\n')
             f.write(f'  {ident}_sp,\n')
-            f.write(f'  BANK({ident}_sp)\n')
+            f.write(f'  BANK({ident}_sp),\n')
+            f.write(f'  {ident}_sp_dmg\n')
             f.write('};\n\n')
 
         # game_levels array
