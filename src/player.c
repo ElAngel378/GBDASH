@@ -147,6 +147,16 @@ uint8_t player_update(
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
+    // --- Wall / Front Collision (Death) — Checked BEFORE vertical ejection, exactly matching FamiDash ---
+    if (!player_noclip) {
+        const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
+        uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
+        if (IS_SOLID(front_center)) {
+            p->dead = 1;
+            return 1;
+        }
+    }
+
     p->on_ground = 0;
 
     // --- Vertical Ejection ---
@@ -157,7 +167,7 @@ uint8_t player_update(
         if (!IS_SOLID(hit_col)) {
             hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
             if (!IS_SOLID(hit_col)) {
-                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
             }
         }
         if (IS_SOLID(hit_col)) {
@@ -184,7 +194,7 @@ uint8_t player_update(
         if (!IS_SOLID(hit_col)) {
             hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
             if (!IS_SOLID(hit_col)) {
-                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
             }
         }
         if (IS_SOLID(hit_col)) {
@@ -211,7 +221,7 @@ uint8_t player_update(
         if (!IS_SOLID(stick_col)) {
             stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
             if (!IS_SOLID(stick_col)) {
-                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
+                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
             }
         }
         if (IS_SOLID(stick_col)) {
@@ -219,15 +229,6 @@ uint8_t player_update(
             p->vel_y.w = 0;
             p->orb_buffered = 0;
         }
-    }
-
-    // --- Wall / Front Collision (Death) — single center probe like FamiDash ---
-    py = p->world_y.b.h;
-    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
-    uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
-    if (IS_SOLID(front_center)) {
-        p->dead = 1;
-        return 1;
     }
 
     // --- Hazard Collision (Spikes) ---

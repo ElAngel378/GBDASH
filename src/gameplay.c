@@ -1091,10 +1091,8 @@ void play_level(uint8_t idx) BANKED {
         }
         int16_t final_py = player_screen_y(&player, cam_py);
 
-        uint8_t oam_index = draw_sprites(
-            &active_sp, cam_px, cam_py,
-            player.reversed, 0
-        );
+        // 1. Draw player sprite first at OAM index 0 so it has top hardware priority (always on top of all sprites)
+        uint8_t oam_index = 0;
 
         if (player.mode == MODE_SHIP) {
             if (player.gravity_flipped) {
@@ -1115,6 +1113,12 @@ void play_level(uint8_t idx) BANKED {
                 else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
             }
         }
+
+        // 2. Draw level sprites behind player
+        oam_index = draw_sprites(
+            &active_sp, cam_px, cam_py,
+            player.reversed, oam_index
+        );
         // Only clear entries that were used by the previous frame but not by
         // this one. Newly needed entries are overwritten below/above.
         if (oam_index < previous_oam_index) {
