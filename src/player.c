@@ -147,35 +147,35 @@ uint8_t player_update(
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
-    // --- Wall / Front Collision (Death) — Checked BEFORE vertical ejection, exactly matching FamiDash ---
-    if (!player_noclip) {
-        const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
-        uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
-        if (IS_SOLID(front_center)) {
-            p->dead = 1;
-            return 1;
-        }
-    }
-
     p->on_ground = 0;
 
     // --- Vertical Ejection ---
     // Check Floor (only when falling or stationary, matching FamiDash)
     if (p->vel_y.w >= 0) {
-        int16_t foot_y = py + PLAYER_SIZE;
+        int16_t foot_y = py + 16;
         uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), foot_y);
+        uint8_t hit_front_only = 0;
         if (!IS_SOLID(hit_col)) {
             hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
             if (!IS_SOLID(hit_col)) {
-                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), foot_y);
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
+                if (IS_SOLID(hit_col)) hit_front_only = 1;
             }
         }
         if (IS_SOLID(hit_col)) {
-            if (!p->gravity_flipped || p->mode == MODE_SHIP) {
+            uint8_t block_top_y = (uint8_t)(foot_y & ~15);
+            // Ledge vs Wall check:
+            // If only the leading front edge touched a block, ensure the player is actually
+            // falling onto the top surface rather than crashing into the side:
+            // (1) The cube's vertical center must be above the top of the block.
+            // (2) The penetration depth into the block must be <= 6px (max fall speed).
+            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) >= block_top_y || (foot_y & 15) > 6)) {
+                // Front edge struck the side of a wall — do NOT snap up!
+            } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_BOTTOM) {
-                    p->world_y.b.h = (foot_y & ~15) + 8 - PLAYER_SIZE - 1;
+                    p->world_y.b.h = block_top_y + 8 - 16;
                 } else {
-                    p->world_y.b.h = (foot_y & ~15) - PLAYER_SIZE - 1;
+                    p->world_y.b.h = block_top_y - 16;
                 }
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -191,18 +191,23 @@ uint8_t player_update(
     if (p->vel_y.w < 0) {
         int16_t head_y = py;
         uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), head_y);
+        uint8_t hit_front_only = 0;
         if (!IS_SOLID(hit_col)) {
             hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
             if (!IS_SOLID(hit_col)) {
-                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), head_y);
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
+                if (IS_SOLID(hit_col)) hit_front_only = 1;
             }
         }
         if (IS_SOLID(hit_col)) {
-            if (p->gravity_flipped || p->mode == MODE_SHIP) {
+            uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
+            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) <= (uint8_t)(block_bottom_y - 16) || (16 - (head_y & 15)) > 6)) {
+                // Front edge struck the side of a ceiling wall — do NOT snap down!
+            } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_TOP) {
                     p->world_y.b.h = (head_y & ~15) + 8;
                 } else {
-                    p->world_y.b.h = (head_y & ~15) + 16;
+                    p->world_y.b.h = block_bottom_y;
                 }
                 p->world_y.b.l = 0;
                 p->vel_y.w = 0;
@@ -216,12 +221,15 @@ uint8_t player_update(
 
     // --- 1-Pixel Sticky Ground Check (FamiDash Hack) - Cube & Ball only ---
     if (!p->on_ground && p->mode != MODE_SHIP) {
-        int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + PLAYER_SIZE + 1);
+        int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + 16);
         uint8_t stick_col = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
         if (!IS_SOLID(stick_col)) {
             stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), sticky_y);
             if (!IS_SOLID(stick_col)) {
-                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - 2), sticky_y);
+                stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
+                if (IS_SOLID(stick_col) && (uint8_t)(p->world_y.b.h + (PLAYER_SIZE >> 1)) >= (uint8_t)(sticky_y & ~15)) {
+                    stick_col = 0; // Don't stick to a wall ahead of the player!
+                }
             }
         }
         if (IS_SOLID(stick_col)) {
@@ -229,6 +237,15 @@ uint8_t player_update(
             p->vel_y.w = 0;
             p->orb_buffered = 0;
         }
+    }
+
+    // --- Wall / Front Collision (Death) — single center probe like FamiDash ---
+    py = p->world_y.b.h;
+    const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
+    uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
+    if (IS_SOLID(front_center)) {
+        p->dead = 1;
+        return 1;
     }
 
     // --- Hazard Collision (Spikes) ---
