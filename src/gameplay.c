@@ -476,8 +476,38 @@ static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
         *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
         *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
     }
-
     return 9;
+}
+
+// Fast Writer: 6x1 Horizontal Gravity Portal (48px wide oval ring)
+static uint8_t draw_oam_horizontal_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t pal = (obj >= 18) ? S_PAL(3) : S_PAL(2);
+    uint8_t flip_v = (obj == 17 || obj == 19) ? S_FLIPY : 0;
+    uint8_t base_props = pal | flip_v;
+
+    // PT_4D = 36, PT_4F = 38, PT_51 = 40
+    uint8_t t0 = 36 + tile_base;
+    uint8_t t1 = 38 + tile_base;
+    uint8_t t2 = 40 + tile_base;
+
+    if (!reversed) {
+        *oam++ = sy; *oam++ = sx;      *oam++ = t0; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx + 8;  *oam++ = t1; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx + 16; *oam++ = t2; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx + 24; *oam++ = t2; *oam++ = base_props | S_FLIPX;
+        *oam++ = sy; *oam++ = sx + 32; *oam++ = t1; *oam++ = base_props | S_FLIPX;
+        *oam++ = sy; *oam++ = sx + 40; *oam++ = t0; *oam++ = base_props | S_FLIPX;
+    } else {
+        // In mirror mode, the 48px portal extends to the left of sx: [sx - 40 .. sx]
+        *oam++ = sy; *oam++ = sx - 40; *oam++ = t0; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx - 32; *oam++ = t1; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx - 24; *oam++ = t2; *oam++ = base_props;
+        *oam++ = sy; *oam++ = sx - 16; *oam++ = t2; *oam++ = base_props | S_FLIPX;
+        *oam++ = sy; *oam++ = sx - 8;  *oam++ = t1; *oam++ = base_props | S_FLIPX;
+        *oam++ = sy; *oam++ = sx;      *oam++ = t0; *oam++ = base_props | S_FLIPX;
+    }
+    return 6;
 }
 
 inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
@@ -781,8 +811,7 @@ static uint8_t draw_sprites(
         if (sprite == 0) continue;
 
         if (obj >= 16 && obj <= 19) {
-            if (reversed) oam_start += move_metasprite_hflip(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
-            else oam_start += move_metasprite(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y);
+            oam_start += draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
