@@ -242,13 +242,13 @@ const Level level_xs = {
 };
 
 const Level level_ultiatedestruction = {
-  "ULTIATEDESTRUCTION",
+  "UTLIMATE DESTCTN",
   chr_gb_tiles,
   chr_gb_tiles_rev,
   ultiatedestruction_map,
   chr_gb_TILE_COUNT, 675, 16, 0, 0,
   BANK(ultiatedestruction_map),
-  180,
+  183,
   ultiatedestruction_sp,
   BANK(ultiatedestruction_sp),
   ultiatedestruction_sp_dmg
