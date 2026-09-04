@@ -74,10 +74,10 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000034C0  l__CODE_3 |    000034E0  ___size_b |    000034E0  l__CODE_3
      0000352E  l__CODE_1 |    00003650  ___size_b |    00003650  l__CODE_3
      000037E0  ___size_s |    000037E0  l__CODE_3 |    00003810  ___size_j
-     00003810  l__CODE_3 |    00003A00  l__CODE   |    00003A70  ___size_p
-     00003A70  l__CODE_3 |    00003C00  s__HOME   |    00003DF1  s__BASE  
-     00003DF1  s__CODE_0 |    00003DF1  s__INITIA |    00003DF1  s__LIT   
-     00003DFD  s__GSINIT |    00003E0F  s__GSFINA |    00003E50  ___size_t
+     00003810  l__CODE_3 |    000039FD  l__CODE   |    00003A70  ___size_p
+     00003A70  l__CODE_3 |    00003BFD  s__HOME   |    00003DEE  s__BASE  
+     00003DEE  s__CODE_0 |    00003DEE  s__INITIA |    00003DEE  s__LIT   
+     00003DFA  s__GSINIT |    00003E0C  s__GSFINA |    00003E50  ___size_t
      00003E50  l__CODE_3 |    00004000  _rMBC7_SR |    00004000  _rRAMB   
      00004000  l__CODE_2 |    00008000  __VRAM    |    00008000  __VRAM800
      00008800  __VRAM880 |    00009000  __VRAM900 |    00009800  __SCRN0  
@@ -135,7 +135,7 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE                  00000200    00003A00 =       14848. bytes (REL,CON)
+_CODE                  00000200    000039FD =       14845. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -153,19 +153,19 @@ _CODE                  00000200    00003A00 =       14848. bytes (REL,CON)
      000013F1  _nes_mast |    00001471  _paletteD |    00001491  _paletteD
      000014B1  _paletteM |    000014D1  _splashMe |    000014F1  _gameover
      00001511  _oldsplas |    00001531  _splashMe |    00001551  _paletteL
-     00001571  _play_mus |    000015A5  _main     |    0000160D  _playbutt
-     0000177D  _player_i |    0000180A  _player_s |    000018D1  _player_u
-     00002808  _sp_cache |    00002A10  _rainbow_ |    00002E10  _update_l
-     00002EEE  _menu_sta |    00002F08  _update_m |    0000327F  _update_p
-     000032B5  _hUGE_ini |    000032B7  hUGE_init |    0000330D  _hUGE_mut
-     0000330F  hUGE_mute |    0000355D  _hUGE_set |    0000355F  hUGE_set_
-     00003724  _hUGE_dos |    00003724  hUGE_doso |    00003A50  _set_spri
-     00003A55  _set_bkg_ |    00003A58  .set_pale |    00003A77  _set_spri
-     00003A7C  _set_bkg_ |    00003A7F  .set_pale |    00003A9B  ___move_m
-     00003A9B  ___move_m |    00003ADC  ___move_m |    00003ADC  ___move_m
-     00003B1D  ___move_m |    00003B1D  ___move_m |    00003B60  _set_vram
-     00003B69  _set_win_ |    00003B72  _set_bkg_ |    00003BA1  ___move_m
-     00003BDE  _cpu_slow |    00003BF9  _cpu_fast
+     00001571  _play_mus |    000015A2  _main     |    0000160A  _playbutt
+     0000177A  _player_i |    00001807  _player_s |    000018CE  _player_u
+     00002805  _sp_cache |    00002A0D  _rainbow_ |    00002E0D  _update_l
+     00002EEB  _menu_sta |    00002F05  _update_m |    0000327C  _update_p
+     000032B2  _hUGE_ini |    000032B4  hUGE_init |    0000330A  _hUGE_mut
+     0000330C  hUGE_mute |    0000355A  _hUGE_set |    0000355C  hUGE_set_
+     00003721  _hUGE_dos |    00003721  hUGE_doso |    00003A4D  _set_spri
+     00003A52  _set_bkg_ |    00003A55  .set_pale |    00003A74  _set_spri
+     00003A79  _set_bkg_ |    00003A7C  .set_pale |    00003A98  ___move_m
+     00003A98  ___move_m |    00003AD9  ___move_m |    00003AD9  ___move_m
+     00003B1A  ___move_m |    00003B1A  ___move_m |    00003B5D  _set_vram
+     00003B66  _set_win_ |    00003B6F  _set_bkg_ |    00003B9E  ___move_m
+     00003BDB  _cpu_slow |    00003BF6  _cpu_fast
 ASxxxx Linker V03.00/V05.40 + sdld,  page 5.
 Hexadecimal  [32-Bits]
 
@@ -343,26 +343,26 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_HOME                  00003C00    000001F1 =         497. bytes (REL,CON)
+_HOME                  00003BFD    000001F1 =         497. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00003C00  .memset_s |    00003C09  .memcpy_s |    00003C26  .display_
-     00003C26  _display_ |    00003C3E  _add_TIM  |    00003C41  _set_tile
-     00003C46  _set_bkg_ |    00003C46  _set_win_ |    00003C4E  _set_spri
-     00003CAD  .add_LCD  |    00003CAD  _add_LCD  |    00003CB3  .remove_L
-     00003CB3  _remove_L |    00003CB9  .add_TIM  |    00003CBF  .remove_T
-     00003CBF  _remove_T |    00003CC5  _fill_bkg |    00003CD7  .padup   
-     00003CD7  _waitpadu |    00003CE7  .jpad     |    00003CE7  _joypad  
-     00003D0F  _waitpad  |    00003D10  .wait_pad |    00003D17  ___sdcc_b
-     00003D2B  _set_bkg_ |    00003D3F  .fill_rec |    00003D48  .fill_rec
-     00003D95  .set_xy_w |    00003D9E  .set_xy_b |    00003DAD  .set_xy_t
+     00003BFD  .memset_s |    00003C06  .memcpy_s |    00003C23  .display_
+     00003C23  _display_ |    00003C3B  _add_TIM  |    00003C3E  _set_tile
+     00003C43  _set_bkg_ |    00003C43  _set_win_ |    00003C4B  _set_spri
+     00003CAA  .add_LCD  |    00003CAA  _add_LCD  |    00003CB0  .remove_L
+     00003CB0  _remove_L |    00003CB6  .add_TIM  |    00003CBC  .remove_T
+     00003CBC  _remove_T |    00003CC2  _fill_bkg |    00003CD4  .padup   
+     00003CD4  _waitpadu |    00003CE4  .jpad     |    00003CE4  _joypad  
+     00003D0C  _waitpad  |    00003D0D  .wait_pad |    00003D14  ___sdcc_b
+     00003D28  _set_bkg_ |    00003D3C  .fill_rec |    00003D45  .fill_rec
+     00003D92  .set_xy_w |    00003D9B  .set_xy_b |    00003DAA  .set_xy_t
 ASxxxx Linker V03.00/V05.40 + sdld,  page 24.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_INITIALIZER           00003DF1    0000000C =          12. bytes (REL,CON)
+_INITIALIZER           00003DEE    0000000C =          12. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -371,17 +371,17 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSINIT                00003DFD    00000012 =          18. bytes (REL,CON)
+_GSINIT                00003DFA    00000012 =          18. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00003DFD  gsinit   
+     00003DFA  gsinit   
 ASxxxx Linker V03.00/V05.40 + sdld,  page 26.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSFINAL               00003E0F    00000001 =           1. bytes (REL,CON)
+_GSFINAL               00003E0C    00000001 =           1. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
