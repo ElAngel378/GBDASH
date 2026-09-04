@@ -38,6 +38,7 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 - Music Covers
 - All 1.0 - 1.2 mechanics including inverted gravity, mirror mode
 - Level End screen
+- Game Boy Original and Color support
 
 ---
 
@@ -56,8 +57,11 @@ This game is being actively developed (coding and music) by Sotospro24 and ElAng
 |[ElAngel378](https://github.com/ElAngel378) |Code (optimize), Music, Graphics|
 |[Crafty Jumper](https://github.com/Crafty-Jumper) | Music, Graphics |
 |[Ziqiangao](https://github.com/ziqiangao/)| Tools, Music, Graphics|
-|Ranedom | Graphics |
 |PBaxx | Graphics |
+|Finntendo | Graphics |
+|Switchroot | Graphics |
+|BobAJoeJoe | Graphics, Music |
+|Ranedom | Graphics |
 |NerdBoy628 | Music |
 
 
