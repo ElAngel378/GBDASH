@@ -274,7 +274,7 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
                 uint8_t o = cache->obj[i];
                 if (o >= 128 || !is_dmg_portal[o]) continue;
             }
-            if (cache->px[i] + 32u >= cam_px) {
+            if (cache->px[i] + 48u >= cam_px) {
                 if (count != i) {
                     cache->obj[count] = cache->obj[i];
                     cache->px[count] = cache->px[i];
@@ -828,18 +828,16 @@ static uint8_t draw_sprites(
         // It uses native integer underflow to safely wrap off-screen objects.
         dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
 
-        // Skip objects far left of camera (values between 177 and 224 roughly)
-        if (dist_x > 176 && dist_x < 224) continue;
-
-        if (reversed) {
-            screen_x = 128 - dist_x + 8;
-        } else {
+        if (!reversed) {
+            if (dist_x > 136 && dist_x < 224) continue;
             screen_x = dist_x + PLAYER_SCREEN_X + 8;
+        } else {
+            if (dist_x > 136 && dist_x < 208) continue;
+            screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
         }
 
         screen_y = ((uint8_t)cache->py[i] - (uint8_t)cam_py) + 16;
 
-        if (screen_x > 160 && screen_x < 232) continue;
         if (screen_y > 160 && screen_y < 208) continue;
 
         if (obj >= 38) {
@@ -1094,7 +1092,8 @@ void play_level(uint8_t idx) BANKED {
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
 
         if (player.reversed != prev_reversed) {
-            disable_interrupts();
+            // Safely wait for VBlank and turn display off for full-speed, zero-wait-state VRAM writes
+            DISPLAY_OFF;
 
             // Swap tileset in VRAM to match mirror mode orientation
             const uint8_t* target_tiles = player.reversed
@@ -1102,10 +1101,12 @@ void play_level(uint8_t idx) BANKED {
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
 
-            // Instant redraw of the entire 16-column buffer
-            uint16_t start_col = cam_px >> 4;
+            // Redraw 16-column buffer starting 4 columns behind the player
+            // so both the front AND the back of the player are completely populated
+            int32_t col_start = (int32_t)(cam_px >> 4) - 4;
+            if (col_start < 0) col_start = 0;
             for (uint8_t i = 0; i < 16; i++) {
-                uint16_t curr_col = start_col + i;
+                uint16_t curr_col = (uint16_t)(col_start + i);
                 if (curr_col < level_map_w) {
                     uint8_t vram_slot = (uint8_t)(curr_col & 15);
                     if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
@@ -1113,14 +1114,26 @@ void play_level(uint8_t idx) BANKED {
                     flush_mt_column(vram_slot);
                 }
             }
-            // Reinit sprites
+
+            // Re-upload sprite tiles to guarantee all sprites (player, portals, pads, orbs) are in VRAM
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 4, ball_tiles);
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
-            enable_interrupts();
-            // Reset loaded_r to match the last column we just drew
-            loaded_r = start_col + 15;
+
+            // Immediately set the new scroll position before re-enabling display
+            uint16_t init_scroll_px = player.reversed
+                ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+                : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+            move_bkg((uint8_t)init_scroll_px, (uint8_t)cam_py);
+
+            SHOW_BKG;
+            SHOW_SPRITES;
+            SPRITES_8x16;
+            DISPLAY_ON;
+
+            // Mark highest column currently rendered in the buffer
+            loaded_r = (uint16_t)(col_start + 15);
             prev_reversed = player.reversed;
         }
 
@@ -1150,8 +1163,8 @@ void play_level(uint8_t idx) BANKED {
         uint8_t sprite_x_final;
         if (player.reversed) {
             // Mirror Mode: SCX decreases as we progress forward
-            scroll_px = (uint16_t)(-(int16_t)cam_px - 128);
-            sprite_x_final = 128; // Mirrored player position
+            scroll_px = (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X);
+            sprite_x_final = MIRROR_PLAYER_SCREEN_X; // Mirrored player position (112)
         } else {
             scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
             sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;

@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include "collision.h"
 
-#define PLAYER_SCREEN_X   32
+#define PLAYER_SCREEN_X          32
+#define MIRROR_PLAYER_SCREEN_X   112   // 160 - PLAYER_SCREEN_X - 16 (32px from right edge)
 #define PLAYER_SIZE       15    // Box size for wall/floor collision
 #define PLAYER_HBOX       6     // Inset for spike/hazard collision
 

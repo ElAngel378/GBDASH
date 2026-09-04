@@ -36,7 +36,7 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
         if (object_x > cam_px + 176u) break;
 
         // If it's already behind the camera, skip it and advance to prevent stalling
-        if (object_x + 32u < cam_px) {
+        if (object_x + 48u < cam_px) {
             (*stream_idx)++;
             continue;
         }

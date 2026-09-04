@@ -83,7 +83,9 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   VBK_REG = VBK_TILES;
   if (tile_count == 256u) {
     set_bkg_data(0, 128, tiles);
-    set_bkg_data(128, 128, tiles + (128u * 16u));
+    // Background tiles only go up to tile 144; sprite VRAM begins at 160.
+    // Only upload 32 tiles (128..159) to avoid overwriting sprite tiles at 160..251!
+    set_bkg_data(128, 32, tiles + (128u * 16u));
   } else {
     set_bkg_data(0, (uint8_t)tile_count, tiles);
   }
