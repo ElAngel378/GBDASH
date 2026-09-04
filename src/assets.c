@@ -118,7 +118,7 @@ const Level level_sm = {
   stereomadness_map,
   chr_gb_TILE_COUNT, 894, 16, 0, 0,
   BANK(stereomadness_map),
-  191,
+  192,
   stereomadness_sp,
   BANK(stereomadness_sp),
   stereomadness_sp_dmg
@@ -131,7 +131,7 @@ const Level level_bot = {
   backontrack_map,
   chr_gb_TILE_COUNT, 846, 16, 0, 0,
   BANK(backontrack_map),
-  183,
+  184,
   backontrack_sp,
   BANK(backontrack_sp),
   backontrack_sp_dmg
@@ -196,7 +196,7 @@ const Level level_ju = {
   jumper_map,
   chr_gb_TILE_COUNT, 897, 16, 0, 0,
   BANK(jumper_map),
-  141,
+  142,
   jumper_sp,
   BANK(jumper_sp),
   jumper_sp_dmg

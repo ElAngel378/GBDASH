@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import re
+import struct
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -11,22 +12,63 @@ TMX_DIR = REPO_ROOT / "levels" / "chr_data" / "tmx"
 LEVEL_DATA_DIR = REPO_ROOT / "levels" / "level_data"
 SRC_DIR = REPO_ROOT / "src"
 MUSIC_DIR = SRC_DIR / "music"
+ROOT_MUSIC_DIR = REPO_ROOT / "music"
+UGE2SOURCE_BIN = REPO_ROOT / "tools" / ("uge2source.exe" if os.name == "nt" else "uge2source")
 SPRITES_DIR = SRC_DIR / "sprites"
 LEVELS_DIR = SRC_DIR / "levels"
 ASSETS_C_PATH = SRC_DIR / "assets.c"
 
 KNOWN_LEVELS = {
-    "stereomadness": {"title": "STEREO MADNESS", "divider": 191, "order": 1, "short": "sm"},
-    "backontrack":   {"title": "BACK ON TRACK",   "divider": 183, "order": 2, "short": "bot"},
+    "stereomadness": {"title": "STEREO MADNESS", "divider": 192, "order": 1, "short": "sm"},
+    "backontrack":   {"title": "BACK ON TRACK",   "divider": 184, "order": 2, "short": "bot"},
     "polargeist":    {"title": "POLARGEIST",      "divider": 193, "order": 3, "short": "pg"},
     "dryout":        {"title": "DRY OUT",         "divider": 185, "order": 4, "short": "du"},
     "baseafterbase": {"title": "BASE AFTER BASE", "divider": 183, "order": 5, "short": "bab"},
     "cantletgo":     {"title": "CANT LET GO",     "divider": 196, "order": 6, "short": "clg"},
-    "jumper":        {"title": "JUMPER",          "divider": 141, "order": 7, "short": "ju"},
+    "jumper":        {"title": "JUMPER",          "divider": 142, "order": 7, "short": "ju"},
     "timemachine":   {"title": "TIME MACHINE",    "divider": 41,  "order": 8, "short": "tm"},
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
+    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 11, "short": "ultiatedestruction"},
 }
+
+def read_uge_tempo(uge_path):
+    """
+    Extracts (divider/TMA, ticks_per_row) from a hUGETracker .uge file.
+    Offset 63609: ticks_per_row (uint32)
+    Offset 63613: timer_enabled (uint8)
+    Offset 63614: timer_divider / TMA (uint32)
+    """
+    try:
+        with open(uge_path, 'rb') as f:
+            d = f.read()
+        if len(d) >= 63618:
+            ticks, = struct.unpack_from('<I', d, 63609)
+            timer_en = d[63613]
+            divider, = struct.unpack_from('<I', d, 63614)
+            if timer_en and 0 <= divider <= 255:
+                return divider, ticks
+    except Exception as e:
+        print(f"  Warning reading tempo from {uge_path}: {e}")
+    return None, None
+
+def find_uge_file(stem):
+    """
+    Finds a matching .uge file in music/ for a given level stem.
+    Normalizes names (alphanumeric only) and handles common aliases.
+    """
+    if not ROOT_MUSIC_DIR.exists():
+        return None
+    norm_stem = re.sub(r'[^a-z0-9]', '', stem.lower())
+    aliases = {
+        'ultiatedestruction': 'ultimate',
+        'ultimatedestruction': 'ultimate',
+    }
+    target = aliases.get(norm_stem, norm_stem)
+    for p in ROOT_MUSIC_DIR.glob('*.uge'):
+        if re.sub(r'[^a-z0-9]', '', p.stem.lower()) == target:
+            return p
+    return None
 
 def format_title(stem):
     return stem.replace("_", " ").replace("-", " ").upper()
@@ -194,6 +236,17 @@ def build_all():
     tmx_files.sort(key=sort_key)
     print(f"Found {len(tmx_files)} level(s): {[p.stem for p in tmx_files]}")
 
+    # Auto-export menuLoop if present
+    menu_uge = ROOT_MUSIC_DIR / "menuLoop.uge"
+    if menu_uge.exists() and UGE2SOURCE_BIN.exists():
+        menu_c = SRC_DIR / "menuloop.c"
+        cmd = [str(UGE2SOURCE_BIN), str(menu_uge), "-b", "1", "menuloop", str(menu_c)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode == 0:
+            print(f"Exported menuLoop: {menu_uge.name} -> {menu_c.name} (Bank 1)")
+        else:
+            print(f"Warning: uge2source failed for menuLoop.uge: {res.stderr}")
+
     levels_info = []
 
     BASE_MAP_BANK = 30
@@ -240,12 +293,33 @@ def build_all():
         print(f"  - Level wrapper: {out_level_c.name} (Bank {map_bank})")
 
         music_file = MUSIC_DIR / f"{ident}.c"
-        has_music = music_file.exists()
-        if has_music:
+        uge_file = find_uge_file(stem)
+
+        if uge_file and UGE2SOURCE_BIN.exists():
+            uge_divider, uge_ticks = read_uge_tempo(uge_file)
+            if uge_divider is not None:
+                divider = uge_divider
+                print(f"  - Music tempo: auto-detected TMA divider = {divider} (ticks={uge_ticks}) from {uge_file.name}")
+            else:
+                print(f"  - Music tempo: {uge_file.name} does not have timer enabled, using divider = {divider}")
+
+            cmd = [str(UGE2SOURCE_BIN), str(uge_file), "-b", str(music_bank), ident, str(music_file)]
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode == 0:
+                print(f"  - Music: exported {uge_file.name} -> {music_file.name} (Bank {music_bank})")
+                has_music = True
+            else:
+                print(f"  - Warning: uge2source failed for {uge_file.name}: {res.stderr}")
+                has_music = music_file.exists()
+                if has_music:
+                    update_music_bank(music_file, music_bank)
+        elif music_file.exists():
+            has_music = True
             update_music_bank(music_file, music_bank)
-            print(f"  - Music: {music_file.name} (Bank {music_bank})")
+            print(f"  - Music: Using existing {music_file.name} (Bank {music_bank})")
         else:
-            print(f"  - Music: Not found in src/music/{ident}.c (Will play silent)")
+            has_music = False
+            print(f"  - Music: Not found for {stem} (Will play silent)")
 
         levels_info.append({
             "ident": ident,

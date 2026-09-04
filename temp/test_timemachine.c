@@ -1,4 +1,4 @@
-#pragma bank 207
+#pragma bank 200
 
 #include "hUGEDriver.h"
 #include <stddef.h>
@@ -3460,5 +3460,5 @@ static const unsigned char waves[] = {
     3,205,197,150,117,196,4,235,197,88,59,122,65,174,66,103,
 };
 
-const void __at(207) __bank_timemachine;
+const void __at(200) __bank_timemachine;
 const hUGESong_t timemachine = {2, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};

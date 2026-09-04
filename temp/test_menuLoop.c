@@ -1,4 +1,4 @@
-#pragma bank 1
+#pragma bank 200
 
 #include "hUGEDriver.h"
 #include <stddef.h>
@@ -780,5 +780,5 @@ static const unsigned char waves[] = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-const void __at(1) __bank_menuloop;
-const hUGESong_t menuloop = {6, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};
+const void __at(200) __bank_menuLoop;
+const hUGESong_t menuLoop = {6, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};

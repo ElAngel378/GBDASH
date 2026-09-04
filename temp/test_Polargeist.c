@@ -1,4 +1,4 @@
-#pragma bank 202
+#pragma bank 200
 
 #include "hUGEDriver.h"
 #include <stddef.h>
@@ -3930,5 +3930,5 @@ static const unsigned char waves[] = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-const void __at(202) __bank_polargeist;
-const hUGESong_t polargeist = {6, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};
+const void __at(200) __bank_Polargeist;
+const hUGESong_t Polargeist = {6, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};

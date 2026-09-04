@@ -1,4 +1,5 @@
 #pragma bank 209
+
 #include "hUGEDriver.h"
 #include <stddef.h>
 
@@ -2303,6 +2304,108 @@ static const unsigned char itNoiseSP12[] = {
     DN(___,0,0x000),
     DN(___,1,0x000),
 };
+static const unsigned char itNoiseSP13[] = {
+    DN(49,0,0x000),
+    DN(47,0,0x000),
+    DN(45,0,0x000),
+    DN(43,0,0x000),
+    DN(43,0,0x000),
+    DN(43,6,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,1,0x000),
+};
+static const unsigned char itNoiseSP14[] = {
+    DN(44,0,0x000),
+    DN(43,0,0x000),
+    DN(42,0,0x000),
+    DN(41,0,0x000),
+    DN(40,0,0x000),
+    DN(40,6,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,1,0x000),
+};
+static const unsigned char itNoiseSP15[] = {
+    DN(36,0,0x000),
+    DN(36,0,0x000),
+    DN(36,0,0x000),
+    DN(36,0,0x000),
+    DN(36,0,0x000),
+    DN(36,6,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,0,0x000),
+    DN(___,1,0x000),
+};
 static const unsigned char* const order1[] = {P0,P0,P0,P6,P10,P10,P24,P24,P10,P10,P19,P16};
 static const unsigned char* const order2[] = {P1,P22,P23,P7,P11,P11,P17,P17,P14,P14,P20,P16};
 static const unsigned char* const order3[] = {P2,P2,P2,P8,P12,P12,P12,P12,P15,P15,P16,P16};
@@ -2355,6 +2458,9 @@ static const hUGENoiseInstr_t noise_instruments[] = {
     {145,itNoiseSP10,128,0,0},
     {178,itNoiseSP11,64,0,0},
     {242,itNoiseSP12,86,0,0},
+    {183,itNoiseSP13,0,0,0},
+    {183,itNoiseSP14,128,0,0},
+    {8,itNoiseSP15,0,0,0},
 };
 
 static const unsigned char waves[] = {
@@ -2376,4 +2482,5 @@ static const unsigned char waves[] = {
     143,130,136,125,238,237,204,205,216,221,213,211,69,86,245,49,
 };
 
+const void __at(209) __bank_xstep;
 const hUGESong_t xstep = {4, &order_cnt, order1, order2, order3,order4, duty_instruments, wave_instruments, noise_instruments, NULL, waves};
