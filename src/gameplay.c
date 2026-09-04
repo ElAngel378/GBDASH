@@ -664,8 +664,9 @@ static void process_sprite_logic(
 
         uint16_t obj_y = cache->py[i];
 
-        // Fast Y distance rejection: skip if vertical distance is outside [-25, 55] px
-        if ((uint8_t)((uint8_t)py - (uint8_t)obj_y + 25) > 80) continue;
+        // Fast Y distance rejection: skip if vertical distance is > 50px (supports FamiDash 52px portal height)
+        int16_t dy = (int16_t)py - (int16_t)obj_y;
+        if (dy > 50 || dy < -20) continue;
 
         if (obj >= 16 && obj <= 19) {
             // 48-pixel (3 tile) wide horizontal gravity portal
@@ -687,7 +688,7 @@ static void process_sprite_logic(
                 case OBJ_SHIP_PORTAL:
                 case OBJ_BALL_PORTAL:
                     // FamiDash mode portal: height 52px (obj_y - 2 to obj_y + 50)
-                    if (py <= obj_y + 50 && p_bottom >= (obj_y - 2)) {
+                    if (py <= obj_y + 49 && p_bottom >= (obj_y - 1)) {
                         if (!cache->activated[i]) {
                             if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
                             else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
@@ -701,12 +702,12 @@ static void process_sprite_logic(
                 case OBJ_GRAVITY_DOWN:
                 case OBJ_GRAVITY_UP:
                     // FamiDash gravity portal: height 40px (obj_y + 4 to obj_y + 44)
-                    if (py <= obj_y + 44 && p_bottom >= (obj_y + 4)) {
+                    if (py <= obj_y + 43 && p_bottom >= (obj_y + 5)) {
                         if (!cache->activated[i]) {
                             uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
                             if (p->gravity_flipped != target_flipped) {
                                 p->gravity_flipped = target_flipped;
-                                p->vel_y.w = (p->vel_y.w >> 1);
+                                p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
                             }
                             cache->activated[i] = 1;
                         }
@@ -782,7 +783,7 @@ static void process_sprite_logic(
 
                 case OBJ_MIRROR_PORTAL:
                 case OBJ_MIRROR_EXIT:
-                    if (py <= obj_y + 32 && p_bottom >= obj_y) {
+                    if (py <= obj_y + 45 && p_bottom >= (obj_y - 1)) {
                         if (!cache->activated[i]) {
                             p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
                             cache->activated[i] = 1;
