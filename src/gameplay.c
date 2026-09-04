@@ -301,13 +301,9 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
     }
 }
 
-// ==============================================================================
-// ULTIMATE FAST OAM WRITERS (Zero Array Overhead, Raw Pointer Math)
-// ==============================================================================
-
-// Fast Writer: 2x1 Objects (Pads, Orbs)
+// OAM sprite drawing routines
+// 2x1 metasprite (orbs, pads)
 static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    // Cast shadow_OAM to a raw 8-bit pointer. This forces the compiler to use LD (HL+), A.
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 
     if (!reversed) {
@@ -320,10 +316,6 @@ static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 2;
 }
 
-// Fast Writer: 2x2 8x16 objects (the 16x32 chain block).
-// SDCC passes tile_base in A and oam_idx in E; sy, sx and reversed are the
-// three stack bytes after the return address.  This routine also performs
-// SDCC's required three-byte stack cleanup before returning.
 static uint8_t draw_oam_2x2(uint8_t tile_base, uint8_t oam_idx,
                             uint8_t sx, uint8_t sy, uint8_t reversed) __naked {
 __asm
@@ -464,7 +456,7 @@ __asm
 __endasm;
 }
 
-// Fast Writer: 2x3 Objects (Gravity Portals)
+// 2x3 metasprite (gravity portals)
 static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 
@@ -486,7 +478,7 @@ static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 6;
 }
 
-// Fast Writer: 3x3 Objects (Cube/Ship Portals)
+// 3x3 metasprite (cube/ship portals)
 static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
 
@@ -518,7 +510,7 @@ static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 9;
 }
 
-// Fast Writer: 6x1 Horizontal Gravity Portal (48px wide oval ring)
+// Horizontal gravity portal (48px wide ring)
 static uint8_t draw_oam_horizontal_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
     uint8_t pal = (obj >= 18) ? S_PAL(3) : S_PAL(2);
@@ -608,18 +600,13 @@ static void process_sprite_logic(
             continue;
         }
 
-        // Early break: Active list is sorted by X ascending.
-        // If beyond the trigger lead window, no future trigger or object can interact.
         if (obj != OBJ_LEVEL_END && obj_x > px + BG_TRIGGER_LEAD_PX) break;
 
-        // Fast skip already-activated objects or objects behind the player
         if (cache->activated[i]) continue;
         if (obj_x + 48u < px) continue;
 
-        // Bypass collision entirely for all decorations to save CPU cycles
         if (obj >= 38 && obj < 100) continue;
 
-        // Background trigger objects do not need Y coordinates.
         if (obj >= 100 && obj <= 147 &&
             obj != OBJ_MIRROR_EXIT && obj != OBJ_MIRROR_PORTAL) {
 
@@ -639,13 +626,12 @@ static void process_sprite_logic(
                 }
 
                 cache->activated[i] = 1;
-                cache->active[i] = 0; // Deactivate one-shot trigger so it is never scanned again
+                cache->active[i] = 0;
             }
 
             continue;
         }
 
-        // Ground color trigger objects (CGB only)
         if (obj >= 192 && obj <= 239) {
             if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
                 if (_cpu == CGB_TYPE) {
@@ -653,18 +639,16 @@ static void process_sprite_logic(
                     famidash_apply_g_trigger(pal_idx);
                 }
                 cache->activated[i] = 1;
-                cache->active[i] = 0; // Deactivate one-shot trigger
+                cache->active[i] = 0;
             }
 
             continue;
         }
 
-        // Physical objects (portals, pads, orbs) only need collision check within 48px of player
         if (obj_x > px + 48u) continue;
 
         uint16_t obj_y = cache->py[i];
 
-        // Fast Y distance rejection: skip if vertical distance is > 50px (supports FamiDash 52px portal height)
         int16_t dy = (int16_t)py - (int16_t)obj_y;
         if (dy > 50 || dy < -20) continue;
 
@@ -804,10 +788,10 @@ static uint8_t draw_sprites(
     uint8_t i;
     uint8_t dist_x, screen_x, screen_y;
     uint8_t deco_drawn = 0;
-    // Cap decorations to maintain 60 FPS: 4 on DMG, 12 on CGB
+    // Limit active decorations (4 on DMG, 12 on CGB) to keep 60 FPS
     uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
 
-    // Ultra-fast path on DMG: if no portals are in the active cache, draw nothing!
+    // Skip drawing if no portals exist in cache on DMG
     if (_cpu != CGB_TYPE && !sp_has_portals) return oam_start;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
@@ -819,13 +803,8 @@ static uint8_t draw_sprites(
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 100) continue;
 
-        // On DMG, only portals (0, 1, 2, 8, 9, 16..19, 121, 126) are drawn as sprites.
-        // Fast-reject all pads, orbs, and decorations in 1 table lookup!
         if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal[obj])) continue;
 
-        // --- PURE 8-BIT DISTANCE MATH ---
-        // This eliminates the 16-bit rel_x calculation.
-        // It uses native integer underflow to safely wrap off-screen objects.
         dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
 
         if (!reversed) {
@@ -894,24 +873,21 @@ void draw_text(uint8_t x, uint8_t y, const char *str) BANKED {
 
 void draw_levels(void) BANKED {
     if (_cpu == CGB_TYPE) {
-        // Simple dark blue/gray palette for menu
         static const uint16_t menu_pal[] = {
             RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
         };
         set_bkg_palette(0, 1, menu_pal);
 
-        // RESET ATTRIBUTES: Clear level attributes (Palettes 1-7, VRAM Bank 1, flips)
-        // so the menu text uses Palette 0 and VRAM Bank 0.
         VBK_REG = 1;
         fill_bkg_rect(0, 0, 32, 32, 0x00);
         VBK_REG = 0;
     }
-    BGP_REG = 0x2F; // Inverted Palette: White=00, Light Gray=Dark Gray(10), Dark Gray=Black(11), Black=Black(11)
+    BGP_REG = 0x2F;
     fill_bkg_rect(0, 0, 20, 18, 0x00);
     draw_text(0, 0, "LEVEL SELECT");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
         if (i == selected) {
-            draw_text(1, 2 + i, "0"); // cursor icon
+            draw_text(1, 2 + i, "0");
             draw_text(3, 2 + i, game_levels[i]->name);
         } else {
             draw_text(3, 2 + i, game_levels[i]->name);
@@ -922,7 +898,6 @@ void draw_levels(void) BANKED {
     redraw = 0;
 }
 
-// Globals for play_level to avoid slow stack-relative addressing
 SpCache active_sp;
 uint8_t collision_columns[32];
 
@@ -1004,8 +979,6 @@ void play_level(uint8_t idx) BANKED {
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
     if (_cpu == CGB_TYPE) {
-        // Boot on the default FamiDash theme so GBC matches the DMG boot
-        // state (bg_pals[0] = 0xE4).
         famidash_reset_bg_palettes();
         set_sprite_palette(0, 6, gbc_sprite_palettes);
     }
@@ -1062,7 +1035,6 @@ void play_level(uint8_t idx) BANKED {
         uint16_t need_col = 0;
         uint16_t px_curr = px_prev;
 
-        // PROGRESS FORWARD through the level map
         if (cam_px < max_scroll_px) {
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
@@ -1078,31 +1050,22 @@ void play_level(uint8_t idx) BANKED {
         }
 
         player.world_x = cam_px;
-        /* SP entries are aligned to 16-pixel columns. To avoid spiking on the
-         * same frame as prepare_mt_column and load_collision_columns (which run at cam_px & 15 == 0),
-         * stagger sp_cache_update to run halfway through each column (cam_px & 15 == 8). */
         uint16_t sp_col = (cam_px + 8u) >> 4;
         if (sp_col != sp_cache_col) {
             sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
             sp_cache_col = sp_col;
         }
 
-        // Apply object logic before testing the mirror state so the tile-map
-        // and camera switch on the same frame as the mirror portal.
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
 
         if (player.reversed != prev_reversed) {
-            // Safely wait for VBlank and turn display off for full-speed, zero-wait-state VRAM writes
             DISPLAY_OFF;
 
-            // Swap tileset in VRAM to match mirror mode orientation
             const uint8_t* target_tiles = player.reversed
                 ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
 
-            // Redraw 16-column buffer starting 4 columns behind the player
-            // so both the front AND the back of the player are completely populated
             int32_t col_start = (int32_t)(cam_px >> 4) - 4;
             if (col_start < 0) col_start = 0;
             for (uint8_t i = 0; i < 16; i++) {
@@ -1115,13 +1078,11 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
 
-            // Re-upload sprite tiles to guarantee all sprites (player, portals, pads, orbs) are in VRAM
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 4, ball_tiles);
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 
-            // Immediately set the new scroll position before re-enabling display
             uint16_t init_scroll_px = player.reversed
                 ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
                 : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
@@ -1132,7 +1093,6 @@ void play_level(uint8_t idx) BANKED {
             SPRITES_8x16;
             DISPLAY_ON;
 
-            // Mark highest column currently rendered in the buffer
             loaded_r = (uint16_t)(col_start + 15);
             prev_reversed = player.reversed;
         }
@@ -1162,7 +1122,7 @@ void play_level(uint8_t idx) BANKED {
         uint16_t scroll_px;
         uint8_t sprite_x_final;
         if (player.reversed) {
-            // Mirror Mode: SCX decreases as we progress forward
+            // Mirror Mode: SCX decreases as progress advances
             scroll_px = (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X);
             sprite_x_final = MIRROR_PLAYER_SCREEN_X; // Mirrored player position (112)
         } else {

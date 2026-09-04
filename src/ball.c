@@ -3,8 +3,7 @@
 #include <gbdk/platform.h>
 #include <gbdk/metasprites.h>
 
-// Ball tiles extracted from NES CHR and converted to GB 2bpp (8x16 mode order)
-// Order: [Top-Left, Bottom-Left, Top-Right, Bottom-Right]
+// Ball tile graphics (2bpp GB format)
 const uint8_t ball_tiles[] = {
     0x00, 0x00, 0x00, 0x00, 0x03, 0x03, 0x0F, 0x0C,
     0x1F, 0x10, 0x3F, 0x23, 0x7C, 0x47, 0x78, 0x4F,
@@ -16,9 +15,10 @@ const uint8_t ball_tiles[] = {
     0xF0, 0x10, 0xE0, 0x20, 0xC0, 0xC0, 0x00, 0x00,
 };
 
+// Ball metasprite definition
 const metasprite_t ball_metasprite0[] = {
-    METASPR_ITEM(0, -1, 0, 0), // LHS (Tiles 0+1)
-    METASPR_ITEM(0, 8, 2, 0),  // RHS (Tiles 2+3)
+    METASPR_ITEM(0, -1, 0, 0),
+    METASPR_ITEM(0, 8, 2, 0),
     METASPR_TERM
 };
 

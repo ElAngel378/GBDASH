@@ -32,11 +32,6 @@ int16_t player_screen_y(const Player* p, uint16_t cam_y) {
     return (int16_t)(p->world_y.b.h) - (int16_t)cam_y;
 }
 
-// Returns 1 if the sampled tile actually kills the player.
-// Side-facing half spikes (COL_DEATH_LEFT / COL_DEATH_RIGHT) only cover
-// their own half of the tile, giving them the same reduced hitbox as the
-// top/bottom half spikes. On mirrored levels (reversed) the sprites are
-// flipped, so the deadly half swaps sides too.
 static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
     uint8_t inner_x;
     uint8_t deadly_left;
@@ -47,9 +42,9 @@ static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
         inner_x = (uint8_t)(p->world_x + x_off) & 0x0F;
         deadly_left = (col == COL_DEATH_LEFT) ^ (p->reversed != 0);
         if (deadly_left) {
-            if (inner_x >= 8) return 0; // deadly zone: left half only
+            if (inner_x >= 8) return 0;
         } else {
-            if (inner_x < 8) return 0;  // deadly zone: right half only
+            if (inner_x < 8) return 0;
         }
     }
     return 1;
@@ -88,9 +83,7 @@ uint8_t player_update(
     if (p->dead) return 1;
     if (p->level_complete) return 0;
 
-    // --------------------------------------------------------
-    // 1. PHASE 1: ACCELERATE (FamiDash Style)
-    // --------------------------------------------------------
+    // Acceleration & gravity
     if (p->mode == MODE_SHIP) {
         int16_t accel;
         if (joy & J_A) {
@@ -100,7 +93,6 @@ uint8_t player_update(
         }
         p->vel_y.w += accel;
 
-        // Ship Terminal Velocity
         if (p->gravity_flipped) {
             if (p->vel_y.w < -SHIP_MAX_VEL_UP) p->vel_y.w = -SHIP_MAX_VEL_UP;
             if (p->vel_y.w > SHIP_MAX_VEL_DOWN) p->vel_y.w = SHIP_MAX_VEL_DOWN;
@@ -119,7 +111,7 @@ uint8_t player_update(
         }
     }
 
-    // Orb Buffering Logic: Only allow buffering if pressed while mid-air
+    // Buffer jump input while airborne
     if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
         p->orb_buffered = 1;
     }
@@ -130,27 +122,20 @@ uint8_t player_update(
         return 0;
     }
 
-    // --------------------------------------------------------
-    // 2. PHASE 2: MOVE
-    // --------------------------------------------------------
+    // Movement & collision resolution
     p->world_y.w += p->vel_y.w;
 
-    // --------------------------------------------------------
-    // 3. PHASE 3: EJECT (Collision Response)
-    // --------------------------------------------------------
     uint8_t py = p->world_y.b.h;
     const uint8_t* c0 = collision_columns;
     const uint8_t* c1 = collision_columns + 16;
     uint8_t x_mod_16 = (uint8_t)p->world_x & 0x0F;
     uint8_t threshold = 16 - x_mod_16;
 
-
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
     p->on_ground = 0;
 
-    // --- Vertical Ejection ---
-    // Check Floor (only when falling or stationary, matching FamiDash)
+    // Floor collision
     if (p->vel_y.w >= 0) {
         int16_t foot_y = py + 16;
         uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), foot_y);
@@ -164,13 +149,8 @@ uint8_t player_update(
         }
         if (IS_SOLID(hit_col)) {
             uint8_t block_top_y = (uint8_t)(foot_y & ~15);
-            // Ledge vs Wall check:
-            // If only the leading front edge touched a block, ensure the player is actually
-            // falling onto the top surface rather than crashing into the side:
-            // (1) The cube's vertical center must be above the top of the block.
-            // (2) The penetration depth into the block must be <= 6px (max fall speed).
             if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) >= block_top_y || (foot_y & 15) > 6)) {
-                // Front edge struck the side of a wall — do NOT snap up!
+                // Front edge struck wall side
             } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_BOTTOM) {
                     p->world_y.b.h = block_top_y + 8 - 16;
@@ -187,7 +167,7 @@ uint8_t player_update(
         }
     }
 
-    // Check Ceiling (only when rising, matching FamiDash)
+    // Ceiling collision
     if (p->vel_y.w < 0) {
         int16_t head_y = py;
         uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), head_y);
@@ -202,7 +182,7 @@ uint8_t player_update(
         if (IS_SOLID(hit_col)) {
             uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
             if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) <= (uint8_t)(block_bottom_y - 16) || (16 - (head_y & 15)) > 6)) {
-                // Front edge struck the side of a ceiling wall — do NOT snap down!
+                // Front edge struck ceiling side
             } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_TOP) {
                     p->world_y.b.h = (head_y & ~15) + 8;
@@ -219,7 +199,7 @@ uint8_t player_update(
         }
     }
 
-    // --- 1-Pixel Sticky Ground Check (FamiDash Hack) - Cube & Ball only ---
+    // Sticky ground check for cube & ball
     if (!p->on_ground && p->mode != MODE_SHIP) {
         int16_t sticky_y = (p->gravity_flipped) ? (p->world_y.b.h - 1) : (p->world_y.b.h + 16);
         uint8_t stick_col = COL_AT_PTR(GET_COL_FAST(0), sticky_y);
@@ -228,7 +208,7 @@ uint8_t player_update(
             if (!IS_SOLID(stick_col)) {
                 stick_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), sticky_y);
                 if (IS_SOLID(stick_col) && (uint8_t)(p->world_y.b.h + (PLAYER_SIZE >> 1)) >= (uint8_t)(sticky_y & ~15)) {
-                    stick_col = 0; // Don't stick to a wall ahead of the player!
+                    stick_col = 0;
                 }
             }
         }
@@ -239,7 +219,7 @@ uint8_t player_update(
         }
     }
 
-    // --- Wall / Front Collision (Death) — single center probe like FamiDash ---
+    // Front wall collision
     py = p->world_y.b.h;
     const uint8_t* c_front = p->reversed ? c0 : GET_COL_FAST(PLAYER_SIZE - 1);
     uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
@@ -248,7 +228,7 @@ uint8_t player_update(
         return 1;
     }
 
-    // --- Hazard Collision (Spikes) ---
+    // Hazard collision
     uint8_t hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
     if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_HBOX)) {
         p->dead = 1;
@@ -270,9 +250,7 @@ uint8_t player_update(
         return 1;
     }
 
-    // --------------------------------------------------------
-    // 4. PHASE 4: INPUT (After Eject)
-    // --------------------------------------------------------
+    // Ground jump handling
     if (p->on_ground) {
         if (joy & J_A) {
             if (p->mode == MODE_CUBE) {

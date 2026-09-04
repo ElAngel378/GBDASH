@@ -58,7 +58,7 @@ uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
     return col;
 }
 
-// This function must be in BANK 0
+// Bank-safe collision check wrapper
 uint8_t col_at(
     uint16_t world_px,
     int16_t  world_py,
@@ -73,18 +73,13 @@ uint8_t col_at(
     return res;
 }
 
-// Loads tileset into VRAM. Handles splitting if tiles > 128.
-// Also in Bank 0 because the 'tiles' pointer might be in another bank.
+// Upload tileset graphics to VRAM
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(bank);
-  // On CGB hardware VRAM bank 1 contains tile attributes.  Always select
-  // the pattern/tile bank before uploading background graphics.
   VBK_REG = VBK_TILES;
   if (tile_count == 256u) {
     set_bkg_data(0, 128, tiles);
-    // Background tiles only go up to tile 144; sprite VRAM begins at 160.
-    // Only upload 32 tiles (128..159) to avoid overwriting sprite tiles at 160..251!
     set_bkg_data(128, 32, tiles + (128u * 16u));
   } else {
     set_bkg_data(0, (uint8_t)tile_count, tiles);
@@ -92,8 +87,7 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   SWITCH_ROM(_prev);
 }
 
-// Player collision needs only the current map column and the one to its right.
-// Keeping those 32 bytes in WRAM removes a ROM-bank switch from every frame.
+// Buffer current and adjacent map columns in WRAM to reduce bank switches
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,
                             uint8_t* columns) {

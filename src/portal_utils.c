@@ -32,10 +32,10 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
     while (sp_list[*stream_idx].x != 0xFFFF) {
         uint16_t object_x = sp_list[*stream_idx].x;
         
-        // If it's too far ahead, stop evaluating
+        // If too far ahead, stop evaluating
         if (object_x > cam_px + 176u) break;
 
-        // If it's already behind the camera, skip it and advance to prevent stalling
+        // If behind camera, skip to prevent stalling
         if (object_x + 48u < cam_px) {
             (*stream_idx)++;
             continue;
@@ -43,8 +43,7 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         uint8_t obj_id = sp_list[*stream_idx].obj;
 
-        // DMG optimization: We don't draw decorations or ground color triggers on DMG,
-        // so completely skip loading them into the cache to save all associated CPU processing time.
+        // DMG optimization: skip decorations and ground color triggers on DMG to save CPU time
         if (_cpu != CGB_TYPE && obj_id >= 38) {
             if (obj_id < 100 || obj_id >= 192) {
                 (*stream_idx)++;
@@ -52,13 +51,12 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
             }
         }
 
-        // Prioritize gameplay elements on CGB: If cache is nearing full, drop decorations
+        // Prioritize gameplay elements on CGB if cache is nearing full
         if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 100) {
             (*stream_idx)++;
             continue;
         }
 
-        // Add to cache if room
         if (count >= MAX_ACTIVE_SP_OBJECTS) break;
 
         cache->obj[count] = obj_id;

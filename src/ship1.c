@@ -2,8 +2,7 @@
 #include <gb/gb.h>
 #include <gbdk/metasprites.h>
 
-// Your 4 tiles in original export order: [Tail Top, Tail Bottom, Nose Top, Nose Bottom]
-// SWAPPED Tile 2 and Tile 3 for the RHS as requested.
+// Ship tile graphics
 const uint8_t ship_tiles[] = {
   0x0F,0x0F,0x08,0x0F,0x3B,0x3F,0x3B,0x2E,
   0x3B,0x2E,0x3B,0x2F,0x78,0x6F,0x3F,0x2F,
@@ -16,10 +15,10 @@ const uint8_t ship_tiles[] = {
 
 };
 
-// Fixed Metasprite: Tail on left (index 8), Nose on right (index 10)
+// Ship metasprite: tail at left, nose at right
 const metasprite_t ship_metasprite0[] = {
-    { -1, -1, 8, 0 }, // Sprite 0: Tail at (-1, -1) relative to anchor
-    { 0, 8, 10, 0 },  // Sprite 1: Nose at (8, 0) relative to Sprite 0
+    { -1, -1, 8, 0 },
+    { 0, 8, 10, 0 },
     METASPR_TERM
 };
 
