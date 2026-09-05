@@ -167,6 +167,9 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     current_song_bank = bank;
     SWITCH_ROM(bank);
     disable_interrupts();
+    NR52_REG = 0x80;
+    NR51_REG = 0xFF;
+    NR50_REG = 0x77;
     hUGE_init(song);
     TMA_REG = divider;
     enable_interrupts();

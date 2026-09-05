@@ -56,17 +56,6 @@ GameState update_level_select_state(void) {
             return STATE_PLAY_LEVEL;
         } else if (joy & J_B) {
             waitpadup();
-            music_ready = 0;
-            TAC_REG = 0x00;
-            play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
-            fade_to_black(2);
-            while (is_sample_playing()) wait_vbl_done();
-            stop_sample();
-
-            init_music_banked(&menuloop, 1, 176);
-            current_song_bank = 1;
-            TAC_REG = 0x04;
-            music_ready = 1;
             return STATE_MENU;
         }
 

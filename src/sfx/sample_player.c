@@ -23,6 +23,8 @@ void sample_play_isr(void) __nonbanked __naked {
         ld (#_sample_playing), a
         ldh (_NR30_REG), a       ; Disable CH3
         ldh (_TAC_REG), a        ; Stop timer
+        ld a, #0xFF
+        ldh (_NR51_REG), a       ; Restore stereo panning for music
         pop hl
         pop de
         pop bc
@@ -106,12 +108,18 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
     // Stop any current timer
     TAC_REG = 0x00;
 
+    // Cut off all music channels immediately so no held notes continue droning
+    NR12_REG = 0x00; NR14_REG = 0x80;
+    NR22_REG = 0x00; NR24_REG = 0x80;
+    NR30_REG = 0x00;
+    NR42_REG = 0x00; NR44_REG = 0x80;
+
     // Power on sound hardware
     NR52_REG = 0x80;
-    // Max volume
+    // Max master volume
     NR50_REG = 0x77;
-    // Enable CH3 in stereo pan (left & right)
-    NR51_REG |= 0x44;
+    // Route ONLY Channel 3 in stereo pan (left & right), isolating sample playback
+    NR51_REG = 0x44;
 
     play_bank = bank;
     play_sample_ptr = sample;
@@ -140,5 +148,6 @@ void stop_sample(void) {
     play_length = 0;
     TAC_REG = 0x00;
     NR30_REG = 0x00;
+    NR51_REG = 0xFF;
     enable_interrupts();
 }
