@@ -51,8 +51,6 @@ GameState update_level_select_state(void) {
             TAC_REG = 0x00;
             play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
             fade_to_black(2);
-            while (is_sample_playing()) wait_vbl_done();
-            stop_sample();
             return STATE_PLAY_LEVEL;
         } else if (joy & J_B) {
             waitpadup();

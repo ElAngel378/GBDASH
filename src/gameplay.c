@@ -943,7 +943,6 @@ void play_level(uint8_t idx) BANKED {
     target_bg_idx = 0;
     player_init(&player, 0, 240);
 
-    disable_interrupts();
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     set_sprite_data(0, 8, icon1_tiles);
@@ -967,7 +966,7 @@ void play_level(uint8_t idx) BANKED {
     DISPLAY_ON;
     enable_interrupts();
 
-    // Wait for the entry sound effect to finish
+    // Wait for the entry sound effect to finish (hiding load time behind SFX)
     while (is_sample_playing()) wait_vbl_done();
     stop_sample();
 
@@ -975,14 +974,14 @@ void play_level(uint8_t idx) BANKED {
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
 
+    fade_from_black(2);
+
     if (level_songs[idx]) {
         init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
         current_song_bank = song_bank[idx];
         TAC_REG = 0x04;
         music_ready = 1;
     }
-
-    fade_from_black(2);
 
     scroll_acc = 0;
     prev_joy = 0;
@@ -1201,10 +1200,6 @@ void play_level(uint8_t idx) BANKED {
             NR52_REG = 0x80;
             NR51_REG = 0xFF;
             NR50_REG = 0x77;
-            if (level_songs[idx]) {
-                init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-                current_song_bank = song_bank[idx];
-            }
             disable_interrupts();
             DISPLAY_OFF;
 
@@ -1241,8 +1236,12 @@ void play_level(uint8_t idx) BANKED {
             }
             fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
             DISPLAY_ON;
-            TAC_REG = 0x04;
-            music_ready = 1;
+            if (level_songs[idx]) {
+                init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+                current_song_bank = song_bank[idx];
+                TAC_REG = 0x04;
+                music_ready = 1;
+            }
             enable_interrupts();
         }
     }
