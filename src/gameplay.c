@@ -21,6 +21,7 @@
 #include "sample_player.h"
 #include "sfx_data.h"
 #include "fade.h"
+#include "death_effect.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -948,6 +949,7 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
     set_sprite_data(12, 4, ball_tiles);
+    init_death_effect_tiles();
     set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
@@ -1187,16 +1189,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (died) {
-            TAC_REG = 0x00;
-            NR52_REG = 0x00;
-            NR52_REG = 0x80;
-            NR51_REG = 0xFF;
-            NR50_REG = 0x77;
-            NR41_REG = 0x00;
-            NR42_REG = 0xF2;
-            NR43_REG = 0x43;
-            NR44_REG = 0x80;
-            for (uint8_t i = 0; i < 60; i++) wait_vbl_done();
+            play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
             NR52_REG = 0x80;
             NR51_REG = 0xFF;
             NR50_REG = 0x77;
@@ -1214,6 +1207,7 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(0, 8, icon1_tiles);
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 4, ball_tiles);
+            init_death_effect_tiles();
             set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, FAMIDASH_SPRITE_TILE_COUNT, famidash_sprites_tiles);
 
             cam_px = 0;

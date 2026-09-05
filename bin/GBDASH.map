@@ -75,13 +75,13 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      00003370  l__CODE_3 |    00003450  ___size_c |    00003450  l__CODE_3
      000034A0  ___size_d |    000034A0  l__CODE_3 |    000034C0  ___size_x
      000034C0  l__CODE_3 |    000034E0  ___size_b |    000034E0  l__CODE_3
-     00003580  l__CODE_1 |    00003650  ___size_b |    00003650  l__CODE_3
-     000037E0  ___size_s |    000037E0  l__CODE_3 |    00003810  ___size_j
-     00003810  l__CODE_3 |    000039E5  l__CODE   |    00003A70  ___size_p
-     00003A70  l__CODE_3 |    00003BE5  s__HOME   |    00003E50  ___size_t
-     00003E50  l__CODE_3 |    00003E74  s__BASE   |    00003E74  s__CODE_0
-     00003E74  s__INITIA |    00003E74  s__LIT    |    00003E8B  s__GSINIT
-     00003E9D  s__GSFINA |    00004000  _rMBC7_SR |    00004000  _rRAMB   
+     00003650  ___size_b |    00003650  l__CODE_3 |    000037E0  ___size_s
+     000037E0  l__CODE_3 |    00003810  ___size_j |    00003810  l__CODE_3
+     000039E5  l__CODE   |    00003A70  ___size_p |    00003A70  l__CODE_3
+     00003BE5  s__HOME   |    00003E50  ___size_t |    00003E50  l__CODE_3
+     00003E74  s__BASE   |    00003E74  s__CODE_0 |    00003E74  s__INITIA
+     00003E74  s__LIT    |    00003E8B  s__GSINIT |    00003E9D  s__GSFINA
+     00003FBA  l__CODE_1 |    00004000  _rMBC7_SR |    00004000  _rRAMB   
      00004000  l__CODE_2 |    00008000  __VRAM    |    00008000  __VRAM800
      00008800  __VRAM880 |    00009000  __VRAM900 |    00009800  __SCRN0  
      00009C00  __SCRN1   |    0000A000  __SRAM    |    0000A000  _rMBC7_LA
@@ -433,31 +433,32 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_CODE_10               000A4000    00003580 =       13696. bytes (REL,CON)
+_CODE_10               000A4000    00003FBA =       16314. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      000A4000  _ball_til |    000A4040  _ball_met |    000A404C  _ball_met
-     000A4281  _sp_cache |    000A431E  _sp_cache |    000A5BFA  _setup_me
-     000A5C08  _draw_tex |    000A5C80  _draw_lev |    000A5D86  _play_lev
-     000A69F8  _icon1_pa |    000A6A00  _icon1_ti |    000A6A80  _icon1_me
-     000A6A8C  _icon1_me |    000A6A98  _icon1_me |    000A6AA4  _icon1_me
-     000A6AB0  _icon1_me |    000A6ABC  _icon1_me |    000A6AC8  _icon1_me
-     000A6AD4  _icon1_me |    000A6AE0  _icon1_me |    000A6AEC  _icon1_me
-     000A6AF8  _icon1_me |    000A6B04  _icon1_me |    000A6B10  _icon1_me
-     000A6B1C  _icon1_me |    000A6B28  _icon1_me |    000A6B34  _icon1_me
-     000A6B40  _icon1_me |    000A6B4C  _icon1_me |    000A6B58  _icon1_me
-     000A6B64  _icon1_me |    000A6B70  _icon1_me |    000A6B7C  _icon1_me
-     000A6B88  _icon1_me |    000A6B94  _icon1_me |    000A6BA0  _icon1_me
-     000A6BAC  _icon1_me |    000A6BDE  _ship_til |    000A6C1E  _ship_met
-     000A6C2A  _ship_met |    000A6C2C  ___func_f |    000A6C2C  _famidash
-     000A71EC  _famidash |    000A7214  _famidash |    000A723C  _famidash
-     000A7264  _famidash |    000A7280  _famidash |    000A729C  _famidash
-     000A72B8  _famidash |    000A72D4  _famidash |    000A72F0  _famidash
-     000A730C  _famidash |    000A7318  _famidash |    000A7324  _famidash
-     000A7330  _famidash |    000A733C  _famidash |    000A7348  _famidash
-     000A7354  _famidash |    000A7360  _famidash |    000A736C  _famidash
-     000A7380  _famidash |    000A7500  _famidash
+     000A404E  _init_dea |    000A405C  _death_ef |    000A46FC  _play_dea
+     000A4C97  _sp_cache |    000A4D34  _sp_cache |    000A6610  _setup_me
+     000A661E  _draw_tex |    000A6696  _draw_lev |    000A679C  _play_lev
+     000A7432  _icon1_pa |    000A743A  _icon1_ti |    000A74BA  _icon1_me
+     000A74C6  _icon1_me |    000A74D2  _icon1_me |    000A74DE  _icon1_me
+     000A74EA  _icon1_me |    000A74F6  _icon1_me |    000A7502  _icon1_me
+     000A750E  _icon1_me |    000A751A  _icon1_me |    000A7526  _icon1_me
+     000A7532  _icon1_me |    000A753E  _icon1_me |    000A754A  _icon1_me
+     000A7556  _icon1_me |    000A7562  _icon1_me |    000A756E  _icon1_me
+     000A757A  _icon1_me |    000A7586  _icon1_me |    000A7592  _icon1_me
+     000A759E  _icon1_me |    000A75AA  _icon1_me |    000A75B6  _icon1_me
+     000A75C2  _icon1_me |    000A75CE  _icon1_me |    000A75DA  _icon1_me
+     000A75E6  _icon1_me |    000A7618  _ship_til |    000A7658  _ship_met
+     000A7664  _ship_met |    000A7666  ___func_f |    000A7666  _famidash
+     000A7C26  _famidash |    000A7C4E  _famidash |    000A7C76  _famidash
+     000A7C9E  _famidash |    000A7CBA  _famidash |    000A7CD6  _famidash
+     000A7CF2  _famidash |    000A7D0E  _famidash |    000A7D2A  _famidash
+     000A7D46  _famidash |    000A7D52  _famidash |    000A7D5E  _famidash
+     000A7D6A  _famidash |    000A7D76  _famidash |    000A7D82  _famidash
+     000A7D8E  _famidash |    000A7D9A  _famidash |    000A7DA6  _famidash
+     000A7DBA  _famidash |    000A7F3A  _famidash
 ASxxxx Linker V03.00/V05.40 + sdld,  page 31.
 Hexadecimal  [32-Bits]
 
@@ -882,6 +883,7 @@ temp/Font.o                               [ Font ]
 temp/assets.o                             [ assets ]
 temp/ball.o                               [ ball ]
 temp/collision.o                          [ collision ]
+temp/death_effect.o                       [ death_effect ]
 temp/fade.o                               [ fade ]
 temp/famidash_metatiles.o                 [ famidash_metatiles ]
 temp/gameplay.o                           [ gameplay ]
