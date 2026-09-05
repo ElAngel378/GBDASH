@@ -12,7 +12,7 @@ LIBDIR = lib
 SRCS = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c)
 OBJS = $(foreach src, $(SRCS), $(TEMPDIR)/$(notdir $(src:.c=.o)))
 
-vpath %.c $(SRCDIR) $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels
+vpath %.c $(SRCDIR) $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDIR)/levels $(SRCDIR)/sfx
 
 # SDCC optimizes almost nothing by default, and lcc has no -O option
 # (unrecognized options go to the linker!). Compiler flags must be forwarded

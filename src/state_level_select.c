@@ -1,18 +1,26 @@
 #include "states.h"
 #include "gameplay.h"
 #include "assets.h"
+#include "sample_player.h"
+#include "sfx_data.h"
+#include "fade.h"
+#include "hUGEDriver.h"
 #include <gb/gb.h>
 
 extern uint8_t selected;
 extern uint8_t redraw;
+extern uint8_t music_ready;
+extern volatile uint8_t current_song_bank;
+extern const hUGESong_t menuloop;
 
 GameState update_level_select_state(void) {
+    fade_set_black();
     DISPLAY_OFF;
     // Clear VRAM tiles and map to ensure no logo leftovers
     fill_bkg_rect(0, 0, 32, 32, 0);
-    // Overwrite tiles 0-255 with 0 (blank)
+    // Overwrite tile 0 with blank
     uint8_t blank_tile[16] = {0};
-    set_bkg_data(0, 255, blank_tile);
+    set_bkg_data(0, 1, blank_tile);
 
     setup_menu_font();
 
@@ -20,10 +28,12 @@ GameState update_level_select_state(void) {
     SCX_REG = 0;
     SCY_REG = 0;
 
-    redraw = 1;
+    draw_levels();
 
     SHOW_BKG;
+    fade_set_black();
     DISPLAY_ON;
+    fade_from_black(2);
 
     while (1) {
         if (redraw) draw_levels();
@@ -37,9 +47,26 @@ GameState update_level_select_state(void) {
             waitpadup();
         } else if (joy & J_A) {
             waitpadup();
+            music_ready = 0;
+            TAC_REG = 0x00;
+            play_sample(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
+            fade_to_black(2);
+            while (is_sample_playing()) wait_vbl_done();
+            stop_sample();
             return STATE_PLAY_LEVEL;
         } else if (joy & J_B) {
             waitpadup();
+            music_ready = 0;
+            TAC_REG = 0x00;
+            play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
+            fade_to_black(2);
+            while (is_sample_playing()) wait_vbl_done();
+            stop_sample();
+
+            init_music_banked(&menuloop, 1, 176);
+            current_song_bank = 1;
+            TAC_REG = 0x04;
+            music_ready = 1;
             return STATE_MENU;
         }
 

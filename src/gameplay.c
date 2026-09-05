@@ -18,6 +18,9 @@
 #define DEBUG_MODE
 #include "famidash_metatiles.h"
 #include "hUGEDriver.h"
+#include "sample_player.h"
+#include "sfx_data.h"
+#include "fade.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -184,7 +187,7 @@ static palette_color_t famidash_darker(palette_color_t color) {
 static void famidash_reset_bg_palettes(void) {
     uint8_t i;
     for (i = 0; i != 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
-    set_bkg_palette(0, 4, famidash_bg_palettes);
+    fade_set_bkg_palette(0, 4, famidash_bg_palettes);
 }
 
 static void famidash_apply_bg_trigger(uint8_t color_id) {
@@ -195,7 +198,7 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
         color = RGB(0, 28, 0); /* Neon Green */
         famidash_bg_palettes[6] = color;
         famidash_bg_palettes[5] = famidash_darker(color);
-        set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+        fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
         return;
     } else {
         // Fast local lookup
@@ -211,7 +214,7 @@ static void famidash_apply_bg_trigger(uint8_t color_id) {
     // famidash_bg_palettes[5] is preserved for ground darker color
     famidash_bg_palettes[9] = color;
     famidash_bg_palettes[13] = color;
-    set_bkg_palette(0, 4, famidash_bg_palettes);
+    fade_set_bkg_palette(0, 4, famidash_bg_palettes);
 }
 
 static void famidash_apply_g_trigger(uint8_t color_id) {
@@ -222,23 +225,8 @@ static void famidash_apply_g_trigger(uint8_t color_id) {
 
     famidash_bg_palettes[6] = color;
     famidash_bg_palettes[5] = famidash_darker(color);
-    set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
+    fade_set_bkg_palette(1, 1, &famidash_bg_palettes[4]);
 }
-
-static const uint16_t gbc_sprite_palettes[] = {
-    // 0: Player (Outline: Black, Primary: Blue, Secondary: Green)
-    RGB8(255, 255, 255), RGB8(0, 255, 255), RGB8(0, 255, 0), RGB8(0, 0, 0),
-    // 1: Cube (Outline: Black, Primary: Green, Secondary: Green)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 255, 0), RGB8(0, 255, 0),
-    // 2: Normal Gravity (Outline: Black, Primary: Teal, Secondary: Teal)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 255, 255), RGB8(0, 255, 255),
-    // 3: Inverted Gravity (Outline: Black, Primary: Yellow, Secondary: Yellow)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 255, 0), RGB8(255, 255, 0),
-    // 4: Ship (Outline: Black, Primary: Pink, Secondary: Pink)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 100, 255), RGB8(255, 100, 255),
-    // 5: Ball (Outline: Black, Primary: Red, Secondary: Red)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 0, 0), RGB8(255, 0, 0)
-};
 
 static const uint8_t is_dmg_portal[128] = {
     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
@@ -873,16 +861,13 @@ void draw_text(uint8_t x, uint8_t y, const char *str) BANKED {
 
 void draw_levels(void) BANKED {
     if (_cpu == CGB_TYPE) {
-        static const uint16_t menu_pal[] = {
-            RGB8(20, 20, 40), RGB8(100, 100, 150), RGB8(200, 200, 255), RGB8(255, 255, 255)
-        };
-        set_bkg_palette(0, 1, menu_pal);
+        fade_set_bkg_palette(0, 1, menu_pal);
 
         VBK_REG = 1;
         fill_bkg_rect(0, 0, 32, 32, 0x00);
         VBK_REG = 0;
     }
-    BGP_REG = 0x2F;
+    fade_set_dmg_palettes(0x2F, 0xE4, 0xE4);
     fill_bkg_rect(0, 0, 20, 18, 0x00);
     draw_text(0, 0, "LEVEL SELECT");
     for (uint8_t i = 0; i < MAX_LEVELS; i++) {
@@ -947,16 +932,6 @@ void play_level(uint8_t idx) BANKED {
     level_map_bank = l->map_bank;
     if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 
-    NR52_REG = 0x80;
-    NR51_REG = 0xFF;
-    NR50_REG = 0x77;
-
-    if (level_songs[idx]) {
-        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
-        current_song_bank = song_bank[idx];
-        music_ready = 1;
-    }
-
     cam_px = 0;
     cam_py = 112;
     cam_py_max = (level_map_h << 4);
@@ -980,18 +955,34 @@ void play_level(uint8_t idx) BANKED {
 
     if (_cpu == CGB_TYPE) {
         famidash_reset_bg_palettes();
-        set_sprite_palette(0, 6, gbc_sprite_palettes);
+        fade_set_sprite_palette(0, 6, gbc_sprite_palettes);
     }
 
-    BGP_REG = bg_pals[0];
-    OBP0_REG = bg_pals[0];
+    fade_set_dmg_palettes(bg_pals[0], bg_pals[0], bg_pals[0]);
+    fade_set_black();
+
     SPRITES_8x16;
-    OBP1_REG = bg_pals[0];
     SHOW_BKG;
     SHOW_SPRITES;
     DISPLAY_ON;
-    TAC_REG = 0x04;
     enable_interrupts();
+
+    // Wait for the entry sound effect to finish
+    while (is_sample_playing()) wait_vbl_done();
+    stop_sample();
+
+    NR52_REG = 0x80;
+    NR51_REG = 0xFF;
+    NR50_REG = 0x77;
+
+    if (level_songs[idx]) {
+        init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
+        current_song_bank = song_bank[idx];
+        TAC_REG = 0x04;
+        music_ready = 1;
+    }
+
+    fade_from_black(2);
 
     scroll_acc = 0;
     prev_joy = 0;
@@ -1255,6 +1246,13 @@ void play_level(uint8_t idx) BANKED {
             enable_interrupts();
         }
     }
+
+    music_ready = 0;
+    TAC_REG = 0x00;
+    play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
+    fade_to_black(2);
+    while (is_sample_playing()) wait_vbl_done();
+    stop_sample();
 
     HIDE_SPRITES;
     move_bkg(0, 0);
