@@ -50,7 +50,7 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000000DD  b_fade_in |    000000DD  b_fade_se |    000000DD  b_fade_se
      000000DD  b_fade_se |    000000DD  b_fade_se |    000000DD  b_fade_to
      00000200  s__CODE   |    0000027B  l__CODE_1 |    0000027D  l__DATA  
-     00000287  l__HOME   |    00000400  ___size_m |    0000042E  l__CODE_1
+     0000028B  l__HOME   |    00000400  ___size_m |    0000042E  l__CODE_1
      00000456  l__CODE_1 |    000004F6  l__CODE_1 |    0000050F  l__CODE_1
      00000570  ___size_m |    000005C0  ___size_f |    000005CD  l__CODE_1
      00000622  l__CODE_1 |    000006A9  l__CODE_2 |    000009E7  l__CODE_1
@@ -79,9 +79,9 @@ Area                       Addr        Size        Decimal Bytes (Attributes)
      000037E0  ___size_s |    000037E0  l__CODE_3 |    00003810  ___size_j
      00003810  l__CODE_3 |    00003A03  l__CODE   |    00003A70  ___size_p
      00003A70  l__CODE_3 |    00003C03  s__HOME   |    00003E50  ___size_t
-     00003E50  l__CODE_3 |    00003E8A  s__BASE   |    00003E8A  s__CODE_0
-     00003E8A  s__INITIA |    00003E8A  s__LIT    |    00003EA1  s__GSINIT
-     00003EB3  s__GSFINA |    00004000  _rMBC7_SR |    00004000  _rRAMB   
+     00003E50  l__CODE_3 |    00003E8E  s__BASE   |    00003E8E  s__CODE_0
+     00003E8E  s__INITIA |    00003E8E  s__LIT    |    00003EA5  s__GSINIT
+     00003EB7  s__GSFINA |    00004000  _rMBC7_SR |    00004000  _rRAMB   
      00004000  l__CODE_2 |    00008000  __VRAM    |    00008000  __VRAM800
      00008800  __VRAM880 |    00009000  __VRAM900 |    00009800  __SCRN0  
      00009C00  __SCRN1   |    0000A000  __SRAM    |    0000A000  _rMBC7_LA
@@ -347,27 +347,27 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_HOME                  00003C03    00000287 =         647. bytes (REL,CON)
+_HOME                  00003C03    0000028B =         651. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
      00003C03  .memset_s |    00003C0C  .memcpy_s |    00003C29  .display_
-     00003C29  _display_ |    00003C41  _sample_p |    00003CD7  _add_TIM 
-     00003CDA  _set_tile |    00003CDF  _set_bkg_ |    00003CDF  _set_win_
-     00003CE7  _set_spri |    00003D46  .add_LCD  |    00003D46  _add_LCD 
-     00003D4C  .remove_L |    00003D4C  _remove_L |    00003D52  .add_TIM 
-     00003D58  .remove_T |    00003D58  _remove_T |    00003D5E  _fill_bkg
-     00003D70  .padup    |    00003D70  _waitpadu |    00003D80  .jpad    
-     00003D80  _joypad   |    00003DA8  _waitpad  |    00003DA9  .wait_pad
-     00003DB0  ___sdcc_b |    00003DC4  _set_bkg_ |    00003DD8  .fill_rec
-     00003DE1  .fill_rec |    00003E2E  .set_xy_w |    00003E37  .set_xy_b
-     00003E46  .set_xy_t
+     00003C29  _display_ |    00003C41  _sample_p |    00003CDB  _add_TIM 
+     00003CDE  _set_tile |    00003CE3  _set_bkg_ |    00003CE3  _set_win_
+     00003CEB  _set_spri |    00003D4A  .add_LCD  |    00003D4A  _add_LCD 
+     00003D50  .remove_L |    00003D50  _remove_L |    00003D56  .add_TIM 
+     00003D5C  .remove_T |    00003D5C  _remove_T |    00003D62  _fill_bkg
+     00003D74  .padup    |    00003D74  _waitpadu |    00003D84  .jpad    
+     00003D84  _joypad   |    00003DAC  _waitpad  |    00003DAD  .wait_pad
+     00003DB4  ___sdcc_b |    00003DC8  _set_bkg_ |    00003DDC  .fill_rec
+     00003DE5  .fill_rec |    00003E32  .set_xy_w |    00003E3B  .set_xy_b
+     00003E4A  .set_xy_t
 ASxxxx Linker V03.00/V05.40 + sdld,  page 24.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_INITIALIZER           00003E8A    00000017 =          23. bytes (REL,CON)
+_INITIALIZER           00003E8E    00000017 =          23. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
@@ -376,17 +376,17 @@ Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSINIT                00003EA1    00000012 =          18. bytes (REL,CON)
+_GSINIT                00003EA5    00000012 =          18. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    
-     00003EA1  gsinit   
+     00003EA5  gsinit   
 ASxxxx Linker V03.00/V05.40 + sdld,  page 26.
 Hexadecimal  [32-Bits]
 
 Area                       Addr        Size        Decimal Bytes (Attributes)
 --------------------       ----        ----        ------- ----- ------------
-_GSFINAL               00003EB3    00000001 =           1. bytes (REL,CON)
+_GSFINAL               00003EB7    00000001 =           1. bytes (REL,CON)
 
         Value  Global            Value  Global            Value  Global    
         -----  ------            -----  ------            -----  ------    

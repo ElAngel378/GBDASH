@@ -42,6 +42,12 @@ void sample_play_isr(void) __nonbanked __naked {
         ld (#__current_bank), a
         ld (_rROMB0), a
 
+        ; Disconnect CH3 to prevent audio clicks during wave RAM update
+        ldh a, (_NR51_REG)
+        ld c, a
+        and #0b10111011
+        ldh (_NR51_REG), a
+
         ; Turn off CH3 to access wave RAM
         xor a
         ldh (_NR30_REG), a       
@@ -54,12 +60,18 @@ void sample_play_isr(void) __nonbanked __naked {
         ; Turn CH3 back on
         ld a, #0x80             ; Enable CH3 DAC
         ldh (_NR30_REG), a
+        ld a, #0xFE             ; Length of wave (2 ticks)
+        ldh (_NR31_REG), a
         ld a, #0x20             ; Volume (100%)
         ldh (_NR32_REG), a
         xor a                   ; Low freq bits = 0
         ldh (_NR33_REG), a
-        ld a, #0x87             ; Trigger playback with freq high bits = 7 (freq 0x700 = 8192 Hz), continuous (no length counter)
+        ld a, #0xC7             ; Trigger playback with freq high bits = 7 (freq 0x700 = 8192 Hz), length enabled
         ldh (_NR34_REG), a       
+
+        ; Reconnect CH3
+        ld a, c
+        ldh (_NR51_REG), a
 
         ; Restore bank
         ld a, e
@@ -80,15 +92,7 @@ void sample_play_isr(void) __nonbanked __naked {
         ld a, (hl)
         sbc #0
         ld (hl), a
-        jr nz, 2$
 
-        ; Just finished playing last block!
-        xor a
-        ld (#_sample_playing), a
-        ldh (_NR30_REG), a       ; Disable CH3
-        ldh (_TAC_REG), a        ; Stop timer
-
-2$:
         pop hl
         pop de
         pop bc
