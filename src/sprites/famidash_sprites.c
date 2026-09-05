@@ -144,14 +144,14 @@ static const FamidashDeco deco_question = {1, 16, {4,0,0}, {0,0,0}, {D_E3,0,0}, 
 static const FamidashDeco deco_exclamation = {1, 16, {4,0,0}, {0,0,0}, {D_E5,0,0}, {DP,0,0}};
 static const FamidashDeco deco_arrow = {2, 16, {0,8,0}, {0,0,0}, {D_E7,D_E7,0}, {DP,DP|S_FLIPX,0}};
 static const FamidashDeco deco_x = {2, 16, {0,8,0}, {0,0,0}, {D_ED,D_ED,0}, {DP,DP|S_FLIPX,0}};
-static const FamidashDeco deco_short_right = {2, 24, {8,0,0}, {-4,-4,0}, {D_F5,D_F1,0}, {DP|S_FLIPX,DP|S_FLIPX,0}};
-static const FamidashDeco deco_short_left = {2, 24, {0,8,0}, {-4,-4,0}, {D_F5,D_F1,0}, {DP,DP,0}};
+static const FamidashDeco deco_short_right = {2, 16, {8,0,0}, {-4,-4,0}, {D_F5,D_F1,0}, {DP|S_FLIPX,DP|S_FLIPX,0}};
+static const FamidashDeco deco_short_left = {2, 16, {0,8,0}, {-4,-4,0}, {D_F5,D_F1,0}, {DP,DP,0}};
 static const FamidashDeco deco_long_up = {2, 16, {4,4,0}, {0,16,0}, {D_CF,D_C9,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
 static const FamidashDeco deco_medium_up = {2, 16, {4,4,0}, {0,16,0}, {D_CF,D_CB,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
 static const FamidashDeco deco_short_up = {1, 16, {4,0,0}, {0,0,0}, {D_CD,0,0}, {DP|S_FLIPY,0,0}};
 static const FamidashDeco deco_chain_up = {2, 16, {4,4,0}, {16,0,0}, {D_D7,D_D5,0}, {DP|S_FLIPY,DP|S_FLIPY,0}};
 static const FamidashDeco deco_medium_right = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F1,D_F7,D_F5}, {DP|S_FLIPX,DP|S_FLIPX,DP|S_FLIPX}};
-static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F1,D_F7,D_F5}, {DP,DP,DP}};
+static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F5,D_F7,D_F1}, {DP,DP,DP}};
 
 const FamidashDeco * const famidash_deco_table[64] = {
     [42] = &deco_long_light, [43] = &deco_medium_light,
