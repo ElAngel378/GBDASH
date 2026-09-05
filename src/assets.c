@@ -209,7 +209,7 @@ const Level level_tm = {
   timemachine_map,
   chr_gb_TILE_COUNT, 997, 16, 0, 0,
   BANK(timemachine_map),
-  41,
+  40,
   timemachine_sp,
   BANK(timemachine_sp),
   timemachine_sp_dmg
