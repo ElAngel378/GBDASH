@@ -41,11 +41,12 @@ static const uint16_t nes_master_palette[64] = {
  */
 #include <string.h>
 
-static const uint16_t vibrant_palette_default[16] = {
+static const uint16_t vibrant_palette_default[20] = {
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB(31, 31, 31), // palette 0
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 1,  9, 24), RGB(31, 31, 31), // palette 1
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 9, 25,  4), // palette 2: bg spikes accent (lime, matches cube)
-    RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 0,  0,  0)  // palette 3
+    RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 0,  0,  0), // palette 3
+    RGB(31, 31, 31), RGB( 9, 25,  4), RGB( 5, 14,  0), RGB( 1,  7,  0)  // palette 4: ground (white line, ground, grid1, grid2)
 };
 
 palette_color_t famidash_bg_palettes[20];
@@ -89,8 +90,8 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     famidash_bg_palettes[14] = shades->body;
     famidash_bg_palettes[15] = shades->shadow;
 
-    // Palette 4: Ground Grid (bg color changes, ground color 17, 18, 19 preserved)
-    famidash_bg_palettes[16] = shades->color;
+    // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
+    famidash_bg_palettes[16] = RGB(31, 31, 31);
 
     famidash_bkg_palettes_dirty = 1;
 }
@@ -113,6 +114,7 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
     famidash_bg_palettes[6] = color;
 
     // Palette 4: Ground Grid
+    famidash_bg_palettes[16] = RGB(31, 31, 31);
     famidash_bg_palettes[17] = color;
     famidash_bg_palettes[18] = shades->grid_18;
     famidash_bg_palettes[19] = shades->grid_9;
@@ -151,7 +153,7 @@ static const uint8_t level_initial_g_color[11] = {
 void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     uint8_t i;
     if (idx >= 11) idx = 0;
-    for (i = 0; i < 16; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
+    for (i = 0; i < 20; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
     current_sky_color = 0xFFFF;
     current_g_color = 0xFFFF;
     famidash_apply_bg_trigger(level_initial_bg_color[idx]);
