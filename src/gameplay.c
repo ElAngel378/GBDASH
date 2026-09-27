@@ -316,6 +316,7 @@ void play_level(uint8_t idx) BANKED {
             uint8_t fine_scy = saved_scy & 7;
 
             // Grid-lock background
+            wait_vbl_done();
             move_bkg((uint8_t)(saved_scx - fine_scx), (uint8_t)(saved_scy - fine_scy));
 
             if (_cpu == CGB_TYPE) {
@@ -392,9 +393,13 @@ void play_level(uint8_t idx) BANKED {
             }
 
             if (_cpu == CGB_TYPE) {
+                wait_vbl_done();
                 apply_pause_box_attributes(0);
                 fade_restore_pause_box_palettes();
                 set_sprite_palette(0, 8, gbc_sprite_palettes);
+                if (vram_row0_is_ground) {
+                    flush_vram_row0(1);
+                }
             } else {
                 BGP_REG = saved_bgp;
                 OBP0_REG = saved_obp0;

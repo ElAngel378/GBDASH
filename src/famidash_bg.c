@@ -93,6 +93,7 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     // Palette 4: Ground Grid (Color 0 is the top white line, always pure white)
     famidash_bg_palettes[16] = RGB(31, 31, 31);
 
+    memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
     famidash_bkg_palettes_dirty = 1;
 }
 
@@ -119,6 +120,7 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
     famidash_bg_palettes[18] = shades->grid_18;
     famidash_bg_palettes[19] = shades->grid_9;
 
+    memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
     famidash_bkg_palettes_dirty = 1;
 }
 
