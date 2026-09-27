@@ -110,6 +110,22 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
   SWITCH_ROM(_prev);
 }
 
+void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids) {
+  uint8_t _prev = _current_bank;
+  SWITCH_ROM(map_bank);
+  for (uint8_t s = 0; s < 16; s++) {
+    uint8_t slot = s;
+    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+    uint16_t col = loaded_r - ((loaded_r - slot) & 15u);
+    if (col < map_w) {
+      out_ids[s] = map[(uint16_t)col << 4];
+    } else {
+      out_ids[s] = 0;
+    }
+  }
+  SWITCH_ROM(_prev);
+}
+
 
 #include "hUGEDriver.h"
 

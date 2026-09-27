@@ -87,6 +87,7 @@ void load_collision_columns(uint16_t map_col, const uint8_t* map,
 
 extern uint8_t vram_row0_is_ground;
 void load_menu_ground_tiles(void) BANKED;
+void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids);
 void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 void flush_vram_row0(uint8_t is_ground) BANKED;
 
