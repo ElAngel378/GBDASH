@@ -24,14 +24,6 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
                    SpCache *cache, uint16_t *stream_idx, uint16_t map_h) {
     uint8_t count = 0;
     uint8_t save_bank = _current_bank;
-    // Spread burst cost: object clusters (e.g. dense orb/pad sections) could
-    // otherwise insert up to 16 entries in a single frame, and that CPU spike
-    // combined with a map-column prepare on the same frame overruns the
-    // ~70k-cycle DMG frame budget and misses VBlank. Cap inserts per call;
-    // the 176px stream-ahead lead (~60 frames) absorbs the 1-2 frame delay.
-    // Behind-camera skips don't count: they are just stream_idx++.
-    uint8_t inserted = 0;
-    (void)map_h;
 
     if (sp_bank == 0 || sp_list == 0) return;
     SWITCH_ROM(sp_bank);
@@ -66,7 +58,6 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
         }
 
         if (count >= MAX_ACTIVE_SP_OBJECTS) break;
-        if (inserted >= 6) break;
 
         cache->obj[count] = obj_id;
         cache->px[count] = object_x;
@@ -75,7 +66,6 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
         cache->activated[count] = 0;
 
         count++;
-        inserted++;
         (*stream_idx)++;
     }
     SWITCH_ROM(save_bank);

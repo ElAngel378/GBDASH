@@ -129,21 +129,6 @@ static uint8_t died;
 static int16_t py;
 static Player player;
 
-// VBlank scheduler: at most ONE heavy VRAM op (row0 / map column / 768-byte
-// parallax GDMA) runs per VBlank. Stacking all three in one VBlank overflows
-// it (~1.1ms), spills set_bkg_tiles/GDMA into active display and stretches
-// the frame past 16.6ms, so the next wait_vbl_done() blocks a whole extra
-// frame. Requests merge into these pending flags before VBlank and drain one
-// per VBlank (priority: row0 > map column > parallax). Deferral is safe: the
-// streamed column has a ~10-metatile (~50-frame) lead, and parallax already
-// runs at 30Hz so +1 frame is invisible.
-static uint8_t pend_col_valid;
-static uint8_t pend_col_slot;
-static uint8_t pend_para_valid;
-static uint8_t pend_para_phase;
-static uint8_t pend_row0_valid;
-static uint8_t pend_row0_is_ground;
-
 static const uint8_t bg_pals[] = {
     0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
     0x39, // 1: Inverse (W:LG, LG:DG, DG:B, B:W)
@@ -183,9 +168,6 @@ static void reload_level_state(uint8_t idx) {
     loaded_r = BKG_MT_W - 1;
     target_bg_idx = 0;
     pause_suppress_jump = 0;
-    pend_col_valid = 0;
-    pend_para_valid = 0;
-    pend_row0_valid = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
     end_shake_timer = 0;
@@ -293,9 +275,6 @@ void play_level(uint8_t idx) BANKED {
     prev_reversed = player.reversed;
     reduce_flash = 0;
     pause_suppress_jump = 0;
-    pend_col_valid = 0;
-    pend_para_valid = 0;
-    pend_row0_valid = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
     end_shake_timer = 0;
@@ -568,11 +547,6 @@ void play_level(uint8_t idx) BANKED {
 
             loaded_r = (uint16_t)(col_start + 15);
             prev_reversed = player.reversed;
-            // Synchronous DISPLAY_OFF redraw above flushed everything
-            // directly, so drop any queued VBlank work from before the switch.
-            pend_col_valid = 0;
-            pend_para_valid = 0;
-            pend_row0_valid = 0;
         }
 
         if (px_curr != cached_collision_col) {
@@ -723,24 +697,16 @@ void play_level(uint8_t idx) BANKED {
         }
         previous_oam_index = oam_index;
 
-        // Map-column streaming with backpressure: the prepare buffer
-        // (metatile_column_tiles) holds exactly one column, so a new column
-        // is only prepared when no flush is still pending. loaded_r advances
-        // only on prepare, so a stalled frame simply retries next frame.
-        // With a ~10-metatile lead this 1-frame stall is invisible.
+        uint8_t vram_slot = 0;
         if (needs_render) {
-            if (!pend_col_valid) {
-                uint8_t vram_slot = (uint8_t)(need_col & 15);
-                if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-                prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
-                loaded_r = need_col;
-                pend_col_slot = vram_slot;
-                pend_col_valid = 1;
-            }
-            // else: flush still pending, retry next frame (loaded_r
-            // intentionally not advanced; see comment above).
+            loaded_r = need_col;
+            vram_slot = (uint8_t)(need_col & 15);
+            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+            
+            prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
         }
 
+        uint8_t row0_switch_needed = 0;
         uint8_t parallax_needed = 0;
         uint8_t bg_phase = 0;
 
@@ -753,13 +719,10 @@ void play_level(uint8_t idx) BANKED {
             }
             if (target_row0_ground != vram_row0_is_ground) {
                 vram_row0_is_ground = target_row0_ground;
-                // Row0 cache is separate from the map-column buffer, so the
-                // prepare can run immediately; only the VBlank flush is queued.
+                row0_switch_needed = 1;
                 if (!target_row0_ground) {
                     prepare_row0_level_tiles(loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
                 }
-                pend_row0_is_ground = target_row0_ground;
-                pend_row0_valid = 1;
             }
 
             bg_phase = player.reversed
@@ -797,14 +760,11 @@ void play_level(uint8_t idx) BANKED {
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
 
-        // VBLANK SCHEDULER: scroll regs + DMG/CGB palettes run every VBlank
-        // (cheap). Heavy VRAM work drains one item per VBlank, priority
-        // row0 > map column > parallax. New requests merged into pend_*
-        // above flush in the same VBlank when nothing older is queued, so
-        // the common case has zero added latency; only coincident spikes
-        // defer (column ~50-frame lead, parallax +1 frame @30Hz: invisible).
-        // Parallax GDMA must stay in VBlank: it swaps tile data the PPU is
-        // actively fetching, so pre-VBlank DMA tears the bg.
+        // VBLANK BUDGET FIX: parallax GDMA must stay inside VBlank (it swaps
+        // tile data the PPU is actively fetching, so doing it pre-VBlank
+        // tears the bg). Instead we rate-limit it to every other frame
+        // (see above) to halve its average VBlank cost. Visible map writes
+        // stay here too so the streaming column never tears.
         wait_vbl_done();
         move_bkg(final_scx, final_scy);
 
@@ -816,21 +776,16 @@ void play_level(uint8_t idx) BANKED {
             famidash_apply_palettes();
         }
 
-        // Merge this frame's parallax request (latest phase wins).
         if (parallax_needed) {
-            pend_para_phase = bg_phase;
-            pend_para_valid = 1;
+            update_bg_parallax(bg_phase);
         }
 
-        if (pend_row0_valid) {
-            flush_vram_row0(pend_row0_is_ground);
-            pend_row0_valid = 0;
-        } else if (pend_col_valid) {
-            flush_mt_column(pend_col_slot);
-            pend_col_valid = 0;
-        } else if (pend_para_valid) {
-            update_bg_parallax(pend_para_phase);
-            pend_para_valid = 0;
+        if (row0_switch_needed) {
+            flush_vram_row0(vram_row0_is_ground);
+        }
+
+        if (needs_render) {
+            flush_mt_column(vram_slot);
         }
 
         if (died) {
