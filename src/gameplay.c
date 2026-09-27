@@ -730,7 +730,13 @@ void play_level(uint8_t idx) BANKED {
                 : (uint8_t)(scroll_px - bg_drift_px) & 63u;
             if (bg_phase != last_bg_phase) {
                 last_bg_phase = bg_phase;
-                parallax_needed = 1;
+                // Rate-limit: bg_phase advances ~4 steps/frame, so updating
+                // the 768-byte GDMA every other frame (30Hz background vs
+                // 60Hz gameplay) is visually identical but halves the
+                // average VBlank cost. MUST stay in VBlank: GDMA before
+                // wait_vbl_done() swaps tile data mid-scanout and tears
+                // the parallax into "broken puzzle" pieces.
+                if ((bg_drift_px & 1u) == 0u) parallax_needed = 1;
             }
         }
 
@@ -754,6 +760,11 @@ void play_level(uint8_t idx) BANKED {
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
 
+        // VBLANK BUDGET FIX: parallax GDMA must stay inside VBlank (it swaps
+        // tile data the PPU is actively fetching, so doing it pre-VBlank
+        // tears the bg). Instead we rate-limit it to every other frame
+        // (see above) to halve its average VBlank cost. Visible map writes
+        // stay here too so the streaming column never tears.
         wait_vbl_done();
         move_bkg(final_scx, final_scy);
 
@@ -765,12 +776,12 @@ void play_level(uint8_t idx) BANKED {
             famidash_apply_palettes();
         }
 
-        if (row0_switch_needed) {
-            flush_vram_row0(vram_row0_is_ground);
-        }
-
         if (parallax_needed) {
             update_bg_parallax(bg_phase);
+        }
+
+        if (row0_switch_needed) {
+            flush_vram_row0(vram_row0_is_ground);
         }
 
         if (needs_render) {

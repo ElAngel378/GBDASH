@@ -101,6 +101,12 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
 void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
     const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
 
+    // PERF: old code called get_map_column() 16x (16x ROM bank switch +
+    // 16-byte memcpy each) right before VBlank. Batch into a single bank
+    // switch; only the first byte of each 16-byte map column (row 0) is
+    // needed, so this is 16 ROM reads instead of 16 switches + 256 bytes.
+    uint8_t save_bank = _current_bank;
+    SWITCH_ROM(map_bank);
     for (uint8_t s = 0; s < 16; s++) {
         uint8_t slot = s;
         if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
@@ -108,9 +114,7 @@ void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t ma
         uint8_t tr_x = tl_x + 1u;
         uint16_t col = loaded_r - ((loaded_r - slot) & 15u);
         if (col < map_w) {
-            static uint8_t col_buf0[16];
-            get_map_column(col, map, map_bank, col_buf0);
-            uint8_t mt_id = col_buf0[0];
+            uint8_t mt_id = map[(uint16_t)col << 4];
             const uint8_t *tiles = mt_table[mt_id];
             uint8_t pal = famidash_metatile_palettes[mt_id];
             for (uint8_t i = 0; i < 4; i++) {
@@ -126,6 +130,7 @@ void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t ma
             }
         }
     }
+    SWITCH_ROM(save_bank);
 }
 
 void flush_vram_row0(uint8_t is_ground) BANKED {
