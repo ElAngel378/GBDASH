@@ -80,12 +80,29 @@ static uint8_t row0_tiles_cache[64];
 static uint8_t row0_attrs_cache[64];
 
 void flush_mt_column(uint8_t ring_col) BANKED {
+    // FAST VBLANK PATH: this is only ever called right after wait_vbl_done()
+    // (or with DISPLAY_OFF during init/mirror-switch), so VRAM is freely
+    // accessible. Write directly instead of set_bkg_tiles(), which polls
+    // STAT per byte and costs 2-3x the VBlank budget for 64+64 writes.
+    // Region is 2 wide x 32 tall at (ring_col*2, 0); buffers are row-major.
     uint8_t bx = ring_col << 1;
+    volatile uint8_t *vram = (volatile uint8_t *)0x9800;
+    uint8_t y;
     VBK_REG = VBK_TILES;
-    set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
+    for (y = 0; y < 32; y++) {
+        uint16_t row = (uint16_t)y << 5;
+        uint8_t src = y << 1;
+        vram[row + bx] = metatile_column_tiles[src];
+        vram[row + bx + 1u] = metatile_column_tiles[src + 1u];
+    }
     if (_cpu == CGB_TYPE) {
         VBK_REG = VBK_ATTRIBUTES;
-        set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_attributes);
+        for (y = 0; y < 32; y++) {
+            uint16_t row = (uint16_t)y << 5;
+            uint8_t src = y << 1;
+            vram[row + bx] = metatile_column_attributes[src];
+            vram[row + bx + 1u] = metatile_column_attributes[src + 1u];
+        }
         VBK_REG = VBK_TILES;
     }
 }
@@ -136,20 +153,24 @@ void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t ma
 void flush_vram_row0(uint8_t is_ground) BANKED {
     if (_cpu != CGB_TYPE) return;
 
+    // FAST VBLANK PATH: direct VRAM writes, no STAT polling (see above).
+    // Rows 0-1 of the 32x32 map; row0_*_cache buffers are row-major 32x2.
+    volatile uint8_t *vram = (volatile uint8_t *)0x9800;
+    uint8_t x;
     if (is_ground) {
         VBK_REG = 0;
-        for (uint8_t k = 0; k < 4; k++) {
-            set_bkg_tiles((uint8_t)(k << 3), 0, 8, 1, ground_top);
-            set_bkg_tiles((uint8_t)(k << 3), 1, 8, 1, ground_bot);
+        for (x = 0; x < 32; x++) {
+            vram[x] = ground_top[x & 7u];
+            vram[32u + x] = ground_bot[x & 7u];
         }
         VBK_REG = 1;
-        fill_bkg_rect(0, 0, 32, 2, 0x0C);
+        for (x = 0; x < 64; x++) vram[x] = 0x0C;
         VBK_REG = 0;
     } else {
         VBK_REG = 0;
-        set_bkg_tiles(0, 0, 32, 2, row0_tiles_cache);
+        for (x = 0; x < 64; x++) vram[x] = row0_tiles_cache[x];
         VBK_REG = 1;
-        set_bkg_tiles(0, 0, 32, 2, row0_attrs_cache);
+        for (x = 0; x < 64; x++) vram[x] = row0_attrs_cache[x];
         VBK_REG = 0;
     }
 }
