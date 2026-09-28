@@ -1,3 +1,5 @@
+#pragma bank 27
+
 #include "states.h"
 #include "gameplay.h"
 #include "assets.h"
@@ -38,7 +40,7 @@ void draw_levels(void) {
     redraw = 0;
 }
 
-GameState update_level_select_state(void) {
+GameState update_level_select_state(void) BANKED {
     fade_set_black();
     DISPLAY_OFF;
     // Clear VRAM tiles and map to ensure no logo leftovers

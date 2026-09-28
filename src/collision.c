@@ -132,20 +132,31 @@ void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, u
 extern uint8_t music_ready;
 extern uint8_t current_song_bank;
 extern volatile uint8_t current_music_divider;
+extern volatile uint8_t sample_playing;
+extern volatile uint8_t sample_keeps_music;
 
 void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     uint8_t _prev = _current_bank;
+    disable_interrupts();
     music_ready = 0;
+    sample_playing = 0;
+    sample_keeps_music = 0;
     current_song_bank = bank;
     current_music_divider = divider;
     SWITCH_ROM(bank);
-    disable_interrupts();
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
     hUGE_init(song);
+    hUGE_mute_channel(HT_CH1, HT_CH_PLAY);
+    hUGE_mute_channel(HT_CH2, HT_CH_PLAY);
+    hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+    hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+    hUGE_reset_wave();
     TMA_REG = divider;
     TIMA_REG = divider;
+    IF_REG &= ~TIM_IFLAG;
+    TAC_REG = 0x04;
     enable_interrupts();
     SWITCH_ROM(_prev);
     music_ready = 1;

@@ -9,7 +9,7 @@
 static uint8_t bg_x = 0;
 static uint8_t ground_x = 0;
 
-void menu_stat_isr(void) {
+void menu_stat_isr(void) __nonbanked {
     if (LYC_REG == 16) {
         SCX_REG = bg_x;
         LYC_REG = 120;
@@ -17,6 +17,56 @@ void menu_stat_isr(void) {
         SCX_REG = ground_x;
         LYC_REG = 255;
     }
+}
+
+// Set to 1 to easily re-enable the version label in the bottom-right corner
+#define SHOW_MENU_VERSION_LABEL 0
+
+static void update_menu_sprites(uint8_t sel) {
+    // Music button (16x16) centered on ground bar (Screen X = 72..88, OAM X = 80)
+    // Ground starts at Screen Y = 120. Music button sits on ground: Screen Y = 122 (selected) / 124 (unselected)
+    uint8_t mx = 80;
+    uint8_t my = (sel == 1) ? 138 : 140; // OAM Y = Screen Y + 16
+    uint8_t prop_m = (_cpu == CGB_TYPE) ? 3 : 0;
+    set_sprite_tile(0, 22); move_sprite(0, mx, my);      set_sprite_prop(0, prop_m);
+    set_sprite_tile(1, 24); move_sprite(1, mx + 8, my);  set_sprite_prop(1, prop_m);
+
+    // Play button sprites (OAM 2..9) - centered at Screen X = 64..96 (OAM X = 72)
+    uint8_t bx = 72;
+    uint8_t by = (sel == 0) ? 66 : 68; // Screen Y = 50 (selected) / 52 (unselected)
+    set_sprite_tile(2, 0);  move_sprite(2, bx, by);           set_sprite_prop(2, 0);
+    set_sprite_tile(3, 2);  move_sprite(3, bx, by + 16);      set_sprite_prop(3, 0);
+    set_sprite_tile(4, 4);  move_sprite(4, bx + 8, by);       set_sprite_prop(4, 0);
+    set_sprite_tile(5, 6);  move_sprite(5, bx + 8, by + 16);  set_sprite_prop(5, 0);
+    set_sprite_tile(6, 8);  move_sprite(6, bx + 16, by);      set_sprite_prop(6, 0);
+    set_sprite_tile(7, 10); move_sprite(7, bx + 16, by + 16); set_sprite_prop(7, 0);
+    set_sprite_tile(8, 12); move_sprite(8, bx + 24, by);      set_sprite_prop(8, 0);
+    set_sprite_tile(9, 14); move_sprite(9, bx + 24, by + 16); set_sprite_prop(9, 0);
+
+    if (_cpu == CGB_TYPE) {
+        set_sprite_tile(10, 16); move_sprite(10, bx + 12, by + 8);  set_sprite_prop(10, 1);
+        set_sprite_tile(11, 18); move_sprite(11, bx + 4, by + 4);   set_sprite_prop(11, 2);
+        set_sprite_tile(12, 18); move_sprite(12, bx + 21, by + 4);  set_sprite_prop(12, 2);
+        set_sprite_tile(13, 20); move_sprite(13, bx + 4, by + 16);  set_sprite_prop(13, 2);
+        set_sprite_tile(14, 20); move_sprite(14, bx + 21, by + 16); set_sprite_prop(14, 2);
+    } else {
+        for (uint8_t s = 10; s < 15; s++) hide_sprite(s);
+    }
+
+    // Select arrow cursor (Slot 15, tile 26)
+    // Positioned ON TOP of the selected button, pointing DOWN!
+    uint8_t prop_c = (_cpu == CGB_TYPE) ? 4 : 0;
+    if (sel == 0) {
+        // Above Play button (centered at OAM X = 84, top is by, arrow OAM Y = by - 9)
+        move_sprite(15, bx + 12, by - 9);
+    } else {
+        // Above Music button (centered at OAM X = 84, top is my, arrow OAM Y = my - 9)
+        move_sprite(15, mx + 4, my - 9);
+    }
+    set_sprite_tile(15, 26);
+    set_sprite_prop(15, prop_c);
+
+    for (uint8_t s = 16; s < 40; s++) hide_sprite(s);
 }
 
 GameState update_menu_state(void) {
@@ -57,6 +107,7 @@ GameState update_menu_state(void) {
     set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
 
+#if SHOW_MENU_VERSION_LABEL
     // Load Pusab font tiles for version label
     setup_menu_font();
 
@@ -65,6 +116,7 @@ GameState update_menu_state(void) {
     for (uint8_t i = 0; i < 8; i++) {
         set_win_tile_xy(i, 0, (uint8_t)(0xD0u + ver_tiles[i]));
     }
+#endif
 
     // Title logo
     for (uint8_t x = 0; x < 20; x++) {
@@ -128,35 +180,51 @@ GameState update_menu_state(void) {
             RGB8(0, 160, 255),
             RGB8(0, 80, 220)
         };
+        static const uint16_t music_btn_palette[] = {
+            RGB8(255, 255, 255),
+            RGB8(189, 244, 171),
+            RGB8(92, 228, 48),
+            RGB8(0, 0, 0)
+        };
+        static const uint16_t cursor_palette[] = {
+            RGB8(255, 255, 255),
+            RGB8(255, 255, 255),
+            RGB8(255, 255, 255),
+            RGB8(0, 0, 0)
+        };
         set_sprite_palette(0, 1, play_button_palette);
         set_sprite_palette(1, 1, play_button_yellow_palette);
         set_sprite_palette(2, 1, play_button_blue_palette);
+        set_sprite_palette(3, 1, music_btn_palette);
+        set_sprite_palette(4, 1, cursor_palette);
     }
+
+    // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
+    static const uint8_t music_button_tiles[64] = {
+        // Tile 0 (left top)
+        0x07, 0x07, 0x1B, 0x1C, 0x3F, 0x3F, 0x57, 0x78, 0x7F, 0x50, 0xB7, 0xD8, 0x97, 0xFF, 0x9C, 0xF7,
+        // Tile 1 (left bottom)
+        0xBD, 0xF6, 0xFD, 0xC6, 0xD5, 0xEE, 0x7C, 0x7F, 0x40, 0x7F, 0x27, 0x38, 0x18, 0x1F, 0x07, 0x07,
+        // Tile 2 (right top)
+        0xE0, 0xE0, 0xD8, 0x38, 0xFC, 0xFC, 0xEA, 0x1E, 0xFE, 0x0A, 0xED, 0x1B, 0xE9, 0xFF, 0x39, 0xEF,
+        // Tile 3 (right bottom)
+        0xB9, 0x6F, 0xB9, 0x6F, 0x79, 0xEF, 0xFA, 0x8E, 0xAA, 0xDE, 0x7C, 0xFC, 0x18, 0xF8, 0xE0, 0xE0
+    };
+    set_sprite_data(22, 4, music_button_tiles);
+
+    // Cursor indicator tiles (downward-pointing chevron, 8x16 mode: white body, black border)
+    static const uint8_t pause_cursor_tiles[32] = {
+        0x7E, 0x7E, 0x7E, 0x42, 0x7E, 0x42, 0x3C, 0x24,
+        0x3C, 0x24, 0x18, 0x18, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    set_sprite_data(26, 2, pause_cursor_tiles);
 
     SPRITES_8x16;
-    uint8_t bx = 72;
-    uint8_t by = 68;
+    uint8_t menu_sel = 0; // 0 = Play, 1 = Music
 
-    // Play button sprites (OAM 0..7)
-    set_sprite_tile(0, 0);  move_sprite(0, bx, by);           set_sprite_prop(0, 0);
-    set_sprite_tile(1, 2);  move_sprite(1, bx, by + 16);      set_sprite_prop(1, 0);
-    set_sprite_tile(2, 4);  move_sprite(2, bx + 8, by);       set_sprite_prop(2, 0);
-    set_sprite_tile(3, 6);  move_sprite(3, bx + 8, by + 16);  set_sprite_prop(3, 0);
-    set_sprite_tile(4, 8);  move_sprite(4, bx + 16, by);      set_sprite_prop(4, 0);
-    set_sprite_tile(5, 10); move_sprite(5, bx + 16, by + 16); set_sprite_prop(5, 0);
-    set_sprite_tile(6, 12); move_sprite(6, bx + 24, by);      set_sprite_prop(6, 0);
-    set_sprite_tile(7, 14); move_sprite(7, bx + 24, by + 16); set_sprite_prop(7, 0);
-
-    if (_cpu == CGB_TYPE) {
-        // Button underlay sprites (OAM 8..12)
-        set_sprite_tile(8, 16); move_sprite(8, bx + 12, by + 8);  set_sprite_prop(8, 1);
-        set_sprite_tile(9, 18);  move_sprite(9, bx + 4, by + 4);   set_sprite_prop(9, 2);
-        set_sprite_tile(10, 18); move_sprite(10, bx + 21, by + 4);  set_sprite_prop(10, 2);
-        set_sprite_tile(11, 20); move_sprite(11, bx + 4, by + 16);  set_sprite_prop(11, 2);
-        set_sprite_tile(12, 20); move_sprite(12, bx + 21, by + 16); set_sprite_prop(12, 2);
-    } else {
-        for (uint8_t s = 8; s < 13; s++) hide_sprite(s);
-    }
+    update_menu_sprites(menu_sel);
 
     bg_x = 0;
     ground_x = 0;
@@ -172,12 +240,17 @@ GameState update_menu_state(void) {
 
     SHOW_BKG;
     SHOW_SPRITES;
+#if SHOW_MENU_VERSION_LABEL
     WY_REG = 136;
     WX_REG = 103;
     SHOW_WIN;
+#else
+    HIDE_WIN;
+#endif
     DISPLAY_ON;
 
     static uint16_t frame_counter = 0;
+    uint8_t prev_joy = joypad();
 
     while (1) {
         wait_vbl_done();
@@ -186,7 +259,15 @@ GameState update_menu_state(void) {
         LYC_REG = 16;
 
         uint8_t joy = joypad();
-        if (joy & (J_A | J_START)) {
+        uint8_t pressed = joy & ~prev_joy;
+        prev_joy = joy;
+
+        if (pressed & (J_LEFT | J_RIGHT | J_UP | J_DOWN | J_SELECT)) {
+            menu_sel ^= 1;
+            update_menu_sprites(menu_sel);
+        }
+
+        if (pressed & (J_A | J_START)) {
             disable_interrupts();
             remove_LCD(menu_stat_isr);
             STAT_REG &= ~STATF_LYC;
@@ -196,8 +277,12 @@ GameState update_menu_state(void) {
             enable_interrupts();
             HIDE_SPRITES;
             HIDE_WIN;
-            for (uint8_t s = 0; s < 13; s++) hide_sprite(s);
-            return STATE_NEW_MENU_SELECT;
+            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+            if (menu_sel == 0) {
+                return STATE_NEW_MENU_SELECT;
+            } else {
+                return STATE_MUSIC_TEST;
+            }
         }
 
         frame_counter++;

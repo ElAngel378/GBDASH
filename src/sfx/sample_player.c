@@ -186,15 +186,26 @@ uint8_t is_sample_playing(void) {
     return sample_playing;
 }
 
+extern uint8_t music_ready;
+extern volatile uint8_t current_music_divider;
+
 void stop_sample(void) {
     disable_interrupts();
     sample_playing = 0;
     sample_keeps_music = 0;
     play_length = 0;
-    TAC_REG = 0x00;
     NR30_REG = 0x00;
     NR51_REG = 0xFF;
     hUGE_reset_wave();
+    if (music_ready) {
+        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        TMA_REG = current_music_divider;
+        TIMA_REG = current_music_divider;
+        IF_REG &= ~TIM_IFLAG;
+        TAC_REG = 0x04;
+    } else {
+        TAC_REG = 0x00;
+    }
     enable_interrupts();
 }
 
