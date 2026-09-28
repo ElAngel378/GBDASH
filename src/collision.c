@@ -135,6 +135,8 @@ extern volatile uint8_t current_music_divider;
 extern volatile uint8_t sample_playing;
 extern volatile uint8_t sample_keeps_music;
 
+#include "settings.h"
+
 void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     uint8_t _prev = _current_bank;
     disable_interrupts();
@@ -148,10 +150,21 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
     hUGE_init(song);
-    hUGE_mute_channel(HT_CH1, HT_CH_PLAY);
-    hUGE_mute_channel(HT_CH2, HT_CH_PLAY);
-    hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
-    hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+    if (setting_music_enabled) {
+        hUGE_mute_channel(HT_CH1, HT_CH_PLAY);
+        hUGE_mute_channel(HT_CH2, HT_CH_PLAY);
+        hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
+        hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+    } else {
+        hUGE_mute_channel(HT_CH1, HT_CH_MUTE);
+        hUGE_mute_channel(HT_CH2, HT_CH_MUTE);
+        hUGE_mute_channel(HT_CH3, HT_CH_MUTE);
+        hUGE_mute_channel(HT_CH4, HT_CH_MUTE);
+        NR12_REG = 0; NR14_REG = 0x80;
+        NR22_REG = 0; NR24_REG = 0x80;
+        NR30_REG = 0;
+        NR42_REG = 0; NR44_REG = 0x80;
+    }
     hUGE_reset_wave();
     TMA_REG = divider;
     TIMA_REG = divider;
@@ -159,5 +172,5 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     TAC_REG = 0x04;
     enable_interrupts();
     SWITCH_ROM(_prev);
-    music_ready = 1;
+    music_ready = setting_music_enabled ? 1 : 0;
 }

@@ -13,6 +13,7 @@
 #include "hUGEDriver.h"
 #include "collision.h"
 #include "gbc_palettes.h"
+#include "settings.h"
 
 extern volatile uint8_t current_song_bank;
 extern volatile uint8_t current_music_divider;
@@ -418,8 +419,10 @@ GameState update_music_test_state(void) BANKED {
         if (pressed & (J_B | J_START)) {
             reset_audio_full();
 
-            // Restore menu loop song
-            init_music_banked(&menuloop, 1, 176);
+            // Restore menu loop song if enabled
+            if (setting_music_enabled) {
+                init_music_banked(&menuloop, 1, 176);
+            }
 
             HIDE_SPRITES;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);

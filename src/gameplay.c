@@ -28,6 +28,7 @@
 #include "pause_buttons.h"
 #include "bg_parallax.h"
 #include "collision.h"
+#include "settings.h"
 
 extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
@@ -184,7 +185,7 @@ static void reload_level_state(uint8_t idx) {
     }
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
     DISPLAY_ON;
-    if (level_songs[idx]) {
+    if (level_songs[idx] && setting_music_enabled) {
         init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
         current_song_bank = song_bank[idx];
         TAC_REG = 0x04;
@@ -259,7 +260,7 @@ void play_level(uint8_t idx) BANKED {
 
     fade_from_black(2);
 
-    if (level_songs[idx]) {
+    if (level_songs[idx] && setting_music_enabled) {
         init_music_banked(level_songs[idx], song_bank[idx], l->timer_divider);
         current_song_bank = song_bank[idx];
         TAC_REG = 0x04;
@@ -273,7 +274,7 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_col = 0xFFFF;
     cached_collision_col = 0xFFFF;
     prev_reversed = player.reversed;
-    reduce_flash = 0;
+    reduce_flash = setting_dmg_gradient ? 0 : 1;
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
@@ -460,6 +461,8 @@ void play_level(uint8_t idx) BANKED {
 
         if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
             reduce_flash = !reduce_flash;
+            setting_dmg_gradient = !reduce_flash;
+            save_game_data();
         }
         prev_joy = joy;
 
@@ -676,11 +679,13 @@ void play_level(uint8_t idx) BANKED {
         if (end_anim_state == END_ANIM_SHAKE) {
             if (end_shake_timer > 0) {
                 end_shake_timer--;
-                uint8_t r = DIV_REG;
-                cur_shake_x = (int8_t)((r % 5) - 2);
-                cur_shake_y = (int8_t)(((r >> 3) % 5) - 2);
-                if (cur_shake_x == 0 && cur_shake_y == 0) {
-                    cur_shake_x = (r & 1) ? 1 : -1;
+                if (setting_effects_enabled) {
+                    uint8_t r = DIV_REG;
+                    cur_shake_x = (int8_t)((r % 5) - 2);
+                    cur_shake_y = (int8_t)(((r >> 3) % 5) - 2);
+                    if (cur_shake_x == 0 && cur_shake_y == 0) {
+                        cur_shake_x = (r & 1) ? 1 : -1;
+                    }
                 }
             } else {
                 player.level_complete = 1;
@@ -730,18 +735,20 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
 
-            bg_phase = player.reversed
-                ? (uint8_t)(scroll_px + bg_drift_px) & 63u
-                : (uint8_t)(scroll_px - bg_drift_px) & 63u;
-            if (bg_phase != last_bg_phase) {
-                last_bg_phase = bg_phase;
-                // Rate-limit: bg_phase advances ~4 steps/frame, so updating
-                // the 768-byte GDMA every other frame (30Hz background vs
-                // 60Hz gameplay) is visually identical but halves the
-                // average VBlank cost. MUST stay in VBlank: GDMA before
-                // wait_vbl_done() swaps tile data mid-scanout and tears
-                // the parallax into "broken puzzle" pieces.
-                if ((bg_drift_px & 1u) == 0u) parallax_needed = 1;
+            if (setting_parallax_enabled) {
+                bg_phase = player.reversed
+                    ? (uint8_t)(scroll_px + bg_drift_px) & 63u
+                    : (uint8_t)(scroll_px - bg_drift_px) & 63u;
+                if (bg_phase != last_bg_phase) {
+                    last_bg_phase = bg_phase;
+                    // Rate-limit: bg_phase advances ~4 steps/frame, so updating
+                    // the 768-byte GDMA every other frame (30Hz background vs
+                    // 60Hz gameplay) is visually identical but halves the
+                    // average VBlank cost. MUST stay in VBlank: GDMA before
+                    // wait_vbl_done() swaps tile data mid-scanout and tears
+                    // the parallax into "broken puzzle" pieces.
+                    if ((bg_drift_px & 1u) == 0u) parallax_needed = 1;
+                }
             }
         }
 
@@ -795,7 +802,19 @@ void play_level(uint8_t idx) BANKED {
 
         if (died) {
             record_level_progress_from_cam(idx, cam_px, max_scroll_px);
-            play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
+            if (setting_effects_enabled) {
+                play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
+            } else {
+                if (setting_sfx_enabled) {
+                    NR41_REG = 0x00;
+                    NR42_REG = 0xF2;
+                    NR43_REG = 0x43;
+                    NR44_REG = 0x80;
+                }
+                for (uint8_t i = 0; i < 40; i++) shadow_OAM[i].y = 0;
+                move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+                wait_vbl_done();
+            }
             NR52_REG = 0x80;
             NR51_REG = 0xFF;
             NR50_REG = 0x77;

@@ -110,7 +110,10 @@ void sample_play_isr(void) __nonbanked __naked {
     __endasm;
 }
 
+#include "settings.h"
+
 void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
+    if (!setting_sfx_enabled) return;
     disable_interrupts();
     sample_keeps_music = 0;
     // Stop any current timer
@@ -147,6 +150,7 @@ void play_sample(uint8_t bank, const uint8_t *sample, uint16_t length) {
 }
 
 void play_sample_with_music(uint8_t bank, const uint8_t *sample, uint16_t length) {
+    if (!setting_sfx_enabled) return;
     disable_interrupts();
     sample_keeps_music = 1;
     // Stop any current timer

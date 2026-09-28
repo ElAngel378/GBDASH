@@ -23,50 +23,55 @@ void menu_stat_isr(void) __nonbanked {
 #define SHOW_MENU_VERSION_LABEL 0
 
 static void update_menu_sprites(uint8_t sel) {
-    // Music button (16x16) centered on ground bar (Screen X = 72..88, OAM X = 80)
-    // Ground starts at Screen Y = 120. Music button sits on ground: Screen Y = 122 (selected) / 124 (unselected)
-    uint8_t mx = 80;
-    uint8_t my = (sel == 1) ? 138 : 140; // OAM Y = Screen Y + 16
+    // Music button (16x16) on left of ground bar (Screen X = 56..72, OAM X = 64)
+    uint8_t mx = 64;
+    uint8_t my = (sel == 1) ? 138 : 140; // Screen Y = 122 (selected) / 124 (unselected)
     uint8_t prop_m = (_cpu == CGB_TYPE) ? 3 : 0;
     set_sprite_tile(0, 22); move_sprite(0, mx, my);      set_sprite_prop(0, prop_m);
     set_sprite_tile(1, 24); move_sprite(1, mx + 8, my);  set_sprite_prop(1, prop_m);
 
-    // Play button sprites (OAM 2..9) - centered at Screen X = 64..96 (OAM X = 72)
+    // Settings cog button (16x16) on right of ground bar (Screen X = 88..104, OAM X = 96)
+    uint8_t sx = 96;
+    uint8_t sy = (sel == 2) ? 138 : 140;
+    set_sprite_tile(2, 28); move_sprite(2, sx, sy);      set_sprite_prop(2, prop_m);
+    set_sprite_tile(3, 30); move_sprite(3, sx + 8, sy);  set_sprite_prop(3, prop_m);
+
+    // Play button sprites (OAM 4..11) - centered at Screen X = 64..96 (OAM X = 72)
     uint8_t bx = 72;
     uint8_t by = (sel == 0) ? 66 : 68; // Screen Y = 50 (selected) / 52 (unselected)
-    set_sprite_tile(2, 0);  move_sprite(2, bx, by);           set_sprite_prop(2, 0);
-    set_sprite_tile(3, 2);  move_sprite(3, bx, by + 16);      set_sprite_prop(3, 0);
-    set_sprite_tile(4, 4);  move_sprite(4, bx + 8, by);       set_sprite_prop(4, 0);
-    set_sprite_tile(5, 6);  move_sprite(5, bx + 8, by + 16);  set_sprite_prop(5, 0);
-    set_sprite_tile(6, 8);  move_sprite(6, bx + 16, by);      set_sprite_prop(6, 0);
-    set_sprite_tile(7, 10); move_sprite(7, bx + 16, by + 16); set_sprite_prop(7, 0);
-    set_sprite_tile(8, 12); move_sprite(8, bx + 24, by);      set_sprite_prop(8, 0);
-    set_sprite_tile(9, 14); move_sprite(9, bx + 24, by + 16); set_sprite_prop(9, 0);
+    set_sprite_tile(4, 0);   move_sprite(4, bx, by);           set_sprite_prop(4, 0);
+    set_sprite_tile(5, 2);   move_sprite(5, bx, by + 16);      set_sprite_prop(5, 0);
+    set_sprite_tile(6, 4);   move_sprite(6, bx + 8, by);       set_sprite_prop(6, 0);
+    set_sprite_tile(7, 6);   move_sprite(7, bx + 8, by + 16);  set_sprite_prop(7, 0);
+    set_sprite_tile(8, 8);   move_sprite(8, bx + 16, by);      set_sprite_prop(8, 0);
+    set_sprite_tile(9, 10);  move_sprite(9, bx + 16, by + 16); set_sprite_prop(9, 0);
+    set_sprite_tile(10, 12); move_sprite(10, bx + 24, by);     set_sprite_prop(10, 0);
+    set_sprite_tile(11, 14); move_sprite(11, bx + 24, by + 16); set_sprite_prop(11, 0);
 
     if (_cpu == CGB_TYPE) {
-        set_sprite_tile(10, 16); move_sprite(10, bx + 12, by + 8);  set_sprite_prop(10, 1);
-        set_sprite_tile(11, 18); move_sprite(11, bx + 4, by + 4);   set_sprite_prop(11, 2);
-        set_sprite_tile(12, 18); move_sprite(12, bx + 21, by + 4);  set_sprite_prop(12, 2);
-        set_sprite_tile(13, 20); move_sprite(13, bx + 4, by + 16);  set_sprite_prop(13, 2);
-        set_sprite_tile(14, 20); move_sprite(14, bx + 21, by + 16); set_sprite_prop(14, 2);
+        set_sprite_tile(12, 16); move_sprite(12, bx + 12, by + 8);  set_sprite_prop(12, 1);
+        set_sprite_tile(13, 18); move_sprite(13, bx + 4, by + 4);   set_sprite_prop(13, 2);
+        set_sprite_tile(14, 18); move_sprite(14, bx + 21, by + 4);  set_sprite_prop(14, 2);
+        set_sprite_tile(15, 20); move_sprite(15, bx + 4, by + 16);  set_sprite_prop(15, 2);
+        set_sprite_tile(16, 20); move_sprite(16, bx + 21, by + 16); set_sprite_prop(16, 2);
     } else {
-        for (uint8_t s = 10; s < 15; s++) hide_sprite(s);
+        for (uint8_t s = 12; s < 17; s++) hide_sprite(s);
     }
 
-    // Select arrow cursor (Slot 15, tile 26)
+    // Select arrow cursor (Slot 17, tile 26)
     // Positioned ON TOP of the selected button, pointing DOWN!
     uint8_t prop_c = (_cpu == CGB_TYPE) ? 4 : 0;
     if (sel == 0) {
-        // Above Play button (centered at OAM X = 84, top is by, arrow OAM Y = by - 9)
-        move_sprite(15, bx + 12, by - 9);
+        move_sprite(17, bx + 12, by - 9);
+    } else if (sel == 1) {
+        move_sprite(17, mx + 4, my - 9);
     } else {
-        // Above Music button (centered at OAM X = 84, top is my, arrow OAM Y = my - 9)
-        move_sprite(15, mx + 4, my - 9);
+        move_sprite(17, sx + 4, sy - 9);
     }
-    set_sprite_tile(15, 26);
-    set_sprite_prop(15, prop_c);
+    set_sprite_tile(17, 26);
+    set_sprite_prop(17, prop_c);
 
-    for (uint8_t s = 16; s < 40; s++) hide_sprite(s);
+    for (uint8_t s = 18; s < 40; s++) hide_sprite(s);
 }
 
 GameState update_menu_state(void) {
@@ -212,6 +217,15 @@ GameState update_menu_state(void) {
     };
     set_sprite_data(22, 4, music_button_tiles);
 
+    // Settings button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
+    static const uint8_t settings_button_tiles[64] = {
+        0x07, 0x07, 0x1F, 0x18, 0x3F, 0x2E, 0x7F, 0x49, 0x7F, 0x78, 0xFF, 0xA0, 0xFF, 0xA0, 0xFF, 0x91,
+        0xFF, 0x91, 0xFF, 0xA0, 0xFF, 0xA0, 0x7F, 0x78, 0x7F, 0x49, 0x3F, 0x2E, 0x1F, 0x18, 0x07, 0x07,
+        0xE0, 0xE0, 0xF8, 0x18, 0xFC, 0x74, 0xFE, 0x92, 0xFE, 0x1E, 0xFF, 0x05, 0xFF, 0x05, 0xFF, 0x89,
+        0xFF, 0x89, 0xFF, 0x05, 0xFF, 0x05, 0xFE, 0x1E, 0xFE, 0x92, 0xFC, 0x74, 0xF8, 0x18, 0xE0, 0xE0,
+    };
+    set_sprite_data(28, 4, settings_button_tiles);
+
     // Cursor indicator tiles (downward-pointing chevron, 8x16 mode: white body, black border)
     static const uint8_t pause_cursor_tiles[32] = {
         0x7E, 0x7E, 0x7E, 0x42, 0x7E, 0x42, 0x3C, 0x24,
@@ -222,7 +236,8 @@ GameState update_menu_state(void) {
     set_sprite_data(26, 2, pause_cursor_tiles);
 
     SPRITES_8x16;
-    uint8_t menu_sel = 0; // 0 = Play, 1 = Music
+    uint8_t menu_sel = 0; // 0 = Play, 1 = Music, 2 = Settings
+    uint8_t last_ground_sel = 1;
 
     update_menu_sprites(menu_sel);
 
@@ -262,8 +277,33 @@ GameState update_menu_state(void) {
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
 
-        if (pressed & (J_LEFT | J_RIGHT | J_UP | J_DOWN | J_SELECT)) {
-            menu_sel ^= 1;
+        if (pressed & (J_LEFT | J_RIGHT)) {
+            if (menu_sel == 0) {
+                menu_sel = (pressed & J_LEFT) ? 1 : 2;
+                last_ground_sel = menu_sel;
+            } else if (menu_sel == 1 && (pressed & J_RIGHT)) {
+                menu_sel = 2;
+                last_ground_sel = 2;
+            } else if (menu_sel == 2 && (pressed & J_LEFT)) {
+                menu_sel = 1;
+                last_ground_sel = 1;
+            }
+            update_menu_sprites(menu_sel);
+        }
+
+        if (pressed & (J_UP | J_DOWN)) {
+            if (menu_sel == 0 && (pressed & J_DOWN)) {
+                menu_sel = last_ground_sel;
+            } else if (menu_sel != 0 && (pressed & J_UP)) {
+                last_ground_sel = menu_sel;
+                menu_sel = 0;
+            }
+            update_menu_sprites(menu_sel);
+        }
+
+        if (pressed & J_SELECT) {
+            menu_sel = (uint8_t)((menu_sel + 1) % 3);
+            if (menu_sel != 0) last_ground_sel = menu_sel;
             update_menu_sprites(menu_sel);
         }
 
@@ -280,8 +320,10 @@ GameState update_menu_state(void) {
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             if (menu_sel == 0) {
                 return STATE_NEW_MENU_SELECT;
-            } else {
+            } else if (menu_sel == 1) {
                 return STATE_MUSIC_TEST;
+            } else {
+                return STATE_SETTINGS;
             }
         }
 

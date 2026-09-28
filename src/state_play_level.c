@@ -8,6 +8,8 @@ extern uint8_t music_ready;
 extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
+#include "settings.h"
+
 GameState update_play_level_state(void) {
     play_level(selected);
 
@@ -16,10 +18,14 @@ GameState update_play_level_state(void) {
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
-    init_music_banked(&menuloop, 1, 176);
-    current_song_bank = 1;
-    TAC_REG = 0x04;
-    music_ready = 1;
+    if (setting_music_enabled) {
+        init_music_banked(&menuloop, 1, 176);
+        current_song_bank = 1;
+        TAC_REG = 0x04;
+        music_ready = 1;
+    } else {
+        music_ready = 0;
+    }
 
     return STATE_NEW_MENU_SELECT;
 }

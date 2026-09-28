@@ -3,6 +3,7 @@
 #include "death_effect.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
+#include "settings.h"
 
 // 16 8x8 tiles (8 pairs for 8x16 mode)
 const uint8_t death_effect_tiles[256] = {
@@ -163,10 +164,13 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
-    NR41_REG = 0x00;
-    NR42_REG = 0xF2;
-    NR43_REG = 0x43;
-    NR44_REG = 0x80;
+
+    if (setting_sfx_enabled) {
+        NR41_REG = 0x00;
+        NR42_REG = 0xF2;
+        NR43_REG = 0x43;
+        NR44_REG = 0x80;
+    }
 
     // Center of death in hardware OAM coordinates (screen + 8x, + 16y)
     int16_t center_x = (int16_t)screen_x + 8 + 8;
@@ -178,7 +182,7 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
 
     for (uint8_t frame = 0; frame < 38; frame++) {
         // Screen shake
-        if (frame < 6) {
+        if (setting_effects_enabled && frame < 6) {
             int16_t sy = (int16_t)cam_py + shake_y[frame];
             if (sy < 0) sy = 0;
             move_bkg((uint8_t)(scroll_px + shake_x[frame]), (uint8_t)sy);

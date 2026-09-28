@@ -58,12 +58,15 @@ static inline void step_music(void) {
   }
 }
 
+#include "save_manager.h"
+#include "settings.h"
+
 // Called by the timer interrupt to update music or stream samples
 void play_music_safe(void) {
   if (sample_playing) {
     sample_play_isr();
     if (!sample_playing) {
-      if (music_ready) {
+      if (music_ready && setting_music_enabled) {
         hUGE_mute_channel(HT_CH3, HT_CH_PLAY);
         hUGE_reset_wave();
         TMA_REG = current_music_divider;
@@ -76,7 +79,7 @@ void play_music_safe(void) {
       sample_keeps_music = 0;
       return;
     }
-    if (music_ready && sample_keeps_music) {
+    if (music_ready && sample_keeps_music && setting_music_enabled) {
       music_time_acc += 16;
       uint16_t period = 256 - current_music_divider;
       while (music_ready && music_time_acc >= period) {
@@ -86,7 +89,7 @@ void play_music_safe(void) {
     }
     return;
   }
-  if (music_ready) {
+  if (music_ready && setting_music_enabled) {
     if ((_cpu == CGB_TYPE) && (cgb_music_tick++ & 1u)) return;
     step_music();
   }
@@ -98,6 +101,8 @@ void main(void) {
 
   if (_cpu == CGB_TYPE) cpu_fast();
 
+  init_save_system();
+
   // Enable sound hardware
   NR52_REG = 0x80;
   NR51_REG = 0xFF;
@@ -107,9 +112,11 @@ void main(void) {
   add_TIM(play_music_safe);
   set_interrupts(VBL_IFLAG | TIM_IFLAG);
 
-  init_music_banked(&menuloop, 1, 176);
-  current_song_bank = 1;
-  music_ready = 1;
+  if (setting_music_enabled) {
+    init_music_banked(&menuloop, 1, 176);
+    current_song_bank = 1;
+    music_ready = 1;
+  }
   enable_interrupts();
 
   while (1) {
@@ -128,6 +135,9 @@ void main(void) {
         break;
       case STATE_MUSIC_TEST:
         current_state = update_music_test_state();
+        break;
+      case STATE_SETTINGS:
+        current_state = update_settings_state();
         break;
     }
   }
