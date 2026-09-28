@@ -85,6 +85,23 @@ static void on_sfx_toggle(uint8_t new_val) {
     save_game_data();
 }
 
+static void on_show_bg_change(uint8_t new_val) {
+    if (!new_val) {
+        // If BG is off, Parallax is also off
+        setting_parallax_enabled = 0;
+    }
+    save_game_data();
+}
+
+static void on_parallax_change(uint8_t new_val) {
+    // Parallax requires BG; force back off if BG is disabled
+    if (new_val && !setting_show_bg_enabled) {
+        setting_parallax_enabled = 0;
+        return;
+    }
+    save_game_data();
+}
+
 static void on_setting_change(uint8_t new_val) {
     (void)new_val;
     save_game_data();
@@ -106,7 +123,8 @@ static const SettingItem settings_list[] = {
     { "MUSIC",        SETTING_TYPE_TOGGLE, &setting_music_enabled,    0, 1, toggle_labels, on_music_toggle,   NULL },
     { "SFX",          SETTING_TYPE_TOGGLE, &setting_sfx_enabled,      0, 1, toggle_labels, on_sfx_toggle,     NULL },
     { "GRADIENT",     SETTING_TYPE_TOGGLE, &setting_dmg_gradient,     0, 1, toggle_labels, on_setting_change, NULL },
-    { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_setting_change, NULL },
+    { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
+    { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
     { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,          NULL,              on_wipe_save_action }
 };
@@ -307,11 +325,23 @@ GameState update_settings_state(void) BANKED {
         if (pressed & (J_LEFT | J_RIGHT | J_A)) {
             const SettingItem *item = &settings_list[current_sel];
             if (item->type == SETTING_TYPE_TOGGLE && item->val_ptr) {
-                *item->val_ptr ^= 1;
-                if (item->on_change) {
-                    item->on_change(*item->val_ptr);
+                // Parallax requires SHOW BG: ignore input when BG is off
+                if (item->val_ptr == &setting_parallax_enabled && !setting_show_bg_enabled) {
+                    // Keep forced OFF, just re-render to confirm
+                    setting_parallax_enabled = 0;
+                    render_setting_row(current_sel - scroll_offset, current_sel, 1);
+                } else {
+                    *item->val_ptr ^= 1;
+                    if (item->on_change) {
+                        item->on_change(*item->val_ptr);
+                    }
+                    // SHOW BG off forces parallax off: refresh list so both rows update
+                    if (item->val_ptr == &setting_show_bg_enabled) {
+                        render_all_settings(current_sel, scroll_offset);
+                    } else {
+                        render_setting_row(current_sel - scroll_offset, current_sel, 1);
+                    }
                 }
-                render_setting_row(current_sel - scroll_offset, current_sel, 1);
             } else if (item->type == SETTING_TYPE_CHOICE && item->val_ptr) {
                 if (pressed & J_LEFT) {
                     if (*item->val_ptr > item->min_val) (*item->val_ptr)--;

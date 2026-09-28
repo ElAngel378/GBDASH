@@ -9,6 +9,7 @@
 #include "assets.h"
 #include "famidash_sprites.h"
 #include "famidash_bg.h"
+#include "settings.h"
 
 #define DEBUG_MODE
 #include "famidash_metatiles.h"
@@ -516,7 +517,7 @@ uint8_t draw_sprites(
 
         if (obj >= 38) {
             if (deco_drawn >= deco_max) continue;
-            
+
             if (_cpu == CGB_TYPE && obj < 64) {
                 const FamidashDeco *deco = famidash_deco_table[obj];
                 if (deco) {

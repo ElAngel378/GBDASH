@@ -137,6 +137,22 @@ static const uint8_t bg_pals[] = {
     0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
 };
 
+// Shared blank tile for SHOW BG off (solid areas instead of BG art).
+// Lives in this bank (10), NOT in HOME/bank 0 which is 98% full.
+static const uint8_t blank_bg_tile[16] = {0};
+
+// Blank CGB parallax VRAM (Bank 1 tiles 0..47) so parallax areas render
+// as solid sky color. Must be called with DISPLAY OFF. Bank-10 local so
+// HOME stays untouched.
+static void blank_parallax_vram(void) {
+    if (_cpu != CGB_TYPE) return;
+    VBK_REG = 1;
+    for (uint8_t i = 0; i < 48; i++) {
+        set_bkg_data(i, 1, blank_bg_tile);
+    }
+    VBK_REG = 0;
+}
+
 static void reload_level_state(uint8_t idx) {
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
@@ -146,6 +162,10 @@ static void reload_level_state(uint8_t idx) {
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    if (!setting_show_bg_enabled) {
+        // Hide BG: blank DMG tile 12 so empty areas are solid
+        set_bkg_data(12, 1, blank_bg_tile);
+    }
 
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
@@ -155,7 +175,8 @@ static void reload_level_state(uint8_t idx) {
     load_famidash_sprite_tiles();
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
-        init_bg_parallax();
+        if (setting_show_bg_enabled) init_bg_parallax();
+        else blank_parallax_vram();
         last_bg_phase = 0;
         load_menu_ground_tiles();
         vram_row0_is_ground = 1;
@@ -223,6 +244,9 @@ void play_level(uint8_t idx) BANKED {
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    if (!setting_show_bg_enabled) {
+        set_bkg_data(12, 1, blank_bg_tile);
+    }
     set_sprite_data(0, 8, icon1_tiles);
     set_sprite_data(8, 4, ship_tiles);
     set_sprite_data(12, 8, ball_tiles);
@@ -231,7 +255,8 @@ void play_level(uint8_t idx) BANKED {
     load_famidash_sprite_tiles();
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
-        init_bg_parallax();
+        if (setting_show_bg_enabled) init_bg_parallax();
+        else blank_parallax_vram();
         last_bg_phase = 0;
         load_menu_ground_tiles();
         vram_row0_is_ground = 1;
@@ -524,6 +549,9 @@ void play_level(uint8_t idx) BANKED {
                 ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+            if (!setting_show_bg_enabled) {
+                set_bkg_data(12, 1, blank_bg_tile);
+            }
 
             int32_t col_start = (int32_t)(cam_px >> 4) - 4;
             if (col_start < 0) col_start = 0;
@@ -735,7 +763,7 @@ void play_level(uint8_t idx) BANKED {
                 }
             }
 
-            if (setting_parallax_enabled) {
+            if (setting_show_bg_enabled && setting_parallax_enabled) {
                 bg_phase = player.reversed
                     ? (uint8_t)(scroll_px + bg_drift_px) & 63u
                     : (uint8_t)(scroll_px - bg_drift_px) & 63u;
