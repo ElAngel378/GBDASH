@@ -1,0 +1,315 @@
+#include "player.h"
+#include "collision.h"
+
+static const uint8_t mod6_table[24] = {
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5,
+    0, 1, 2, 3, 4, 5
+};
+
+void player_init(Player* p, uint16_t start_x, int16_t start_y) {
+    p->world_x = start_x;
+    p->world_y.w = (uint16_t)start_y << 8;
+    p->vel_y.w = 0;
+    p->on_ground = 0;
+    p->dead = 0;
+    p->anim_timer = 0;
+    p->anim_frame = 0;
+    p->gravity_flipped = 0;
+    p->mode = MODE_CUBE;
+    p->reversed = 0;
+    p->last_joy = 0;
+    p->ball_switched = 0;
+    p->touching_orb = 0;
+    p->level_complete = 0;
+    p->sp_idx = 0;
+}
+
+int16_t player_screen_y(const Player* p, uint16_t cam_y) {
+    return (int16_t)(p->world_y.b.h) - (int16_t)cam_y;
+}
+
+static uint8_t hazard_kills(const Player* p, uint8_t col, uint8_t x_off) {
+    uint8_t inner_x;
+    uint8_t deadly_left;
+
+    if (!IS_HAZARD(col)) return 0;
+
+    if (col == COL_DEATH_LEFT || col == COL_DEATH_RIGHT) {
+        inner_x = (uint8_t)(p->world_x + x_off) & 0x0F;
+        deadly_left = (col == COL_DEATH_LEFT) ^ (p->reversed != 0);
+        if (deadly_left) {
+            if (inner_x >= 8) return 0;
+        } else {
+            if (inner_x < 8) return 0;
+        }
+    }
+    return 1;
+}
+
+static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y) {
+    if ((uint16_t)y & 0xFF00) {
+        return (y < 0) ? COL_NONE : COL_ALL;
+    }
+    uint8_t py8 = (uint8_t)y;
+    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t inner_y = py8 & 0x0F;
+
+    if (col == COL_TOP) {
+        if (inner_y >= 8) return COL_NONE;
+    } else if (col == COL_BOTTOM) {
+        if (inner_y < 8) return COL_NONE;
+    } else if (col == COL_DEATH_TOP_HALF) {
+        if (inner_y < 8) return COL_NONE;
+        return COL_DEATH;
+    } else if (col == COL_DEATH_BOTTOM_HALF) {
+        if (inner_y >= 8) return COL_NONE;
+        return COL_DEATH;
+    }
+    return col;
+}
+
+#define COL_AT_PTR(col, y) inline_col_at((col), (int16_t)(y))
+
+uint8_t player_update(
+        Player* p,
+        uint8_t joy,
+        const uint8_t* collision_columns,
+        uint16_t map_h
+) {
+    if (p->dead) return 1;
+    if (p->level_complete) return 0;
+
+    // Acceleration & gravity
+    if (p->mode == MODE_SHIP) {
+        // Famidash ship_movement() 4-state model (60fps, non-mini):
+        //   holding + falling  -> SHIP_GRAVITY_HOLD_FALL (52)
+        //   holding + rising   -> SHIP_GRAVITY_BASE (42)
+        //   release + rising   -> SHIP_GRAVITY_AFTER_HOLD (50)
+        //   release + falling  -> SHIP_GRAVITY (34)
+        // "falling" is motion toward the rest surface (vel_y > 0 normally,
+        // vel_y < 0 when gravity_flipped). Holding always steers away from
+        // the rest surface in the local gravity frame.
+        uint8_t ship_falling = (p->gravity_flipped) ? (p->vel_y.w < 0) : (p->vel_y.w > 0);
+        int16_t accel;
+        if (joy & (J_A | J_UP)) {
+            accel = ship_falling ? -SHIP_GRAVITY_HOLD_FALL : SHIP_THRUST;
+        } else {
+            accel = ship_falling ? SHIP_GRAVITY : SHIP_GRAVITY_AFTER_HOLD;
+        }
+        if (p->gravity_flipped) accel = (int16_t)-accel;
+        p->vel_y.w += accel;
+    } else {
+        uint16_t gravity_val = (p->mode == MODE_BALL) ? BALL_GRAVITY : GRAVITY;
+        if (p->gravity_flipped) {
+            p->vel_y.w -= gravity_val;
+            if (p->vel_y.w < -MAX_FALL_SPEED) p->vel_y.w = -MAX_FALL_SPEED;
+        } else {
+            p->vel_y.w += gravity_val;
+            if (p->vel_y.w > MAX_FALL_SPEED) p->vel_y.w = MAX_FALL_SPEED;
+        }
+    }
+
+    // Buffer jump input while airborne
+    if ((joy & J_A) && !(p->last_joy & J_A) && !p->on_ground) {
+        p->orb_buffered = 1;
+    }
+
+    // Movement & collision resolution
+    uint16_t prev_y = p->world_y.w;
+    p->world_y.w += p->vel_y.w;
+
+    // Famidash clamps ship velocity AFTER position integration
+    // (common_gravity_routine then clamp in ship_movement)
+    if (p->mode == MODE_SHIP) {
+        if (p->gravity_flipped) {
+            if (p->vel_y.w < -SHIP_MAX_VEL_UP) p->vel_y.w = -SHIP_MAX_VEL_UP;
+            if (p->vel_y.w > SHIP_MAX_VEL_DOWN) p->vel_y.w = SHIP_MAX_VEL_DOWN;
+        } else {
+            if (p->vel_y.w > SHIP_MAX_VEL_UP) p->vel_y.w = SHIP_MAX_VEL_UP;
+            if (p->vel_y.w < -SHIP_MAX_VEL_DOWN) p->vel_y.w = -SHIP_MAX_VEL_DOWN;
+        }
+    }
+
+    // Out of bounds check: ceiling underflow (going above top of screen/map)
+    if (p->vel_y.w < 0 && p->world_y.w > prev_y) {
+        p->world_y.w = 0;
+        p->dead = 1;
+        return 1;
+    }
+
+    // Out of bounds check: floor overflow
+    if (p->vel_y.w > 0 && p->world_y.w < prev_y) {
+        p->world_y.w = 0xFF00;
+        p->dead = 1;
+        return 1;
+    }
+
+    uint8_t py = p->world_y.b.h;
+    const uint8_t* c0 = collision_columns;
+    const uint8_t* c1 = collision_columns + 16;
+    uint8_t x_mod_16 = (uint8_t)p->world_x & 0x0F;
+    uint8_t threshold = 16 - x_mod_16;
+
+#define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
+
+    p->on_ground = 0;
+
+    // Floor collision
+    if (p->vel_y.w >= 0) {
+        int16_t foot_y = py + 16;
+        uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), foot_y);
+        uint8_t hit_front_only = 0;
+        if (!IS_SOLID(hit_col)) {
+            hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), foot_y);
+            if (!IS_SOLID(hit_col)) {
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), foot_y);
+                if (IS_SOLID(hit_col)) hit_front_only = 1;
+            }
+        }
+        if (IS_SOLID(hit_col)) {
+            uint8_t block_top_y = (uint8_t)(foot_y & ~15);
+            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) >= block_top_y || (foot_y & 15) > 6)) {
+                // Front edge struck wall side
+            } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
+                if (hit_col == COL_BOTTOM) {
+                    p->world_y.b.h = block_top_y + 8 - 16;
+                } else {
+                    p->world_y.b.h = block_top_y - 16;
+                }
+                p->world_y.b.l = 0;
+                p->vel_y.w = 0;
+                if (!p->gravity_flipped) {
+                    p->on_ground = 1;
+                    p->orb_buffered = 0;
+                }
+            }
+        }
+    }
+
+    // Ceiling collision
+    if (p->vel_y.w < 0) {
+        int16_t head_y = py;
+        uint8_t hit_col = COL_AT_PTR(GET_COL_FAST(0), head_y);
+        uint8_t hit_front_only = 0;
+        if (!IS_SOLID(hit_col)) {
+            hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE >> 1), head_y);
+            if (!IS_SOLID(hit_col)) {
+                hit_col = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE), head_y);
+                if (IS_SOLID(hit_col)) hit_front_only = 1;
+            }
+        }
+        if (IS_SOLID(hit_col)) {
+            uint8_t block_bottom_y = (uint8_t)((head_y & ~15) + 16);
+            if (hit_front_only && ((uint8_t)(py + (PLAYER_SIZE >> 1)) <= block_bottom_y || (16 - (head_y & 15)) > 6)) {
+                // Front edge struck ceiling side
+            } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
+                if (hit_col == COL_TOP) {
+                    p->world_y.b.h = (head_y & ~15) + 8;
+                } else {
+                    p->world_y.b.h = block_bottom_y;
+                }
+                p->world_y.b.l = 0;
+                p->vel_y.w = 0;
+                if (p->gravity_flipped) {
+                    p->on_ground = 1;
+                    p->orb_buffered = 0;
+                }
+            }
+        }
+    }
+
+    // Front wall collision
+    py = p->world_y.b.h;
+    const uint8_t* c_front = GET_COL_FAST(PLAYER_SIZE - 1);
+    uint8_t front_center = COL_AT_PTR(c_front, py + (PLAYER_SIZE >> 1));
+    if (IS_SOLID(front_center)) {
+        p->dead = 1;
+        return 1;
+    }
+
+    // Hazard collision
+    uint8_t hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_HBOX);
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_HBOX);
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+    hz = COL_AT_PTR(GET_COL_FAST(PLAYER_SIZE - PLAYER_HBOX), py + PLAYER_SIZE - PLAYER_HBOX);
+    if (IS_HAZARD(hz) && hazard_kills(p, hz, PLAYER_SIZE - PLAYER_HBOX)) {
+        p->dead = 1;
+        return 1;
+    }
+
+    // Ground jump handling
+    if (p->on_ground) {
+        if (joy & J_A) {
+            if (p->mode == MODE_CUBE) {
+                p->vel_y.w = (p->gravity_flipped) ? -JUMP_FORCE : JUMP_FORCE;
+                p->on_ground = 0;
+            } else if (p->mode == MODE_BALL && !p->ball_switched) {
+                p->gravity_flipped = !p->gravity_flipped;
+                p->vel_y.w = (p->gravity_flipped) ? -BALL_SWITCH_VEL : BALL_SWITCH_VEL;
+                p->on_ground = 0;
+                p->ball_switched = 1;
+            }
+        }
+    }
+    if (!(joy & J_A)) p->ball_switched = 0;
+
+    // Animation Update
+    if (p->on_ground && p->mode != MODE_BALL) {
+        // Landed mid-spin: settle onto the NEAREST square side.
+        // A quarter turn is 6 frames (90 deg), so the midpoint of the
+        // quarter is 45 deg. Past the midpoint -> finish the spin
+        // forwards; before the midpoint -> roll backwards instead.
+        uint8_t q = mod6_table[p->anim_frame];
+        if (q != 0) {
+            p->anim_timer += 20; // double speed while settling
+            if (p->anim_timer >= 21) {
+                p->anim_timer -= 21;
+                if (q >= 3) {
+                    // Forward: complete the rotation to the next square
+                    p->anim_frame++;
+                    if (p->anim_frame >= 24) {
+                        p->anim_frame = 0;
+                        p->anim_timer = 0;
+                    }
+                } else {
+                    // Backward: un-roll to the previous square
+                    p->anim_frame--;
+                }
+            }
+        } else {
+            p->anim_timer = 0;
+        }
+    } else {
+        p->anim_timer += 10;
+        if (p->anim_timer >= 21) {
+            p->anim_timer -= 21;
+            p->anim_frame++;
+            if (p->anim_frame >= 24) p->anim_frame = 0;
+        }
+    }
+
+    // Bottom bounds check (falling below playable map)
+    if (p->world_y.b.h >= (uint8_t)((map_h << 4) - 8)) {
+        p->dead = 1;
+        return 1;
+    }
+
+    p->last_joy = joy;
+    return 0;
+}
+
+#undef GET_COL_FAST
