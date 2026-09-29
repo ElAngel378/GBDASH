@@ -15,6 +15,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 OUT_C = os.path.join(ROOT, 'gg', 'src', 'gg_data.c')
 OUT_H = os.path.join(ROOT, 'gg', 'src', 'gg_data.h')
+OUT_LEVEL_C = os.path.join(ROOT, 'gg', 'src', 'gg_level.c')
+OUT_TILES_C = os.path.join(ROOT, 'gg', 'src', 'gg_tiles.c')
 
 LEVEL_MAP = 'levels/level_data/dryout_16high.bin'
 LEVEL_NAME = 'dryout'
@@ -136,48 +138,140 @@ def main():
         WHITE, gb555_to_gg(g_color), gb555_to_gg(g_18), gb555_to_gg(g_9),          # 3 = GB palette 4 (ground)
     ]
 
-    # ---- player sprites (icon1) ----
-    icon_src = read_text('src/graphics/icon1.c')
-    m = re.search(r'icon1_tiles\[128\]\s*=\s*\{(.*?)\};', icon_src, re.S)
-    icon_bytes = bytes(int(x, 16) for x in re.findall(r'0x([0-9a-fA-F]{2})', m.group(1)))
-    assert len(icon_bytes) == 128
-    icon_imgs = []      # 16 rows x 8 cols per 8x16 sprite image
-    for k in range(4):
-        top = decode_2bpp_tile(icon_bytes, 2 * k)
-        bot = decode_2bpp_tile(icon_bytes, 2 * k + 1)
-        icon_imgs.append(top + bot)
+    # ---- sprites ----
+    # One 16-colour sprite palette: colour 0 is transparent, then five sub-palettes of
+    # three colours each (GB sprite palette n -> sub-palette n). Pixel v (1-3) of sub-palette
+    # s becomes 1 + 3*s + (v-1).
+    SPR_COLORS = {
+        0: [(0, 255, 255), (125, 255, 0), (0, 0, 0)],      # cube / ship
+        1: [(0, 0, 0), (125, 255, 0), (0, 0, 0)],          # cube portal
+        2: [(0, 0, 0), (0, 255, 255), (0, 255, 255)],      # blue (gravity down, blue pads/orbs)
+        3: [(0, 0, 0), (255, 255, 0), (255, 255, 0)],      # yellow (gravity up, yellow pads/orbs)
+        4: [(0, 0, 0), (255, 100, 255), (255, 100, 255)],  # pink (ship portal, pink pads/orbs)
+    }
+    spr_pal = [0] * 16
+    for s, cols in SPR_COLORS.items():
+        for j, (r, g, b) in enumerate(cols):
+            spr_pal[1 + 3 * s + j] = rgb8_to_gg(r, g, b)
+
+    def encode_spr_tile(rows, sub):
+        out = bytearray()
+        for y in range(8):
+            planes = [0, 0, 0, 0]
+            for x in range(8):
+                v = rows[y][x]
+                if v:
+                    v = 1 + 3 * sub + (v - 1)
+                for b in range(4):
+                    planes[b] |= ((v >> b) & 1) << (7 - x)
+            out += bytes(planes)
+        return bytes(out)
+
+    def load_c_bytes(path, name):
+        m = re.search(name + r'\[[^\]]*\]\s*=\s*\{(.*?)\};', read_text(path), re.S)
+        return bytes(int(x, 16) for x in re.findall(r'0x([0-9a-fA-F]{2})', m.group(1)))
+
+    icon_bytes = load_c_bytes('src/graphics/icon1.c', 'icon1_tiles')
+    ship_bytes = load_c_bytes('src/graphics/ship1.c', 'ship_tiles')
+    fam_bytes = read('levels/chr_data/famidash/famidash_sprites_dmg_tiles.bin')
+    assert len(icon_bytes) == 128 and len(ship_bytes) == 64
 
     spr_tiles = []
-    spr_index = {}
+    spr_seen = {}
 
-    def sprite_pair(k, fx, fy):
-        key = (k, fx, fy)
-        if key not in spr_index:
-            img = [row[:] for row in icon_imgs[k]]
-            if fy:
-                img = img[::-1]
-            if fx:
-                img = [row[::-1] for row in img]
-            spr_index[key] = len(spr_tiles)
-            spr_tiles.append(encode_4bpp_tile(img[:8], 1, True))
-            spr_tiles.append(encode_4bpp_tile(img[8:], 1, True))
-        return spr_index[key]
+    def spr_pair(src, tile, sub, fx, fy):
+        """8x16 sprite made from source tiles (tile, tile+1); returns the even hardware tile index."""
+        img = decode_2bpp_tile(src, tile) + decode_2bpp_tile(src, tile + 1)
+        if fy:
+            img = img[::-1]
+        if fx:
+            img = [row[::-1] for row in img]
+        top, bot = encode_spr_tile(img[:8], sub), encode_spr_tile(img[8:], sub)
+        if (top, bot) not in spr_seen:
+            spr_seen[(top, bot)] = len(spr_tiles)
+            spr_tiles.extend([top, bot])
+        return spr_seen[(top, bot)]
 
-    frames = []
+    # Player cube: metasprite offsets are relative to the previous item (dx -1, then +8).
+    icon_src = read_text('src/graphics/icon1.c')
+    cube_frames = []   # index: gravity_flipped * 25 + frame -> [left, right]
+    parsed = []
     for fm in re.finditer(r'icon1_metasprite\d+\[\]\s*=\s*\{(.*?)METASPR_TERM', icon_src, re.S):
-        items = re.findall(r'METASPR_ITEM\(([^\n]*)\),', fm.group(1))
         row = []
-        for it in items:
+        for it in re.findall(r'METASPR_ITEM\(([^\n]*)\),', fm.group(1)):
             parts = [p.strip() for p in it.split(',', 3)]
-            tile = int(parts[2])
-            flags = parts[3]
-            row.append(sprite_pair(tile // 2, 'S_FLIPX' in flags, 'S_FLIPY' in flags))
+            row.append((int(parts[2]), 'S_FLIPX' in parts[3], 'S_FLIPY' in parts[3]))
         assert len(row) == 2
-        frames.append(row)
-    assert len(frames) == 25, len(frames)
+        parsed.append(row)
+    assert len(parsed) == 25
+    for gflip in (0, 1):
+        for row in parsed:
+            cube_frames.append([spr_pair(icon_bytes, t, 0, fx, fy != bool(gflip)) for (t, fx, fy) in row])
 
-    spr_pal = [0] * 16
-    spr_pal[4:8] = [WHITE, rgb8_to_gg(0, 255, 255), rgb8_to_gg(125, 255, 0), BLACK]
+    # Ship: { -1,-1,8,0 }, { 0,8,10,0 } -> tail tiles 0/1, nose tiles 2/3 of ship_tiles.
+    ship_pairs = [[spr_pair(ship_bytes, 0, 0, False, bool(g)), spr_pair(ship_bytes, 2, 0, False, bool(g))] for g in (0, 1)]
+
+    # Level objects (portals, pads, orbs). Item = (dy, dx, tile, pal, flipx, flipy), relative to previous.
+    PT = dict(PT_41=0, PT_43=2, PT_45=4, PT_47=6, PT_49=8, PT_4B=10, PT_6D=12, PT_6F=14, PT_73=16,
+              PT_75=18, PT_79=20, PT_7B=22, MT_99=24, MT_9B=26, MT_B9=28, MT_BB=30, PT_59=32,
+              PT_5B=34, PT_4D=36, PT_4F=38, PT_51=40)
+
+    def cube_portal(p):
+        def f(dy, dx, t, y=False):
+            return (dy, dx, PT[t], p, False, y)
+        return [f(0, 0, 'PT_41'), f(0, 8, 'PT_43'), f(0, 8, 'PT_45'),
+                f(16, -16, 'PT_47'), f(0, 8, 'PT_49'), f(0, 8, 'PT_4B'),
+                f(16, -16, 'PT_41', True), f(0, 8, 'PT_43', True), f(0, 8, 'PT_45', True)]
+
+    def horiz_portal(p, flipv):
+        return [(0, 0, PT['PT_4D'], p, False, flipv), (0, 8, PT['PT_4F'], p, False, flipv),
+                (0, 8, PT['PT_51'], p, False, flipv), (0, 8, PT['PT_51'], p, True, flipv),
+                (0, 8, PT['PT_4F'], p, True, flipv), (0, 8, PT['PT_4D'], p, True, flipv)]
+
+    def vert_portal(p):
+        return [(0, 0, PT['PT_6D'], p, False, False), (0, 8, PT['PT_6F'], p, False, False),
+                (16, -8, PT['PT_73'], p, False, False), (0, 8, PT['PT_75'], p, False, False),
+                (16, -8, PT['PT_6D'], p, False, True), (0, 8, PT['PT_6F'], p, False, True)]
+
+    def two_tile(l, r, p, flipy=False):
+        return [(0, 0, PT[l], p, False, flipy), (0, 8, PT[r], p, True, flipy)]
+
+    OBJ_DEFS = {
+        0: cube_portal(1), 1: cube_portal(4),
+        5: two_tile('MT_99', 'MT_9B', 2), 6: two_tile('MT_B9', 'MT_BB', 4),
+        8: vert_portal(2), 9: vert_portal(3),
+        10: two_tile('PT_79', 'PT_7B', 3), 11: two_tile('MT_99', 'MT_9B', 3),
+        12: two_tile('PT_79', 'PT_7B', 3, True), 13: two_tile('PT_79', 'PT_7B', 2),
+        14: two_tile('PT_79', 'PT_7B', 2, True),
+        16: horiz_portal(2, False), 17: horiz_portal(2, True),
+        18: horiz_portal(3, False), 19: horiz_portal(3, True),
+        37: two_tile('PT_59', 'PT_5B', 4),
+    }
+    spr_items = []
+    obj_defs = [(0, 0)] * 38
+    for t, items in sorted(OBJ_DEFS.items()):
+        obj_defs[t] = (len(spr_items), len(items))
+        x = y = 0
+        for dy, dx, tile, pal, fx, fy in items:
+            y += dy
+            x += dx
+            spr_items.append((x, y, spr_pair(fam_bytes, tile, pal, fx, fy)))
+    if len(spr_tiles) > 256:
+        sys.exit('too many sprite tiles: %d' % len(spr_tiles))
+
+    # Level object list (functional objects + colour triggers; decorations are skipped).
+    sp_src = read_text('src/sprites/%s_sprites.c' % LEVEL_NAME).split('%s_sp_dmg' % LEVEL_NAME)[0]
+    objs = []
+    for x, y, t in re.findall(r'\{(\d+),\s*(\d+),\s*(\d+)\}', sp_src):
+        x, y, t = int(x), int(y), int(t)
+        if t in OBJ_DEFS or t == 15 or 128 <= t <= 175 or 192 <= t <= 239:
+            objs.append((x, y, t))
+    assert objs == sorted(objs, key=lambda o: o[0])
+
+    # Colour trigger tables (12-bit Game Gear colours).
+    sky_tab = [[gb555_to_gg(int(s[0], 16)), gb555_to_gg(int(s[1], 16))] for s in sky]
+    gnd_tab = [[gb555_to_gg(int(sky[i][0], 16)), gb555_to_gg(int(g[0], 16)),
+                gb555_to_gg(int(g[1], 16)), gb555_to_gg(int(g[2], 16))] for i, g in enumerate(gnd)]
 
     # ---- emit ----
     with open(OUT_H, 'w', newline='\n') as h:
@@ -185,13 +279,25 @@ def main():
         h.write('#ifndef GG_DATA_H\n#define GG_DATA_H\n\n#include <stdint.h>\n\n')
         h.write('#define GG_BG_TILE_COUNT %d\n' % len(bg_tiles))
         h.write('#define GG_SPR_TILE_COUNT %d\n' % len(spr_tiles))
-        h.write('#define GG_LEVEL_WIDTH %d\n\n' % map_w)
+        h.write('#define GG_LEVEL_WIDTH %d\n' % map_w)
+        h.write('#define GG_OBJ_COUNT %d\n\n' % len(objs))
+        h.write('typedef struct { int8_t dx, dy; uint8_t tile; } GgSprItem;\n')
+        h.write('typedef struct { uint8_t start, count; } GgObjDef;\n')
+        h.write('typedef struct { uint16_t x; uint8_t y, type; } GgObj;\n\n')
         h.write('extern const uint8_t gg_bg_tiles[GG_BG_TILE_COUNT * 32];\n')
         h.write('extern const uint8_t gg_spr_tiles[GG_SPR_TILE_COUNT * 32];\n')
         h.write('extern const uint8_t gg_mt[256][4];\n')
         h.write('extern const uint8_t gg_ground_top[8];\nextern const uint8_t gg_ground_bot[8];\n')
         h.write('extern const uint16_t gg_bg_palette[16];\nextern const uint16_t gg_spr_palette[16];\n')
-        h.write('extern const uint8_t gg_cube_frames[25][2];\n')
+        h.write('/* [gravity_flipped * 25 + anim_frame][left/right] */\n')
+        h.write('extern const uint8_t gg_cube_frames[50][2];\n')
+        h.write('/* [gravity_flipped][tail/nose] */\n')
+        h.write('extern const uint8_t gg_ship_tiles[2][2];\n')
+        h.write('extern const GgSprItem gg_spr_items[%d];\n' % len(spr_items))
+        h.write('extern const GgObjDef gg_obj_defs[38];\n')
+        h.write('extern const GgObj gg_objs[GG_OBJ_COUNT];\n')
+        h.write('extern const uint16_t gg_sky_tab[64][2];   /* colour, darker */\n')
+        h.write('extern const uint16_t gg_gnd_tab[64][4];   /* colour, darker, grid 18, grid 9 */\n')
         h.write('extern const uint8_t famidash_metatile_collision[256];\n')
         h.write('extern const uint8_t %s_map[GG_LEVEL_WIDTH * 16];\n\n#endif\n' % LEVEL_NAME)
 
@@ -202,21 +308,49 @@ def main():
             s += '    ' + ('{ %s },' % row if nested else row + ',') + '\n'
         return s + '};\n\n'
 
+    def flat(rows):
+        return [v for row in rows for v in row]
+
     with open(OUT_C, 'w', newline='\n') as c:
         c.write('/* Generated by gg/tools/gg_convert.py - do not edit. */\n')
         c.write('#include "gg_data.h"\n\n')
-        c.write(arr('gg_bg_tiles[GG_BG_TILE_COUNT * 32]', 'uint8_t', list(b''.join(bg_tiles)), 16, '0x%02x'))
-        c.write(arr('gg_spr_tiles[GG_SPR_TILE_COUNT * 32]', 'uint8_t', list(b''.join(spr_tiles)), 16, '0x%02x'))
-        c.write(arr('gg_mt[256][4]', 'uint8_t', [v for row in gg_mt for v in row], 4, nested=True))
+        c.write(arr('gg_mt[256][4]', 'uint8_t', flat(gg_mt), 4, nested=True))
         c.write(arr('gg_ground_top[8]', 'uint8_t', ground_top))
         c.write(arr('gg_ground_bot[8]', 'uint8_t', ground_bot))
         c.write(arr('gg_bg_palette[16]', 'uint16_t', bg_pal, 8, '0x%03x'))
         c.write(arr('gg_spr_palette[16]', 'uint16_t', spr_pal, 8, '0x%03x'))
-        c.write(arr('gg_cube_frames[25][2]', 'uint8_t', [v for row in frames for v in row], 2, nested=True))
+        c.write(arr('gg_cube_frames[50][2]', 'uint8_t', flat(cube_frames), 2, nested=True))
+        c.write(arr('gg_ship_tiles[2][2]', 'uint8_t', flat(ship_pairs), 2, nested=True))
+        c.write('const GgSprItem gg_spr_items[%d] = {\n' % len(spr_items))
+        for x, y, t in spr_items:
+            c.write('    { %d, %d, %d },\n' % (x, y, t))
+        c.write('};\n\n')
+        c.write('const GgObjDef gg_obj_defs[38] = {\n')
+        for s, n in obj_defs:
+            c.write('    { %d, %d },\n' % (s, n))
+        c.write('};\n\n')
+        c.write('const GgObj gg_objs[GG_OBJ_COUNT] = {\n')
+        for x, y, t in objs:
+            c.write('    { %d, %d, %d },\n' % (x, y, t))
+        c.write('};\n\n')
+        c.write(arr('gg_sky_tab[64][2]', 'uint16_t', flat(sky_tab), 2, '0x%03x', nested=True))
+        c.write(arr('gg_gnd_tab[64][4]', 'uint16_t', flat(gnd_tab), 4, '0x%03x', nested=True))
         c.write(arr('famidash_metatile_collision[256]', 'uint8_t', mt_col))
+
+    # Tile graphics are only needed at startup, so they live in bank 3 (see main()).
+    with open(OUT_TILES_C, 'w', newline='\n') as c:
+        c.write('/* Generated by gg/tools/gg_convert.py - do not edit. */\n')
+        c.write('#pragma bank 3\n\n#include "gg_data.h"\n\n')
+        c.write(arr('gg_bg_tiles[GG_BG_TILE_COUNT * 32]', 'uint8_t', list(b''.join(bg_tiles)), 16, '0x%02x'))
+        c.write(arr('gg_spr_tiles[GG_SPR_TILE_COUNT * 32]', 'uint8_t', list(b''.join(spr_tiles)), 16, '0x%02x'))
+
+    # The level map lives in its own ROM bank, mapped into the 0x4000 window by main().
+    with open(OUT_LEVEL_C, 'w', newline='\n') as c:
+        c.write('/* Generated by gg/tools/gg_convert.py - do not edit. */\n')
+        c.write('#pragma bank 2\n\n#include "gg_data.h"\n\n')
         c.write(arr('%s_map[GG_LEVEL_WIDTH * 16]' % LEVEL_NAME, 'uint8_t', list(level), 32))
 
-    print('bg tiles: %d, sprite tiles: %d, level width: %d metatile columns' % (len(bg_tiles), len(spr_tiles), map_w))
+    print('bg tiles: %d, sprite tiles: %d, objects: %d, level width: %d' % (len(bg_tiles), len(spr_tiles), len(objs), map_w))
 
 
 if __name__ == '__main__':
