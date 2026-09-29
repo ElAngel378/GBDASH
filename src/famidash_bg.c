@@ -6,35 +6,8 @@
 #include "fade.h"
 #include "bg_parallax.h"
 
-/**
- * NES Master Palette mapped to GBC 15-bit RGB.
- * 64 colors (4 rows of 16).
- */
-static const uint16_t nes_master_palette[64] = {
-    // Row 0 (0x00 - 0x0F): Dark
-    RGB(10, 10, 10), RGB( 0,  4, 14), RGB( 1,  2, 18), RGB( 6,  0, 17),
-    RGB( 8,  0, 12), RGB(11,  0,  6), RGB(10,  0,  0), RGB( 7,  3,  0),
-    RGB( 4,  5,  0), RGB( 1,  7,  0), RGB( 0,  8,  0), RGB( 0,  7,  0),
-    RGB( 0,  6,  7), RGB( 0,  0,  0), RGB( 0,  0,  0), RGB( 0,  0,  0),
-
-    // Row 1 (0x10 - 0x1F): Medium/Dark
-    RGB(18, 18, 18), RGB( 1,  9, 24), RGB( 6,  6, 29), RGB(11,  4, 28),
-    RGB(17,  2, 21), RGB(19,  2, 12), RGB(18,  4,  4), RGB(15,  7,  0),
-    RGB(10, 11,  0), RGB( 5, 14,  0), RGB( 1, 15,  0), RGB( 0, 14,  5),
-    RGB( 0, 12, 15), RGB( 0,  0,  0), RGB( 0,  0,  0), RGB( 0,  0,  0),
-
-    // Row 2 (0x20 - 0x2F): Bright
-    RGB(31, 31, 31), RGB( 9, 19, 29), RGB(15, 15, 29), RGB(21, 12, 29),
-    RGB(28, 10, 29), RGB(29, 11, 22), RGB(29, 13, 12), RGB(26, 17,  4),
-    RGB(19, 21,  0), RGB(14, 24,  0), RGB( 9, 25,  4), RGB( 7, 25, 13),
-    RGB( 7, 22, 25), RGB( 7,  7,  7), RGB( 0,  0,  0), RGB( 0,  0,  0),
-
-    // Row 3 (0x30 - 0x3F): Pale
-    RGB(31, 31, 31), RGB(20, 25, 29), RGB(23, 23, 29), RGB(26, 22, 29),
-    RGB(29, 21, 29), RGB(29, 21, 26), RGB(29, 22, 21), RGB(28, 24, 18),
-    RGB(25, 26, 15), RGB(22, 27, 15), RGB(20, 27, 18), RGB(18, 27, 22),
-    RGB(19, 26, 28), RGB(19, 20, 19), RGB( 0,  0,  0), RGB( 0,  0,  0)
-};
+// Sky/ground colours per NES colour id live in famidash_bg_tables.h, generated
+// by tools/gen_famidash_bg_tables.py from Famidash's own NES palette.
 
 /**
  * Vibrant GBC Palettes moved local for maximum DMG performance

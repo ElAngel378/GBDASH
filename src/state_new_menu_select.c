@@ -409,7 +409,9 @@ static void render_progress_bar(uint8_t pct, uint8_t vram_start_tile) {
                 uint8_t gb1 = glyph_src[2 * r + 1];
                 uint8_t glyph_mask = (uint8_t)(gb0 | gb1);
                 t_dst[2 * r]     = (uint8_t)((gb0 ^ gb1) | ((uint8_t)(~glyph_mask) & (uint8_t)(~empty_mask)));
-                t_dst[2 * r + 1] = glyph_mask;
+                // Glyph body is colour 2 (white on GBC). On DMG colour 2 is dark grey,
+                // which is unreadable on the grey fill, so use colour 0 (white) there.
+                t_dst[2 * r + 1] = (_cpu == CGB_TYPE) ? glyph_mask : (uint8_t)(gb0 ^ gb1);
             }
         } else {
             for (uint8_t r = 1; r <= 6; r++) {
