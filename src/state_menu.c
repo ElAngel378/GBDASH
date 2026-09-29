@@ -1,3 +1,5 @@
+#pragma bank 29
+
 #include "states.h"
 #include "gameplay.h"
 #include "assets.h"
@@ -74,31 +76,24 @@ static void update_menu_sprites(uint8_t sel) {
     for (uint8_t s = 18; s < 40; s++) hide_sprite(s);
 }
 
-GameState update_menu_state(void) {
-    DISPLAY_OFF;
+// This file lives in a switchable ROM bank, so everything that switches ROM
+// banks (to read tile data from other banks) must run from bank 0: __nonbanked.
+extern const uint8_t menu_bg_tiles[];
+extern const uint8_t menu_bg_map[];
+extern const uint8_t menu_ground_tiles[];
+extern const uint8_t menu_ground_map[];
+BANKREF_EXTERN(menu_bg)
+extern const unsigned char playbutton[];
+BANKREF_EXTERN(playbutton)
 
-    // Restore standard palettes
-    BGP_REG = 0xE4;
-    OBP0_REG = 0xE4;
-    OBP1_REG = 0xD2;
-
-    if (_cpu == CGB_TYPE) {
-        apply_rainbow_palette(0);
-    }
-
-    extern const uint8_t menu_bg_tiles[];
-    extern const uint8_t menu_bg_map[];
-    extern const uint8_t menu_ground_tiles[];
-    extern const uint8_t menu_ground_map[];
-    BANKREF_EXTERN(menu_bg)
-
+static void menu_load_bg_gfx(void) __nonbanked {
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(BANK(chr_gb));
     set_bkg_data(0, 128, chr_gb_tiles);
     SWITCH_ROM(BANK(menu_bg));
     set_bkg_data(28, 87, menu_bg_tiles);    // BG tiles at index 28-114
     set_bkg_data(115, 9, menu_ground_tiles); // Ground tiles at 115-123
-    
+
     // Clear the whole map first (so top 16px is empty sky/color 0)
     fill_bkg_rect(0, 0, 32, 32, 0);
 
@@ -111,6 +106,28 @@ GameState update_menu_state(void) {
     SWITCH_ROM(BANK(logo));
     set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
+}
+
+static void menu_load_playbutton_gfx(void) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(playbutton));
+    set_sprite_data(0, 16, &playbutton[16]);
+    SWITCH_ROM(prev_bank);
+}
+
+GameState update_menu_state(void) BANKED {
+    DISPLAY_OFF;
+
+    // Restore standard palettes
+    BGP_REG = 0xE4;
+    OBP0_REG = 0xE4;
+    OBP1_REG = 0xD2;
+
+    if (_cpu == CGB_TYPE) {
+        apply_rainbow_palette(0);
+    }
+
+    menu_load_bg_gfx();
 
 #if SHOW_MENU_VERSION_LABEL
     // Load Pusab font tiles for version label
@@ -137,11 +154,7 @@ GameState update_menu_state(void) {
     }
 
     // Play button
-    extern const unsigned char playbutton[];
-    BANKREF_EXTERN(playbutton)
-    SWITCH_ROM(BANK(playbutton));
-    set_sprite_data(0, 16, &playbutton[16]);
-    SWITCH_ROM(prev_bank);
+    menu_load_playbutton_gfx();
 
     if (_cpu == CGB_TYPE) {
         static const uint8_t yellow_fill_tile[32] = {

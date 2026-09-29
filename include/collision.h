@@ -77,6 +77,10 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED;
 void flush_mt_column(uint8_t ring_col) BANKED;
+void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED;
+void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
+void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
+void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
@@ -90,5 +94,7 @@ void load_menu_ground_tiles(void) BANKED;
 void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids);
 void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 void flush_vram_row0(uint8_t is_ground) BANKED;
+uint8_t get_map_tile0(uint16_t col, const uint8_t *map, uint8_t map_bank);
+void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 #endif // COLLISION_H

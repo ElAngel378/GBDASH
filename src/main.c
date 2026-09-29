@@ -5,6 +5,7 @@
 #include "hUGEDriver.h"
 #include "states.h"
 #include "sample_player.h"
+#include "bg_parallax.h"
 
 extern const hUGESong_t menuloop;
 
@@ -43,9 +44,21 @@ void level_select_vbl_isr(void) {
 static inline void step_music(void) {
   uint8_t order_before = HUGE_CURRENT_ORDER;
   uint8_t prev_bank = _current_bank;
+  uint8_t prev_ie = IE_REG;
+  // A music tick takes up to ~3k dots. If VBlank starts meanwhile, the VBlank
+  // handler (which starts the parallax GDMA) must be able to preempt it, or the
+  // GDMA would start too late to finish inside VBlank. Only VBlank may nest.
+  if (bg_gdma_isr_on) {
+    IE_REG = VBL_IFLAG;
+    enable_interrupts();
+  }
   SWITCH_ROM(current_song_bank);
   hUGE_dosound();
   SWITCH_ROM(prev_bank);
+  if (bg_gdma_isr_on) {
+    disable_interrupts();
+    IE_REG = prev_ie;
+  }
 
   if (current_song_bank != 1) {
     if (order_before == (uint8_t)(HUGE_ORDER_CNT - 2) && HUGE_CURRENT_ORDER == 0) {

@@ -114,6 +114,21 @@ static uint16_t cam_px;
 static uint16_t cam_py;
 static uint16_t cam_py_max;
 static uint16_t loaded_r;
+
+// A newly streamed map column is built and uploaded in COL_JOB_STEPS slices, one
+// per frame (4 metatile rows built before VBlank, the matching 8 tile rows
+// uploaded after it), so no single frame has to pay for a whole column. The
+// column is written >= 6 frames before it can scroll into view.
+#define COL_JOB_STEPS 4
+// Ground <-> level-tile switch of the top two tile rows (see below), also spread
+// over frames: ROW0_JOB_PER_FRAME ring positions per frame.
+#define ROW0_JOB_PER_FRAME 4
+static uint8_t row0_job_pos = 16; // == 16: idle
+static uint8_t col_job_step = COL_JOB_STEPS; // == COL_JOB_STEPS: idle
+static uint8_t col_job_slot;
+static uint8_t col_job_issued;  // slice handed to the VBlank handler, not yet acknowledged
+static uint8_t row0_job_issued;
+static uint16_t col_job_col;
 static uint16_t max_scroll_px;
 
 static uint16_t scroll_acc;
@@ -188,6 +203,9 @@ static void reload_level_state(uint8_t idx) {
     cam_px = 0;
     scroll_acc = 0;
     loaded_r = BKG_MT_W - 1;
+    col_job_step = COL_JOB_STEPS;
+    row0_job_pos = 16;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
     target_bg_idx = 0;
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
@@ -237,6 +255,9 @@ void play_level(uint8_t idx) BANKED {
         else cam_py_max = 0;
     }
     loaded_r = BKG_MT_W - 1;
+    col_job_step = COL_JOB_STEPS;
+    row0_job_pos = 16;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
     target_bg_idx = 0;
@@ -306,6 +327,7 @@ void play_level(uint8_t idx) BANKED {
     end_shake_timer = 0;
     end_trigger_requested = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
+    bg_parallax_isr_start();
     while (1) {
         uint8_t joy = joypad();
         if (joy & J_UP) joy |= J_A;
@@ -543,6 +565,10 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (player.reversed != prev_reversed) {
+            col_job_step = COL_JOB_STEPS;
+            row0_job_pos = 16;
+            col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+            bg_cj_pending = bg_rj_pending = 0;
             DISPLAY_OFF;
 
             const uint8_t* target_tiles = player.reversed
@@ -735,32 +761,42 @@ void play_level(uint8_t idx) BANKED {
         }
         previous_oam_index = oam_index;
 
-        uint8_t vram_slot = 0;
         if (needs_render) {
             loaded_r = need_col;
-            vram_slot = (uint8_t)(need_col & 15);
-            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-            
-            prepare_mt_column(need_col, level_map, level_map_bank, player.reversed);
+            col_job_col = need_col;
+            col_job_slot = (uint8_t)(need_col & 15);
+            if (player.reversed) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
+            col_job_step = 0;
+        }
+        if (bg_gdma_isr_on) {
+            // A slice the VBlank handler has uploaded counts as done.
+            if (col_job_issued && !bg_cj_pending) { col_job_issued = 0; col_job_step++; }
+        }
+        if (col_job_step < COL_JOB_STEPS && !col_job_issued) {
+            prepare_mt_column_slice(col_job_col, level_map, level_map_bank, player.reversed, col_job_step);
+            if (bg_gdma_isr_on) { request_mt_column_slice(col_job_slot, col_job_step); col_job_issued = 1; }
         }
 
-        uint8_t row0_switch_needed = 0;
         uint8_t parallax_needed = 0;
         uint8_t bg_phase = 0;
 
         if (_cpu == CGB_TYPE) {
             uint8_t target_row0_ground = vram_row0_is_ground;
+            // Tile rows 0-1 are only on screen when cam_py <= 15 (level top) or
+            // cam_py >= 113 (ground, wrapped to the bottom). The thresholds sit
+            // inside the gap with >= 25px (4 frames at the 6px/frame maximum
+            // camera speed) of margin each way, and the switch itself takes 4
+            // frames, so it is finished before the rows scroll into view.
             if (vram_row0_is_ground) {
-                if (cam_py < 36) target_row0_ground = 0;
+                if (cam_py < 40) target_row0_ground = 0;
             } else {
-                if (cam_py >= 44) target_row0_ground = 1;
+                if (cam_py >= 88) target_row0_ground = 1;
             }
             if (target_row0_ground != vram_row0_is_ground) {
                 vram_row0_is_ground = target_row0_ground;
-                row0_switch_needed = 1;
-                if (!target_row0_ground) {
-                    prepare_row0_level_tiles(loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-                }
+                row0_job_pos = 0;
+                row0_job_issued = 0;
+                bg_rj_pending = 0;
             }
 
             if (setting_show_bg_enabled && setting_parallax_enabled) {
@@ -769,13 +805,10 @@ void play_level(uint8_t idx) BANKED {
                     : (uint8_t)(scroll_px - bg_drift_px) & 63u;
                 if (bg_phase != last_bg_phase) {
                     last_bg_phase = bg_phase;
-                    // Rate-limit: bg_phase advances ~4 steps/frame, so updating
-                    // the 768-byte GDMA every other frame (30Hz background vs
-                    // 60Hz gameplay) is visually identical but halves the
-                    // average VBlank cost. MUST stay in VBlank: GDMA before
-                    // wait_vbl_done() swaps tile data mid-scanout and tears
-                    // the parallax into "broken puzzle" pieces.
-                    if ((bg_drift_px & 1u) == 0u) parallax_needed = 1;
+                    // Full 60Hz update. The GDMA MUST run inside VBlank (before
+                    // it, tile data changes mid-scanout and tears the parallax
+                    // into "broken puzzle" pieces), which the VBlank ISR ensures.
+                    parallax_needed = 1;
                 }
             }
         }
@@ -800,32 +833,41 @@ void play_level(uint8_t idx) BANKED {
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);
 
-        // VBLANK BUDGET FIX: parallax GDMA must stay inside VBlank (it swaps
-        // tile data the PPU is actively fetching, so doing it pre-VBlank
-        // tears the bg). Instead we rate-limit it to every other frame
-        // (see above) to halve its average VBlank cost. Visible map writes
-        // stay here too so the streaming column never tears.
-        wait_vbl_done();
-        move_bkg(final_scx, final_scy);
+        // The parallax GDMA (768 bytes, ~1.9k dots) is executed by the VBlank
+        // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
+        // so it never depends on how late this thread wakes up.
+        if (bg_gdma_isr_on) {
+            if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW0_JOB_PER_FRAME; }
+            if (row0_job_pos < 16 && !row0_job_issued) {
+                request_row0_slots(row0_job_pos, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+                row0_job_issued = 1;
+            }
+        }
+        if (bg_gdma_isr_on && famidash_bkg_palettes_dirty) bg_pal_request = 1;
+        if (parallax_needed) request_bg_parallax(bg_phase);
+        // Same for the scroll registers (GBC only; DMG sets them below).
+        if (bg_gdma_isr_on) request_bg_scroll(final_scx, final_scy);
+        bg_wait_vbl();
+        if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
 
         BGP_REG = final_bgp;
         OBP0_REG = final_obp0;
         OBP1_REG = final_obp1;
 
-        if (famidash_bkg_palettes_dirty) {
+        // Palette RAM is only writable in VBlank; if the main thread woke up
+        // too late, leave the dirty flag set and apply on the next frame.
+        if (!bg_gdma_isr_on && famidash_bkg_palettes_dirty && (uint8_t)(LY_REG - 144u) < 7u) {
             famidash_apply_palettes();
         }
 
-        if (parallax_needed) {
-            update_bg_parallax(bg_phase);
+        if (!bg_gdma_isr_on && row0_job_pos < 16) {
+            flush_row0_slots(row0_job_pos, ROW0_JOB_PER_FRAME, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+            row0_job_pos += ROW0_JOB_PER_FRAME;
         }
 
-        if (row0_switch_needed) {
-            flush_vram_row0(vram_row0_is_ground);
-        }
-
-        if (needs_render) {
-            flush_mt_column(vram_slot);
+        if (!bg_gdma_isr_on && col_job_step < COL_JOB_STEPS) {
+            flush_mt_column_slice(col_job_slot, col_job_step);
+            col_job_step++;
         }
 
         if (died) {
@@ -850,6 +892,7 @@ void play_level(uint8_t idx) BANKED {
         }
     }
 
+    bg_parallax_isr_stop();
     music_ready = 0;
     TAC_REG = 0x00;
     play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "collision.h"
 #include "famidash_metatiles.h"
+#include "bg_parallax.h"
 
 #define BKG_MT_H 16
 
@@ -16,26 +17,28 @@ static uint8_t metatile_column_tiles[BKG_MT_H * 4];
 static uint8_t metatile_column_attributes[BKG_MT_H * 4];
 static uint8_t col_buf[16];
 
-void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
+static uint16_t cur_map_col;
+
+// Builds metatile rows [r_start, r_end) of the column in col_buf into
+// metatile_column_tiles/attributes.
+static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     uint8_t tl_x = 0;
     uint8_t tr_x = 1;
     if (_cpu == CGB_TYPE) {
-        uint8_t vram_slot = (uint8_t)(map_col & 15u);
+        uint8_t vram_slot = (uint8_t)(cur_map_col & 15u);
         if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
         tl_x = (uint8_t)((vram_slot & 3u) << 1);
         tr_x = tl_x + 1u;
     }
 
-    get_map_column(map_col, map, map_bank, col_buf);
-
-    const uint8_t *map_ptr = col_buf;
+    const uint8_t *map_ptr = col_buf + r_start;
     const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
-    uint8_t *dst = metatile_column_tiles;
+    uint8_t *dst = metatile_column_tiles + ((uint8_t)r_start << 2);
 
     if (_cpu == CGB_TYPE) {
         static const uint8_t row_to_ty0[16] = { 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0 };
-        uint8_t *dst_attr = metatile_column_attributes;
-        for (uint8_t r = 0; r < BKG_MT_H; r++) {
+        uint8_t *dst_attr = metatile_column_attributes + ((uint8_t)r_start << 2);
+        for (uint8_t r = r_start; r < r_end; r++) {
             uint8_t metatile_id = *map_ptr++;
             if (r == 0 && vram_row0_is_ground) {
                 *dst++ = ground_top[tl_x];
@@ -52,19 +55,18 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
             uint8_t palette = famidash_metatile_palettes[metatile_id];
             uint8_t r0 = row_to_ty0[r];
             uint8_t r1 = r0 + 8u;
-            for (uint8_t i = 0; i < 4; i++) {
-                uint8_t t = tiles[i];
-                if (t == 12) {
-                    *dst++ = (i < 2 ? r0 : r1) + ((i & 1) ? tr_x : tl_x);
-                    *dst_attr++ = 0x0B;
-                } else {
-                    *dst++ = t;
-                    *dst_attr++ = palette;
-                }
-            }
+            uint8_t t;
+            t = tiles[0];
+            if (t == 12) { *dst++ = r0 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
+            t = tiles[1];
+            if (t == 12) { *dst++ = r0 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
+            t = tiles[2];
+            if (t == 12) { *dst++ = r1 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
+            t = tiles[3];
+            if (t == 12) { *dst++ = r1 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
         }
     } else {
-        for (uint8_t r = 0; r < BKG_MT_H; r++) {
+        for (uint8_t r = r_start; r < r_end; r++) {
             uint8_t metatile_id = *map_ptr++;
             const uint8_t *tiles = mt_table[metatile_id];
 
@@ -74,6 +76,22 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
             *dst++ = tiles[3];
         }
     }
+}
+
+void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
+    cur_map_col = map_col;
+    get_map_column(map_col, map, map_bank, col_buf);
+    build_mt_rows(reversed, 0, BKG_MT_H);
+}
+
+// Sliced version: step 0..3 builds metatile rows 4*step .. 4*step+3
+// (step 0 also fetches the map column). See flush_mt_column_slice().
+void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED {
+    if (step == 0) {
+        cur_map_col = map_col;
+        get_map_column(map_col, map, map_bank, col_buf);
+    }
+    build_mt_rows(reversed, (uint8_t)(step << 2), (uint8_t)((step << 2) + 4u));
 }
 
 static uint8_t row0_tiles_cache[64];
@@ -88,6 +106,30 @@ void flush_mt_column(uint8_t ring_col) BANKED {
         set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_attributes);
         VBK_REG = VBK_TILES;
     }
+}
+
+// Writes tile rows 8*step .. 8*step+7 of the prepared column (see prepare_mt_column_slice).
+void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED {
+    uint8_t bx = ring_col << 1;
+    uint8_t ty = (uint8_t)(step << 3);
+    uint8_t off = (uint8_t)(ty << 1);
+    VBK_REG = VBK_TILES;
+    set_bkg_tiles(bx, ty, 2, 8, metatile_column_tiles + off);
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = VBK_ATTRIBUTES;
+        set_bkg_tiles(bx, ty, 2, 8, metatile_column_attributes + off);
+        VBK_REG = VBK_TILES;
+    }
+}
+
+// Same as flush_mt_column_slice() but the VBlank handler does the VRAM writes.
+void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED {
+    uint8_t off = (uint8_t)(step << 4);
+    bg_cj_x = (uint8_t)(ring_col << 1);
+    bg_cj_y = (uint8_t)(step << 3);
+    bg_cj_tiles = metatile_column_tiles + off;
+    bg_cj_attrs = metatile_column_attributes + off;
+    bg_cj_pending = 1;
 }
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
@@ -149,3 +191,98 @@ void flush_vram_row0(uint8_t is_ground) BANKED {
     }
 }
 
+
+// Builds the top two rows of ring positions first .. first+3 into the handler's
+// request buffer (see flush_row0_slots for the tile selection) and requests the upload.
+void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
+    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    for (uint8_t n = 0; n < 4; n++) {
+        uint8_t s = first + n;
+        uint8_t tiles[4];
+        uint8_t attrs[4];
+        if (vram_row0_is_ground) {
+            uint8_t x0 = (uint8_t)((s << 1) & 7u);
+            uint8_t x1 = (uint8_t)(((s << 1) + 1u) & 7u);
+            tiles[0] = ground_top[x0]; tiles[1] = ground_top[x1];
+            tiles[2] = ground_bot[x0]; tiles[3] = ground_bot[x1];
+            attrs[0] = attrs[1] = attrs[2] = attrs[3] = 0x0C;
+        } else {
+            uint8_t slot = s;
+            if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+            uint8_t tl_x = (uint8_t)((slot & 3u) << 1);
+            uint8_t tr_x = tl_x + 1u;
+            uint16_t col = loaded_r - ((loaded_r - slot) & 15u);
+            uint8_t mt_id = 0;
+            if (col < map_w) mt_id = get_map_tile0(col, map, map_bank);
+            const uint8_t *mt = mt_table[mt_id];
+            uint8_t pal = famidash_metatile_palettes[mt_id];
+            for (uint8_t i = 0; i < 4; i++) {
+                uint8_t t = mt[i];
+                if (t == 12) {
+                    tiles[i] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
+                    attrs[i] = 0x0B;
+                } else {
+                    tiles[i] = t;
+                    attrs[i] = pal;
+                }
+            }
+        }
+        uint8_t o = (uint8_t)(n << 1);
+        bg_rj_tiles[o] = tiles[0]; bg_rj_tiles[o + 1] = tiles[1];
+        bg_rj_tiles[8 + o] = tiles[2]; bg_rj_tiles[9 + o] = tiles[3];
+        bg_rj_attrs[o] = attrs[0]; bg_rj_attrs[o + 1] = attrs[1];
+        bg_rj_attrs[8 + o] = attrs[2]; bg_rj_attrs[9 + o] = attrs[3];
+    }
+    bg_rj_x = (uint8_t)(first << 1);
+    bg_rj_pending = 1;
+}
+
+// Rewrites the two top tile rows (row 0/1) of ring positions first .. first+count-1
+// as ground or as level tiles, reading the level map for the CURRENT loaded_r.
+// Called a couple of positions per frame after a ground/level switch; because
+// it always uses the current state it can never overwrite a freshly streamed
+// column with stale data. Same tile selection as prepare_row0_level_tiles().
+void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
+    if (_cpu != CGB_TYPE) return;
+    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    uint8_t tiles[4];
+    uint8_t attrs[4];
+    uint8_t end = first + count;
+    for (uint8_t s = first; s < end; s++) {
+        if (vram_row0_is_ground) {
+            uint8_t x0 = (uint8_t)((s << 1) & 7u);
+            uint8_t x1 = (uint8_t)(((s << 1) + 1u) & 7u);
+            tiles[0] = ground_top[x0]; tiles[1] = ground_top[x1];
+            tiles[2] = ground_bot[x0]; tiles[3] = ground_bot[x1];
+            attrs[0] = attrs[1] = attrs[2] = attrs[3] = 0x0C;
+        } else {
+            uint8_t slot = s;
+            if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+            uint8_t tl_x = (uint8_t)((slot & 3u) << 1);
+            uint8_t tr_x = tl_x + 1u;
+            uint16_t col = loaded_r - ((loaded_r - slot) & 15u);
+            uint8_t mt_id = 0;
+            if (col < map_w) mt_id = get_map_tile0(col, map, map_bank);
+            const uint8_t *mt = mt_table[mt_id];
+            uint8_t pal = famidash_metatile_palettes[mt_id];
+            for (uint8_t i = 0; i < 4; i++) {
+                uint8_t t = mt[i];
+                if (t == 12) {
+                    tiles[i] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
+                    attrs[i] = 0x0B;
+                } else {
+                    tiles[i] = t;
+                    attrs[i] = pal;
+                }
+            }
+        }
+        uint8_t x = (uint8_t)(s << 1);
+        VBK_REG = 0;
+        set_bkg_tiles(x, 0, 2, 1, tiles);
+        set_bkg_tiles(x, 1, 2, 1, tiles + 2);
+        VBK_REG = 1;
+        set_bkg_tiles(x, 0, 2, 1, attrs);
+        set_bkg_tiles(x, 1, 2, 1, attrs + 2);
+        VBK_REG = 0;
+    }
+}

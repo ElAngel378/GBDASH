@@ -110,6 +110,14 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
   SWITCH_ROM(_prev);
 }
 
+uint8_t get_map_tile0(uint16_t col, const uint8_t *map, uint8_t map_bank) {
+  uint8_t _prev = _current_bank;
+  SWITCH_ROM(map_bank);
+  uint8_t id = map[(uint16_t)col << 4];
+  SWITCH_ROM(_prev);
+  return id;
+}
+
 void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(map_bank);
