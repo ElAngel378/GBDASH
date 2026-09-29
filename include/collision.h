@@ -23,6 +23,14 @@
 #define COL_PAD_MAGENTA  0x0F  // Magenta Pad (Small Jump)
 #define COL_DEATH_TOP_HALF    0x10  // Deadly in bottom half (spike points up)
 #define COL_DEATH_BOTTOM_HALF 0x11  // Deadly in top half (spike points down)
+// Quarter-tile spikes (one half of a spike split over two tiles, 8px tall).
+// bit0 = right half, bit2 = top half. The metatile table stores these; the
+// collision lookups turn them into COL_DEATH_LEFT/RIGHT (x half is checked by
+// hazard_kills) or COL_NONE (wrong vertical half), so they never reach IS_HAZARD.
+#define COL_DEATH_LEFT_BOTTOMQ  0x12
+#define COL_DEATH_RIGHT_BOTTOMQ 0x13
+#define COL_DEATH_LEFT_TOPQ     0x14
+#define COL_DEATH_RIGHT_TOPQ    0x15
 
 #define IS_SOLID(col)  ((col) == COL_ALL || (col) == COL_FLOOR_CEIL || \
                         (col) == COL_TOP || (col) == COL_BOTTOM)

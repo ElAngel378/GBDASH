@@ -54,6 +54,8 @@ static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y) {
     }
     uint8_t py8 = (uint8_t)y;
     uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    // Fast path for the common cases (air, plain spikes, solid blocks)
+    if (col < COL_TOP || col == COL_ALL) return col;
     uint8_t inner_y = py8 & 0x0F;
 
     if (col == COL_TOP) {
@@ -66,6 +68,15 @@ static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y) {
     } else if (col == COL_DEATH_BOTTOM_HALF) {
         if (inner_y >= 8) return COL_NONE;
         return COL_DEATH;
+    } else if (col >= COL_DEATH_LEFT_BOTTOMQ && col <= COL_DEATH_RIGHT_TOPQ) {
+        // Half of a split spike: only the matching vertical half is deadly, and
+        // hazard_kills() limits it to the matching left/right half of the tile.
+        if (col & 4) {
+            if (inner_y >= 8) return COL_NONE;
+        } else {
+            if (inner_y < 8) return COL_NONE;
+        }
+        return (col & 1) ? COL_DEATH_RIGHT : COL_DEATH_LEFT;
     }
     return col;
 }

@@ -140,6 +140,28 @@ def collision_value(mt_name, col_name, tiles):
     if mt_upper == "FAMIDASH_MT_PLATFORM_SPIKE":
         return values["COL_ALL"]
 
+    # Decorative "fake" spikes are COL_NONE in FamiDash and must not kill.
+    if "FAKE" in mt_upper and col_name == "COL_NONE":
+        return values["COL_NONE"]
+
+    # Half spikes (one half of a spike split over two tiles, or a small 8x8 spike
+    # in one corner of the tile): only the matching left/right half of the tile is
+    # deadly. Full-height ones use the left/right death types; the 8px-tall ones
+    # (graphics only in the top or bottom row) use the quarter types 0x12..0x15.
+    half_spikes = {
+        "COL_DOWN_LEFT_SPIKE":  (0x12, "COL_DEATH_LEFT"),
+        "COL_DOWN_RIGHT_SPIKE": (0x13, "COL_DEATH_RIGHT"),
+        "COL_UP_LEFT_SPIKE":    (0x14, "COL_DEATH_LEFT"),
+        "COL_UP_RIGHT_SPIKE":   (0x15, "COL_DEATH_RIGHT"),
+    }
+    if col_name in half_spikes:
+        quarter, full = half_spikes[col_name]
+        bottom_only = tiles[0] == 0 and tiles[1] == 0
+        top_only = tiles[2] == 0 and tiles[3] == 0
+        if bottom_only or top_only:
+            return quarter
+        return values[full]
+
     if "SPIKE" in mt_upper or "SAW" in mt_upper:
         if is_bottom_half:
             return values["COL_DEATH_TOP_HALF"]

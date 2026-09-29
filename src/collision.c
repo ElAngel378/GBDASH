@@ -51,6 +51,13 @@ uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py) {
     } else if (col == COL_DEATH_BOTTOM_HALF) {
         if (inner_y >= 8) return COL_NONE;
         return COL_DEATH;
+    } else if (col >= COL_DEATH_LEFT_BOTTOMQ && col <= COL_DEATH_RIGHT_TOPQ) {
+        if (col & 4) {
+            if (inner_y >= 8) return COL_NONE;
+        } else {
+            if (inner_y < 8) return COL_NONE;
+        }
+        return (col & 1) ? COL_DEATH_RIGHT : COL_DEATH_LEFT;
     }
 
     return col;
