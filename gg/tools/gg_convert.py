@@ -20,7 +20,8 @@ OUT_TILES_C = os.path.join(ROOT, 'gg', 'src', 'gg_tiles.c')
 
 LEVEL_MAP = 'levels/level_data/dryout_16high.bin'
 LEVEL_NAME = 'dryout'
-SKY_COLOR_IDX = 22      # level_initial_bg_color[Dry Out]
+ENABLE_DECOS = False    # decorations disabled for now (performance work)
+SKY_COLOR_IDX = 22     # level_initial_bg_color[Dry Out]
 GROUND_COLOR_IDX = 22   # level_initial_g_color[Dry Out]
 
 GB_TO_SUB = {0: 0, 1: 1, 2: 2, 4: 3}  # GB bg palette -> sub-palette in the GG bg palette
@@ -247,8 +248,34 @@ def main():
         18: horiz_portal(3, False), 19: horiz_portal(3, True),
         37: two_tile('PT_59', 'PT_5B', 4),
     }
+    # Decorations (chains, lights, spikes...). Items are absolute (dx, dy) from the object position.
+    deco_bytes = read('levels/chr_data/famidash/famidash_deco_cgb_tiles.bin')
+    fam_c = read_text('src/sprites/famidash_sprites.c')
+    fam_h = read_text('include/famidash_sprites.h')
+    deco_tiles = {n: int(v) for n, v in re.findall(r'#define (D_[0-9A-F]+) (\d+)', fam_h)}
+    deco_structs = {}
+    for name, body in re.findall(r'static const FamidashDeco (\w+) = \{(.*)\};', fam_c):
+        groups = re.findall(r'\{([^}]*)\}', body)
+        head = body.split('{')[0].split(',')
+        count = int(head[0])
+        xs = [int(v) for v in groups[0].split(',')]
+        ys = [int(v) for v in groups[1].split(',')]
+        tiles = [v.strip() for v in groups[2].split(',')]
+        props = [v.strip() for v in groups[3].split(',')]
+        deco_structs[name] = [(xs[i], ys[i], deco_tiles.get(tiles[i], 0), 'S_FLIPX' in props[i], 'S_FLIPY' in props[i])
+                              for i in range(count)]
+    deco_table = {int(t): n for t, n in re.findall(r'\[(\d+)\] = &(\w+)', fam_c.split('famidash_deco_table')[1])}
+    deco_table.update({int(t): n for t, n in re.findall(r', \[(\d+)\] = &(\w+)', fam_c.split('famidash_deco_table')[1])})
+    DECO_DEFS = {t: deco_structs[n] for t, n in deco_table.items() if n in deco_structs}
+    if not ENABLE_DECOS:
+        DECO_DEFS = {}
+
     spr_items = []
-    obj_defs = [(0, 0)] * 38
+    obj_defs = [(0, 0)] * 64
+    for t, items in sorted(DECO_DEFS.items()):
+        obj_defs[t] = (len(spr_items), len(items))
+        for dx, dy, tile, fx, fy in items:
+            spr_items.append((dx, dy, spr_pair(deco_bytes, tile, 1, fx, fy)))
     for t, items in sorted(OBJ_DEFS.items()):
         obj_defs[t] = (len(spr_items), len(items))
         x = y = 0
@@ -264,7 +291,7 @@ def main():
     objs = []
     for x, y, t in re.findall(r'\{(\d+),\s*(\d+),\s*(\d+)\}', sp_src):
         x, y, t = int(x), int(y), int(t)
-        if t in OBJ_DEFS or t == 15 or 128 <= t <= 175 or 192 <= t <= 239:
+        if t in OBJ_DEFS or t in DECO_DEFS or t == 15 or 128 <= t <= 175 or 192 <= t <= 239:
             objs.append((x, y, t))
     assert objs == sorted(objs, key=lambda o: o[0])
 
@@ -294,7 +321,7 @@ def main():
         h.write('/* [gravity_flipped][tail/nose] */\n')
         h.write('extern const uint8_t gg_ship_tiles[2][2];\n')
         h.write('extern const GgSprItem gg_spr_items[%d];\n' % len(spr_items))
-        h.write('extern const GgObjDef gg_obj_defs[38];\n')
+        h.write('extern const GgObjDef gg_obj_defs[64];\n')
         h.write('extern const GgObj gg_objs[GG_OBJ_COUNT];\n')
         h.write('extern const uint16_t gg_sky_tab[64][2];   /* colour, darker */\n')
         h.write('extern const uint16_t gg_gnd_tab[64][4];   /* colour, darker, grid 18, grid 9 */\n')
@@ -325,7 +352,7 @@ def main():
         for x, y, t in spr_items:
             c.write('    { %d, %d, %d },\n' % (x, y, t))
         c.write('};\n\n')
-        c.write('const GgObjDef gg_obj_defs[38] = {\n')
+        c.write('const GgObjDef gg_obj_defs[64] = {\n')
         for s, n in obj_defs:
             c.write('    { %d, %d },\n' % (s, n))
         c.write('};\n\n')

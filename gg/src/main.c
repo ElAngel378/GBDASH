@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "gg_data.h"
+#include "gg_music.h"
 #include "player.h"
 
 #define MAP_W            GG_LEVEL_WIDTH
@@ -67,6 +68,19 @@ static uint8_t  prev_used_sprites;
 
 static uint16_t bg_pal[16];
 static uint8_t  pal_dirty;
+
+#ifdef DEBUG_PROFILE
+// Profiling aid: tints the sky while the CPU is busy (a screenshot then shows how far down the
+// frame the work reaches) and draws two bars: how many of the last 64 loop iterations took more
+// than one frame (top row), and the frame count of the latest iteration (second row).
+#define PROF_SKY(c) do { set_palette_entry(0, 0, (c)); set_palette_entry(0, 4, (c)); set_palette_entry(0, 8, (c)); } while (0)
+#define PROF_RESTORE() do { set_palette_entry(0, 0, bg_pal[0]); set_palette_entry(0, 4, bg_pal[4]); set_palette_entry(0, 8, bg_pal[8]); } while (0)
+static uint16_t prof_last_t;
+static uint8_t  prof_iter, prof_lag, prof_bar, prof_delta;
+#else
+#define PROF_SKY(c)
+#define PROF_RESTORE()
+#endif
 
 static uint8_t col_full[2][WORLD_ROWS];   // both tile columns of a metatile column, world order
 static uint8_t col_buf[2][RING_ROWS];     // same, in nametable ring order
@@ -333,7 +347,7 @@ static uint8_t draw_objects(uint16_t scroll_px, uint16_t cam_y) {
         const GgObj *o = &gg_objs[i];
         int16_t sx = (int16_t)o->x - (int16_t)scroll_px;
         if (sx > 160) break;
-        if (o->type >= 38) continue;
+        if (o->type >= 64) continue;     // colour triggers have no sprites
         const GgObjDef *d = &gg_obj_defs[o->type];
         if (!d->count) continue;
         int16_t sy = (int16_t)o->y - (int16_t)cam_y;
@@ -394,6 +408,7 @@ static void start_level(void) {
     hide_sprites_from(0, MAX_HARDWARE_SPRITES);
     prev_used_sprites = 0;
     DISPLAY_ON;
+    music_start();
 }
 
 void main(void) {
@@ -409,6 +424,9 @@ void main(void) {
     SHOW_BKG;
     SHOW_SPRITES;
 
+#ifndef DEBUG_NOMUSIC
+    add_VBL(music_tick);
+#endif
     start_level();
 
     uint8_t dead_timer = 0;
@@ -416,6 +434,15 @@ void main(void) {
     while (1) {
         uint8_t joy = joypad();
         if (joy & (J_UP | J_B)) joy |= J_A;
+#ifdef DEBUG_PROFILE
+        {
+            uint16_t nt = sys_time;
+            prof_delta = (uint8_t)(nt - prof_last_t);
+            prof_last_t = nt;
+            if (prof_delta > 1) prof_lag++;
+            if (++prof_iter == 64) { prof_bar = prof_lag; prof_lag = 0; prof_iter = 0; }
+        }
+#endif
 
         if (dead_timer) {
             hide_sprites_from(0, prev_used_sprites);
@@ -424,6 +451,8 @@ void main(void) {
             if (--dead_timer == 0) start_level();
             continue;
         }
+
+        PROF_SKY(RGB_YELLOW);
 
         // --- scroll ---
         uint16_t px_prev = cam_px >> 4;
@@ -445,6 +474,7 @@ void main(void) {
             }
         } else {
             // Reached the end of the level: restart
+            music_stop();
             dead_timer = 30;
             continue;
         }
@@ -513,8 +543,10 @@ void main(void) {
         }
 
         // --- everything below touches VRAM/VDP registers: do it in vblank ---
+        PROF_RESTORE();
         wait_vbl_done();
         set_scroll(scroll_px, cam_py);
+        PROF_SKY(RGB_CYAN);
 
         if (pal_dirty) {
             set_palette(0, 1, bg_pal);
@@ -533,6 +565,7 @@ void main(void) {
         if (died) {
             hide_sprites_from(0, prev_used_sprites);
             prev_used_sprites = 0;
+            music_stop();
             dead_timer = 30;
         } else {
             draw_player(sprite_x, final_py);
@@ -540,5 +573,14 @@ void main(void) {
             if (used < prev_used_sprites) hide_sprites_from(used, prev_used_sprites);
             prev_used_sprites = used;
         }
+#ifdef DEBUG_PROFILE
+        PROF_RESTORE();
+        for (uint8_t k = 0; k < 8; k++) {
+            if (k < (prof_bar >> 3)) put_sprite(56 + k, 4 + k * 9, 2, gg_cube_frames[0][0]);
+            else hide_sprite(56 + k);
+            if (k < prof_delta) put_sprite(48 + k, 4 + k * 9, 20, gg_cube_frames[0][0]);
+            else hide_sprite(48 + k);
+        }
+#endif
     }
 }

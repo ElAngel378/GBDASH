@@ -25,7 +25,7 @@ extern const uint8_t gg_cube_frames[50][2];
 /* [gravity_flipped][tail/nose] */
 extern const uint8_t gg_ship_tiles[2][2];
 extern const GgSprItem gg_spr_items[70];
-extern const GgObjDef gg_obj_defs[38];
+extern const GgObjDef gg_obj_defs[64];
 extern const GgObj gg_objs[GG_OBJ_COUNT];
 extern const uint16_t gg_sky_tab[64][2];   /* colour, darker */
 extern const uint16_t gg_gnd_tab[64][4];   /* colour, darker, grid 18, grid 9 */
