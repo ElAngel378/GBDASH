@@ -62,28 +62,27 @@ static uint16_t max_scroll_px;
 static uint16_t cached_col = 0xFFFF;
 static uint8_t  collision_columns[32];
 
-static uint8_t  obj_done[GG_OBJ_COUNT];   // activated flags
-static uint8_t  obj_lo;                   // first object that can still be on/near screen
-static uint8_t  prev_used_sprites;
+static uint8_t  obj_done[GG_LOGIC_COUNT];   // activated flags (interactive objects)
+static uint8_t  obj_lo;                   // first interactive object that can still matter
+static uint8_t  vis_lo;                   // first drawable object that can still be on screen
 
 static uint16_t bg_pal[16];
 static uint8_t  pal_dirty;
 
+// DEBUG_PROFILE: each section of the main loop writes its id to gpmark. The headless
+// Mesen script (tools/mesen_profile.lua) watches writes to it and records CPU cycles per section.
 #ifdef DEBUG_PROFILE
-// Profiling aid: tints the sky while the CPU is busy (a screenshot then shows how far down the
-// frame the work reaches) and draws two bars: how many of the last 64 loop iterations took more
-// than one frame (top row), and the frame count of the latest iteration (second row).
-#define PROF_SKY(c) do { set_palette_entry(0, 0, (c)); set_palette_entry(0, 4, (c)); set_palette_entry(0, 8, (c)); } while (0)
-#define PROF_RESTORE() do { set_palette_entry(0, 0, bg_pal[0]); set_palette_entry(0, 4, bg_pal[4]); set_palette_entry(0, 8, bg_pal[8]); } while (0)
-static uint16_t prof_last_t;
-static uint8_t  prof_iter, prof_lag, prof_bar, prof_delta;
+volatile uint8_t gpmark;
+#define PROF_MARK(n) (gpmark = (n))
 #else
-#define PROF_SKY(c)
-#define PROF_RESTORE()
+#define PROF_MARK(n)
 #endif
 
-static uint8_t col_full[2][WORLD_ROWS];   // both tile columns of a metatile column, world order
-static uint8_t col_buf[2][RING_ROWS];     // same, in nametable ring order
+// One metatile column in world-row order, interleaved (left tile, right tile) per tile row.
+// A metatile's 4 tile ids {TL, TR, BL, BR} are exactly two such rows, so building this is a
+// straight copy. col_v0 remembers the nametable row window the column was prepared for.
+static uint8_t colw[WORLD_ROWS * 2];
+static uint8_t col_v0;
 static uint8_t row_buf[32];
 static const uint8_t empty_col[MAP_H];
 
@@ -93,34 +92,90 @@ static inline uint8_t ring_row(uint8_t r) {
     return (r >= RING_ROWS) ? (uint8_t)(r - RING_ROWS) : r;
 }
 
-// Build both tile columns of metatile column mc (no VRAM access).
+// Build both tile columns of metatile column mc (no VRAM access) for row window v0.
 static void prepare_column(uint16_t mc) {
     const uint8_t *mcol = (mc < MAP_W) ? &level_map[mc << 4] : empty_col;
-    uint8_t *a = col_full[0];
-    uint8_t *b = col_full[1];
-    for (uint8_t r = 0; r < MAP_H; r++) {
-        const uint8_t *t = gg_mt[*mcol++];
-        *a++ = t[0]; *b++ = t[1];
-        *a++ = t[2]; *b++ = t[3];
+    const uint8_t *mt = &gg_mt[0][0];
+    uint8_t *d = colw;
+    for (uint8_t r = MAP_H; r; r--) {
+        const uint8_t *t = mt + ((uint16_t)(*mcol++) << 2);
+        *d++ = *t++;
+        *d++ = *t++;
+        *d++ = *t++;
+        *d++ = *t;
     }
     uint8_t xe = (uint8_t)(mc << 1) & 7;
-    col_full[0][32] = gg_ground_top[xe];
-    col_full[0][33] = gg_ground_bot[xe];
-    col_full[1][32] = gg_ground_top[xe + 1];
-    col_full[1][33] = gg_ground_bot[xe + 1];
-
-    // World rows v0..v0+27 -> ring rows: v0..27 stay put, 28..v0+27 wrap to 0..v0-1
-    for (uint8_t t = 0; t < 2; t++) {
-        memcpy(&col_buf[t][v0], &col_full[t][v0], RING_ROWS - v0);
-        if (v0) memcpy(&col_buf[t][0], &col_full[t][RING_ROWS], v0);
-    }
+    d[0] = gg_ground_top[xe];
+    d[1] = gg_ground_top[xe + 1];
+    d[2] = gg_ground_bot[xe];
+    d[3] = gg_ground_bot[xe + 1];
+    col_v0 = v0;
 }
 
+// Nametable entries are 2 bytes (tile, attribute), 64 bytes per row of 32 entries, 28 rows.
+// On the Game Gear GBDK's tile coordinates are relative to the visible area, which starts
+// DEVICE_SCREEN_X_OFFSET / Y_OFFSET tiles into the hardware nametable, wrapping at 32 x 28.
+// nt_origin is the VDP write command for hardware nametable entry (0,0); it is derived from
+// GBDK's own address for tile (0,0) so the base address is never assumed.
+static uint16_t nt_origin;
+
+// VDP write command for GBDK tile coordinates (x = 0, y = ring row)
+static inline uint16_t nt_row_addr(uint8_t row) {
+    row += DEVICE_SCREEN_Y_OFFSET;
+    if (row >= RING_ROWS) row -= RING_ROWS;
+    return nt_origin + ((uint16_t)row << 6);
+}
+
+#ifdef DEBUG_SLOWVDP
+// Reference implementation through GBDK (used by the A/B screenshot test).
 static void flush_column(uint16_t mc) {
+    static uint8_t a[RING_ROWS], b[RING_ROWS];
     uint8_t x = (uint8_t)(mc << 1) & 31;
-    set_bkg_tiles(x, 0, 1, RING_ROWS, col_buf[0]);
-    set_bkg_tiles(x + 1, 0, 1, RING_ROWS, col_buf[1]);
+    for (uint8_t w = col_v0; w < col_v0 + RING_ROWS; w++) {
+        a[ring_row(w)] = colw[w << 1];
+        b[ring_row(w)] = colw[(w << 1) + 1];
+    }
+    set_bkg_tiles(x, 0, 1, RING_ROWS, a);
+    set_bkg_tiles(x + 1, 0, 1, RING_ROWS, b);
 }
+#else
+// World row w of the window lives in ring row w % 28, which is hardware nametable row
+// (w + DEVICE_SCREEN_Y_OFFSET) % 28. The window's rows are consecutive in colw, so this writes
+// them in order and wraps the VRAM address once. Both tile columns are adjacent in VRAM, so one
+// address set per row writes both.
+static void flush_column(uint16_t mc) {
+    uint16_t base = nt_origin + ((uint16_t)(((uint8_t)(mc << 1) + DEVICE_SCREEN_X_OFFSET) & 31) << 1);
+    uint8_t hw = col_v0 + DEVICE_SCREEN_Y_OFFSET;
+    if (hw >= RING_ROWS) hw -= RING_ROWS;
+    uint16_t addr = base + ((uint16_t)hw << 6);
+    const uint8_t *p = &colw[col_v0 << 1];
+    uint8_t n = RING_ROWS - hw;
+    __asm__("di");
+    do {
+        VDP_CMD = (uint8_t)addr;
+        VDP_CMD = (uint8_t)(addr >> 8);
+        VDP_DATA = *p++;
+        VDP_DATA = 0;
+        VDP_DATA = *p++;
+        VDP_DATA = 0;
+        addr += 64;
+    } while (--n);
+    if (hw) {
+        addr = base;
+        n = hw;
+        do {
+            VDP_CMD = (uint8_t)addr;
+            VDP_CMD = (uint8_t)(addr >> 8);
+            VDP_DATA = *p++;
+            VDP_DATA = 0;
+            VDP_DATA = *p++;
+            VDP_DATA = 0;
+            addr += 64;
+        } while (--n);
+    }
+    __asm__("ei");
+}
+#endif
 
 // Build a full nametable row for world row r across the 16 loaded metatile columns.
 static void prepare_row(uint8_t r) {
@@ -145,9 +200,33 @@ static void prepare_row(uint8_t r) {
     }
 }
 
+#ifdef DEBUG_SLOWVDP
 static void flush_row(uint8_t r) {
     set_bkg_tiles(0, ring_row(r), 32, 1, row_buf);
 }
+#else
+static void flush_row(uint8_t r) {
+    uint16_t addr = nt_row_addr(ring_row(r));
+    const uint8_t *p = row_buf;
+    __asm__("di");
+    // entries 0..25 -> hardware columns 6..31, entries 26..31 wrap to columns 0..5
+    addr += DEVICE_SCREEN_X_OFFSET << 1;
+    VDP_CMD = (uint8_t)addr;
+    VDP_CMD = (uint8_t)(addr >> 8);
+    for (uint8_t i = 32 - DEVICE_SCREEN_X_OFFSET; i; i--) {
+        VDP_DATA = *p++;
+        VDP_DATA = 0;
+    }
+    addr = nt_row_addr(ring_row(r));
+    VDP_CMD = (uint8_t)addr;
+    VDP_CMD = (uint8_t)(addr >> 8);
+    for (uint8_t i = DEVICE_SCREEN_X_OFFSET; i; i--) {
+        VDP_DATA = *p++;
+        VDP_DATA = 0;
+    }
+    __asm__("ei");
+}
+#endif
 
 static void load_collision_columns(uint16_t mc) {
     const uint8_t *left = &level_map[mc << 4];
@@ -193,10 +272,10 @@ static void process_objects(uint8_t joy) {
     uint16_t p_front = px + 15u;
     uint16_t p_bottom = py + PLAYER_SIZE;
 
-    while (obj_lo < GG_OBJ_COUNT && gg_objs[obj_lo].x + 48u < px) obj_lo++;
+    while (obj_lo < GG_LOGIC_COUNT && gg_logic[obj_lo].x + 48u < px) obj_lo++;
 
-    for (uint8_t i = obj_lo; i < GG_OBJ_COUNT; i++) {
-        const GgObj *o = &gg_objs[i];
+    for (uint8_t i = obj_lo; i < GG_LOGIC_COUNT; i++) {
+        const GgObj *o = &gg_logic[i];
         uint16_t obj_x = o->x;
         if (obj_x > px + BG_TRIGGER_LEAD_PX) break;
         if (obj_done[i]) continue;
@@ -318,48 +397,75 @@ static void process_objects(uint8_t joy) {
 
 // ---------------------------------------------------------------- sprites
 
-static inline void put_sprite(uint8_t slot, int16_t sx, int16_t sy, uint8_t tile) {
-    move_sprite(slot, (uint8_t)(sx + DEVICE_SPRITE_PX_OFFSET_X), (uint8_t)(sy + DEVICE_SPRITE_PX_OFFSET_Y));
-    set_sprite_tile(slot, tile);
+// Sprite attribute table layout (shadow_OAM): Y bytes at [n], then X/tile pairs at [0x40 + 2n].
+// A Y value of 0xD0 ends the sprite list, so unused slots never need hiding one by one.
+#define OAM_Y(n)      (((uint8_t *)shadow_OAM) + (n))
+#define OAM_XT(n)     (((uint8_t *)shadow_OAM) + 0x40 + ((n) << 1))
+#define SAT_TERM      0xD0
+
+static inline void end_sprites(uint8_t used) {
+    if (used < MAX_HARDWARE_SPRITES) *OAM_Y(used) = SAT_TERM;
 }
 
 // Metasprite item offsets are relative to the previous item: cube/ship halves are at dx -1 and +7.
-static void draw_player(uint8_t sx, int16_t sy) {
+// sx is 0..PLAYER_SCREEN_X and sy is clamped to 0..144, so 8-bit maths is enough.
+static void draw_player(uint8_t sx, uint8_t sy) {
+    uint8_t *y = OAM_Y(0);
+    uint8_t *xt = OAM_XT(0);
+    uint8_t t0, t1;
     if (player.mode == MODE_SHIP) {
         uint8_t g = player.gravity_flipped ? 1 : 0;
-        int16_t y = sy + (g ? 1 : -1);
-        put_sprite(0, (int16_t)sx - 1, y, gg_ship_tiles[g][0]);
-        put_sprite(1, (int16_t)sx + 7, y, gg_ship_tiles[g][1]);
+        sy += g ? 1 : (uint8_t)-1;
+        t0 = gg_ship_tiles[g][0];
+        t1 = gg_ship_tiles[g][1];
     } else {
         const uint8_t *f = gg_cube_frames[(player.gravity_flipped ? 25 : 0) + player.anim_frame];
-        put_sprite(0, (int16_t)sx - 1, sy, f[0]);
-        put_sprite(1, (int16_t)sx + 7, sy, f[1]);
+        t0 = f[0];
+        t1 = f[1];
     }
+    sy += DEVICE_SPRITE_PX_OFFSET_Y;
+    sx += DEVICE_SPRITE_PX_OFFSET_X;
+    y[0] = sy;
+    y[1] = sy;
+    xt[0] = sx - 1;
+    xt[1] = t0;
+    xt[2] = sx + 7;
+    xt[3] = t1;
 }
 
-static void hide_sprites_from(uint8_t first, uint8_t last) {
-    for (uint8_t s = first; s < last; s++) hide_sprite(s);
-}
-
+// Object coordinates are converted to screen space biased by +64 so everything from -64 to 191
+// fits in a uint8_t and all visibility checks are unsigned 8-bit compares. Sprite items (dx/dy
+// from -16 to +48) that wrap past 255 land below the visible range, so they are culled too.
+#define BIAS 64
 static uint8_t draw_objects(uint16_t scroll_px, uint16_t cam_y) {
     uint8_t slot = FIRST_OBJ_SPRITE;
-    for (uint8_t i = obj_lo; i < GG_OBJ_COUNT; i++) {
-        const GgObj *o = &gg_objs[i];
-        int16_t sx = (int16_t)o->x - (int16_t)scroll_px;
-        if (sx > 160) break;
-        if (o->type >= 64) continue;     // colour triggers have no sprites
-        const GgObjDef *d = &gg_obj_defs[o->type];
-        if (!d->count) continue;
-        int16_t sy = (int16_t)o->y - (int16_t)cam_y;
-        if (sx < -48 || sy < -48 || sy > 144) continue;
+    uint8_t *oam_y = OAM_Y(slot);
+    uint8_t *oam_xt = OAM_XT(slot);
 
+    while (vis_lo < GG_OBJ_COUNT && gg_objs[vis_lo].x + 48u < scroll_px) vis_lo++;
+
+    const GgObj *o = &gg_objs[vis_lo];
+    for (uint8_t i = GG_OBJ_COUNT - vis_lo; i; i--, o++) {
+        uint16_t dx = o->x - scroll_px;              // objects left of scroll_px - 48 were skipped above
+        if (dx >= 160 + 1 && dx < 0x8000u) break;    // sorted by x: everything after is off to the right
+        uint16_t dy = (uint16_t)o->y + BIAS - cam_y;
+        if (dy > 144 + BIAS) continue;               // also catches dy < 0 (wrapped)
+        uint8_t bx = (uint8_t)dx + BIAS;
+        uint8_t by = (uint8_t)dy;
+        if (by < BIAS - 48) continue;
+
+        const GgObjDef *d = &gg_obj_defs[o->type];
+        uint8_t n = d->count;
+        if (slot + n > MAX_HARDWARE_SPRITES) break;
         const GgSprItem *it = &gg_spr_items[d->start];
-        for (uint8_t n = d->count; n; n--, it++) {
-            int16_t ix = sx + it->dx;
-            int16_t iy = sy + it->dy;
-            if (ix < -7 || ix > 159 || iy < -15 || iy > 143) continue;
-            if (slot >= MAX_HARDWARE_SPRITES) return slot;
-            put_sprite(slot++, ix, iy, it->tile);
+        for (; n; n--, it++) {
+            uint8_t ix = bx + (uint8_t)it->dx;
+            uint8_t iy = by + (uint8_t)it->dy;
+            if (ix < BIAS - 7 || ix > BIAS + 159 || iy < BIAS - 15 || iy > BIAS + 143) continue;
+            *oam_y++ = iy - BIAS + DEVICE_SPRITE_PX_OFFSET_Y;
+            *oam_xt++ = ix - BIAS + DEVICE_SPRITE_PX_OFFSET_X;
+            *oam_xt++ = it->tile;
+            slot++;
         }
     }
     return slot;
@@ -385,6 +491,7 @@ static void start_level(void) {
 
     memset(obj_done, 0, sizeof(obj_done));
     obj_lo = 0;
+    vis_lo = 0;
     memcpy(bg_pal, gg_bg_palette, sizeof(bg_pal));
     set_palette(0, 1, bg_pal);
     pal_dirty = 0;
@@ -405,8 +512,7 @@ static void start_level(void) {
     }
 
     set_scroll(scroll_px, cam_py);
-    hide_sprites_from(0, MAX_HARDWARE_SPRITES);
-    prev_used_sprites = 0;
+    end_sprites(0);
     DISPLAY_ON;
     music_start();
 }
@@ -415,6 +521,8 @@ void main(void) {
     DISPLAY_OFF;
     // Everything in the fixed banks (0/1) must stay resident, so the 0x4000 window is
     // used for the startup-only tile data (bank 3) and then the level map (bank 2).
+    // hardware nametable origin = GBDK's address for tile (0,0) minus the visible-area offset
+    nt_origin = ((uint16_t)get_bkg_xy_addr(0, 0) - (DEVICE_SCREEN_Y_OFFSET * 64 + DEVICE_SCREEN_X_OFFSET * 2)) | 0x4000u;
     SWITCH_ROM(3);
     set_bkg_4bpp_data(0, GG_BG_TILE_COUNT, gg_bg_tiles);
     set_sprite_4bpp_data(0, GG_SPR_TILE_COUNT, gg_spr_tiles);
@@ -434,25 +542,22 @@ void main(void) {
     while (1) {
         uint8_t joy = joypad();
         if (joy & (J_UP | J_B)) joy |= J_A;
-#ifdef DEBUG_PROFILE
-        {
-            uint16_t nt = sys_time;
-            prof_delta = (uint8_t)(nt - prof_last_t);
-            prof_last_t = nt;
-            if (prof_delta > 1) prof_lag++;
-            if (++prof_iter == 64) { prof_bar = prof_lag; prof_lag = 0; prof_iter = 0; }
+#ifdef DEBUG_FREEZE
+        {   // debug: stop the whole game after N frames so screenshots are deterministic
+            static uint16_t dbg_frames;
+            if (dbg_frames < DEBUG_FREEZE) dbg_frames++;
+            else { wait_vbl_done(); continue; }
         }
 #endif
 
         if (dead_timer) {
-            hide_sprites_from(0, prev_used_sprites);
-            prev_used_sprites = 0;
+            end_sprites(0);
             wait_vbl_done();
             if (--dead_timer == 0) start_level();
             continue;
         }
 
-        PROF_SKY(RGB_YELLOW);
+        PROF_MARK(1);   // scroll + collision columns
 
         // --- scroll ---
         uint16_t px_prev = cam_px >> 4;
@@ -485,7 +590,9 @@ void main(void) {
             cached_col = px_curr;
         }
 
+        PROF_MARK(2);   // object logic
         process_objects(joy);
+        PROF_MARK(3);   // player physics
         uint8_t died = player_update(&player, joy, collision_columns, MAP_H);
 #ifdef DEBUG_GODMODE
         if (died) {
@@ -496,6 +603,7 @@ void main(void) {
         }
 #endif
 
+        PROF_MARK(4);   // camera + streaming decisions
         // --- camera follow (vertical) ---
         if (!died) {
             int16_t py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
@@ -532,6 +640,7 @@ void main(void) {
                 row_pending = 1;
             }
         }
+        PROF_MARK(5);   // prepare row/column
         if (row_pending) prepare_row(row_to_load);
 
         if (needs_col) {
@@ -543,10 +652,10 @@ void main(void) {
         }
 
         // --- everything below touches VRAM/VDP registers: do it in vblank ---
-        PROF_RESTORE();
+        PROF_MARK(6);   // waiting for vblank
         wait_vbl_done();
         set_scroll(scroll_px, cam_py);
-        PROF_SKY(RGB_CYAN);
+        PROF_MARK(7);   // VRAM writes (in vblank)
 
         if (pal_dirty) {
             set_palette(0, 1, bg_pal);
@@ -561,26 +670,14 @@ void main(void) {
             loaded_mc = need_mc;
         }
 
-        uint8_t used;
+        PROF_MARK(8);   // sprites
         if (died) {
-            hide_sprites_from(0, prev_used_sprites);
-            prev_used_sprites = 0;
+            end_sprites(0);
             music_stop();
             dead_timer = 30;
         } else {
-            draw_player(sprite_x, final_py);
-            used = draw_objects(scroll_px, cam_py);
-            if (used < prev_used_sprites) hide_sprites_from(used, prev_used_sprites);
-            prev_used_sprites = used;
+            draw_player(sprite_x, (uint8_t)final_py);
+            end_sprites(draw_objects(scroll_px, cam_py));
         }
-#ifdef DEBUG_PROFILE
-        PROF_RESTORE();
-        for (uint8_t k = 0; k < 8; k++) {
-            if (k < (prof_bar >> 3)) put_sprite(56 + k, 4 + k * 9, 2, gg_cube_frames[0][0]);
-            else hide_sprite(56 + k);
-            if (k < prof_delta) put_sprite(48 + k, 4 + k * 9, 20, gg_cube_frames[0][0]);
-            else hide_sprite(48 + k);
-        }
-#endif
     }
 }

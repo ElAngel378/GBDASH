@@ -20,7 +20,7 @@ OUT_TILES_C = os.path.join(ROOT, 'gg', 'src', 'gg_tiles.c')
 
 LEVEL_MAP = 'levels/level_data/dryout_16high.bin'
 LEVEL_NAME = 'dryout'
-ENABLE_DECOS = False    # decorations disabled for now (performance work)
+ENABLE_DECOS = os.environ.get('GG_DECOS', '1') != '0'    # set GG_DECOS=0 to build without decorations
 SKY_COLOR_IDX = 22     # level_initial_bg_color[Dry Out]
 GROUND_COLOR_IDX = 22   # level_initial_g_color[Dry Out]
 
@@ -294,6 +294,11 @@ def main():
         if t in OBJ_DEFS or t in DECO_DEFS or t == 15 or 128 <= t <= 175 or 192 <= t <= 239:
             objs.append((x, y, t))
     assert objs == sorted(objs, key=lambda o: o[0])
+    # Two lists so the per-frame loops only touch what they need:
+    #   vis   - objects that have sprites (drawn), incl. decorations
+    #   logic - objects the player can interact with (portals, pads, orbs) + colour triggers
+    vis = [o for o in objs if o[2] in OBJ_DEFS or o[2] in DECO_DEFS]
+    logic = [o for o in objs if o[2] not in DECO_DEFS and o[2] != 15]
 
     # Colour trigger tables (12-bit Game Gear colours).
     sky_tab = [[gb555_to_gg(int(s[0], 16)), gb555_to_gg(int(s[1], 16))] for s in sky]
@@ -307,7 +312,7 @@ def main():
         h.write('#define GG_BG_TILE_COUNT %d\n' % len(bg_tiles))
         h.write('#define GG_SPR_TILE_COUNT %d\n' % len(spr_tiles))
         h.write('#define GG_LEVEL_WIDTH %d\n' % map_w)
-        h.write('#define GG_OBJ_COUNT %d\n\n' % len(objs))
+        h.write('#define GG_OBJ_COUNT %d\n#define GG_LOGIC_COUNT %d\n\n' % (len(vis), len(logic)))
         h.write('typedef struct { int8_t dx, dy; uint8_t tile; } GgSprItem;\n')
         h.write('typedef struct { uint8_t start, count; } GgObjDef;\n')
         h.write('typedef struct { uint16_t x; uint8_t y, type; } GgObj;\n\n')
@@ -323,6 +328,7 @@ def main():
         h.write('extern const GgSprItem gg_spr_items[%d];\n' % len(spr_items))
         h.write('extern const GgObjDef gg_obj_defs[64];\n')
         h.write('extern const GgObj gg_objs[GG_OBJ_COUNT];\n')
+        h.write('extern const GgObj gg_logic[GG_LOGIC_COUNT];\n')
         h.write('extern const uint16_t gg_sky_tab[64][2];   /* colour, darker */\n')
         h.write('extern const uint16_t gg_gnd_tab[64][4];   /* colour, darker, grid 18, grid 9 */\n')
         h.write('extern const uint8_t famidash_metatile_collision[256];\n')
@@ -357,7 +363,11 @@ def main():
             c.write('    { %d, %d },\n' % (s, n))
         c.write('};\n\n')
         c.write('const GgObj gg_objs[GG_OBJ_COUNT] = {\n')
-        for x, y, t in objs:
+        for x, y, t in vis:
+            c.write('    { %d, %d, %d },\n' % (x, y, t))
+        c.write('};\n\n')
+        c.write('const GgObj gg_logic[GG_LOGIC_COUNT] = {\n')
+        for x, y, t in logic:
             c.write('    { %d, %d, %d },\n' % (x, y, t))
         c.write('};\n\n')
         c.write(arr('gg_sky_tab[64][2]', 'uint16_t', flat(sky_tab), 2, '0x%03x', nested=True))
@@ -377,7 +387,7 @@ def main():
         c.write('#pragma bank 2\n\n#include "gg_data.h"\n\n')
         c.write(arr('%s_map[GG_LEVEL_WIDTH * 16]' % LEVEL_NAME, 'uint8_t', list(level), 32))
 
-    print('bg tiles: %d, sprite tiles: %d, objects: %d, level width: %d' % (len(bg_tiles), len(spr_tiles), len(objs), map_w))
+    print('bg tiles: %d, sprite tiles: %d, objects: %d, level width: %d' % (len(bg_tiles), len(spr_tiles), len(vis), map_w))
 
 
 if __name__ == '__main__':

@@ -5,9 +5,10 @@
 #include <stdint.h>
 
 #define GG_BG_TILE_COUNT 68
-#define GG_SPR_TILE_COUNT 172
+#define GG_SPR_TILE_COUNT 238
 #define GG_LEVEL_WIDTH 842
-#define GG_OBJ_COUNT 64
+#define GG_OBJ_COUNT 157
+#define GG_LOGIC_COUNT 63
 
 typedef struct { int8_t dx, dy; uint8_t tile; } GgSprItem;
 typedef struct { uint8_t start, count; } GgObjDef;
@@ -24,9 +25,10 @@ extern const uint16_t gg_spr_palette[16];
 extern const uint8_t gg_cube_frames[50][2];
 /* [gravity_flipped][tail/nose] */
 extern const uint8_t gg_ship_tiles[2][2];
-extern const GgSprItem gg_spr_items[70];
+extern const GgSprItem gg_spr_items[111];
 extern const GgObjDef gg_obj_defs[64];
 extern const GgObj gg_objs[GG_OBJ_COUNT];
+extern const GgObj gg_logic[GG_LOGIC_COUNT];
 extern const uint16_t gg_sky_tab[64][2];   /* colour, darker */
 extern const uint16_t gg_gnd_tab[64][4];   /* colour, darker, grid 18, grid 9 */
 extern const uint8_t famidash_metatile_collision[256];
