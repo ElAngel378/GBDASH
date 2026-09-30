@@ -48,19 +48,26 @@ def scale(c, f):
 
 
 def sky(i):
+    """Shades for one sky colour.
+
+    color   = Famidash's exact colour.
+    darker  = block/spike gradient step (palettes 0 and 2). It must stay a *smooth* step
+              below `color` even for dark skies, where Famidash's oneShadeDarker is black,
+              so it is a fixed fraction of `color`.
+    border/body/shadow = parallax box outline / fill / drop shadow, also fractions of
+              `color`. For Xstep's sky (0x1C) border is exactly Famidash's darker (#00404D).
+    """
     color = rgb8(i)
-    dark = rgb8(one_shade_darker(i))
-    border = dark
-    body = lerp(dark, color, 0.30)
-    shadow = scale(dark, 0.75)
-    return [to555(c) for c in (color, dark, border, body, shadow)]
+    return [to555(c) for c in (color, scale(color, 0.75), scale(color, 0.52),
+                               scale(color, 0.68), scale(color, 0.40))]
 
 
 def ground(i):
     color = rgb8(i)
     dark = rgb8(one_shade_darker(i))
     grid_9 = scale(color, 0.16)
-    return [to555(c) for c in (dark, dark, grid_9)]
+    # darker = smooth gradient step for ground blocks; grid_18 = Famidash's exact darker shade
+    return [to555(c) for c in (scale(color, 0.75), dark, grid_9)]
 
 
 def main():
