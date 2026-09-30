@@ -254,6 +254,286 @@ static void reload_level_state(uint8_t idx) {
     enable_interrupts();
 }
 
+// ---- play_level helpers: the rarely-run parts of the main loop (pause, level
+// complete, mirror portal, death, level end). Out of play_level because SDCC's
+// register allocator (--max-allocs-per-node50000) is very slow on one huge
+// function. Per-frame code stays inline in play_level: moving it into helpers
+// cost frames on DMG.
+
+// Pause menu (Start). Returns 1 when the player chose to leave the level.
+static uint8_t pause_menu(uint8_t idx) {
+    wait_vbl_done();
+
+    // Pause music and mute active sound
+    uint8_t saved_music_ready = music_ready;
+    music_ready = 0;
+    TAC_REG = 0x00; // Stop hardware timer to prevent music drift/desync
+    NR12_REG = 0; NR14_REG = 0x80;
+    NR22_REG = 0; NR24_REG = 0x80;
+    NR30_REG = 0;
+    NR42_REG = 0; NR44_REG = 0x80;
+
+    // Tint screen 1 gradient step down
+    uint8_t saved_bgp = BGP_REG;
+    uint8_t saved_obp0 = OBP0_REG;
+    uint8_t saved_obp1 = OBP1_REG;
+
+    uint8_t saved_scx = SCX_REG;
+    uint8_t saved_scy = SCY_REG;
+    uint8_t fine_scx = saved_scx & 7;
+    uint8_t fine_scy = saved_scy & 7;
+
+    // Grid-lock background
+    wait_vbl_done();
+    move_bkg((uint8_t)(saved_scx - fine_scx), (uint8_t)(saved_scy - fine_scy));
+
+    if (_cpu == CGB_TYPE) {
+        fade_apply_pause_box_palettes();
+        apply_pause_box_attributes(1);
+        static const palette_color_t pause_pal[4] = {
+            RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
+        };
+        set_sprite_palette(7, 1, pause_pal);
+
+        // Play Button: Vibrant golden yellow icon & rim, rich 2-tone green body
+        static const palette_color_t play_btn_pal[4] = {
+            RGB8(0, 0, 0), RGB8(255, 235, 20), RGB8(80, 210, 20), RGB8(15, 110, 10)
+        };
+        set_sprite_palette(6, 1, play_btn_pal);
+
+        // Menu & Restart Buttons: Electric cyan icon & rim, rich 2-tone green body
+        static const palette_color_t misc_btn_pal[4] = {
+            RGB8(0, 0, 0), RGB8(30, 245, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
+        };
+        set_sprite_palette(5, 1, misc_btn_pal);
+    } else {
+        BGP_REG = dim_dmg_byte(saved_bgp, 1);
+        OBP0_REG = 0x90;
+        OBP1_REG = 0x1C;
+    }
+
+    // Hide all gameplay and level sprites during pause (slots 27..39)
+    for (uint8_t i = 27; i < 40; i++) {
+        shadow_OAM[i].y = 0;
+    }
+
+    uint8_t selected_btn = PAUSE_BTN_PLAY;
+    draw_pause_menu_sprites(selected_btn);
+#if ENABLE_DEBUG_MODE
+    if (debug_mode) debug_draw_hud(0, 0, 0);
+#endif
+    wait_vbl_done();
+
+    uint8_t exit_level = 0;
+    uint8_t restart_level = 0;
+    while (joypad() & (J_START | J_SELECT | J_A | J_B)) wait_vbl_done();
+
+    uint8_t p_prev_joy = 0;
+    while (1) {
+        wait_vbl_done();
+        uint8_t p_joy = joypad();
+        uint8_t p_pressed = p_joy & ~p_prev_joy;
+        p_prev_joy = p_joy;
+
+        if (p_pressed & J_LEFT) {
+            if (selected_btn == 0) selected_btn = 2;
+            else selected_btn--;
+            draw_pause_menu_sprites(selected_btn);
+        } else if (p_pressed & J_RIGHT) {
+            if (selected_btn >= 2) selected_btn = 0;
+            else selected_btn++;
+            draw_pause_menu_sprites(selected_btn);
+#if ENABLE_DEBUG_MODE
+        } else if (p_pressed & J_B) {
+            // B toggles debug mode (noclip + scanline readout); START resumes
+            debug_mode ^= 1;
+            debug_max_ly = 0;
+            if (debug_mode) debug_draw_hud(0, 0, 0);
+            else debug_hide_hud();
+        } else if (p_pressed & J_START) {
+            break;
+#else
+        } else if ((p_pressed & J_START) || (p_pressed & J_B)) {
+            break;
+#endif
+        } else if (p_pressed & J_A) {
+            if (selected_btn == PAUSE_BTN_PLAY) {
+                break;
+            } else if (selected_btn == PAUSE_BTN_MENU) {
+                exit_level = 1;
+                break;
+            } else if (selected_btn == PAUSE_BTN_RESTART) {
+                restart_level = 1;
+                break;
+            }
+        }
+    }
+
+    // Hide all pause menu UI sprites immediately
+    for (uint8_t i = 0; i < 27; i++) {
+        shadow_OAM[i].y = 0;
+    }
+
+    if (_cpu == CGB_TYPE) {
+        wait_vbl_done();
+        apply_pause_box_attributes(0);
+        fade_restore_pause_box_palettes();
+        set_sprite_palette(0, 8, gbc_sprite_palettes);
+        if (vram_row0_is_ground) {
+            flush_vram_row0(1);
+        }
+    } else {
+        BGP_REG = saved_bgp;
+        OBP0_REG = saved_obp0;
+        OBP1_REG = saved_obp1;
+    }
+
+    // Restore fractional background scroll
+    move_bkg(saved_scx, saved_scy);
+
+    if (exit_level) {
+        return 1;
+    }
+
+    if (restart_level) {
+        reload_level_state(idx);
+        prev_joy = joypad();
+        if (prev_joy & J_UP) prev_joy |= J_A;
+        player.last_joy = prev_joy;
+        return 0;
+    }
+
+    NR30_REG = 0x80;
+    hUGE_reset_wave();
+
+    wait_vbl_done();
+
+    // Synchronize music timer on VBLANK to prevent desync
+    TIMA_REG = TMA_REG;
+    IF_REG &= ~TIM_IFLAG;
+    cgb_music_tick = 0;
+    TAC_REG = 0x04;
+    music_ready = saved_music_ready;
+
+    prev_joy = joypad();
+    if (prev_joy & J_UP) prev_joy |= J_A;
+    player.last_joy = prev_joy;
+    pause_suppress_jump = 1;
+    return 0;
+}
+
+static void level_complete_screen(uint8_t idx) {
+    record_level_progress(idx, 100, 0);
+    record_level_coins(idx, coins_collected);
+    HIDE_SPRITES;
+    move_bkg(0, 0);
+    disable_interrupts();
+    setup_menu_font();
+    enable_interrupts();
+    VBK_REG = 1;
+    fill_bkg_rect(0, 0, 32, 32, 0x00);
+    VBK_REG = 0;
+    fill_bkg_rect(0, 0, 20, 18, 0x00);
+    draw_text(3, 6, "LEVEL COMPLETE");
+    draw_text(3, 12, "PRESS A TO EXIT");
+    waitpadup();
+    while (!(joypad() & J_A)) wait_vbl_done();
+}
+
+// The level end object was reached: start the pull-to-the-edge animation
+static void start_end_anim(void) {
+    end_anim_state = END_ANIM_PULL;
+    end_anim_frame = 0;
+    locked_scroll_px = player.reversed
+        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+    locked_cam_py = cam_py;
+    end_start_x = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
+    end_start_y = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+
+    if (!player.reversed) {
+        end_target_x = 168; // Exit off the right edge of the screen before disappearing
+    } else {
+        end_target_x = (int16_t)-16; // Exit off the left edge of the screen in mirror mode
+    }
+    int16_t ty = (int16_t)end_trigger_obj_y - (int16_t)locked_cam_py;
+    if (ty < 32) ty = 40;
+    if (ty > 112) ty = 80;
+    end_target_y = ty;
+    end_trigger_requested = 0;
+}
+
+// Mirror portal: reload the (mirrored) tileset and redraw the visible columns
+static void mirror_reload(uint8_t idx) {
+    col_job_step = COL_JOB_STEPS;
+    row0_job_pos = 16;
+    col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
+    bg_cj_pending = bg_rj_pending = 0;
+    DISPLAY_OFF;
+
+    const uint8_t* target_tiles = player.reversed
+        ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
+        : level_tiles;
+    load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), player.reversed);
+    if (!setting_show_bg_enabled) {
+        set_bkg_data(12, 1, blank_bg_tile);
+    }
+
+    int32_t col_start = (int32_t)(cam_px >> 4) - 4;
+    if (col_start < 0) col_start = 0;
+    for (uint8_t i = 0; i < 16; i++) {
+        uint16_t curr_col = (uint16_t)(col_start + i);
+        if (curr_col < level_map_w) {
+            uint8_t vram_slot = (uint8_t)(curr_col & 15);
+            if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
+            prepare_mt_column(curr_col, level_map, level_map_bank, player.reversed);
+            flush_mt_column(vram_slot);
+        }
+    }
+
+    set_sprite_data(0, 8, icon1_tiles);
+    set_sprite_data(8, 4, ship_tiles);
+    set_sprite_data(12, 8, ball_tiles);
+    init_pause_tiles();
+    debug_load_hud_tiles();
+    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
+
+    uint16_t init_scroll_px = player.reversed
+        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+    move_bkg((uint8_t)init_scroll_px, (uint8_t)cam_py);
+
+    SHOW_BKG;
+    SHOW_SPRITES;
+    SPRITES_8x16;
+    DISPLAY_ON;
+
+    loaded_r = (uint16_t)(col_start + 15);
+    prev_reversed = player.reversed;
+}
+
+static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
+    record_level_progress_from_cam(idx, cam_px, max_scroll_px);
+    if (setting_effects_enabled) {
+        play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
+    } else {
+        if (setting_sfx_enabled) {
+            NR41_REG = 0x00;
+            NR42_REG = 0xF2;
+            NR43_REG = 0x43;
+            NR44_REG = 0x80;
+        }
+        for (uint8_t i = 0; i < 40; i++) shadow_OAM[i].y = 0;
+        move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+        wait_vbl_done();
+    }
+    NR52_REG = 0x80;
+    NR51_REG = 0xFF;
+    NR50_REG = 0x77;
+    reload_level_state(idx);
+}
+
 void play_level(uint8_t idx) BANKED {
     l = game_levels[idx];
     level_tiles = l->tiles;
@@ -367,182 +647,12 @@ void play_level(uint8_t idx) BANKED {
 
         // Pause game on Start press
         if (!player.dead && end_anim_state == END_ANIM_INACTIVE && (joy & J_START) && !(prev_joy & J_START)) {
-            wait_vbl_done();
-
-            // Pause music and mute active sound
-            uint8_t saved_music_ready = music_ready;
-            music_ready = 0;
-            TAC_REG = 0x00; // Stop hardware timer to prevent music drift/desync
-            NR12_REG = 0; NR14_REG = 0x80;
-            NR22_REG = 0; NR24_REG = 0x80;
-            NR30_REG = 0;
-            NR42_REG = 0; NR44_REG = 0x80;
-
-            // Tint screen 1 gradient step down
-            uint8_t saved_bgp = BGP_REG;
-            uint8_t saved_obp0 = OBP0_REG;
-            uint8_t saved_obp1 = OBP1_REG;
-
-            uint8_t saved_scx = SCX_REG;
-            uint8_t saved_scy = SCY_REG;
-            uint8_t fine_scx = saved_scx & 7;
-            uint8_t fine_scy = saved_scy & 7;
-
-            // Grid-lock background
-            wait_vbl_done();
-            move_bkg((uint8_t)(saved_scx - fine_scx), (uint8_t)(saved_scy - fine_scy));
-
-            if (_cpu == CGB_TYPE) {
-                fade_apply_pause_box_palettes();
-                apply_pause_box_attributes(1);
-                static const palette_color_t pause_pal[4] = {
-                    RGB8(0, 0, 0), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
-                };
-                set_sprite_palette(7, 1, pause_pal);
-
-                // Play Button: Vibrant golden yellow icon & rim, rich 2-tone green body
-                static const palette_color_t play_btn_pal[4] = {
-                    RGB8(0, 0, 0), RGB8(255, 235, 20), RGB8(80, 210, 20), RGB8(15, 110, 10)
-                };
-                set_sprite_palette(6, 1, play_btn_pal);
-
-                // Menu & Restart Buttons: Electric cyan icon & rim, rich 2-tone green body
-                static const palette_color_t misc_btn_pal[4] = {
-                    RGB8(0, 0, 0), RGB8(30, 245, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
-                };
-                set_sprite_palette(5, 1, misc_btn_pal);
-            } else {
-                BGP_REG = dim_dmg_byte(saved_bgp, 1);
-                OBP0_REG = 0x90;
-                OBP1_REG = 0x1C;
-            }
-
-            // Hide all gameplay and level sprites during pause (slots 27..39)
-            for (uint8_t i = 27; i < 40; i++) {
-                shadow_OAM[i].y = 0;
-            }
-
-            uint8_t selected_btn = PAUSE_BTN_PLAY;
-            draw_pause_menu_sprites(selected_btn);
-#if ENABLE_DEBUG_MODE
-            if (debug_mode) debug_draw_hud(0, 0, 0);
-#endif
-            wait_vbl_done();
-
-            uint8_t exit_level = 0;
-            uint8_t restart_level = 0;
-            while (joypad() & (J_START | J_SELECT | J_A | J_B)) wait_vbl_done();
-
-            uint8_t p_prev_joy = 0;
-            while (1) {
-                wait_vbl_done();
-                uint8_t p_joy = joypad();
-                uint8_t p_pressed = p_joy & ~p_prev_joy;
-                p_prev_joy = p_joy;
-
-                if (p_pressed & J_LEFT) {
-                    if (selected_btn == 0) selected_btn = 2;
-                    else selected_btn--;
-                    draw_pause_menu_sprites(selected_btn);
-                } else if (p_pressed & J_RIGHT) {
-                    if (selected_btn >= 2) selected_btn = 0;
-                    else selected_btn++;
-                    draw_pause_menu_sprites(selected_btn);
-#if ENABLE_DEBUG_MODE
-                } else if (p_pressed & J_B) {
-                    // B toggles debug mode (noclip + scanline readout); START resumes
-                    debug_mode ^= 1;
-                    debug_max_ly = 0;
-                    if (debug_mode) debug_draw_hud(0, 0, 0);
-                    else debug_hide_hud();
-                } else if (p_pressed & J_START) {
-                    break;
-#else
-                } else if ((p_pressed & J_START) || (p_pressed & J_B)) {
-                    break;
-#endif
-                } else if (p_pressed & J_A) {
-                    if (selected_btn == PAUSE_BTN_PLAY) {
-                        break;
-                    } else if (selected_btn == PAUSE_BTN_MENU) {
-                        exit_level = 1;
-                        break;
-                    } else if (selected_btn == PAUSE_BTN_RESTART) {
-                        restart_level = 1;
-                        break;
-                    }
-                }
-            }
-
-            // Hide all pause menu UI sprites immediately
-            for (uint8_t i = 0; i < 27; i++) {
-                shadow_OAM[i].y = 0;
-            }
-
-            if (_cpu == CGB_TYPE) {
-                wait_vbl_done();
-                apply_pause_box_attributes(0);
-                fade_restore_pause_box_palettes();
-                set_sprite_palette(0, 8, gbc_sprite_palettes);
-                if (vram_row0_is_ground) {
-                    flush_vram_row0(1);
-                }
-            } else {
-                BGP_REG = saved_bgp;
-                OBP0_REG = saved_obp0;
-                OBP1_REG = saved_obp1;
-            }
-
-            // Restore fractional background scroll
-            move_bkg(saved_scx, saved_scy);
-
-            if (exit_level) {
-                break;
-            }
-
-            if (restart_level) {
-                reload_level_state(idx);
-                prev_joy = joypad();
-                if (prev_joy & J_UP) prev_joy |= J_A;
-                player.last_joy = prev_joy;
-                continue;
-            }
-
-            NR30_REG = 0x80;
-            hUGE_reset_wave();
-
-            wait_vbl_done();
-
-            // Synchronize music timer on VBLANK to prevent desync
-            TIMA_REG = TMA_REG;
-            IF_REG &= ~TIM_IFLAG;
-            cgb_music_tick = 0;
-            TAC_REG = 0x04;
-            music_ready = saved_music_ready;
-
-            prev_joy = joypad();
-            if (prev_joy & J_UP) prev_joy |= J_A;
-            player.last_joy = prev_joy;
-            pause_suppress_jump = 1;
+            if (pause_menu(idx)) break;
             continue;
         }
 
         if (player.level_complete) {
-            record_level_progress(idx, 100, 0);
-            record_level_coins(idx, coins_collected);
-            HIDE_SPRITES;
-            move_bkg(0, 0);
-            disable_interrupts();
-            setup_menu_font();
-            enable_interrupts();
-            VBK_REG = 1;
-            fill_bkg_rect(0, 0, 32, 32, 0x00);
-            VBK_REG = 0;
-            fill_bkg_rect(0, 0, 20, 18, 0x00);
-            draw_text(3, 6, "LEVEL COMPLETE");
-            draw_text(3, 12, "PRESS A TO EXIT");
-            waitpadup();
-            while (!(joypad() & J_A)) wait_vbl_done();
+            level_complete_screen(idx);
             break;
         }
 
@@ -582,76 +692,9 @@ void play_level(uint8_t idx) BANKED {
 
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
 
-        if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) {
-            end_anim_state = END_ANIM_PULL;
-            end_anim_frame = 0;
-            locked_scroll_px = player.reversed
-                ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
-                : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
-            locked_cam_py = cam_py;
-            end_start_x = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
-            end_start_y = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+        if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) start_end_anim();
 
-            if (!player.reversed) {
-                end_target_x = 168; // Exit off the right edge of the screen before disappearing
-            } else {
-                end_target_x = (int16_t)-16; // Exit off the left edge of the screen in mirror mode
-            }
-            int16_t ty = (int16_t)end_trigger_obj_y - (int16_t)locked_cam_py;
-            if (ty < 32) ty = 40;
-            if (ty > 112) ty = 80;
-            end_target_y = ty;
-            end_trigger_requested = 0;
-        }
-
-        if (player.reversed != prev_reversed) {
-            col_job_step = COL_JOB_STEPS;
-            row0_job_pos = 16;
-            col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
-            bg_cj_pending = bg_rj_pending = 0;
-            DISPLAY_OFF;
-
-            const uint8_t* target_tiles = player.reversed
-                ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
-                : level_tiles;
-            load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-            apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), player.reversed);
-            if (!setting_show_bg_enabled) {
-                set_bkg_data(12, 1, blank_bg_tile);
-            }
-
-            int32_t col_start = (int32_t)(cam_px >> 4) - 4;
-            if (col_start < 0) col_start = 0;
-            for (uint8_t i = 0; i < 16; i++) {
-                uint16_t curr_col = (uint16_t)(col_start + i);
-                if (curr_col < level_map_w) {
-                    uint8_t vram_slot = (uint8_t)(curr_col & 15);
-                    if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
-                    prepare_mt_column(curr_col, level_map, level_map_bank, player.reversed);
-                    flush_mt_column(vram_slot);
-                }
-            }
-
-            set_sprite_data(0, 8, icon1_tiles);
-            set_sprite_data(8, 4, ship_tiles);
-            set_sprite_data(12, 8, ball_tiles);
-            init_pause_tiles();
-            debug_load_hud_tiles();
-            load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
-
-            uint16_t init_scroll_px = player.reversed
-                ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
-                : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
-            move_bkg((uint8_t)init_scroll_px, (uint8_t)cam_py);
-
-            SHOW_BKG;
-            SHOW_SPRITES;
-            SPRITES_8x16;
-            DISPLAY_ON;
-
-            loaded_r = (uint16_t)(col_start + 15);
-            prev_reversed = player.reversed;
-        }
+        if (player.reversed != prev_reversed) mirror_reload(idx);
 
         if (px_curr != cached_collision_col) {
             load_collision_columns(px_curr, level_map, level_map_w,
@@ -945,26 +988,7 @@ void play_level(uint8_t idx) BANKED {
             col_job_step++;
         }
 
-        if (died) {
-            record_level_progress_from_cam(idx, cam_px, max_scroll_px);
-            if (setting_effects_enabled) {
-                play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
-            } else {
-                if (setting_sfx_enabled) {
-                    NR41_REG = 0x00;
-                    NR42_REG = 0xF2;
-                    NR43_REG = 0x43;
-                    NR44_REG = 0x80;
-                }
-                for (uint8_t i = 0; i < 40; i++) shadow_OAM[i].y = 0;
-                move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
-                wait_vbl_done();
-            }
-            NR52_REG = 0x80;
-            NR51_REG = 0xFF;
-            NR50_REG = 0x77;
-            reload_level_state(idx);
-        }
+        if (died) handle_death(idx, sprite_x_final, final_py, scroll_px);
     }
 
     bg_parallax_isr_stop();

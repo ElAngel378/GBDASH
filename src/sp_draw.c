@@ -303,6 +303,132 @@ static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oa
     return 8;
 }
 
+// Player box of the current process_sprite_logic() call, for touch_object()
+static uint16_t t_py, t_bottom;
+
+// Player overlaps the object horizontally: portals, pads, orbs. act = its activated flag.
+// (Separate from process_sprite_logic: SDCC compiles one huge function very slowly.)
+static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, uint8_t *act) {
+    switch (obj) {
+        case OBJ_MINI_PORTAL:
+        case OBJ_GROW_PORTAL:
+            if (t_py <= obj_y + 49 && t_bottom >= (obj_y - 1)) {
+                if (!*act) {
+                    p->mini = (obj == OBJ_MINI_PORTAL);
+                    *act = 1;
+                }
+            }
+            break;
+
+        case OBJ_CUBE_PORTAL:
+        case OBJ_SHIP_PORTAL:
+        case OBJ_BALL_PORTAL:
+            // FamiDash mode portal: height 52px (obj_y - 2 to obj_y + 50)
+            if (t_py <= obj_y + 49 && t_bottom >= (obj_y - 1)) {
+                if (!*act) {
+                    if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
+                    else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
+                    else p->mode = MODE_BALL;
+                    p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity on portal entry
+                    *act = 1;
+                }
+            }
+            break;
+
+        case OBJ_GRAVITY_DOWN:
+        case OBJ_GRAVITY_UP:
+            // FamiDash gravity portal: height 40px (obj_y + 4 to obj_y + 44)
+            if (t_py <= obj_y + 43 && t_bottom >= (obj_y + 5)) {
+                if (!*act) {
+                    uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
+                    if (p->gravity_flipped != target_flipped) {
+                        p->gravity_flipped = target_flipped;
+                        p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                    }
+                    *act = 1;
+                }
+            }
+            break;
+
+        case OBJ_PAD_YELLOW:
+        case OBJ_PAD_PINK:
+        case OBJ_PAD_BLUE:
+        case OBJ_PAD_YELLOW_UP:
+        case OBJ_PAD_BLUE_UP:
+        {
+            uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
+            uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
+            uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
+
+            if (t_py <= pad_bot && t_bottom >= pad_top) {
+                if (!*act) {
+                    *act = 1;
+                    if (obj == OBJ_PAD_BLUE) {
+                        if (!p->gravity_flipped) {
+                            p->gravity_flipped = 1;
+                            p->vel_y.w = -BLUE_PAD_FORCE;
+                            p->on_ground = 0;
+                        }
+                    } else if (obj == OBJ_PAD_BLUE_UP) {
+                        if (p->gravity_flipped) {
+                            p->gravity_flipped = 0;
+                            p->vel_y.w = BLUE_PAD_FORCE;
+                            p->on_ground = 0;
+                        }
+                    } else if (obj == OBJ_PAD_PINK) {
+                        int16_t force = LAUNCH(p, 3);
+                        p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                        p->on_ground = 0;
+                    } else {
+                        int16_t force = LAUNCH(p, 1);
+                        p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                        p->on_ground = 0;
+                    }
+                }
+            }
+            break;
+        }
+
+        case OBJ_ORB_YELLOW:
+        case OBJ_ORB_PINK:
+        case OBJ_ORB_BLUE:
+        {
+            if (joy & J_A) {
+                if ((!(p->last_joy & J_A) || p->orb_buffered) && t_py <= obj_y + 16 && t_bottom >= obj_y) {
+                    if (!*act) {
+                        *act = 1;
+                        p->orb_buffered = 0; // Clear buffer after hit
+                        if (obj == OBJ_ORB_BLUE) {
+                            p->gravity_flipped = !p->gravity_flipped;
+                            int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
+                            p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                        } else if (obj == OBJ_ORB_PINK) {
+                            int16_t force = LAUNCH(p, 2);
+                            p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                        } else {
+                            int16_t force = LAUNCH(p, 0);
+                            p->vel_y.w = (p->gravity_flipped) ? -force : force;
+                        }
+                        p->on_ground = 0;
+                    }
+                }
+            }
+            break;
+        }
+
+
+        case OBJ_MIRROR_PORTAL:
+        case OBJ_MIRROR_EXIT:
+            if (t_py <= obj_y + 45 && t_bottom >= (obj_y - 1)) {
+                if (!*act) {
+                    p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
+                    *act = 1;
+                }
+            }
+            break;
+    }
+}
+
 void process_sprite_logic(
         SpCache *cache, uint16_t cam_px,
         Player* p, uint8_t joy, uint8_t* target_bg_idx
@@ -314,8 +440,9 @@ void process_sprite_logic(
     // Player box (mini: 8x7 at +4 like Famidash)
     uint16_t p_front = px + (p->mini ? MINI_BOX_RIGHT : 15u);
     uint16_t p_bottom = py + (p->mini ? (MINI_BOX_BOTTOM - 1) : PLAYER_SIZE);
-    uint16_t p_feet = p_bottom;
     if (p->mini) py += MINI_BOX_TOP;
+    t_py = py;
+    t_bottom = p_bottom;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
@@ -414,124 +541,7 @@ void process_sprite_logic(
                 }
             }
         } else if (obj_x <= p_front && px <= obj_x + 15) {
-            switch (obj) {
-                case OBJ_MINI_PORTAL:
-                case OBJ_GROW_PORTAL:
-                    if (py <= obj_y + 49 && p_bottom >= (obj_y - 1)) {
-                        if (!cache->activated[i]) {
-                            p->mini = (obj == OBJ_MINI_PORTAL);
-                            cache->activated[i] = 1;
-                        }
-                    }
-                    break;
-
-                case OBJ_CUBE_PORTAL:
-                case OBJ_SHIP_PORTAL:
-                case OBJ_BALL_PORTAL:
-                    // FamiDash mode portal: height 52px (obj_y - 2 to obj_y + 50)
-                    if (py <= obj_y + 49 && p_bottom >= (obj_y - 1)) {
-                        if (!cache->activated[i]) {
-                            if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
-                            else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
-                            else p->mode = MODE_BALL;
-                            p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity on portal entry
-                            cache->activated[i] = 1;
-                        }
-                    }
-                    break;
-
-                case OBJ_GRAVITY_DOWN:
-                case OBJ_GRAVITY_UP:
-                    // FamiDash gravity portal: height 40px (obj_y + 4 to obj_y + 44)
-                    if (py <= obj_y + 43 && p_bottom >= (obj_y + 5)) {
-                        if (!cache->activated[i]) {
-                            uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
-                            if (p->gravity_flipped != target_flipped) {
-                                p->gravity_flipped = target_flipped;
-                                p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
-                            }
-                            cache->activated[i] = 1;
-                        }
-                    }
-                    break;
-
-                case OBJ_PAD_YELLOW:
-                case OBJ_PAD_PINK:
-                case OBJ_PAD_BLUE:
-                case OBJ_PAD_YELLOW_UP:
-                case OBJ_PAD_BLUE_UP:
-                {
-                    uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-                    uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
-                    uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
-
-                    if (py <= pad_bot && p_bottom >= pad_top) {
-                        if (!cache->activated[i]) {
-                            cache->activated[i] = 1;
-                            if (obj == OBJ_PAD_BLUE) {
-                                if (!p->gravity_flipped) {
-                                    p->gravity_flipped = 1;
-                                    p->vel_y.w = -BLUE_PAD_FORCE;
-                                    p->on_ground = 0;
-                                }
-                            } else if (obj == OBJ_PAD_BLUE_UP) {
-                                if (p->gravity_flipped) {
-                                    p->gravity_flipped = 0;
-                                    p->vel_y.w = BLUE_PAD_FORCE;
-                                    p->on_ground = 0;
-                                }
-                            } else if (obj == OBJ_PAD_PINK) {
-                                int16_t force = LAUNCH(p, 3);
-                                p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                                p->on_ground = 0;
-                            } else {
-                                int16_t force = LAUNCH(p, 1);
-                                p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                                p->on_ground = 0;
-                            }
-                        }
-                    }
-                    break;
-                }
-
-                case OBJ_ORB_YELLOW:
-                case OBJ_ORB_PINK:
-                case OBJ_ORB_BLUE:
-                {
-                    if (joy & J_A) {
-                        if ((!(p->last_joy & J_A) || p->orb_buffered) && py <= obj_y + 16 && p_feet >= obj_y) {
-                            if (!cache->activated[i]) {
-                                cache->activated[i] = 1;
-                                p->orb_buffered = 0; // Clear buffer after hit
-                                if (obj == OBJ_ORB_BLUE) {
-                                    p->gravity_flipped = !p->gravity_flipped;
-                                    int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
-                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                                } else if (obj == OBJ_ORB_PINK) {
-                                    int16_t force = LAUNCH(p, 2);
-                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                                } else {
-                                    int16_t force = LAUNCH(p, 0);
-                                    p->vel_y.w = (p->gravity_flipped) ? -force : force;
-                                }
-                                p->on_ground = 0;
-                            }
-                        }
-                    }
-                    break;
-                }
-
-
-                case OBJ_MIRROR_PORTAL:
-                case OBJ_MIRROR_EXIT:
-                    if (py <= obj_y + 45 && p_bottom >= (obj_y - 1)) {
-                        if (!cache->activated[i]) {
-                            p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
-                            cache->activated[i] = 1;
-                        }
-                    }
-                    break;
-            }
+            touch_object(p, obj, obj_y, joy, &cache->activated[i]);
         } else if (obj_x > p_front + 16) {
             break;
         }

@@ -58,17 +58,10 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
 };
 static uint8_t quad_x_flip; // 1 in mirror mode (same convention as hazard_kills)
 
-// xin: x inside the 16px metatile of the probe point, (world_x + offset) & 15
-static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t xin) {
-    if ((uint16_t)y & 0xFF00) {
-        return (y < 0) ? COL_NONE : COL_ALL;
-    }
-    uint8_t py8 = (uint8_t)y;
-    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
-    // Fast path for the common cases (air, plain spikes, solid blocks)
-    if (col < COL_TOP || col == COL_ALL) return col;
-    uint8_t inner_y = py8 & 0x0F;
-
+// Collision types that depend on where inside the metatile the probe is (half blocks,
+// half spikes, quadrants). Kept out of inline_col_at so its 13 inlined copies in
+// player_update stay small (SDCC compiles the big inlined version very slowly).
+static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
     if (col == COL_TOP) {
         if (inner_y >= 8) return COL_NONE;
     } else if (col == COL_BOTTOM) {
@@ -89,6 +82,18 @@ static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t x
         return COL_NONE;
     }
     return col;
+}
+
+// xin: x inside the 16px metatile of the probe point, (world_x + offset) & 15
+static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t xin) {
+    if ((uint16_t)y & 0xFF00) {
+        return (y < 0) ? COL_NONE : COL_ALL;
+    }
+    uint8_t py8 = (uint8_t)y;
+    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    // Fast path for the common cases (air, plain spikes, solid blocks)
+    if (col < COL_TOP || col == COL_ALL) return col;
+    return col_at_partial(col, py8 & 0x0F, xin);
 }
 
 // off: x offset of the probe point inside the player box
