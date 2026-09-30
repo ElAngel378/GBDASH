@@ -23,9 +23,7 @@
 #define PAUSE_SPRITE_TILE_BASE 76
 #define PAUSE_CURSOR_TILE_BASE 88
 
-extern const uint8_t pause_button_tiles[PAUSE_BTN_TILE_COUNT * 16];
 
-void load_pause_button_tiles(void) BANKED;
 void init_pause_tiles(void) BANKED;
 void draw_pause_menu_sprites(uint8_t selected_btn) BANKED;
 void apply_pause_box_attributes(uint8_t apply) BANKED;

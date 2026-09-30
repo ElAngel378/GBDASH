@@ -21,6 +21,5 @@
 
 extern const metasprite_t* const icon1_metasprites[25];
 extern const palette_color_t icon1_palettes[4];
-extern const uint8_t icon1_tiles[128];
 
 #endif

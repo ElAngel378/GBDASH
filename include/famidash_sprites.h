@@ -11,7 +11,6 @@
 #define MIRROR_PORTAL_EXIT_TILE 64
 #define CHAIN_BLOCK_TILE 80
 
-extern const uint8_t famidash_sprites_tiles[FAMIDASH_SPRITE_TILE_COUNT * 16];
 
 #define FAMIDASH_DECO_TILE_COUNT 40
 
@@ -25,7 +24,8 @@ extern const uint8_t famidash_sprites_tiles[FAMIDASH_SPRITE_TILE_COUNT * 16];
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)
-void load_famidash_sprite_tiles(uint8_t deco_cloud) BANKED;
+// All gameplay sprite tiles from levels/chr_data/sprite_tiles.png (tools/build_sprite_tiles.py)
+void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED;
 
 extern const metasprite_t famidash_cube_portal[];
 extern const metasprite_t famidash_ship_portal[];

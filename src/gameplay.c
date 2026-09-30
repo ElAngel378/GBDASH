@@ -198,14 +198,10 @@ static void reload_level_state(uint8_t idx) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
 
-    set_sprite_data(0, 8, icon1_tiles);
-    set_sprite_data(8, 4, ship_tiles);
-    set_sprite_data(12, 8, ball_tiles);
-    init_death_effect_tiles();
+    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
     init_pause_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
-    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         if (setting_show_bg_enabled) init_bg_parallax();
@@ -495,13 +491,10 @@ static void mirror_reload(uint8_t idx) {
         }
     }
 
-    set_sprite_data(0, 8, icon1_tiles);
-    set_sprite_data(8, 4, ship_tiles);
-    set_sprite_data(12, 8, ball_tiles);
+    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
     init_pause_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
-    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
 
     uint16_t init_scroll_px = player.reversed
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
@@ -573,14 +566,10 @@ void play_level(uint8_t idx) BANKED {
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
-    set_sprite_data(0, 8, icon1_tiles);
-    set_sprite_data(8, 4, ship_tiles);
-    set_sprite_data(12, 8, ball_tiles);
-    init_death_effect_tiles();
+    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
     init_pause_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
-    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         if (setting_show_bg_enabled) init_bg_parallax();

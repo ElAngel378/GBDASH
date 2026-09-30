@@ -35,7 +35,7 @@ $(TEMPDIR)/%.o: %.c
 $(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extra_tiles.bin
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h
-$(TEMPDIR)/famidash_sprite_tiles.o: $(wildcard levels/chr_data/famidash/*.bin)
+$(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h levels/chr_data/sprite_tiles.bin
 
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
