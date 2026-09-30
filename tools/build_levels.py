@@ -30,8 +30,8 @@ KNOWN_LEVELS = {
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
     "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 11, "short": "ultiatedestruction"},
-    # 1.4 levels (no music yet: plays silent)
-    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 180, "order": 12, "short": "cf"},
+    # 1.4 levels (music converted from Famidash by tools/famidash_song_to_huge.py)
+    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 12, "short": "cf"},
 }
 
 def read_uge_tempo(uge_path):
@@ -136,6 +136,7 @@ def update_music_bank(music_path, target_bank):
         new_content = re.sub(r'#pragma\s+bank\s+\d+', f'#pragma bank {target_bank}', content)
     else:
         new_content = f'#pragma bank {target_bank}\n\n' + content
+    new_content = re.sub(r'__at\(\d+\)', f'__at({target_bank})', new_content)
 
     if new_content != content:
         with open(music_path, 'w') as f:

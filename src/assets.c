@@ -89,6 +89,7 @@ extern const hUGESong_t timemachine;
 extern const hUGESong_t cycles;
 extern const hUGESong_t xstep;
 extern const hUGESong_t ultiatedestruction;
+extern const hUGESong_t clutterfunk;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
@@ -103,7 +104,7 @@ const hUGESong_t * const level_songs[] = {
   &cycles, // level_cy
   &xstep, // level_xs
   &ultiatedestruction, // level_ultiatedestruction
-  NULL, // level_cf (silent)
+  &clutterfunk, // level_cf
   NULL, // level_test (silent)
 };
 
@@ -120,7 +121,7 @@ const uint8_t song_bank[] = {
   208u, // level_cy
   209u, // level_xs
   210u, // level_ultiatedestruction
-  0u, // level_cf
+  211u, // level_cf
   0u, // level_test
 };
 
@@ -275,7 +276,7 @@ const Level level_cf = {
   clutterfunk_map,
   chr_gb_TILE_COUNT, 1004, 16, 0, 0,
   BANK(clutterfunk_map),
-  180,
+  195,
   clutterfunk_sp,
   BANK(clutterfunk_sp),
   clutterfunk_sp_dmg
