@@ -34,6 +34,11 @@ extern const uint8_t chr_gb_cgb_tiles[];
 extern const uint8_t chr_gb_cgb_tiles_rev[];
 
 #define BKG_MT_W 16
+
+// Famidash chooses the decoration art per level: only Xstep (index 9) uses DECOCLOUD
+// (ground "spikes" drawn as round bushes); every other level uses DECO1.
+#define LEVEL_XSTEP 9
+#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
@@ -187,7 +192,7 @@ static void reload_level_state(uint8_t idx) {
     set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
     init_pause_tiles();
-    load_famidash_sprite_tiles();
+    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         if (setting_show_bg_enabled) init_bg_parallax();
@@ -273,7 +278,7 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
     init_pause_tiles();
-    load_famidash_sprite_tiles();
+    load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
         if (setting_show_bg_enabled) init_bg_parallax();
@@ -595,7 +600,7 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 8, ball_tiles);
             init_pause_tiles();
-            load_famidash_sprite_tiles();
+            load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
 
             uint16_t init_scroll_px = player.reversed
                 ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
