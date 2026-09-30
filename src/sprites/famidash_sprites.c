@@ -1,4 +1,4 @@
-#pragma bank 10
+#pragma bank 13
 
 #include <gb/gb.h>
 #include <gbdk/incbin.h>
@@ -150,7 +150,9 @@ static const FamidashDeco deco_chain_up = {2, 16, {4,4,0}, {16,0,0}, {D_D7,D_D5,
 static const FamidashDeco deco_medium_right = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F1,D_F7,D_F5}, {DP|S_FLIPX,DP|S_FLIPX,DP|S_FLIPX}};
 static const FamidashDeco deco_medium_left = {3, 24, {0,8,16}, {-4,-4,-4}, {D_F5,D_F7,D_F1}, {DP,DP,DP}};
 
-const FamidashDeco * const famidash_deco_table[64] = {
+static const FamidashDeco deco_music_note = {2, 16, {0,8,0}, {0,0,0}, {D_E9,D_EB,0}, {DP,DP,0}};
+
+const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE] = {
     [42] = &deco_long_light, [43] = &deco_medium_light,
     [44] = &deco_short_light, [45] = &deco_chain,
     [46] = &deco_spike_g1, [47] = &deco_spike_g2,
@@ -161,5 +163,6 @@ const FamidashDeco * const famidash_deco_table[64] = {
     [56] = &deco_short_right, [57] = &deco_short_left,
     [58] = &deco_long_up, [59] = &deco_medium_up,
     [60] = &deco_short_up, [61] = &deco_chain_up,
-    [62] = &deco_medium_right, [63] = &deco_medium_left
+    [62] = &deco_medium_right, [63] = &deco_medium_left,
+    [74] = &deco_music_note
 };

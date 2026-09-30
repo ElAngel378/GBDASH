@@ -6,7 +6,7 @@ bankblankcloud.chr (ground "spikes" become round bushes). Pocket Dash ships one
 bin per deco type; gameplay loads the one the level uses.
 
 usage: python tools/make_deco_tiles.py [--famidash PATH]
-       (no other arguments: rewrites both bins; DECO1 must match the existing bin)
+       (rewrites both bins)
 """
 import argparse
 from pathlib import Path
@@ -15,7 +15,8 @@ from pathlib import Path
 # (D_CF = 0, D_C9 = 2, ...). Each is an 8x16 sprite: NES tiles (n-1, n) of the bank
 # that sits at tile numbers 0xC0..0xFF.
 DECO_SPRITES = [0xCF, 0xC9, 0xCB, 0xCD, 0xD5, 0xD7, 0xD9, 0xDB, 0xDD, 0xDF,
-                0xE1, 0xE3, 0xE5, 0xE7, 0xED, 0xF5, 0xF1, 0xF7]
+                0xE1, 0xE3, 0xE5, 0xE7, 0xED, 0xF5, 0xF1, 0xF7,
+                0xE9, 0xEB]  # music note (1.4)
 
 
 def nes_to_gb_tile(chr_data, tile):
@@ -49,10 +50,9 @@ def main():
 
     deco1 = build(sprites / "bankblank.chr")
     existing = (out_dir / "famidash_deco_cgb_tiles.bin").read_bytes()
-    if deco1 != existing:
-        diff = [i for i in range(len(existing)) if existing[i] != deco1[i]]
-        print("WARNING: DECO1 rebuild differs from the existing bin in", len(diff), "bytes (tiles",
-              sorted({i // 16 for i in diff}), ") - left the existing bin untouched")
+    if deco1[:len(existing)] != existing[:len(deco1)]:
+        print("WARNING: DECO1 rebuild differs from the previous bin")
+    (out_dir / "famidash_deco_cgb_tiles.bin").write_bytes(deco1)
     cloud = build(sprites / "bankblankcloud.chr")
     (out_dir / "famidash_deco_cloud_cgb_tiles.bin").write_bytes(cloud)
     print("wrote famidash_deco_cloud_cgb_tiles.bin,", len(cloud), "bytes")

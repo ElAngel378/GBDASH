@@ -1,4 +1,4 @@
-#pragma bank 10
+#pragma bank 13
 
 #include <gb/gb.h>
 #include <gbdk/font.h>
@@ -35,6 +35,46 @@
 #define OBJ_PORTAL_DN_HORIZ_UP  17
 #define OBJ_PORTAL_UP_HORIZ_DN  18
 #define OBJ_PORTAL_UP_HORIZ_UP  19
+#define OBJ_COIN1         7
+#define OBJ_MINI_PORTAL   24
+#define OBJ_GROW_PORTAL   25
+#define OBJ_COIN2         26
+#define OBJ_COIN3         27
+#define OBJ_MUSIC_NOTE    74
+
+static inline uint8_t coin_bit(uint8_t o) {
+    return (o == OBJ_COIN1) ? 1 : (o == OBJ_COIN2) ? 2 : 4;
+}
+
+// Coins (Famidash): collected this attempt, and the flying-away animation per coin
+uint8_t coins_collected;
+uint8_t coins_saved;       // coins of this level already in the save (drawn as "X" coins)
+static uint8_t coin_anim_timer[3];
+static uint16_t coin_anim_x[3];
+static uint16_t coin_anim_y[3];   // world y in 8.8 fixed point
+static uint16_t coin_anim_speed[3];
+static uint8_t coin_frame_ctr;
+
+void coins_reset(void) BANKED {
+    coins_collected = 0;
+    coin_anim_timer[0] = coin_anim_timer[1] = coin_anim_timer[2] = 0;
+}
+
+// Orb / pad launch velocities per game mode, normal and mini size
+// (Famidash sprite_gamemode_adjust_heights, 60fps value x 714/708).
+// [mini][kind][mode]: kind 0 yellow orb, 1 yellow pad, 2 pink orb, 3 pink pad;
+// mode 0 cube, 1 ship, 2 ball.
+static const int16_t launch_force[2][4][3] = {
+    { { JUMP_FORCE,         -1113, BALL_YELLOW_ORB },
+      { PAD_JUMP_FORCE,      -968, BALL_YELLOW_PAD },
+      { MAGENTA_JUMP_FORCE,  -516, BALL_PINK_ORB },
+      { PINK_PAD_FORCE,      -629, BALL_PINK_PAD } },
+    { { -1242, -1194, -1113 },
+      { -1678, -1081, -1242 },
+      {  -855,  -484,  -855 },
+      { -1017,  -484,  -920 } },
+};
+#define LAUNCH(p, kind) launch_force[(p)->mini][(kind)][(p)->mode]
 
 #define BG_TRIGGER_LEAD_TILES 10
 #define BG_TRIGGER_LEAD_PX    ((BG_TRIGGER_LEAD_TILES) << 4)
@@ -43,11 +83,11 @@ extern const unsigned char FontPusab[];
 #define FONT_PUSAB_START 0xD0
 
 static inline uint8_t is_dmg_portal(uint8_t o) {
-    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 121) || (o == 126);
+    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 24) || (o == 25) || (o == 121) || (o == 126);
 }
 static uint8_t sp_has_portals = 0;
 
-void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
+void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED {
     uint8_t i;
     *stream_idx = 0;
     sp_has_portals = 0;
@@ -55,7 +95,7 @@ void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) {
 }
 
 void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache, uint16_t *stream_idx) {
+                     SpCache *cache, uint16_t *stream_idx) BANKED {
     uint8_t i;
     uint8_t count = 0;
     uint8_t sp_bank = l->sp_bank;
@@ -266,14 +306,16 @@ static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oa
 void process_sprite_logic(
         SpCache *cache, uint16_t cam_px,
         Player* p, uint8_t joy, uint8_t* target_bg_idx
-) {
+) BANKED {
     uint8_t i;
     uint16_t px = p->world_x;
     uint16_t py = p->world_y.b.h;
 
-    uint16_t p_front = px + 15u;
-    uint16_t p_bottom = py + PLAYER_SIZE;
-    uint16_t p_feet = py + PLAYER_SIZE;
+    // Player box (mini: 8x7 at +4 like Famidash)
+    uint16_t p_front = px + (p->mini ? MINI_BOX_RIGHT : 15u);
+    uint16_t p_bottom = py + (p->mini ? (MINI_BOX_BOTTOM - 1) : PLAYER_SIZE);
+    uint16_t p_feet = p_bottom;
+    if (p->mini) py += MINI_BOX_TOP;
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
@@ -300,6 +342,21 @@ void process_sprite_logic(
         if (obj_x + 48u < px) continue;
 
         if (obj >= 38 && obj < 64) continue;
+        if (obj == OBJ_MUSIC_NOTE) continue;
+
+        if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
+            uint16_t cy = cache->py[i];
+            if (obj_x <= p_front && px <= obj_x + 15u && py <= cy + 15u && p_bottom >= cy) {
+                uint8_t n = (obj == OBJ_COIN1) ? 0 : (obj == OBJ_COIN2) ? 1 : 2;
+                cache->activated[i] = 1;
+                coins_collected |= coin_bit(obj);
+                coin_anim_timer[n] = 1;
+                coin_anim_x[n] = obj_x;
+                coin_anim_y[n] = cy << 8;
+                coin_anim_speed[n] = 0x0200;
+            }
+            continue;
+        }
 
         if (obj >= 128 && obj <= 175) {
             if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
@@ -358,6 +415,16 @@ void process_sprite_logic(
             }
         } else if (obj_x <= p_front && px <= obj_x + 15) {
             switch (obj) {
+                case OBJ_MINI_PORTAL:
+                case OBJ_GROW_PORTAL:
+                    if (py <= obj_y + 49 && p_bottom >= (obj_y - 1)) {
+                        if (!cache->activated[i]) {
+                            p->mini = (obj == OBJ_MINI_PORTAL);
+                            cache->activated[i] = 1;
+                        }
+                    }
+                    break;
+
                 case OBJ_CUBE_PORTAL:
                 case OBJ_SHIP_PORTAL:
                 case OBJ_BALL_PORTAL:
@@ -414,11 +481,11 @@ void process_sprite_logic(
                                     p->on_ground = 0;
                                 }
                             } else if (obj == OBJ_PAD_PINK) {
-                                int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_PAD : PINK_PAD_FORCE;
+                                int16_t force = LAUNCH(p, 3);
                                 p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 p->on_ground = 0;
                             } else {
-                                int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_PAD : PAD_JUMP_FORCE;
+                                int16_t force = LAUNCH(p, 1);
                                 p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 p->on_ground = 0;
                             }
@@ -441,10 +508,10 @@ void process_sprite_logic(
                                     int16_t force = (p->mode == MODE_BALL) ? BLUE_ORB_FORCE : BLUE_PAD_FORCE;
                                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 } else if (obj == OBJ_ORB_PINK) {
-                                    int16_t force = (p->mode == MODE_BALL) ? BALL_PINK_ORB : MAGENTA_JUMP_FORCE;
+                                    int16_t force = LAUNCH(p, 2);
                                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 } else {
-                                    int16_t force = (p->mode == MODE_BALL) ? BALL_YELLOW_ORB : JUMP_FORCE;
+                                    int16_t force = LAUNCH(p, 0);
                                     p->vel_y.w = (p->gravity_flipped) ? -force : force;
                                 }
                                 p->on_ground = 0;
@@ -471,15 +538,73 @@ void process_sprite_logic(
     }
 }
 
+// Mini / growth portal (Famidash Mini_Portal / Growth_Portal: 7 8x16 sprites)
+static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    static const int8_t mx[7] = { 0, 8, -8, 0, 8, 0, 8 };
+    static const uint8_t my[7] = { 0, 0, 16, 16, 16, 32, 32 };
+    static const uint8_t mt[7] = { MINI_PORTAL_TILE_A, MINI_PORTAL_TILE_B, MINI_PORTAL_TILE_B + 2,
+                                   MINI_PORTAL_TILE_B + 4, MINI_PORTAL_TILE_B + 6,
+                                   MINI_PORTAL_TILE_A, MINI_PORTAL_TILE_B };
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t grow = (obj == OBJ_GROW_PORTAL);
+    uint8_t pal = grow ? S_PAL(1) : S_PAL(4);
+    for (uint8_t k = 0; k < 7; k++) {
+        int8_t x = mx[k];
+        if (grow) x += 8;                     // growth portal art starts 8px further right
+        if (reversed) x = (int8_t)((grow ? 16 : 0) - x);  // mirror inside the portal box
+        *oam++ = sy + my[k];
+        *oam++ = (uint8_t)(sx + x);
+        *oam++ = mt[k];
+        *oam++ = pal | (k >= 5 ? S_FLIPY : 0) | (reversed ? S_FLIPX : 0);
+    }
+    return 7;
+}
+
+// Coin: 2 8x16 sprites, 4 spin frames (Famidash COIN_SPRITE .. COIN_3_SPRITE, 5 frames each)
+static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t gotten) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t base = COIN_TILE_BASE + (gotten ? 8 : 0);
+    uint8_t f = (coin_frame_ctr / 5) & 3;
+    uint8_t t0, t1, p0 = S_PAL(3) | S_BANK, p1 = S_PAL(3) | S_BANK;
+    if (f == 0)      { t0 = base;     t1 = base;     p1 |= S_FLIPX; }
+    else if (f == 1) { t0 = base + 2; t1 = base + 4; }
+    else if (f == 2) { t0 = base + 6; t1 = base + 6; p1 |= S_FLIPX; }
+    else             { t0 = base + 4; t1 = base + 2; p0 |= S_FLIPX; p1 |= S_FLIPX; }
+    *oam++ = sy; *oam++ = sx;     *oam++ = t0; *oam++ = p0;
+    *oam++ = sy; *oam++ = sx + 8; *oam++ = t1; *oam++ = p1;
+    return 2;
+}
+
+// Collected coins fly up and vanish after 40 frames (Famidash animate_coin_*)
+static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) {
+    for (uint8_t n = 0; n < 3; n++) {
+        if (!coin_anim_timer[n]) continue;
+        coin_anim_y[n] -= coin_anim_speed[n] & 0xFF00;
+        coin_anim_speed[n] -= 0x0040;
+        if (++coin_anim_timer[n] >= 40) { coin_anim_timer[n] = 0; continue; }
+        if (_cpu != CGB_TYPE || oam_start > MAX_HARDWARE_SPRITES - 2) continue;
+        uint8_t dist_x = (uint8_t)coin_anim_x[n] - (uint8_t)cam_px;
+        uint8_t sx = reversed ? (uint8_t)(MIRROR_PLAYER_SCREEN_X - dist_x + 8) : (uint8_t)(dist_x + PLAYER_SCREEN_X + 8);
+        uint8_t sy = (uint8_t)((uint8_t)(coin_anim_y[n] >> 8) - (uint8_t)cam_py) + 16;
+        if (sy > 160 && sy < 208) continue;
+        oam_start += draw_oam_coin(oam_start, sx, sy, 0);
+    }
+    return oam_start;
+}
+
 uint8_t draw_sprites(
         SpCache *cache, uint16_t cam_px, uint16_t cam_py,
         uint8_t reversed, uint8_t oam_start
-) {
+) BANKED {
     uint8_t i;
     uint8_t dist_x, screen_x, screen_y;
     uint8_t deco_drawn = 0;
     // Limit active decorations (4 on DMG, 12 on CGB) to keep 60 FPS
     uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
+
+    coin_frame_ctr++;
+    if (coin_frame_ctr >= 20) coin_frame_ctr = 0;
+    oam_start = draw_coin_anims(cam_px, cam_py, reversed, oam_start);
 
     // Skip drawing if no portals exist in cache on DMG
     if (_cpu != CGB_TYPE && !sp_has_portals) return oam_start;
@@ -509,6 +634,19 @@ uint8_t draw_sprites(
 
         if (screen_y > 160 && screen_y < 208) continue;
 
+        if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
+            if (oam_start > MAX_HARDWARE_SPRITES - 7) break;
+            oam_start += draw_oam_mini_portal(obj, oam_start, screen_x, screen_y, reversed);
+            continue;
+        }
+
+        if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
+            if (cache->activated[i] || _cpu != CGB_TYPE) continue;
+            if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
+            oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
+            continue;
+        }
+
         if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {
             if (oam_start > MAX_HARDWARE_SPRITES - 8) break;
             oam_start += draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
@@ -518,7 +656,7 @@ uint8_t draw_sprites(
         if (obj >= 38) {
             if (deco_drawn >= deco_max) continue;
 
-            if (_cpu == CGB_TYPE && obj < 64) {
+            if (_cpu == CGB_TYPE && obj < FAMIDASH_DECO_TABLE_SIZE) {
                 const FamidashDeco *deco = famidash_deco_table[obj];
                 if (deco) {
                     if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;

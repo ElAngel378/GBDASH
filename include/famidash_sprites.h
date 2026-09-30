@@ -13,7 +13,14 @@
 
 extern const uint8_t famidash_sprites_tiles[FAMIDASH_SPRITE_TILE_COUNT * 16];
 
-#define FAMIDASH_DECO_TILE_COUNT 36
+#define FAMIDASH_DECO_TILE_COUNT 40
+
+// 1.4 objects. VRAM bank 0 (DMG + CGB):
+#define MINI_PLAYER_TILE_BASE 116  // 5 8x16 pairs: cube 0/22/45 deg, ship, ball
+#define MINI_PORTAL_TILE_A    126  // mini/growth portal pair 0 ...
+#define MINI_PORTAL_TILE_B    248  // ... pairs 1..4 (sprite tiles 248..255 are unused otherwise)
+// CGB VRAM bank 1: coin spin frames (4 pairs) then "already collected" frames (4 pairs)
+#define COIN_TILE_BASE        200
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)
@@ -54,6 +61,8 @@ extern const metasprite_t * const famidash_sprite_table[38];
 #define D_F5 30
 #define D_F1 32
 #define D_F7 34
+#define D_E9 36
+#define D_EB 38
 
 extern const metasprite_t famidash_deco_45[];
 
@@ -66,6 +75,7 @@ typedef struct {
     uint8_t props[3];
 } FamidashDeco;
 
-extern const FamidashDeco * const famidash_deco_table[64];
+#define FAMIDASH_DECO_TABLE_SIZE 75
+extern const FamidashDeco * const famidash_deco_table[FAMIDASH_DECO_TABLE_SIZE];
 
 #endif

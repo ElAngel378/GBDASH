@@ -457,12 +457,28 @@ static void update_level_progress_bars(uint8_t level_idx) {
     set_sprite_tile(11, (prac_p >= 100) ? 7 : 6);
 }
 
+// Famidash secret coins of the selected level (row 8 of the level box):
+// ring = not collected, filled = collected in a completed run.
+#define COIN_ICON_TILE 0x70
+static const uint8_t coin_icon_tiles[32] = {
+    0xC3, 0x3C, 0xBD, 0x42, 0x7E, 0x81, 0x7E, 0x81, 0x7E, 0x81, 0x7E, 0x81, 0xBD, 0x42, 0xC3, 0x3C,
+    0xFF, 0x3C, 0xC3, 0x7E, 0x81, 0xFF, 0x99, 0xFF, 0x99, 0xFF, 0x81, 0xFF, 0xC3, 0x7E, 0xFF, 0x3C
+};
+
+static void draw_level_coins(uint8_t level_idx) {
+    uint8_t c = level_coins[level_idx % NUM_SAVE_LEVELS];
+    for (uint8_t i = 0; i < 3; i++) {
+        set_bkg_tile_xy((uint8_t)(13 + i), 8, (uint8_t)(COIN_ICON_TILE + ((c >> i) & 1)));
+    }
+}
+
 static uint8_t last_rendered_diff = 0xFF;
 
 static void draw_selected_level(void) {
     // Clear only the 11 columns of text area on rows 6 and 7 with box interior tile 0x16
     fill_bkg_rect(6, 6, 11, 2, 0x16);
     update_level_progress_bars(selected);
+    draw_level_coins(selected);
 
     // Update difficulty face tiles in VRAM only if difficulty changed
     uint8_t diff = level_difficulties[selected % NUM_LEVEL_STYLES];
@@ -559,6 +575,7 @@ GameState update_new_menu_select_state(void) BANKED {
     }
 
     set_bkg_data(0, menu_select_bg_TILE_COUNT, menu_select_bg_tiles);
+    set_bkg_data(COIN_ICON_TILE, 2, coin_icon_tiles);
     set_bkg_tiles(0, 0, 20, 18, menu_select_bg_map);
 
     // Clear arrow background tiles (rendered via sprites)

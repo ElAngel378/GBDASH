@@ -48,6 +48,7 @@ extern volatile uint8_t bg_scy;
 #define request_bg_scroll(x, y) do { bg_scx = (x); bg_scy = (y); bg_scroll_pending = 1; } while (0)
 #define request_bg_parallax(p) do { bg_gdma_phase = (p); bg_gdma_pending = 1; } while (0)
 void bg_parallax_vbl_isr(void);
+void init_bg_parallax(void);
 // Register/unregister the VBlank handler (CGB only). Not in bank 0 to save space there.
 #define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
 #define bg_parallax_isr_stop() do {     if (bg_vbl_on) { bg_vbl_on = 0; bg_gdma_isr_on = 0; remove_VBL(bg_parallax_vbl_isr); bg_gdma_pending = 0; } } while (0)

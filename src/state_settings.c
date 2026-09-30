@@ -111,6 +111,7 @@ static void on_wipe_save_action(void) {
     for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
         level_progress_normal[i] = 0;
         level_progress_practice[i] = 0;
+        level_coins[i] = 0;
     }
     save_game_data();
     if (setting_sfx_enabled) {

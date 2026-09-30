@@ -45,14 +45,14 @@ void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
 
         // DMG optimization: skip decorations and ground color triggers on DMG to save CPU time
         if (_cpu != CGB_TYPE) {
-            if ((obj_id >= 38 && obj_id < 64) || (obj_id >= 192 && obj_id <= 239)) {
+            if ((obj_id >= 38 && obj_id < 64) || obj_id == 74 || (obj_id >= 192 && obj_id <= 239)) {
                 (*stream_idx)++;
                 continue;
             }
         }
 
         // Prioritize gameplay elements on CGB if cache is nearing full
-        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && obj_id >= 38 && obj_id < 64) {
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) {
             (*stream_idx)++;
             continue;
         }

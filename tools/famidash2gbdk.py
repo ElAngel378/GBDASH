@@ -98,6 +98,43 @@ def write_metatile_files(metatiles, out_c, out_h):
     out_c.write_text("\n".join(lines), newline="\n")
 
 
+# Quadrant collision types (Pocket Dash ids 0x20..0x3F): one tile, each 8x8 quadrant
+# solid, deadly or empty. Quadrant bits: 1 = top-left, 2 = top-right, 4 = bottom-left,
+# 8 = bottom-right. The table must match col_quads[] in src/player.c.
+QUAD_TYPES = [
+    # (famidash collision name, solid mask, deadly mask)
+    ("COL_LEFT", 0x5, 0x0),
+    ("COL_RIGHT", 0xA, 0x0),
+    ("COL_UP_LEFT", 0x1, 0x0),
+    ("COL_UP_RIGHT", 0x2, 0x0),
+    ("COL_DOWN_LEFT", 0x4, 0x0),
+    ("COL_DOWN_RIGHT", 0x8, 0x0),
+    ("COL_TOP_LEFT_BOTTOM_RIGHT", 0x9, 0x0),
+    ("COL_TOP_RIGHT_BOTTOM_LEFT", 0x6, 0x0),
+    ("COL_TOP_LEFT_STAIRS", 0x7, 0x0),
+    ("COL_TOP_RIGHT_STAIRS", 0xB, 0x0),
+    ("COL_BOTTOM_LEFT_STAIRS", 0xD, 0x0),
+    ("COL_BOTTOM_RIGHT_STAIRS", 0xE, 0x0),
+    ("COL_LEFT_SPIKE_BLOCK", 0x4, 0x1),
+    ("COL_RIGHT_SPIKE_BLOCK", 0x8, 0x2),
+    ("COL_BOTTOM_LEFT_SPIKE", 0xC, 0x1),
+    ("COL_BOTTOM_RIGHT_SPIKE", 0xC, 0x2),
+    ("COL_BOTTOM_SPIKES", 0xC, 0x3),
+    ("COL_BOTTOM_CENTER_SPIKE", 0xC, 0x3),
+    ("COL_TOP_SPIKES", 0x3, 0xC),
+    ("COL_TOP_CENTER_SPIKE", 0x3, 0xC),
+    # Half-tile spikes: only one quadrant (or one half) is deadly. FamiDash: DOWN_* =
+    # deadly in the bottom half, UP_* = deadly in the top half.
+    ("COL_DOWN_LEFT_SPIKE", 0x0, 0x4),
+    ("COL_DOWN_RIGHT_SPIKE", 0x0, 0x8),
+    ("COL_UP_LEFT_SPIKE", 0x0, 0x1),
+    ("COL_UP_RIGHT_SPIKE", 0x0, 0x2),
+    ("COL_DOWN_BOTH_SPIKES", 0x0, 0xC),
+    ("COL_UP_BOTH_SPIKES", 0x0, 0x3),
+]
+QUAD_BASE = 0x20
+
+
 def collision_value(mt_name, col_name, tiles):
     # Mapping for GBDK-specific collision IDs
     values = {
@@ -118,7 +155,16 @@ def collision_value(mt_name, col_name, tiles):
         "COL_PAD_BLUE": 0x0E,
         "COL_DEATH_TOP_HALF": 0x10,
         "COL_DEATH_BOTTOM_HALF": 0x11,
+        # Diagonal spikes: whole tile deadly, like the other spike tiles
+        "COL_DEATH_TOP_LEFT": 0x08,
+        "COL_DEATH_TOP_RIGHT": 0x08,
+        "COL_DEATH_BOTTOM_LEFT": 0x08,
+        "COL_DEATH_BOTTOM_RIGHT": 0x08,
+        # Slope support blocks: solid
+        "COL_NO_SIDE": 0x07,
     }
+    for i, (name, _, _) in enumerate(QUAD_TYPES):
+        values[name] = QUAD_BASE + i
 
     mt_upper = mt_name.upper()
 
@@ -133,48 +179,22 @@ def collision_value(mt_name, col_name, tiles):
         return values["COL_PAD"]
     if "PAD_DOWN_OUTLINE" in mt_upper:
         return values["COL_PAD"]
-    if mt_upper == "FAMIDASH_MT_HALF_SPIKE_BACKGROUND":
+    if mt_upper == "HALF_SPIKE_BACKGROUND":
         return values["COL_DEATH_TOP_HALF"]
-    if mt_upper == "FAMIDASH_MT_HALF_SPIKE_BACKGROUND_TOP":
+    if mt_upper == "HALF_SPIKE_BACKGROUND_TOP":
         return values["COL_DEATH_BOTTOM_HALF"]
-    if mt_upper == "FAMIDASH_MT_PLATFORM_SPIKE":
+    if mt_upper == "PLATFORM_SPIKE":
         return values["COL_ALL"]
 
-    # Decorative "fake" spikes are COL_NONE in FamiDash and must not kill.
-    if "FAKE" in mt_upper and col_name == "COL_NONE":
+    # Decorative "fake" objects are COL_NONE in FamiDash and must not collide.
+    if col_name == "COL_NONE":
         return values["COL_NONE"]
 
-    # Half spikes (one half of a spike split over two tiles, or a small 8x8 spike
-    # in one corner of the tile): only the matching left/right half of the tile is
-    # deadly. Full-height ones use the left/right death types; the 8px-tall ones
-    # (graphics only in the top or bottom row) use the quarter types 0x12..0x15.
-    half_spikes = {
-        "COL_DOWN_LEFT_SPIKE":  (0x12, "COL_DEATH_LEFT"),
-        "COL_DOWN_RIGHT_SPIKE": (0x13, "COL_DEATH_RIGHT"),
-        "COL_UP_LEFT_SPIKE":    (0x14, "COL_DEATH_LEFT"),
-        "COL_UP_RIGHT_SPIKE":   (0x15, "COL_DEATH_RIGHT"),
-    }
-    if col_name in half_spikes:
-        quarter, full = half_spikes[col_name]
-        bottom_only = tiles[0] == 0 and tiles[1] == 0
-        top_only = tiles[2] == 0 and tiles[3] == 0
-        if bottom_only or top_only:
-            return quarter
-        return values[full]
-
-    if "SPIKE" in mt_upper or "SAW" in mt_upper:
+    if col_name in ("COL_DEATH_TOP", "COL_DEATH_BOTTOM") and ("SPIKE" in mt_upper or "SAW" in mt_upper):
         if is_bottom_half:
             return values["COL_DEATH_TOP_HALF"]
         if is_top_half:
             return values["COL_DEATH_BOTTOM_HALF"]
-
-    # Directional half-tile spikes (used for 8px offset / 2-tile spikes).
-    # FamiDash: DOWN_* = deadly in the BOTTOM half (an up-facing spike),
-    # UP_* = deadly in the TOP half (a down-facing spike).
-    if col_name in ("COL_DOWN_LEFT_SPIKE", "COL_DOWN_RIGHT_SPIKE", "COL_DOWN_BOTH_SPIKES"):
-        return values["COL_DEATH_TOP_HALF"]
-    if col_name in ("COL_UP_LEFT_SPIKE", "COL_UP_RIGHT_SPIKE", "COL_UP_BOTH_SPIKES"):
-        return values["COL_DEATH_BOTTOM_HALF"]
 
     if col_name in values:
         return values[col_name]

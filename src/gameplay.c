@@ -25,6 +25,7 @@
 #include "fade.h"
 #include "death_effect.h"
 #include "save_manager.h"
+#include "sp_draw.h"
 #include "pause_buttons.h"
 #include "debug_mode.h"
 #include "bg_parallax.h"
@@ -43,6 +44,9 @@ extern const uint8_t chr_gb_cgb_tiles_rev[];
 #define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
+// Famidash spike/block CHR sets of the level (see apply_level_tile_patch)
+#define LEVEL_TILE_FLAGS(idx) (((idx) == LEVEL_XSTEP) ? LEVEL_TILES_SPIKES_B : \
+                               ((idx) == LEVEL_CLUTTERFUNK) ? LEVEL_TILES_BLOCKS_B : 0)
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
@@ -190,7 +194,7 @@ static void reload_level_state(uint8_t idx) {
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(LEVEL_SPIKES_B(idx), 0);
+    apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), 0);
     if (!setting_show_bg_enabled) {
         // Hide BG: blank DMG tile 12 so empty areas are solid
         set_bkg_data(12, 1, blank_bg_tile);
@@ -229,6 +233,8 @@ static void reload_level_state(uint8_t idx) {
     end_trigger_requested = 0;
     player_init(&player, 0, 240);
     sp_cache_reset(&active_sp, &sp_stream_idx);
+    coins_reset();
+    coins_saved = level_coins[idx];
     sp_cache_col = 0xFFFF;
     previous_oam_index = MAX_HARDWARE_SPRITES;
     cached_collision_col = 0xFFFF;
@@ -280,7 +286,7 @@ void play_level(uint8_t idx) BANKED {
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(LEVEL_SPIKES_B(idx), 0);
+    apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), 0);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
@@ -344,6 +350,8 @@ void play_level(uint8_t idx) BANKED {
     end_shake_timer = 0;
     end_trigger_requested = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
+    coins_reset();
+    coins_saved = level_coins[idx];
     bg_parallax_isr_start();
     while (1) {
         uint8_t joy = joypad();
@@ -521,6 +529,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (player.level_complete) {
             record_level_progress(idx, 100, 0);
+            record_level_coins(idx, coins_collected);
             HIDE_SPRITES;
             move_bkg(0, 0);
             disable_interrupts();
@@ -606,7 +615,7 @@ void play_level(uint8_t idx) BANKED {
                 ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-            apply_level_tile_patch(LEVEL_SPIKES_B(idx), player.reversed);
+            apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), player.reversed);
             if (!setting_show_bg_enabled) {
                 set_bkg_data(12, 1, blank_bg_tile);
             }
@@ -737,7 +746,28 @@ void play_level(uint8_t idx) BANKED {
         // Player sprite
         uint8_t oam_index = 0;
 
-        if (end_anim_state != END_ANIM_SHAKE) {
+        if (end_anim_state != END_ANIM_SHAKE && player.mini) {
+            // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
+            // like Famidash (x .. x+7, y+3 .. y+10). Cube: 3 rotation images + mirror.
+            static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 0 };
+            uint8_t tile, prop = 0;
+            if (player.mode == MODE_SHIP) tile = MINI_PLAYER_TILE_BASE + 6;
+            else if (player.mode == MODE_BALL) tile = MINI_PLAYER_TILE_BASE + 8;
+            else {
+                uint8_t q = (uint8_t)(player.anim_frame % 6u);
+                tile = MINI_PLAYER_TILE_BASE + (uint8_t)(mini_cube_img[q] << 1);
+                if (q == 4) prop ^= S_FLIPX;
+            }
+            uint8_t oy = (uint8_t)(final_py + 16 + 3);
+            if (player.gravity_flipped) { prop ^= S_FLIPY; oy -= 8; }
+            uint8_t ox = (uint8_t)(sprite_x_final + 8);
+            if (player.reversed) { prop ^= S_FLIPX; ox += 8; }
+            shadow_OAM[0].y = oy;
+            shadow_OAM[0].x = ox;
+            shadow_OAM[0].tile = tile;
+            shadow_OAM[0].prop = prop;
+            oam_index = 1;
+        } else if (end_anim_state != END_ANIM_SHAKE) {
             if (player.mode == MODE_SHIP) {
                 if (player.gravity_flipped) {
                     if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);

@@ -22,7 +22,7 @@ const spritePairs = [
 // tile numbers are the start (even) tile of each NES 8x16 pair.
 const decoPairs = [
     14, 8, 10, 12, 20, 22, 24, 26, 28, 30,
-    32, 34, 36, 38, 44, 52, 48, 54
+    32, 34, 36, 38, 44, 52, 48, 54, 40, 42
 ].map((tile) => ["blank", tile]);
 
 function arrayBody(source, name) {

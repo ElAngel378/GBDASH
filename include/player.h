@@ -44,6 +44,26 @@
 #define BALL_GRAVITY      72    // Famidash 0x0047 (71)
 #define BALL_SWITCH_VEL   516   // Famidash 0x0200 (512)
 
+// Mini size (Famidash mini portal). Same 714/708 rate correction as above;
+// Famidash 60fps value in comments.
+#define MINI_GRAVITY          112   // CUBE_GRAVITY mini 1560.94 px/s^2 (111)
+#define MINI_JUMP_FORCE     -1242   // JUMP_VEL mini -288.75 px/s (-1232)
+#define MINI_BALL_GRAVITY      88   // BALL_GRAVITY mini 1223.44 px/s^2 (87)
+#define MINI_BALL_SWITCH_VEL  290   // BALL_SWITCH_VEL mini 67.5 px/s (288)
+#define MINI_BALL_MAX_FALL   1291   // BALL_MAX_FALLSPEED mini 300 px/s (1280)
+#define MINI_SHIP_THRUST      -49   // SHIP_GRAVITY_BASE mini 693.55 (49)
+#define MINI_SHIP_GRAVITY      39   // SHIP_GRAVITY mini 554.84 (39)
+#define MINI_SHIP_GRAVITY_AFTER_HOLD 59 // 832.26 (59)
+#define MINI_SHIP_GRAVITY_HOLD_FALL  62 // 866.93 (62)
+#define MINI_SHIP_MAX_VEL_UP   1035 // SHIP_MAX_FALLSPEED(_HOLD) mini / normal = 1.176
+#define MINI_SHIP_MAX_VEL_DOWN 1294
+
+// Player collision box (offsets from world_x / world_y). Normal: 16x16.
+// Mini: Famidash CUBE_WIDTH/HEIGHT mini = 8x7, vertically centred ((16-7)/2 = 4).
+#define MINI_BOX_TOP     4
+#define MINI_BOX_BOTTOM 11   // first pixel below the box
+#define MINI_BOX_RIGHT   8   // Famidash checks x, x+4, x+8
+
 #define MAX_ACTIVATIONS 8
 
 typedef union {
@@ -83,24 +103,20 @@ typedef struct Player {
     uint8_t  orb_buffered;
     uint8_t  touching_orb;
     uint8_t  level_complete;
+    uint8_t  mini;         // 1 = mini size (mini portal)
     uint16_t level_end_x;
     uint16_t sp_idx;
 } Player;
 
 // Reset player state to starting position
-void player_init(Player* p, uint16_t start_x, int16_t start_y);
+void player_init(Player* p, uint16_t start_x, int16_t start_y) BANKED;
 
 uint8_t player_update(
     Player* p,
     uint8_t joy,
     const uint8_t* collision_columns,
     uint16_t map_h
-);
+) BANKED;
 
-// Returns player's Y position relative to the camera
-int16_t player_screen_y(const Player* p, uint16_t cam_py);
-
-uint8_t player_tile_activated(const Player* p, uint16_t mx, uint8_t my);
-void player_mark_activated(Player* p, uint16_t mx, uint8_t my);
 
 #endif // PLAYER_H

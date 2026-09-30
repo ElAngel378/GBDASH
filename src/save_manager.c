@@ -19,6 +19,11 @@ BANKREF(save_manager)
 
 uint8_t level_progress_normal[NUM_SAVE_LEVELS] = {0};
 uint8_t level_progress_practice[NUM_SAVE_LEVELS] = {0};
+uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
+
+// Version 4 layout: progress normal[N], practice[N], settings[6], coins[N], checksum
+#define V4_COINS_OFS (5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES)
+#define V4_DATA_LEN  (NUM_SAVE_LEVELS * 3 + NUM_SETTINGS_BYTES)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -44,9 +49,10 @@ void init_save_system(void) BANKED {
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
         if (sram[4] == 4) {
-            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES);
-            if (sram[5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES] == chk) {
+            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], V4_DATA_LEN);
+            if (sram[5 + V4_DATA_LEN] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+                    level_coins[i] = sram[V4_COINS_OFS + i] & 7;
                     level_progress_normal[i] = sram[5 + i];
                     level_progress_practice[i] = sram[5 + NUM_SAVE_LEVELS + i];
                     if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
@@ -124,6 +130,7 @@ void init_save_system(void) BANKED {
     for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
         level_progress_normal[i] = 0;
         level_progress_practice[i] = 0;
+        level_coins[i] = 0;
     }
     setting_music_enabled   = 1;
     setting_sfx_enabled     = 1;
@@ -157,8 +164,11 @@ void save_game_data(void) BANKED {
     sram[5 + NUM_SAVE_LEVELS * 2 + 4] = setting_parallax_enabled;
     sram[5 + NUM_SAVE_LEVELS * 2 + 5] = setting_effects_enabled;
 
-    sram[5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES] = 
-        calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES);
+    for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
+        sram[V4_COINS_OFS + i] = level_coins[i];
+    }
+
+    sram[5 + V4_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V4_DATA_LEN);
     DISABLE_RAM;
 }
 
@@ -176,6 +186,14 @@ void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) 
             level_progress_normal[level_idx] = pct;
             save_game_data();
         }
+    }
+}
+
+void record_level_coins(uint8_t level_idx, uint8_t coins) BANKED {
+    if (level_idx >= NUM_SAVE_LEVELS) return;
+    if ((level_coins[level_idx] | coins) != level_coins[level_idx]) {
+        level_coins[level_idx] |= coins;
+        save_game_data();
     }
 }
 

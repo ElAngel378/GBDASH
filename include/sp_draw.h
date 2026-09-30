@@ -9,16 +9,21 @@
 // OAM sprite index written to by draw_sprites; read back by gameplay.c
 // for the "hide old sprites" cleanup step.
 uint8_t draw_sprites(SpCache *cache, uint16_t cam_px, uint16_t cam_py,
-                     uint8_t reversed, uint8_t oam_start);
+                     uint8_t reversed, uint8_t oam_start) BANKED;
 
 void process_sprite_logic(SpCache *cache, uint16_t cam_px,
-                          Player *p, uint8_t joy, uint8_t *target_bg_idx);
+                          Player *p, uint8_t joy, uint8_t *target_bg_idx) BANKED;
+
+// Famidash coins: collected this attempt / already in the save for this level (bit per coin)
+extern uint8_t coins_collected;
+extern uint8_t coins_saved;
+void coins_reset(void) BANKED;
 
 void setup_menu_font(void) BANKED;
 void draw_text(uint8_t x, uint8_t y, const char *str) BANKED;
 
-void sp_cache_reset(SpCache *cache, uint16_t *stream_idx);
+void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED;
 void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache, uint16_t *stream_idx);
+                     SpCache *cache, uint16_t *stream_idx) BANKED;
 
 #endif
