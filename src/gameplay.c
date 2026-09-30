@@ -26,6 +26,7 @@
 #include "death_effect.h"
 #include "save_manager.h"
 #include "pause_buttons.h"
+#include "debug_mode.h"
 #include "bg_parallax.h"
 #include "collision.h"
 #include "settings.h"
@@ -39,6 +40,8 @@ extern const uint8_t chr_gb_cgb_tiles_rev[];
 // (ground "spikes" drawn as round bushes); every other level uses DECO1.
 #define LEVEL_XSTEP 9
 #define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP)
+// ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
+#define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
@@ -145,6 +148,10 @@ static uint16_t cached_collision_col;
 static uint8_t prev_reversed;
 static uint8_t reduce_flash;
 static uint8_t pause_suppress_jump;
+#if ENABLE_DEBUG_MODE
+static uint8_t debug_ly;      // scanline the game logic had finished at (last frame)
+static uint8_t debug_max_ly;  // worst one since debug mode was switched on
+#endif
 static uint8_t target_bg_idx;
 static uint8_t died;
 static int16_t py;
@@ -182,6 +189,7 @@ static void reload_level_state(uint8_t idx) {
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    apply_level_tile_patch(LEVEL_SPIKES_B(idx), 0);
     if (!setting_show_bg_enabled) {
         // Hide BG: blank DMG tile 12 so empty areas are solid
         set_bkg_data(12, 1, blank_bg_tile);
@@ -192,6 +200,7 @@ static void reload_level_state(uint8_t idx) {
     set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
     init_pause_tiles();
+    debug_load_hud_tiles();
     load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
@@ -270,6 +279,7 @@ void play_level(uint8_t idx) BANKED {
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
+    apply_level_tile_patch(LEVEL_SPIKES_B(idx), 0);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
@@ -278,6 +288,7 @@ void play_level(uint8_t idx) BANKED {
     set_sprite_data(12, 8, ball_tiles);
     init_death_effect_tiles();
     init_pause_tiles();
+    debug_load_hud_tiles();
     load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
@@ -404,6 +415,9 @@ void play_level(uint8_t idx) BANKED {
 
             uint8_t selected_btn = PAUSE_BTN_PLAY;
             draw_pause_menu_sprites(selected_btn);
+#if ENABLE_DEBUG_MODE
+            if (debug_mode) debug_draw_hud(0, 0, 0);
+#endif
             wait_vbl_done();
 
             uint8_t exit_level = 0;
@@ -425,8 +439,19 @@ void play_level(uint8_t idx) BANKED {
                     if (selected_btn >= 2) selected_btn = 0;
                     else selected_btn++;
                     draw_pause_menu_sprites(selected_btn);
+#if ENABLE_DEBUG_MODE
+                } else if (p_pressed & J_B) {
+                    // B toggles debug mode (noclip + scanline readout); START resumes
+                    debug_mode ^= 1;
+                    debug_max_ly = 0;
+                    if (debug_mode) debug_draw_hud(0, 0, 0);
+                    else debug_hide_hud();
+                } else if (p_pressed & J_START) {
+                    break;
+#else
                 } else if ((p_pressed & J_START) || (p_pressed & J_B)) {
                     break;
+#endif
                 } else if (p_pressed & J_A) {
                     if (selected_btn == PAUSE_BTN_PLAY) {
                         break;
@@ -580,6 +605,7 @@ void play_level(uint8_t idx) BANKED {
                 ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+            apply_level_tile_patch(LEVEL_SPIKES_B(idx), player.reversed);
             if (!setting_show_bg_enabled) {
                 set_bkg_data(12, 1, blank_bg_tile);
             }
@@ -600,6 +626,7 @@ void play_level(uint8_t idx) BANKED {
             set_sprite_data(8, 4, ship_tiles);
             set_sprite_data(12, 8, ball_tiles);
             init_pause_tiles();
+            debug_load_hud_tiles();
             load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
 
             uint16_t init_scroll_px = player.reversed
@@ -624,6 +651,9 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state == END_ANIM_INACTIVE) {
             died = player_update(&player, joy, collision_columns, level_map_h);
+#if ENABLE_DEBUG_MODE
+            if (debug_mode) { died = 0; player.dead = 0; } // noclip: hazards and walls can't kill
+#endif
         } else {
             died = 0;
         }
@@ -765,6 +795,9 @@ void play_level(uint8_t idx) BANKED {
             }
         }
         previous_oam_index = oam_index;
+#if ENABLE_DEBUG_MODE
+        if (debug_mode) debug_draw_hud(1, debug_ly, debug_max_ly);
+#endif
 
         if (needs_render) {
             loaded_r = need_col;
@@ -852,6 +885,12 @@ void play_level(uint8_t idx) BANKED {
         if (parallax_needed) request_bg_parallax(bg_phase);
         // Same for the scroll registers (GBC only; DMG sets them below).
         if (bg_gdma_isr_on) request_bg_scroll(final_scx, final_scy);
+#if ENABLE_DEBUG_MODE
+        if (debug_mode) {
+            debug_ly = LY_REG;
+            if (debug_ly > debug_max_ly) debug_max_ly = debug_ly;
+        }
+#endif
         bg_wait_vbl();
         if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
 

@@ -86,6 +86,8 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED;
 void flush_mt_column(uint8_t ring_col) BANKED;
 void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED;
+extern uint8_t mt_spike_b;
+void apply_level_tile_patch(uint8_t spike_b, uint8_t reversed) BANKED;
 void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;

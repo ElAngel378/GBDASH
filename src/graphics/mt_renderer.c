@@ -6,6 +6,30 @@
 #include "collision.h"
 #include "famidash_metatiles.h"
 #include "bg_parallax.h"
+#include <gbdk/incbin.h>
+
+// Famidash spike set B art for the background spikes (Xstep). Metatile 12
+// (BOTTOM_BACKGROUND_SPIKES) and 13 (TOP_BACKGROUND_SPIKES) have the transparent tile 12
+// where set B has real art, so those two spots use the otherwise unused tiles 0 and 1.
+INCBIN(xstep_bgspikes_b, "levels/chr_data/famidash/xstep_bgspikes_b_tiles.bin")
+INCBIN_EXTERN(xstep_bgspikes_b)
+#define MT_BOTTOM_BG_SPIKES 12
+#define MT_TOP_BG_SPIKES    13
+#define TILE_BS_TL 0
+#define TILE_TOP_BL 1
+
+uint8_t mt_spike_b;
+
+// Called after the level tileset was uploaded (display off). spike_b: the level uses
+// Famidash's spike set B. Only done for the unmirrored CGB tileset.
+void apply_level_tile_patch(uint8_t spike_b, uint8_t reversed) BANKED {
+    mt_spike_b = (spike_b && !reversed && _cpu == CGB_TYPE) ? 1u : 0u;
+    if (!mt_spike_b) return;
+    VBK_REG = VBK_TILES;
+    set_bkg_data(0, 2, xstep_bgspikes_b);
+    set_bkg_data(23, 3, xstep_bgspikes_b + 2 * 16);
+    set_bkg_data(37, 3, xstep_bgspikes_b + 5 * 16);
+}
 
 #define BKG_MT_H 16
 
@@ -57,11 +81,13 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
             uint8_t r1 = r0 + 8u;
             uint8_t t;
             t = tiles[0];
-            if (t == 12) { *dst++ = r0 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
+            if (t == 12 && mt_spike_b && metatile_id == MT_BOTTOM_BG_SPIKES) { *dst++ = TILE_BS_TL; *dst_attr++ = palette; }
+            else if (t == 12) { *dst++ = r0 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
             t = tiles[1];
             if (t == 12) { *dst++ = r0 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
             t = tiles[2];
-            if (t == 12) { *dst++ = r1 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
+            if (t == 12 && mt_spike_b && metatile_id == MT_TOP_BG_SPIKES) { *dst++ = TILE_TOP_BL; *dst_attr++ = palette; }
+            else if (t == 12) { *dst++ = r1 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
             t = tiles[3];
             if (t == 12) { *dst++ = r1 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
         }
@@ -218,7 +244,10 @@ void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, ui
             uint8_t pal = famidash_metatile_palettes[mt_id];
             for (uint8_t i = 0; i < 4; i++) {
                 uint8_t t = mt[i];
-                if (t == 12) {
+                if (t == 12 && mt_spike_b && ((i == 0 && mt_id == MT_BOTTOM_BG_SPIKES) || (i == 2 && mt_id == MT_TOP_BG_SPIKES))) {
+                    tiles[i] = (i == 0) ? TILE_BS_TL : TILE_TOP_BL;
+                    attrs[i] = pal;
+                } else if (t == 12) {
                     tiles[i] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
                     attrs[i] = 0x0B;
                 } else {
@@ -267,7 +296,10 @@ void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uin
             uint8_t pal = famidash_metatile_palettes[mt_id];
             for (uint8_t i = 0; i < 4; i++) {
                 uint8_t t = mt[i];
-                if (t == 12) {
+                if (t == 12 && mt_spike_b && ((i == 0 && mt_id == MT_BOTTOM_BG_SPIKES) || (i == 2 && mt_id == MT_TOP_BG_SPIKES))) {
+                    tiles[i] = (i == 0) ? TILE_BS_TL : TILE_TOP_BL;
+                    attrs[i] = pal;
+                } else if (t == 12) {
                     tiles[i] = (i < 2 ? 0 : 8) + ((i & 1) ? tr_x : tl_x);
                     attrs[i] = 0x0B;
                 } else {
