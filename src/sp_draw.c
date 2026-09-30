@@ -14,6 +14,12 @@
 #define DEBUG_MODE
 #include "famidash_metatiles.h"
 
+// The object cache is always gameplay.c's active_sp: address it directly. Through the
+// SpCache* parameter SDCC reloads the pointer from the stack for every cache->x[i]
+// access, which made the per-frame object loops several times slower (DMG frame drops).
+extern SpCache active_sp;
+#define cache (&active_sp)
+
 // ID Mappings for SP Layer Logic
 #define OBJ_CUBE_PORTAL   0
 #define OBJ_SHIP_PORTAL   1
@@ -87,7 +93,7 @@ static inline uint8_t is_dmg_portal(uint8_t o) {
 }
 static uint8_t sp_has_portals = 0;
 
-void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED {
+void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     uint8_t i;
     *stream_idx = 0;
     sp_has_portals = 0;
@@ -95,11 +101,13 @@ void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED {
 }
 
 void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache, uint16_t *stream_idx) BANKED {
+                     SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     uint8_t i;
     uint8_t count = 0;
     uint8_t sp_bank = l->sp_bank;
     const SpDef *sp_list = (_cpu == CGB_TYPE || !l->sp_list_dmg) ? l->sp_list : l->sp_list_dmg;
+
+    uint16_t keep_from = (cam_px >= 48u) ? (uint16_t)(cam_px - 48u) : 0;   // px + 48 >= cam_px
 
     /* Retire old entries and compact in a single pass */
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
@@ -109,7 +117,7 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
                 if (o >= 128) continue; // Any activated trigger can be safely pruned
                 if (_cpu != CGB_TYPE && !is_dmg_portal(o)) continue;
             }
-            if (cache->px[i] + 48u >= cam_px) {
+            if (cache->px[i] >= keep_from) {
                 if (count != i) {
                     cache->obj[count] = cache->obj[i];
                     cache->px[count] = cache->px[i];
@@ -125,7 +133,9 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
 
     sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 
+    // Only draw_sprites on DMG reads sp_has_portals
     sp_has_portals = 0;
+    if (_cpu == CGB_TYPE) return;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
         uint8_t o = cache->obj[i];
@@ -430,7 +440,7 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
 }
 
 void process_sprite_logic(
-        SpCache *cache, uint16_t cam_px,
+        SpCache *cache_arg, uint16_t cam_px,
         Player* p, uint8_t joy, uint8_t* target_bg_idx
 ) BANKED {
     uint8_t i;
@@ -443,13 +453,18 @@ void process_sprite_logic(
     if (p->mini) py += MINI_BOX_TOP;
     t_py = py;
     t_bottom = p_bottom;
+    // Loop limits, computed once (SDCC recomputes 16-bit sums on every pass otherwise)
+    uint16_t lim_ahead = cam_px + 176u;
+    uint16_t lim_lead = px + BG_TRIGGER_LEAD_PX;
+    uint16_t lim_near = px + 48u;
+    uint16_t lim_back = (px >= 48u) ? (uint16_t)(px - 48u) : 0;   // obj_x + 48 < px
 
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
         if (cache->activated[i]) continue;
 
         uint16_t obj_x = cache->px[i];
-        if (obj_x > cam_px + 176u) break;
+        if (obj_x > lim_ahead) break;
 
         uint8_t obj = cache->obj[i];
 
@@ -463,10 +478,10 @@ void process_sprite_logic(
             continue;
         }
 
-        if (obj != OBJ_LEVEL_END && obj_x > px + BG_TRIGGER_LEAD_PX) break;
+        if (obj != OBJ_LEVEL_END && obj_x > lim_lead) break;
 
         if (cache->activated[i]) continue;
-        if (obj_x + 48u < px) continue;
+        if (obj_x < lim_back) continue;
 
         if (obj >= 38 && obj < 64) continue;
         if (obj == OBJ_MUSIC_NOTE) continue;
@@ -486,7 +501,7 @@ void process_sprite_logic(
         }
 
         if (obj >= 128 && obj <= 175) {
-            if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
+            if (lim_lead >= obj_x) {
                 uint8_t pal_idx = (uint8_t)(obj - 128);
 
                 if (_cpu == CGB_TYPE) {
@@ -508,7 +523,7 @@ void process_sprite_logic(
         }
 
         if (obj >= 192 && obj <= 239) {
-            if (px + BG_TRIGGER_LEAD_PX >= obj_x) {
+            if (lim_lead >= obj_x) {
                 if (_cpu == CGB_TYPE) {
                     uint8_t pal_idx = (uint8_t)(obj - 192);
                     famidash_apply_g_trigger(pal_idx);
@@ -519,7 +534,7 @@ void process_sprite_logic(
             continue;
         }
 
-        if (obj_x > px + 48u) continue;
+        if (obj_x > lim_near) continue;
 
         uint16_t obj_y = cache->py[i];
 
@@ -603,7 +618,7 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
 }
 
 uint8_t draw_sprites(
-        SpCache *cache, uint16_t cam_px, uint16_t cam_py,
+        SpCache *cache_arg, uint16_t cam_px, uint16_t cam_py,
         uint8_t reversed, uint8_t oam_start
 ) BANKED {
     uint8_t i;
@@ -619,11 +634,12 @@ uint8_t draw_sprites(
     // Skip drawing if no portals exist in cache on DMG
     if (_cpu != CGB_TYPE && !sp_has_portals) return oam_start;
 
+    uint16_t lim_ahead = cam_px + 176u;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         if (!cache->active[i]) break;
 
         uint16_t obj_x = cache->px[i];
-        if (obj_x > cam_px + 176u) break;
+        if (obj_x > lim_ahead) break;
 
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 128) continue;

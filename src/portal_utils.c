@@ -20,53 +20,50 @@
 #define OBJ_MIRROR_PORTAL 126
 #define OBJ_MIRROR_EXIT   121
 
+extern SpCache active_sp;   // the only cache (see sp_draw.c)
+
 void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
-                   SpCache *cache, uint16_t *stream_idx, uint16_t map_h) {
+                   SpCache *cache_arg, uint16_t *stream_idx, uint16_t map_h) {
     uint8_t count = 0;
     uint8_t save_bank = _current_bank;
+    uint16_t idx = *stream_idx;
+    uint16_t ahead = cam_px + 176u;
+    const SpDef *sp;
+    (void)cache_arg; (void)map_h;
 
     if (sp_bank == 0 || sp_list == 0) return;
     SWITCH_ROM(sp_bank);
-    while (count < MAX_ACTIVE_SP_OBJECTS && cache->active[count]) count++;
-    
-    while (sp_list[*stream_idx].x != 0xFFFF) {
-        uint16_t object_x = sp_list[*stream_idx].x;
-        
+    while (count < MAX_ACTIVE_SP_OBJECTS && active_sp.active[count]) count++;
+
+    // Walk the list with a pointer (indexing 5-byte SpDefs recomputes idx * 5 per access)
+    for (sp = &sp_list[idx]; sp->x != 0xFFFF; sp++, idx++) {
+        uint16_t object_x = sp->x;
+
         // If too far ahead, stop evaluating
-        if (object_x > cam_px + 176u) break;
+        if (object_x > ahead) break;
 
         // If behind camera, skip to prevent stalling
-        if (object_x + 48u < cam_px) {
-            (*stream_idx)++;
-            continue;
-        }
+        if (object_x + 48u < cam_px) continue;
 
-        uint8_t obj_id = sp_list[*stream_idx].obj;
+        uint8_t obj_id = sp->obj;
 
         // DMG optimization: skip decorations and ground color triggers on DMG to save CPU time
         if (_cpu != CGB_TYPE) {
-            if ((obj_id >= 38 && obj_id < 64) || obj_id == 74 || (obj_id >= 192 && obj_id <= 239)) {
-                (*stream_idx)++;
-                continue;
-            }
+            if ((obj_id >= 38 && obj_id < 64) || obj_id == 74 || (obj_id >= 192 && obj_id <= 239)) continue;
         }
 
         // Prioritize gameplay elements on CGB if cache is nearing full
-        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) {
-            (*stream_idx)++;
-            continue;
-        }
+        if (count >= MAX_ACTIVE_SP_OBJECTS - 8 && ((obj_id >= 38 && obj_id < 64) || obj_id == 74)) continue;
 
         if (count >= MAX_ACTIVE_SP_OBJECTS) break;
 
-        cache->obj[count] = obj_id;
-        cache->px[count] = object_x;
-        cache->py[count] = sp_list[*stream_idx].y;
-        cache->active[count] = 1;
-        cache->activated[count] = 0;
-
+        active_sp.obj[count] = obj_id;
+        active_sp.px[count] = object_x;
+        active_sp.py[count] = sp->y;
+        active_sp.active[count] = 1;
+        active_sp.activated[count] = 0;
         count++;
-        (*stream_idx)++;
     }
+    *stream_idx = idx;
     SWITCH_ROM(save_bank);
 }
