@@ -127,6 +127,7 @@ static const SettingItem settings_list[] = {
     { "SHOW BG",      SETTING_TYPE_TOGGLE, &setting_show_bg_enabled,  0, 1, toggle_labels, on_show_bg_change, NULL },
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
+    { "SHOW %",       SETTING_TYPE_TOGGLE, &setting_show_percent,     0, 1, toggle_labels, on_setting_change, NULL },
     { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,          NULL,              on_wipe_save_action }
 };
 #define NUM_SETTINGS (sizeof(settings_list) / sizeof(settings_list[0]))

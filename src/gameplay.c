@@ -28,6 +28,7 @@
 #include "sp_draw.h"
 #include "pause_buttons.h"
 #include "debug_mode.h"
+#include "percent_hud.h"
 #include "bg_parallax.h"
 #include "collision.h"
 #include "settings.h"
@@ -207,6 +208,7 @@ static void reload_level_state(uint8_t idx) {
     init_death_effect_tiles();
     init_pause_tiles();
     debug_load_hud_tiles();
+    percent_hud_load_tiles();
     load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
@@ -236,6 +238,7 @@ static void reload_level_state(uint8_t idx) {
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
     coins_saved = level_coins[idx];
+    percent_hud_reset(max_scroll_px);
     sp_cache_col = 0xFFFF;
     sp_fill_pending = 0;
     previous_oam_index = MAX_HARDWARE_SPRITES;
@@ -375,6 +378,7 @@ static uint8_t pause_menu(uint8_t idx) {
     for (uint8_t i = 0; i < 27; i++) {
         shadow_OAM[i].y = 0;
     }
+    percent_hud_hide();   // redrawn next frame (the pause menu used its slots)
 
     if (_cpu == CGB_TYPE) {
         wait_vbl_done();
@@ -444,6 +448,7 @@ static void level_complete_screen(uint8_t idx) {
 
 // The level end object was reached: start the pull-to-the-edge animation
 static void start_end_anim(void) {
+    percent_hud_complete();
     end_anim_state = END_ANIM_PULL;
     end_anim_frame = 0;
     locked_scroll_px = player.reversed
@@ -499,6 +504,7 @@ static void mirror_reload(uint8_t idx) {
     set_sprite_data(12, 8, ball_tiles);
     init_pause_tiles();
     debug_load_hud_tiles();
+    percent_hud_load_tiles();
     load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
 
     uint16_t init_scroll_px = player.reversed
@@ -578,6 +584,7 @@ void play_level(uint8_t idx) BANKED {
     init_death_effect_tiles();
     init_pause_tiles();
     debug_load_hud_tiles();
+    percent_hud_load_tiles();
     load_famidash_sprite_tiles(LEVEL_DECO_CLOUD(idx));
     bg_drift_px = 0;
     if (_cpu == CGB_TYPE) {
@@ -635,6 +642,7 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
     coins_saved = level_coins[idx];
+    percent_hud_reset(max_scroll_px);
     bg_parallax_isr_start();
     while (1) {
         uint8_t joy = joypad();
@@ -797,7 +805,8 @@ void play_level(uint8_t idx) BANKED {
         }
 
         // Player sprite
-        uint8_t oam_index = 0;
+        percent_hud_update(cam_px);
+        uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
 
         if (end_anim_state != END_ANIM_SHAKE && player.mini) {
             // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
@@ -815,11 +824,11 @@ void play_level(uint8_t idx) BANKED {
             if (player.gravity_flipped) { prop ^= S_FLIPY; oy -= 8; }
             uint8_t ox = (uint8_t)(sprite_x_final + 8);
             if (player.reversed) { prop ^= S_FLIPX; ox += 8; }
-            shadow_OAM[0].y = oy;
-            shadow_OAM[0].x = ox;
-            shadow_OAM[0].tile = tile;
-            shadow_OAM[0].prop = prop;
-            oam_index = 1;
+            shadow_OAM[PERCENT_HUD_OAM].y = oy;
+            shadow_OAM[PERCENT_HUD_OAM].x = ox;
+            shadow_OAM[PERCENT_HUD_OAM].tile = tile;
+            shadow_OAM[PERCENT_HUD_OAM].prop = prop;
+            oam_index = PERCENT_HUD_OAM + 1;
         } else if (end_anim_state != END_ANIM_SHAKE) {
             if (player.mode == MODE_SHIP) {
                 if (player.gravity_flipped) {

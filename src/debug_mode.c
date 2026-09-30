@@ -22,8 +22,9 @@ uint8_t debug_mode = 0;
 
 #define DBG_FIRST_SLOT 31
 
+// Only the upper tile of each 8x16 pair: the lower tiles hold the % display digits
+// (percent_hud.c). The HUD sits at the bottom edge, so the lower tiles are off screen.
 void debug_load_hud_tiles(void) {
-    static const uint8_t blank_tile[16] = {0};
     // FontPusab: digits start at glyph 3, letters at glyph 13 ('A')
     static const uint8_t font_index[DBG_GLYPHS] = {
         13 + 3, 13 + 1, 13 + 6,          // D B G
@@ -32,13 +33,12 @@ void debug_load_hud_tiles(void) {
     for (uint8_t i = 0; i < DBG_GLYPHS; i++) {
         uint8_t t = DBG_TILE_BASE + (uint8_t)(i << 1);
         set_sprite_data(t, 1, &FontPusab[font_index[i] * 16]);
-        set_sprite_data(t + 1, 1, blank_tile);
     }
 }
 
 static void put(uint8_t slot, uint8_t x, uint8_t glyph) {
     // Player palette (bright outline/body colours); OBP0 on DMG
-    shadow_OAM[slot].y = 16;
+    shadow_OAM[slot].y = 152;   // screen rows 136..143 (upper tile only)
     shadow_OAM[slot].x = (uint8_t)(x + 8);
     shadow_OAM[slot].tile = DBG_TILE_BASE + (uint8_t)(glyph << 1);
     shadow_OAM[slot].prop = 0;

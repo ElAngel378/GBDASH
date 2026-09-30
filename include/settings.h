@@ -9,5 +9,6 @@ extern uint8_t setting_dmg_gradient;
 extern uint8_t setting_show_bg_enabled;
 extern uint8_t setting_parallax_enabled;
 extern uint8_t setting_effects_enabled;
+extern uint8_t setting_show_percent;
 
 #endif // SETTINGS_H
