@@ -23,7 +23,7 @@ void setup_menu_font(void) BANKED;
 void draw_text(uint8_t x, uint8_t y, const char *str) BANKED;
 
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED;
-void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache, uint16_t *stream_idx) BANKED;
+void sp_cache_retire(uint16_t cam_px) BANKED;
+void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED;
 
 #endif

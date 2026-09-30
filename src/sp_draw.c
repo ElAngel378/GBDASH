@@ -100,13 +100,12 @@ void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 }
 
-void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache_arg, uint16_t *stream_idx) BANKED {
+// The cache update is split in two halves that run in different frames (see
+// play_level): retiring objects behind the camera, then loading the new ones.
+// Together with the per-frame object work they could overrun a DMG frame.
+void sp_cache_retire(uint16_t cam_px) BANKED {
     uint8_t i;
     uint8_t count = 0;
-    uint8_t sp_bank = l->sp_bank;
-    const SpDef *sp_list = (_cpu == CGB_TYPE || !l->sp_list_dmg) ? l->sp_list : l->sp_list_dmg;
-
     uint16_t keep_from = (cam_px >= 48u) ? (uint16_t)(cam_px - 48u) : 0;   // px + 48 >= cam_px
 
     /* Retire old entries and compact in a single pass */
@@ -130,8 +129,13 @@ void sp_cache_update(const Level *l, uint16_t cam_px,
         }
     }
     for (i = count; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
+}
 
-    sp_cache_load(sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
+void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED {
+    uint8_t i;
+    const SpDef *sp_list = (_cpu == CGB_TYPE || !l->sp_list_dmg) ? l->sp_list : l->sp_list_dmg;
+
+    sp_cache_load(l->sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 
     // Only draw_sprites on DMG reads sp_has_portals
     sp_has_portals = 0;

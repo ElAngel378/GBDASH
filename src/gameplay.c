@@ -149,6 +149,7 @@ static uint8_t prev_joy;
 static uint8_t previous_oam_index;
 static uint16_t sp_stream_idx;
 static uint16_t sp_cache_col;
+static uint8_t sp_fill_pending;
 static uint16_t cached_collision_col;
 static uint8_t prev_reversed;
 static uint8_t reduce_flash;
@@ -236,6 +237,7 @@ static void reload_level_state(uint8_t idx) {
     coins_reset();
     coins_saved = level_coins[idx];
     sp_cache_col = 0xFFFF;
+    sp_fill_pending = 0;
     previous_oam_index = MAX_HARDWARE_SPRITES;
     cached_collision_col = 0xFFFF;
     move_bkg(0, (uint8_t)cam_py);
@@ -621,6 +623,7 @@ void play_level(uint8_t idx) BANKED {
     previous_oam_index = MAX_HARDWARE_SPRITES;
     sp_stream_idx = 0;
     sp_cache_col = 0xFFFF;
+    sp_fill_pending = 0;
     cached_collision_col = 0xFFFF;
     prev_reversed = player.reversed;
     reduce_flash = setting_dmg_gradient ? 0 : 1;
@@ -685,8 +688,15 @@ void play_level(uint8_t idx) BANKED {
 
         player.world_x = cam_px;
         uint16_t sp_col = (cam_px + 8u) >> 4;
-        if (sp_col != sp_cache_col) {
-            sp_cache_update(l, cam_px, &active_sp, &sp_stream_idx);
+        // Object cache: retire behind the camera, then load ahead on the next frame
+        // (never both in one frame; at level start / respawn both at once)
+        if (sp_fill_pending) {
+            sp_cache_fill(l, cam_px, &sp_stream_idx);
+            sp_fill_pending = 0;
+        } else if (sp_col != sp_cache_col) {
+            sp_cache_retire(cam_px);
+            if (sp_cache_col == 0xFFFF) sp_cache_fill(l, cam_px, &sp_stream_idx);
+            else sp_fill_pending = 1;
             sp_cache_col = sp_col;
         }
 

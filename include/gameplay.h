@@ -33,7 +33,7 @@ void play_level(uint8_t idx) BANKED;
 void sp_cache_reset(SpCache *cache, uint16_t *stream_idx) BANKED;
 void sp_cache_load(uint8_t sp_bank, const SpDef *sp_list, uint16_t cam_px,
                    SpCache *cache, uint16_t *stream_idx, uint16_t map_h);
-void sp_cache_update(const Level *l, uint16_t cam_px,
-                     SpCache *cache, uint16_t *stream_idx) BANKED;
+void sp_cache_retire(uint16_t cam_px) BANKED;
+void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED;
 
 #endif
