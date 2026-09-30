@@ -179,7 +179,7 @@ const SpDef cantletgo_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 52 gameplay-critical objects for DMG mode
+// Extracted 55 gameplay-critical objects for DMG mode
 const SpDef cantletgo_sp_dmg[] = {
     {0, 208, 148},
     {976, 176, 11},
@@ -195,6 +195,7 @@ const SpDef cantletgo_sp_dmg[] = {
     {2912, 112, 11},
     {3056, 144, 11},
     {3120, 128, 10},
+    {3504, 208, 7},
     {3504, 224, 10},
     {3600, 208, 10},
     {3616, 0, 150},
@@ -212,12 +213,14 @@ const SpDef cantletgo_sp_dmg[] = {
     {7200, 192, 11},
     {7600, 208, 10},
     {7662, 144, 1},
+    {8336, 112, 26},
     {9424, 152, 0},
     {9438, 152, 9},
     {9672, 80, 11},
     {9792, 64, 11},
     {9840, 96, 12},
     {9920, 144, 11},
+    {10176, 0, 27},
     {10192, 0, 12},
     {10256, 0, 12},
     {10320, 64, 12},

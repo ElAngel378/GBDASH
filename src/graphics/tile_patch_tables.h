@@ -48,4 +48,31 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
 // Sheet tiles replaced by Famidash block set B art (Clutterfunk)
 static const uint8_t blocks_b_patch_tiles[BLOCKS_B_PATCH_COUNT] = { 82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125 };
 
+// DMG per-level layout: BG tiles 0..143; sprite tiles 144..159 hold the coins
+#define DMG_BG_SLOTS 144
+// Per level (game_levels order), NULL = the sheet as is. Otherwise:
+// n, n x (dst slot, src tile)   sheet tiles >= DMG_BG_SLOTS copied down
+// n, n x (dst slot, saw tile)  saw tiles (saw_tiles_dmg.bin, normal + mirrored)
+// n, n x (metatile, quarter, tile)  saw metatile tiles
+static const uint8_t dmg_remap_level_tm[] = { 2, 0, 158, 1, 159, 0, 0 };
+static const uint8_t dmg_remap_level_cy[] = { 8, 0, 144, 1, 145, 2, 153, 3, 154, 4, 156, 5, 157, 6, 158, 7, 159, 0, 0 };
+static const uint8_t dmg_remap_level_xs[] = { 12, 0, 144, 1, 145, 2, 146, 3, 147, 4, 148, 5, 149, 6, 150, 7, 151, 8, 152, 9, 153, 10, 154, 11, 155, 0, 0 };
+static const uint8_t dmg_remap_level_cf[] = { 12, 0, 144, 1, 145, 2, 146, 3, 147, 4, 148, 5, 149, 6, 150, 7, 151, 8, 152, 9, 153, 10, 154, 11, 155, 48, 17, 0, 18, 1, 19, 2, 20, 3, 21, 4, 22, 5, 27, 6, 31, 7, 32, 8, 33, 9, 34, 10, 40, 11, 41, 12, 46, 13, 47, 14, 56, 15, 57, 16, 62, 17, 63, 18, 66, 19, 67, 20, 72, 21, 73, 22, 74, 23, 75, 24, 76, 25, 77, 26, 78, 27, 79, 28, 80, 29, 81, 30, 88, 31, 89, 32, 90, 33, 91, 34, 92, 35, 93, 36, 94, 37, 95, 38, 96, 39, 97, 40, 104, 41, 105, 42, 106, 43, 107, 44, 108, 45, 109, 46, 115, 47, 52, 4, 0, 77, 4, 1, 88, 8, 0, 89, 8, 1, 90, 8, 2, 93, 8, 3, 94, 9, 0, 91, 9, 1, 92, 9, 2, 95, 9, 3, 96, 10, 0, 97, 10, 1, 104, 10, 2, 107, 10, 3, 108, 11, 0, 105, 11, 1, 106, 11, 2, 109, 11, 3, 115, 116, 1, 18, 116, 2, 57, 116, 3, 62, 117, 0, 19, 117, 1, 20, 117, 2, 63, 117, 3, 66, 118, 0, 21, 118, 2, 67, 118, 3, 72, 119, 0, 27, 119, 1, 31, 119, 2, 73, 119, 3, 74, 121, 0, 32, 121, 1, 33, 121, 2, 75, 121, 3, 76, 122, 0, 34, 122, 1, 40, 122, 3, 78, 123, 0, 41, 123, 1, 46, 123, 2, 79, 123, 3, 80, 124, 0, 47, 124, 1, 56, 124, 2, 81, 125, 0, 17, 125, 1, 22, 125, 2, 77, 125, 3, 88, 127, 2, 17, 127, 3, 22 };
+#define DMG_REMAP_LEVELS 13
+static const uint8_t * const dmg_level_remap[DMG_REMAP_LEVELS] = {
+    0, // stereomadness
+    0, // backontrack
+    0, // polargeist
+    0, // dryout
+    0, // baseafterbase
+    0, // cantletgo
+    0, // jumper
+    dmg_remap_level_tm, // timemachine
+    dmg_remap_level_cy, // cycles
+    dmg_remap_level_xs, // xstep
+    0, // ultiatedestruction
+    dmg_remap_level_cf, // clutterfunk
+    0, // test
+};
+
 #endif

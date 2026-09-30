@@ -194,7 +194,7 @@ static void reload_level_state(uint8_t idx) {
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), 0);
+    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), 0);
     if (!setting_show_bg_enabled) {
         // Hide BG: blank DMG tile 12 so empty areas are solid
         set_bkg_data(12, 1, blank_bg_tile);
@@ -286,7 +286,7 @@ void play_level(uint8_t idx) BANKED {
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), 0);
+    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), 0);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
@@ -615,7 +615,7 @@ void play_level(uint8_t idx) BANKED {
                 ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
                 : level_tiles;
             load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-            apply_level_tile_patch(LEVEL_TILE_FLAGS(idx), player.reversed);
+            apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), player.reversed);
             if (!setting_show_bg_enabled) {
                 set_bkg_data(12, 1, blank_bg_tile);
             }

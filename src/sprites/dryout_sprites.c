@@ -221,7 +221,7 @@ const SpDef dryout_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 28 gameplay-critical objects for DMG mode
+// Extracted 31 gameplay-critical objects for DMG mode
 const SpDef dryout_sp_dmg[] = {
     {0, 208, 150},
     {736, 240, 134},
@@ -229,6 +229,7 @@ const SpDef dryout_sp_dmg[] = {
     {2080, 208, 132},
     {2352, 208, 131},
     {2592, 208, 129},
+    {4000, 224, 7},
     {4224, 224, 10},
     {4544, 176, 129},
     {4576, 176, 143},
@@ -242,8 +243,10 @@ const SpDef dryout_sp_dmg[] = {
     {7904, 224, 11},
     {8080, 240, 10},
     {8256, 224, 11},
+    {8480, 176, 26},
     {9056, 152, 1},
     {9216, 224, 152},
+    {10816, 112, 27},
     {11312, 152, 0},
     {11472, 224, 152},
     {11504, 224, 148},

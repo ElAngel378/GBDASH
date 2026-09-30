@@ -21,6 +21,7 @@ extern const uint8_t famidash_sprites_tiles[FAMIDASH_SPRITE_TILE_COUNT * 16];
 #define MINI_PORTAL_TILE_B    248  // ... pairs 1..4 (sprite tiles 248..255 are unused otherwise)
 // CGB VRAM bank 1: coin spin frames (4 pairs) then "already collected" frames (4 pairs)
 #define COIN_TILE_BASE        200
+#define DMG_COIN_TILE_BASE    144  // DMG: sprite tiles 144..159 (BG slots 144..159 unused, see DMG_BG_SLOTS)
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)

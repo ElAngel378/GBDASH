@@ -27,14 +27,77 @@ INCBIN(saw_tiles, "levels/chr_data/famidash/saw_tiles.bin")
 INCBIN_EXTERN(saw_tiles)
 INCBIN(blocks_b_patch, "levels/chr_data/famidash/blocks_b_patch.bin")
 INCBIN_EXTERN(blocks_b_patch)
+INCBIN(blocks_b_patch_dmg, "levels/chr_data/famidash/blocks_b_patch_dmg.bin")
+INCBIN_EXTERN(blocks_b_patch_dmg)
+INCBIN(saw_tiles_dmg, "levels/chr_data/famidash/saw_tiles_dmg.bin")
+INCBIN_EXTERN(saw_tiles_dmg)
 static uint8_t mt_saws;
 
+// Metatile tables the renderer uses: the ROM tables, or on DMG a per-level copy
+// in WRAM whose tiles point at the level's own VRAM layout (dmg_level_layout).
+static const uint8_t (*mt_tab)[4] = metatiles;
+static const uint8_t (*mt_tab_rev)[4] = metatiles_rev;
+static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
+static uint8_t mt_xlat[256];
+
+// DMG, like Famidash's per-level CHR banks: BG tiles 144..159 are the coin sprite
+// tiles, so the sheet tiles the level uses there move to slots it leaves free, and
+// its saw tiles are loaded into free slots too (tile_patch_tables.h, dmg_level_remap).
+static void dmg_level_layout(uint8_t level, uint8_t flags, uint8_t reversed) {
+    const uint8_t *r;
+    uint8_t n, buf[16];
+    mt_tab = metatiles;
+    mt_tab_rev = metatiles_rev;
+    if (flags & LEVEL_TILES_BLOCKS_B) {
+        const uint8_t *src = blocks_b_patch_dmg + (reversed ? 16 : 0);
+        for (n = 0; n < BLOCKS_B_PATCH_COUNT; n++) {
+            set_bkg_data(blocks_b_patch_tiles[n], 1, src);
+            src += 32;
+        }
+    }
+    if (level >= DMG_REMAP_LEVELS || !(r = dmg_level_remap[level])) return;
+
+    n = 0;
+    do { mt_xlat[n] = n; } while (++n);
+    for (n = *r++; n; n--) {
+        uint8_t dst = *r++, src = *r++;
+        get_bkg_data(src, 1, buf);
+        set_bkg_data(dst, 1, buf);
+        mt_xlat[src] = dst;
+    }
+    for (n = *r++; n; n--) {
+        uint8_t dst = *r++, k = *r++;
+        set_bkg_data(dst, 1, saw_tiles_dmg + (((uint16_t)k << 1) + reversed) * 16u);
+    }
+    {
+        const uint8_t *s = &metatiles[0][0];
+        uint8_t *d = &mt_ram[0][0][0];
+        for (uint16_t j = 0; j < FAMIDASH_NUM_METATILES * 4u; j++) d[j] = mt_xlat[s[j]];
+    }
+    for (n = *r++; n; n--) {
+        uint8_t m = *r++, q = *r++;
+        mt_ram[0][m][q] = *r++;
+    }
+    n = 0;
+    do {
+        // reversed table = each metatile's tiles swapped left/right (mirrored sheet)
+        mt_ram[1][n][0] = mt_ram[0][n][1]; mt_ram[1][n][1] = mt_ram[0][n][0];
+        mt_ram[1][n][2] = mt_ram[0][n][3]; mt_ram[1][n][3] = mt_ram[0][n][2];
+    } while (++n);
+    mt_tab = mt_ram[0];
+    mt_tab_rev = mt_ram[1];
+}
+
 // Called after the level tileset was uploaded (display off).
-// flags: LEVEL_TILES_SPIKES_B / LEVEL_TILES_BLOCKS_B (Famidash tile sets of the level).
-void apply_level_tile_patch(uint8_t flags, uint8_t reversed) BANKED {
+// level: game_levels index. flags: LEVEL_TILES_SPIKES_B / LEVEL_TILES_BLOCKS_B
+// (Famidash tile sets of the level).
+void apply_level_tile_patch(uint8_t level, uint8_t flags, uint8_t reversed) BANKED {
     mt_saws = (_cpu == CGB_TYPE);
     mt_spike_b = ((flags & LEVEL_TILES_SPIKES_B) && !reversed && _cpu == CGB_TYPE) ? 1u : 0u;
-    if (_cpu != CGB_TYPE) return;
+    if (_cpu != CGB_TYPE) {
+        dmg_level_layout(level, flags, reversed);
+        return;
+    }
     VBK_REG = VBK_ATTRIBUTES;
     set_bkg_data(SAW_VRAM_BASE, SAW_TILE_COUNT, saw_tiles);
     VBK_REG = VBK_TILES;
@@ -105,7 +168,7 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     }
 
     const uint8_t *map_ptr = col_buf + r_start;
-    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     uint8_t *dst = metatile_column_tiles + ((uint8_t)r_start << 2);
 
     if (_cpu == CGB_TYPE) {
@@ -223,7 +286,7 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
 }
 
 void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
-    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     uint8_t row0_mt_ids[16];
     get_row0_metatiles(loaded_r, map, map_w, map_bank, reversed, row0_mt_ids);
 
@@ -277,7 +340,7 @@ void flush_vram_row0(uint8_t is_ground) BANKED {
 // Builds the top two rows of ring positions first .. first+3 into the handler's
 // request buffer (see flush_row0_slots for the tile selection) and requests the upload.
 void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
-    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     for (uint8_t n = 0; n < 4; n++) {
         uint8_t s = first + n;
         uint8_t tiles[4];
@@ -334,7 +397,7 @@ void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, ui
 // column with stale data. Same tile selection as prepare_row0_level_tiles().
 void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
     if (_cpu != CGB_TYPE) return;
-    const uint8_t (*mt_table)[4] = reversed ? metatiles_rev : metatiles;
+    const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     uint8_t tiles[4];
     uint8_t attrs[4];
     uint8_t end = first + count;

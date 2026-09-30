@@ -477,13 +477,14 @@ const SpDef timemachine_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 75 gameplay-critical objects for DMG mode
+// Extracted 78 gameplay-critical objects for DMG mode
 const SpDef timemachine_sp_dmg[] = {
     {704, 192, 9},
     {1272, 192, 8},
     {1600, 224, 11},
     {1664, 192, 9},
     {1824, 192, 8},
+    {2048, 176, 7},
     {2656, 224, 145},
     {3056, 192, 11},
     {3128, 208, 11},
@@ -501,6 +502,7 @@ const SpDef timemachine_sp_dmg[] = {
     {5488, 160, 11},
     {5584, 192, 10},
     {5664, 144, 1},
+    {5888, 176, 26},
     {6928, 152, 0},
     {7008, 224, 11},
     {7072, 208, 11},
@@ -530,6 +532,7 @@ const SpDef timemachine_sp_dmg[] = {
     {10912, 184, 8},
     {10928, 0, 16},
     {10928, 160, 132},
+    {10992, 32, 27},
     {11024, 80, 6},
     {11088, 112, 6},
     {11312, 240, 10},

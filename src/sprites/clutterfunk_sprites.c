@@ -522,7 +522,7 @@ const SpDef clutterfunk_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 235 gameplay-critical objects for DMG mode
+// Extracted 238 gameplay-critical objects for DMG mode
 const SpDef clutterfunk_sp_dmg[] = {
     {352, 240, 10},
     {432, 224, 11},
@@ -568,6 +568,7 @@ const SpDef clutterfunk_sp_dmg[] = {
     {4620, 176, 1},
     {4784, 128, 131},
     {4800, 128, 130},
+    {4992, 112, 7},
     {5424, 128, 131},
     {5552, 128, 132},
     {5680, 128, 133},
@@ -649,6 +650,7 @@ const SpDef clutterfunk_sp_dmg[] = {
     {10200, 144, 9},
     {10312, 192, 8},
     {10440, 128, 9},
+    {10467, 205, 26},
     {10568, 192, 8},
     {10752, 160, 0},
     {10760, 160, 24},
@@ -724,6 +726,7 @@ const SpDef clutterfunk_sp_dmg[] = {
     {13584, 0, 148},
     {13584, 240, 148},
     {13600, 48, 13},
+    {13672, 224, 27},
     {13760, 208, 5},
     {13856, 0, 147},
     {13856, 16, 12},

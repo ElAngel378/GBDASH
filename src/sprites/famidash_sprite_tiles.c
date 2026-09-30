@@ -34,5 +34,7 @@ void load_famidash_sprite_tiles(uint8_t deco_cloud) BANKED {
                         deco_cloud ? famidash_deco_cloud_tiles : famidash_deco_tiles);
         set_sprite_data(COIN_TILE_BASE, 16, coin_tiles);
         VBK_REG = 0;
+    } else {
+        set_sprite_data(DMG_COIN_TILE_BASE, 16, coin_tiles);
     }
 }

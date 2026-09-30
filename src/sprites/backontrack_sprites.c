@@ -191,7 +191,7 @@ const SpDef backontrack_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 32 gameplay-critical objects for DMG mode
+// Extracted 35 gameplay-critical objects for DMG mode
 const SpDef backontrack_sp_dmg[] = {
     {0, 208, 148},
     {208, 240, 10},
@@ -207,6 +207,7 @@ const SpDef backontrack_sp_dmg[] = {
     {4784, 208, 10},
     {5488, 240, 13},
     {5552, 80, 17},
+    {5616, 112, 7},
     {5632, 176, 10},
     {6192, 176, 10},
     {6416, 208, 150},
@@ -214,12 +215,14 @@ const SpDef backontrack_sp_dmg[] = {
     {6736, 144, 1},
     {6896, 224, 148},
     {6928, 224, 147},
+    {7456, 128, 26},
     {8944, 152, 0},
     {9104, 224, 148},
     {9488, 224, 10},
     {9792, 208, 10},
     {9904, 224, 10},
     {10160, 224, 10},
+    {11376, 224, 27},
     {11376, 240, 10},
     {11392, 192, 147},
     {11424, 160, 145},

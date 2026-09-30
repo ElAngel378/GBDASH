@@ -259,7 +259,7 @@ const SpDef jumper_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 51 gameplay-critical objects for DMG mode
+// Extracted 54 gameplay-critical objects for DMG mode
 const SpDef jumper_sp_dmg[] = {
     {0, 208, 147},
     {784, 240, 10},
@@ -276,9 +276,11 @@ const SpDef jumper_sp_dmg[] = {
     {4464, 152, 8},
     {4640, 240, 146},
     {4872, 152, 9},
+    {5136, 224, 7},
     {5384, 152, 0},
     {5392, 152, 8},
     {5536, 224, 147},
+    {6224, 112, 26},
     {7104, 224, 148},
     {7136, 152, 9},
     {7312, 224, 150},
@@ -292,6 +294,7 @@ const SpDef jumper_sp_dmg[] = {
     {9344, 240, 147},
     {9568, 240, 148},
     {9792, 240, 149},
+    {9856, 224, 27},
     {10016, 240, 150},
     {10240, 240, 151},
     {10752, 152, 0},

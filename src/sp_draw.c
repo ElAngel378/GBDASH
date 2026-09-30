@@ -83,7 +83,7 @@ extern const unsigned char FontPusab[];
 #define FONT_PUSAB_START 0xD0
 
 static inline uint8_t is_dmg_portal(uint8_t o) {
-    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 24) || (o == 25) || (o == 121) || (o == 126);
+    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 24) || (o == 25) || (o == 7) || (o == 26) || (o == 27) || (o == 121) || (o == 126);
 }
 static uint8_t sp_has_portals = 0;
 
@@ -563,9 +563,9 @@ static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
 // Coin: 2 8x16 sprites, 4 spin frames (Famidash COIN_SPRITE .. COIN_3_SPRITE, 5 frames each)
 static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t gotten) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t base = COIN_TILE_BASE + (gotten ? 8 : 0);
+    uint8_t base = ((_cpu == CGB_TYPE) ? COIN_TILE_BASE : DMG_COIN_TILE_BASE) + (gotten ? 8 : 0);
     uint8_t f = (coin_frame_ctr / 5) & 3;
-    uint8_t t0, t1, p0 = S_PAL(3) | S_BANK, p1 = S_PAL(3) | S_BANK;
+    uint8_t p0 = (_cpu == CGB_TYPE) ? (S_PAL(3) | S_BANK) : 0, p1 = p0, t0, t1;
     if (f == 0)      { t0 = base;     t1 = base;     p1 |= S_FLIPX; }
     else if (f == 1) { t0 = base + 2; t1 = base + 4; }
     else if (f == 2) { t0 = base + 6; t1 = base + 6; p1 |= S_FLIPX; }
@@ -582,7 +582,7 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
         coin_anim_y[n] -= coin_anim_speed[n] & 0xFF00;
         coin_anim_speed[n] -= 0x0040;
         if (++coin_anim_timer[n] >= 40) { coin_anim_timer[n] = 0; continue; }
-        if (_cpu != CGB_TYPE || oam_start > MAX_HARDWARE_SPRITES - 2) continue;
+        if (oam_start > MAX_HARDWARE_SPRITES - 2) continue;
         uint8_t dist_x = (uint8_t)coin_anim_x[n] - (uint8_t)cam_px;
         uint8_t sx = reversed ? (uint8_t)(MIRROR_PLAYER_SCREEN_X - dist_x + 8) : (uint8_t)(dist_x + PLAYER_SCREEN_X + 8);
         uint8_t sy = (uint8_t)((uint8_t)(coin_anim_y[n] >> 8) - (uint8_t)cam_py) + 16;
@@ -641,7 +641,7 @@ uint8_t draw_sprites(
         }
 
         if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
-            if (cache->activated[i] || _cpu != CGB_TYPE) continue;
+            if (cache->activated[i]) continue;
             if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
             oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
             continue;

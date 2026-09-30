@@ -229,7 +229,7 @@ const SpDef stereomadness_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 21 gameplay-critical objects for DMG mode
+// Extracted 24 gameplay-critical objects for DMG mode
 const SpDef stereomadness_sp_dmg[] = {
     {0, 208, 145},
     {960, 224, 145},
@@ -243,14 +243,17 @@ const SpDef stereomadness_sp_dmg[] = {
     {6688, 152, 0},
     {6848, 224, 148},
     {6880, 224, 147},
+    {7192, 200, 7},
     {8336, 224, 148},
     {8368, 224, 150},
+    {10720, 144, 26},
     {12224, 152, 1},
     {12384, 224, 149},
     {12416, 224, 148},
     {12736, 64, 1},
     {13024, 32, 149},
     {13056, 32, 150},
+    {14032, 48, 27},
     {14288, 112, 15},
     {0xFFFF, 0, 0}
 };

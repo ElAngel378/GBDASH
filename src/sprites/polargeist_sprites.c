@@ -249,7 +249,7 @@ const SpDef polargeist_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 50 gameplay-critical objects for DMG mode
+// Extracted 53 gameplay-critical objects for DMG mode
 const SpDef polargeist_sp_dmg[] = {
     {280, 224, 11},
     {520, 224, 11},
@@ -273,6 +273,7 @@ const SpDef polargeist_sp_dmg[] = {
     {5136, 136, 1},
     {5312, 128, 132},
     {5344, 128, 143},
+    {6608, 112, 7},
     {6944, 224, 140},
     {7088, 152, 0},
     {7120, 224, 156},
@@ -281,6 +282,7 @@ const SpDef polargeist_sp_dmg[] = {
     {7520, 192, 11},
     {7952, 224, 11},
     {8080, 208, 11},
+    {9472, 224, 26},
     {9472, 240, 10},
     {9504, 176, 11},
     {9920, 208, 11},
@@ -290,6 +292,7 @@ const SpDef polargeist_sp_dmg[] = {
     {11376, 48, 16},
     {11456, 80, 11},
     {11472, 192, 10},
+    {11504, 48, 27},
     {11648, 224, 11},
     {11792, 224, 11},
     {11824, 160, 145},
