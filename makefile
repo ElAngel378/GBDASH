@@ -32,7 +32,10 @@ $(TEMPDIR)/%.o: %.c
 	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
 # No automatic header tracking: list generated headers / INCBIN data explicitly
-$(TEMPDIR)/mt_renderer.o: src/graphics/tile_patch_tables.h $(wildcard levels/chr_data/famidash/*.bin)
+$(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extra_tiles.bin
+$(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
+$(TEMPDIR)/assets.o: include/bg_tiles.h
+$(TEMPDIR)/famidash_sprite_tiles.o: $(wildcard levels/chr_data/famidash/*.bin)
 
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)

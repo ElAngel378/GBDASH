@@ -91,9 +91,8 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
 void flush_mt_column(uint8_t ring_col) BANKED;
 void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED;
 extern uint8_t mt_spike_b;
-#define LEVEL_TILES_SPIKES_B 1
-#define LEVEL_TILES_BLOCKS_B 2
-void apply_level_tile_patch(uint8_t level, uint8_t flags, uint8_t reversed) BANKED;
+// Level background tiles on top of the base sheet (tools/build_bg_tiles.py)
+void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED;
 void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;

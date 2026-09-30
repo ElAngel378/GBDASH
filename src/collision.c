@@ -83,9 +83,10 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(bank);
   VBK_REG = VBK_TILES;
-  if (tile_count == 256u) {
+  // BG tiles 0..127 and 128.. are separate VRAM blocks (0x9000 / 0x8800)
+  if (tile_count > 128u) {
     set_bkg_data(0, 128, tiles);
-    set_bkg_data(128, 32, tiles + (128u * 16u));
+    set_bkg_data(128, (uint8_t)(tile_count - 128u), tiles + (128u * 16u));
   } else {
     set_bkg_data(0, (uint8_t)tile_count, tiles);
   }

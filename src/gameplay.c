@@ -14,7 +14,8 @@
 #include "famidash_sprites.h"
 #include "famidash_bg.h"
 #include "gbc_palettes.h"
-#include "../levels/chr_data/chr_gb.h"
+#include "bg_tiles.h"
+BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 
 #define DEBUG_MODE
 #include "famidash_metatiles.h"
@@ -33,8 +34,6 @@
 #include "collision.h"
 #include "settings.h"
 
-extern const uint8_t chr_gb_cgb_tiles[];
-extern const uint8_t chr_gb_cgb_tiles_rev[];
 
 #define BKG_MT_W 16
 
@@ -45,9 +44,6 @@ extern const uint8_t chr_gb_cgb_tiles_rev[];
 #define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
-// Famidash spike/block CHR sets of the level (see apply_level_tile_patch)
-#define LEVEL_TILE_FLAGS(idx) (((idx) == LEVEL_XSTEP) ? LEVEL_TILES_SPIKES_B : \
-                               ((idx) == LEVEL_CLUTTERFUNK) ? LEVEL_TILES_BLOCKS_B : 0)
 #define BKG_MT_H 16
 #define VIEW_MT_W 10
 #define VIEW_MT_H 9
@@ -196,7 +192,7 @@ static void reload_level_state(uint8_t idx) {
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), 0);
+    apply_level_bg_tiles(idx, 0);
     if (!setting_show_bg_enabled) {
         // Hide BG: blank DMG tile 12 so empty areas are solid
         set_bkg_data(12, 1, blank_bg_tile);
@@ -479,10 +475,10 @@ static void mirror_reload(uint8_t idx) {
     DISPLAY_OFF;
 
     const uint8_t* target_tiles = player.reversed
-        ? ((_cpu == CGB_TYPE) ? chr_gb_cgb_tiles_rev : l->tiles_rev)
+        ? l->tiles_rev
         : level_tiles;
     load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), player.reversed);
+    apply_level_bg_tiles(idx, player.reversed);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
@@ -551,7 +547,6 @@ void play_level(uint8_t idx) BANKED {
     level_map_h = l->map_height;
     level_tiles_bank = BANK(chr_gb);
     level_map_bank = l->map_bank;
-    if (_cpu == CGB_TYPE) level_tiles = chr_gb_cgb_tiles;
 
     cam_px = 0;
     if (_cpu == CGB_TYPE) {
@@ -574,7 +569,7 @@ void play_level(uint8_t idx) BANKED {
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
-    apply_level_tile_patch(idx, LEVEL_TILE_FLAGS(idx), 0);
+    apply_level_bg_tiles(idx, 0);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
