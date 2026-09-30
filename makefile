@@ -31,6 +31,9 @@ prepare:
 $(TEMPDIR)/%.o: %.c
 	$(GBCC) $(LCCFLAGS) -c -o $@ $<
 
+# No automatic header tracking: list generated headers / INCBIN data explicitly
+$(TEMPDIR)/mt_renderer.o: src/graphics/tile_patch_tables.h $(wildcard levels/chr_data/famidash/*.bin)
+
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
 

@@ -85,7 +85,8 @@ def main():
     # 2. block set B patch (Clutterfunk)
     blocks = {n: (tiles_dir / ("Blocks%s.chr" % n)).read_bytes() for n in "ABCD"}
     sheet = (ROOT / "levels" / "chr_data" / "chr_gb_dmg_tiles.bin").read_bytes()
-    perms = list(itertools.permutations(range(4)))
+    # any NES colour -> sheet colour mapping (the sheet sometimes merges two NES colours)
+    perms = list(itertools.product(range(4), repeat=4))
 
     def best(nes, gb):
         flat_n = [v for r in nes for v in r]

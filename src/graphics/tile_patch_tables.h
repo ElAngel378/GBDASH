@@ -44,8 +44,8 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
     { 0xFF, 0xFF, 0x40, 0x45 }, /* SMALL_SAW_TOP_HALF */
 };
 
-#define BLOCKS_B_PATCH_COUNT 13
+#define BLOCKS_B_PATCH_COUNT 20
 // Sheet tiles replaced by Famidash block set B art (Clutterfunk)
-static const uint8_t blocks_b_patch_tiles[BLOCKS_B_PATCH_COUNT] = { 83, 84, 85, 86, 87, 98, 99, 101, 102, 110, 111, 122, 123 };
+static const uint8_t blocks_b_patch_tiles[BLOCKS_B_PATCH_COUNT] = { 82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125 };
 
 #endif
