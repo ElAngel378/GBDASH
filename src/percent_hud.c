@@ -28,32 +28,12 @@ static uint8_t shown = 0xFF;     // value currently in OAM (0xFF: redraw)
 static uint16_t thr, q, step_q;
 static uint8_t rem, step_r;
 
-// CGB colours, like the pause menu's "PAUSED" (white, black outline): sprite palette 7
-// = black (1), the mirror-exit cyan (2) and white (3); no palette is free for PAUSED's
-// light-blue shading. PERCENT_SHADE picks what the font's shading pixels (colour 2)
-// become: 3 = white (closest to PAUSED), 2 = cyan.
-#ifndef PERCENT_SHADE
-#define PERCENT_SHADE 3
-#endif
-
-static void load_glyph(uint8_t tile, const uint8_t *src) {
-    uint8_t buf[16];
-    for (uint8_t r = 0; r < 16; r += 2) {
-        uint8_t lo = src[r], hi = src[r + 1];
-#if PERCENT_SHADE == 3
-        if (_cpu == CGB_TYPE) lo |= hi;   // colour 2 (hi only) -> colour 3
-#endif
-        buf[r] = lo; buf[r + 1] = hi;
-    }
-    set_sprite_data(tile, 1, buf);
-}
-
 void percent_hud_load_tiles(void) BANKED {
     uint8_t k;
     for (k = 0; k < 10; k++) {
-        load_glyph((uint8_t)(HUD_PAIR_BASE + (k << 1) + 1), &FontPusab[(FONT_DIGIT0 + k) * 16]);
+        set_sprite_data((uint8_t)(HUD_PAIR_BASE + (k << 1) + 1), 1, &FontPusab[(FONT_DIGIT0 + k) * 16]);
     }
-    load_glyph((uint8_t)(HUD_PAIR_BASE + (GLYPH_PERCENT << 1) + 1), &FontPusab[FONT_PERCENT * 16]);
+    set_sprite_data((uint8_t)(HUD_PAIR_BASE + (GLYPH_PERCENT << 1) + 1), 1, &FontPusab[FONT_PERCENT * 16]);
     shown = 0xFF;
 }
 
@@ -86,7 +66,8 @@ static void put(uint8_t slot, uint8_t x, uint8_t glyph) {
     shadow_OAM[slot].y = HUD_Y;
     shadow_OAM[slot].x = x;
     shadow_OAM[slot].tile = (uint8_t)(HUD_PAIR_BASE + (glyph << 1));
-    // Palette 7 on CGB (white, see load_glyph), OBP0 on DMG
+    // CGB: sprite palette 7 = the colours of the pause menu's "PAUSED" text
+    // (black outline, light blue shading, white). DMG: OBP0
     shadow_OAM[slot].prop = (_cpu == CGB_TYPE) ? 7 : 0;
 }
 

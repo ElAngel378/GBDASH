@@ -34,6 +34,17 @@ void load_famidash_sprite_tiles(uint8_t deco_cloud) BANKED {
                         deco_cloud ? famidash_deco_cloud_tiles : famidash_deco_tiles);
         set_sprite_data(COIN_TILE_BASE, 16, coin_tiles);
         VBK_REG = 0;
+        // Mirror exit portal: colour 2 -> 3, so both mirror portals fit in sprite
+        // palette 6 and palette 7 is free for the HUD text (percent_hud.c)
+        for (uint8_t t = 0; t < 16; t++) {
+            uint8_t buf[16];
+            const uint8_t *src = famidash_sprites_tiles + (MIRROR_PORTAL_EXIT_TILE + t) * 16u;
+            for (uint8_t r = 0; r < 16; r += 2) {
+                buf[r] = src[r] | src[r + 1];
+                buf[r + 1] = src[r + 1];
+            }
+            set_sprite_data(FAMIDASH_SPRITE_TILE_BASE + MIRROR_PORTAL_EXIT_TILE + t, 1, buf);
+        }
     } else {
         set_sprite_data(DMG_COIN_TILE_BASE, 16, coin_tiles);
     }

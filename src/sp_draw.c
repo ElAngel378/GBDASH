@@ -287,7 +287,7 @@ static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oa
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
     uint8_t t_base = (obj == OBJ_MIRROR_PORTAL) ? (tile_base + MIRROR_PORTAL_ENTER_TILE)
                                                 : (tile_base + MIRROR_PORTAL_EXIT_TILE);
-    uint8_t pal = (obj == OBJ_MIRROR_PORTAL) ? S_PAL(6) : S_PAL(7);
+    uint8_t pal = S_PAL(6);   // entrance and exit share palette 6 (see gbc_palettes.c)
     uint8_t flip = (obj == OBJ_MIRROR_PORTAL) ? reversed : (!reversed);
 
     if (!flip) {

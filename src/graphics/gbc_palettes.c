@@ -19,9 +19,9 @@ const uint16_t gbc_sprite_palettes[32] = {
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 100, 255), RGB8(255, 100, 255),
     // 5: Ball (Outline: Black, Primary: Red, Secondary: Red)
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 0, 0), RGB8(255, 0, 0),
-    // 6: Mirror Portal Entrance (Orange #f7b62a: outline black, ring orange)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(247, 182, 42), RGB8(247, 182, 42),
-    // 7: Mirror Portal Exit (Blue #00f7f7: outline black, ring blue). The portal art
-    //    only uses colours 1-2, so colour 3 is the white of the % display (percent_hud.c)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 247, 247), RGB8(255, 255, 255)
+    // 6: Mirror portals (outline black; entrance ring orange #f7b62a = colour 2, exit ring
+    //    blue #00f7f7 = colour 3: on CGB the exit tiles are loaded recoloured 2 -> 3)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(247, 182, 42), RGB8(0, 247, 247),
+    // 7: HUD text, same colours as the pause menu's "PAUSED": the % display
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(180, 215, 255), RGB8(255, 255, 255)
 };
