@@ -21,6 +21,7 @@ const uint16_t gbc_sprite_palettes[32] = {
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 0, 0), RGB8(255, 0, 0),
     // 6: Mirror Portal Entrance (Orange #f7b62a: outline black, ring orange)
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(247, 182, 42), RGB8(247, 182, 42),
-    // 7: Mirror Portal Exit (Blue #00f7f7: outline black, ring blue)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 247, 247), RGB8(0, 247, 247)
+    // 7: Mirror Portal Exit (Blue #00f7f7: outline black, ring blue). The portal art
+    //    only uses colours 1-2, so colour 3 is the white of the % display (percent_hud.c)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 247, 247), RGB8(255, 255, 255)
 };
