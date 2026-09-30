@@ -30,6 +30,8 @@ KNOWN_LEVELS = {
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
     "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 11, "short": "ultiatedestruction"},
+    # 1.4 levels (no music yet: plays silent)
+    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 180, "order": 12, "short": "cf"},
 }
 
 def read_uge_tempo(uge_path):
@@ -313,6 +315,8 @@ def build_all(export_tiles=False, export_metatiles=False):
     levels_info = []
 
     BASE_MAP_BANK = 30
+    PARALLAX_BANK_FIRST = 41
+    PARALLAX_BANK_COUNT = 4
     BASE_SPRITE_BANK = 100
     BASE_MUSIC_BANK = 200
 
@@ -323,6 +327,9 @@ def build_all(export_tiles=False, export_metatiles=False):
         stem = tmx_path.stem.lower()
         ident = make_c_ident(stem)
         map_bank = BASE_MAP_BANK + idx
+        # Banks 41..44 hold the parallax background phases: skip them
+        if map_bank >= PARALLAX_BANK_FIRST:
+            map_bank += PARALLAX_BANK_COUNT
         sprite_bank = BASE_SPRITE_BANK + idx
         music_bank = BASE_MUSIC_BANK + idx
 

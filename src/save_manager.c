@@ -10,7 +10,9 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 3
+#define SAVE_VERSION 4
+// Level count of the version 3 layout (progress arrays were 11 entries long)
+#define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
 
 #include "settings.h"
@@ -41,7 +43,7 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 3) {
+        if (sram[4] == 4) {
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES);
             if (sram[5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
@@ -56,9 +58,29 @@ void init_save_system(void) BANKED {
                 setting_show_bg_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 3] ? 1 : 0;
                 setting_parallax_enabled = sram[5 + NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
-                // Enforce interlock: no parallax without BG
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
+                return;
+            }
+        } else if (sram[4] == 3) {
+            // Upgrade from Version 3 (11 levels, 6 settings bytes)
+            uint8_t chk = calc_checksum((const uint8_t *)&sram[5], V3_NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES);
+            if (sram[5 + V3_NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES] == chk) {
+                for (uint8_t i = 0; i < V3_NUM_SAVE_LEVELS; i++) {
+                    level_progress_normal[i] = sram[5 + i];
+                    level_progress_practice[i] = sram[5 + V3_NUM_SAVE_LEVELS + i];
+                    if (level_progress_normal[i] > 100) level_progress_normal[i] = 100;
+                    if (level_progress_practice[i] > 100) level_progress_practice[i] = 100;
+                }
+                setting_music_enabled    = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 0] ? 1 : 0;
+                setting_sfx_enabled      = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 1] ? 1 : 0;
+                setting_dmg_gradient     = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 2] ? 1 : 0;
+                setting_show_bg_enabled  = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 3] ? 1 : 0;
+                setting_parallax_enabled = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
+                setting_effects_enabled  = sram[5 + V3_NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
+                if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
+                DISABLE_RAM;
+                save_game_data();
                 return;
             }
         } else if (sram[4] == 2) {

@@ -31,6 +31,8 @@ BANKREF_EXTERN(xstep_map)
 extern const uint8_t xstep_map[];
 BANKREF_EXTERN(ultiatedestruction_map)
 extern const uint8_t ultiatedestruction_map[];
+BANKREF_EXTERN(clutterfunk_map)
+extern const uint8_t clutterfunk_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -68,6 +70,9 @@ BANKREF_EXTERN(xstep_sp)
 extern const SpDef ultiatedestruction_sp[];
 extern const SpDef ultiatedestruction_sp_dmg[];
 BANKREF_EXTERN(ultiatedestruction_sp)
+extern const SpDef clutterfunk_sp[];
+extern const SpDef clutterfunk_sp_dmg[];
+BANKREF_EXTERN(clutterfunk_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -98,6 +103,7 @@ const hUGESong_t * const level_songs[] = {
   &cycles, // level_cy
   &xstep, // level_xs
   &ultiatedestruction, // level_ultiatedestruction
+  NULL, // level_cf (silent)
   NULL, // level_test (silent)
 };
 
@@ -114,6 +120,7 @@ const uint8_t song_bank[] = {
   208u, // level_cy
   209u, // level_xs
   210u, // level_ultiatedestruction
+  0u, // level_cf
   0u, // level_test
 };
 
@@ -261,6 +268,19 @@ const Level level_ultiatedestruction = {
   ultiatedestruction_sp_dmg
 };
 
+const Level level_cf = {
+  "CLUTTERFUNK",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  clutterfunk_map,
+  chr_gb_TILE_COUNT, 1004, 16, 0, 0,
+  BANK(clutterfunk_map),
+  180,
+  clutterfunk_sp,
+  BANK(clutterfunk_sp),
+  clutterfunk_sp_dmg
+};
+
 const Level level_test = {
   "TEST",
   chr_gb_tiles,
@@ -287,6 +307,7 @@ const Level* const game_levels[] = {
   &level_cy,
   &level_xs,
   &level_ultiatedestruction,
+  &level_cf,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);

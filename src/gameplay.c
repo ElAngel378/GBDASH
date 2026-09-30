@@ -39,7 +39,8 @@ extern const uint8_t chr_gb_cgb_tiles_rev[];
 // Famidash chooses the decoration art per level: only Xstep (index 9) uses DECOCLOUD
 // (ground "spikes" drawn as round bushes); every other level uses DECO1.
 #define LEVEL_XSTEP 9
-#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP)
+#define LEVEL_CLUTTERFUNK 11
+#define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
 #define BKG_MT_H 16

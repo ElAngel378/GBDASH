@@ -97,7 +97,8 @@ void famidash_apply_g_trigger(uint8_t color_id) BANKED {
     famidash_bkg_palettes_dirty = 1;
 }
 
-static const uint8_t level_initial_bg_color[11] = {
+#define NUM_LEVEL_COLORS 13
+static const uint8_t level_initial_bg_color[NUM_LEVEL_COLORS] = {
     17, // Stereo Madness: Blue
     20, // Back On Track: Magenta
     42, // Polargeist: Green
@@ -108,10 +109,12 @@ static const uint8_t level_initial_bg_color[11] = {
     42, // Time Machine: Green
     4,  // Cycles: Dark Violet
     28, // xStep: Cyan
-    17  // Ultimate Destruction: Blue
+    17, // Ultimate Destruction: Blue
+    22, // Clutterfunk: Red
+    17  // Test
 };
 
-static const uint8_t level_initial_g_color[11] = {
+static const uint8_t level_initial_g_color[NUM_LEVEL_COLORS] = {
     46, // Stereo Madness: Neon Green
     20, // Back On Track: Magenta
     26, // Polargeist: Medium Green
@@ -122,12 +125,14 @@ static const uint8_t level_initial_g_color[11] = {
     26, // Time Machine: Medium Green
     20, // Cycles: Magenta
     12, // xStep: Dark Cyan
-    17  // Ultimate Destruction: Blue
+    17, // Ultimate Destruction: Blue
+    6,  // Clutterfunk: Dark Red
+    46  // Test
 };
 
 void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     uint8_t i;
-    if (idx >= 11) idx = 0;
+    if (idx >= NUM_LEVEL_COLORS) idx = 0;
     for (i = 0; i < 20; i++) famidash_bg_palettes[i] = vibrant_palette_default[i];
     current_sky_color = 0xFFFF;
     current_g_color = 0xFFFF;

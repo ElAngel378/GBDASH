@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <gbdk/platform.h>
 
-#define NUM_SAVE_LEVELS 11
+// Room for more levels than exist yet: changing this changes the save layout (see SAVE_VERSION)
+#define NUM_SAVE_LEVELS 16
 
 extern uint8_t level_progress_normal[NUM_SAVE_LEVELS];
 extern uint8_t level_progress_practice[NUM_SAVE_LEVELS];

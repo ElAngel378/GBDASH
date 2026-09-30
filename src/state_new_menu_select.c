@@ -19,7 +19,8 @@ extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
 // Level background colors
-static const palette_color_t cgb_level_bg_colors[9] = {
+#define NUM_LEVEL_STYLES 13
+static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0,   0, 255), // Stereo Madness
     RGB8(248,   0, 248), // Back On Track
     RGB8(248,   0, 122), // Polargeist
@@ -29,6 +30,10 @@ static const palette_color_t cgb_level_bg_colors[9] = {
     RGB8(  0, 248,   0), // Jumper
     RGB8(  0, 248, 248), // Time Machine
     RGB8(  0, 122, 248), // Cycles
+    RGB8(  0,   0, 255), // xStep
+    RGB8(248,   0, 248), // Ultimate Destruction
+    RGB8(230,  50,  80), // Clutterfunk
+    RGB8(  0,   0, 255), // Test
 };
 
 static const palette_color_t diff_skin_colors[6] = {
@@ -40,7 +45,7 @@ static const palette_color_t diff_skin_colors[6] = {
     RGB8(225, 30, 40)   // Demon
 };
 
-static const uint8_t level_difficulties[11] = {
+static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
     0, // Stereo Madness
     0, // Back On Track
     1, // Polargeist
@@ -51,7 +56,9 @@ static const uint8_t level_difficulties[11] = {
     3, // Time Machine
     3, // Cycles
     4, // xStep
-    5  // Ultimate Destruction
+    5, // Ultimate Destruction
+    4, // Clutterfunk
+    0  // Test
 };
 
 // Difficulty faces (16x16)
@@ -140,7 +147,7 @@ static palette_color_t cgb_menu_pals[32] = {
 static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
     if (_cpu == CGB_TYPE) {
         palette_color_t box_bg = get_box_tint(bg_col);
-        uint8_t diff = level_difficulties[level_idx % 11];
+        uint8_t diff = level_difficulties[level_idx % NUM_LEVEL_STYLES];
 
         cgb_menu_pals[0]  = bg_col;
         cgb_menu_pals[4]  = bg_col;
@@ -296,7 +303,7 @@ static void setup_arrow_sprites(void) {
 
     if (_cpu == CGB_TYPE) {
         palette_color_t obj_pals[12];
-        palette_color_t box_bg = get_box_tint(cgb_level_bg_colors[selected % 9]);
+        palette_color_t box_bg = get_box_tint(cgb_level_bg_colors[selected % NUM_LEVEL_STYLES]);
 
         // Pal 0: Arrows
         obj_pals[0] = RGB8(0, 0, 0);
@@ -453,12 +460,12 @@ static void update_level_progress_bars(uint8_t level_idx) {
 static uint8_t last_rendered_diff = 0xFF;
 
 static void draw_selected_level(void) {
-    // Clear only the 10 columns of text area on rows 6 and 7 with box interior tile 0x16
-    fill_bkg_rect(6, 6, 10, 2, 0x16);
+    // Clear only the 11 columns of text area on rows 6 and 7 with box interior tile 0x16
+    fill_bkg_rect(6, 6, 11, 2, 0x16);
     update_level_progress_bars(selected);
 
     // Update difficulty face tiles in VRAM only if difficulty changed
-    uint8_t diff = level_difficulties[selected % 11];
+    uint8_t diff = level_difficulties[selected % NUM_LEVEL_STYLES];
     if (diff != last_rendered_diff) {
         if (_cpu == CGB_TYPE) {
             set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
@@ -487,7 +494,7 @@ static void draw_selected_level(void) {
     const char *name = game_levels[selected]->name;
     uint8_t len = get_name_length(name);
 
-    if (len <= 10) {
+    if (len <= 11) { // the box interior is wide enough for 11 letters (columns 6..16)
         draw_menu_text(6, 6, name);
     } else {
         int8_t split_idx = -1;
@@ -562,7 +569,7 @@ GameState update_new_menu_select_state(void) BANKED {
 
     setup_menu_select_font();
 
-    palette_color_t current_bg_color = cgb_level_bg_colors[selected % 9];
+    palette_color_t current_bg_color = cgb_level_bg_colors[selected % NUM_LEVEL_STYLES];
     palette_color_t bg_color_from = current_bg_color;
     palette_color_t bg_color_to = current_bg_color;
     uint8_t color_fade_step = COLOR_FADE_MAX;
@@ -653,7 +660,7 @@ GameState update_new_menu_select_state(void) BANKED {
             else selected = 0;
 
             bg_color_from = current_bg_color;
-            bg_color_to = cgb_level_bg_colors[selected % 9];
+            bg_color_to = cgb_level_bg_colors[selected % NUM_LEVEL_STYLES];
             color_fade_step = 0;
 
             anim_dir = 1;
@@ -666,7 +673,7 @@ GameState update_new_menu_select_state(void) BANKED {
             else selected = MAX_LEVELS - 1;
 
             bg_color_from = current_bg_color;
-            bg_color_to = cgb_level_bg_colors[selected % 9];
+            bg_color_to = cgb_level_bg_colors[selected % NUM_LEVEL_STYLES];
             color_fade_step = 0;
 
             anim_dir = -1;
