@@ -14,8 +14,8 @@ Sections (first tile row, tile count). Tile rows are 8 px:
     row 14  SAWS_DMG       48  DMG: sawblades, loaded into free slots of levels with saws
     row 17  BLOCKS_B_CGB   20  Famidash block set B (CGB), replaces BLOCKS_B_SLOTS
     row 19  BLOCKS_B_DMG   20  Famidash block set B (DMG), replaces BLOCKS_B_SLOTS
-    row 21  SPIKES_B_CGB    8  Famidash spike set B background spikes (CGB),
-                               replaces SPIKES_B_SLOTS
+    row 21  SPIKES_B_CGB    8  Famidash spike set B background spikes (CGB and DMG: the
+                               gameplay BGP keeps the CGB colour order), replaces SPIKES_B_SLOTS
 
 Which Famidash tile sets a level uses: LEVEL_SETS below.
 
@@ -184,7 +184,16 @@ def main():
         loads = []
         if sets.get("blocks") == "B":
             loads += [(0, d, n, s) for d, n, s in runs(BLOCKS_B_SLOTS, first["BLOCKS_B_DMG"])]
+        overrides = []
+        if sets.get("spikes") == "B":
+            loads += [(0, d, n, s) for d, n, s in runs(SPIKES_B_SLOTS, first["SPIKES_B_CGB"])]
+            overrides += SPIKES_B_OVERRIDES
         used_t = set(DMG_RESERVED_TILES)
+        # slots that hold a loaded tile set B must not be handed out as free slots
+        if sets.get("blocks") == "B":
+            used_t.update(BLOCKS_B_SLOTS)
+        if sets.get("spikes") == "B":
+            used_t.update(SPIKES_B_SLOTS)
         saw_k = set()
         for m in level_mts:
             for q in range(4):
@@ -201,8 +210,8 @@ def main():
         saw_slot = dict(zip(sorted(saw_k), free[len(high):]))
         for k_ in sorted(saw_slot):
             loads.append((0, saw_slot[k_], 1, first["SAWS_DMG"] + k_))
-        overrides = [(m, q, saw_slot[SAW_METATILES[m][q]]) for m in sorted(level_mts) if m in SAW_METATILES
-                     for q in range(4) if SAW_METATILES[m][q] is not None]
+        overrides += [(m, q, saw_slot[SAW_METATILES[m][q]]) for m in sorted(level_mts) if m in SAW_METATILES
+                      for q in range(4) if SAW_METATILES[m][q] is not None]
         dmg = stream(loads, moves, overrides)
         streams.append((lv, name, cgb, dmg))
         if moves or saw_slot:
