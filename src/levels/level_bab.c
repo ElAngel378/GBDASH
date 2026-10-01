@@ -1,5 +1,6 @@
-#pragma bank 34
+#pragma bank 38
 #include <gbdk/incbin.h>
 
-INCBIN(baseafterbase_map, "levels/level_data/baseafterbase_16high.bin")
+// Columns 0..511; the rest are in level_bab_1.c.. (next banks, same address)
+INCBIN(baseafterbase_map, "levels/level_data/baseafterbase_16high_0.bin")
 INCBIN_EXTERN(baseafterbase_map)

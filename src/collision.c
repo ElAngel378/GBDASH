@@ -4,12 +4,13 @@
 
 #define BKG_MT_H 16
 
-// A level map is split into MAP_BANK_COLS-column chunks (16 KB), one per ROM bank, in
-// consecutive banks starting at map_bank. Every chunk is the only thing in its bank, so each
-// one starts at the same address as the first: column c is in bank map_bank + (c >> 10), at
-// map + ((c & 1023) << 4).
+// A level map is MAP_ROWS metatiles tall, stored column by column (MAP_ROWS bytes each), and
+// split into MAP_BANK_COLS-column chunks (16 KB), one per ROM bank, in consecutive banks
+// starting at map_bank. Every chunk is the only thing in its bank, so each one starts at the
+// same address as the first: column c is in bank map_bank + (c >> 9), at
+// map + ((c & 511) << 5).
 #define MAP_BANK(map_bank, c) ((uint8_t)((map_bank) + (uint8_t)((c) >> MAP_BANK_COLS_SHIFT)))
-#define MAP_COL(map, c) ((map) + (((uint16_t)(c) & (MAP_BANK_COLS - 1u)) << 4))
+#define MAP_COL(map, c) ((map) + (((uint16_t)(c) & (MAP_BANK_COLS - 1u)) << MAP_ROWS_SHIFT))
 
 static uint8_t _prev_map_bank;
 
@@ -103,49 +104,65 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
 // Buffer current and adjacent map columns in WRAM to reduce bank switches
 #include <string.h>
 
+// The player's collision window: map rows row0 .. row0+15 of columns map_col and map_col+1
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,
-                            uint8_t* columns) {
+                            uint8_t* columns, uint8_t row0) {
   uint8_t _prev = _current_bank;
   uint16_t right_col = (map_col + 1u < map_w) ? map_col + 1u : map_col;
 
   SWITCH_ROM(MAP_BANK(map_bank, map_col));
-  memcpy(columns, MAP_COL(map, map_col), 16);
+  memcpy(columns, MAP_COL(map, map_col) + row0, 16);
   // the right column is in the next bank when map_col is the last column of a chunk
   SWITCH_ROM(MAP_BANK(map_bank, right_col));
-  memcpy(columns + 16, MAP_COL(map, right_col), 16);
+  memcpy(columns + 16, MAP_COL(map, right_col) + row0, 16);
   SWITCH_ROM(_prev);
 }
 
-void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest) {
+// The 16 map rows the VRAM ring holds for band `band`: dest[k] = map row band + ((k - band) & 15),
+// the row shown in VRAM metatile row k. Rows below the map (the ground row) read as 0.
+void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest, uint8_t band) {
   uint8_t _prev = _current_bank;
   SWITCH_ROM(MAP_BANK(map_bank, map_col));
-  memcpy(dest, MAP_COL(map, map_col), 16);
-  SWITCH_ROM(_prev);
-}
-
-uint8_t get_map_tile0(uint16_t col, const uint8_t *map, uint8_t map_bank) {
-  uint8_t _prev = _current_bank;
-  SWITCH_ROM(MAP_BANK(map_bank, col));
-  uint8_t id = *MAP_COL(map, col);
-  SWITCH_ROM(_prev);
-  return id;
-}
-
-void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids) {
-  uint8_t _prev = _current_bank;
-  for (uint8_t s = 0; s < 16; s++) {
-    uint8_t slot = s;
-    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
-    uint16_t col = loaded_r - ((loaded_r - slot) & 15u);
-    if (col < map_w) {
-      SWITCH_ROM(MAP_BANK(map_bank, col));
-      out_ids[s] = *MAP_COL(map, col);
-    } else {
-      out_ids[s] = 0;
-    }
+  // VRAM rows b..15 show map rows base+b..base+15, VRAM rows 0..b-1 rows base+16..base+16+b-1
+  const uint8_t *src = MAP_COL(map, map_col) + (band & ~15u);
+  uint8_t b = band & 15u;
+  memcpy(dest + b, src + b, 16u - b);
+  if (b) {
+    if ((band & ~15u) + 16u < MAP_ROWS) memcpy(dest, src + 16, b);
+    else memset(dest, 0, b);   // below the map: the ground row
   }
   SWITCH_ROM(_prev);
+}
+
+// Metatiles of map row `row` at ring positions first .. first+n-1 (the columns loaded_r maps them
+// to), with as few bank switches as possible. Rows below the map read as 0.
+void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed,
+                       const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t *out) {
+  uint8_t _prev = _current_bank;
+  uint8_t cur = _prev;
+  for (uint8_t i = 0; i < n; i++) {
+    uint8_t slot = (uint8_t)(first + i);
+    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+    uint16_t c = loaded_r - ((loaded_r - slot) & 15u);
+    uint8_t id = 0;
+    if (c < map_w && row < MAP_ROWS) {
+      uint8_t b = MAP_BANK(map_bank, c);
+      if (b != cur) { SWITCH_ROM(b); cur = b; }
+      id = MAP_COL(map, c)[row];
+    }
+    out[i] = id;
+  }
+  if (cur != _prev) SWITCH_ROM(_prev);
+}
+
+uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank) {
+  if (row >= MAP_ROWS) return 0;
+  uint8_t _prev = _current_bank;
+  SWITCH_ROM(MAP_BANK(map_bank, col));
+  uint8_t id = MAP_COL(map, col)[row];
+  SWITCH_ROM(_prev);
+  return id;
 }
 
 

@@ -449,7 +449,7 @@ void process_sprite_logic(
 ) BANKED {
     uint8_t i;
     uint16_t px = p->world_x;
-    uint16_t py = p->world_y.b.h;
+    uint16_t py = p->y_base + p->world_y.b.h;
 
     // Player box (mini: 8x7 at +4 like Famidash)
     uint16_t p_front = px + (p->mini ? MINI_BOX_RIGHT : 15u);
@@ -660,9 +660,11 @@ uint8_t draw_sprites(
             screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
         }
 
-        screen_y = ((uint8_t)cache->py[i] - (uint8_t)cam_py) + 16;
-
-        if (screen_y > 160 && screen_y < 208) continue;
+        // 16-bit test: in a tall level an object 256px away would wrap onto the screen.
+        // d = object y - camera y + 48, on screen (incl. 48px above) when d <= 192.
+        uint16_t d = cache->py[i] - cam_py + 48u;
+        if (d > 192u) continue;
+        screen_y = (uint8_t)d - 32u;
 
         if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
             if (oam_start > MAX_HARDWARE_SPRITES - 7) break;

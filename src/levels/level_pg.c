@@ -1,5 +1,6 @@
-#pragma bank 32
+#pragma bank 34
 #include <gbdk/incbin.h>
 
-INCBIN(polargeist_map, "levels/level_data/polargeist_16high.bin")
+// Columns 0..511; the rest are in level_pg_1.c.. (next banks, same address)
+INCBIN(polargeist_map, "levels/level_data/polargeist_16high_0.bin")
 INCBIN_EXTERN(polargeist_map)

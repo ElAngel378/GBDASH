@@ -15,9 +15,9 @@ uint8_t bg_cj_x, bg_cj_y;
 const uint8_t *bg_cj_tiles;
 const uint8_t *bg_cj_attrs;
 volatile uint8_t bg_rj_pending;
-uint8_t bg_rj_x;
-uint8_t bg_rj_tiles[16];
-uint8_t bg_rj_attrs[16];
+uint8_t bg_rj_x, bg_rj_y;
+uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];
+uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
 volatile uint8_t bg_saw_pending;
 uint8_t bg_saw_bank, bg_saw_blocks;
 const uint8_t *bg_saw_src;
@@ -155,13 +155,17 @@ void bg_parallax_vbl_isr(void) {
         }
         ly = LY_REG;
         if (bg_rj_pending && ly >= 144u && ly <= 151u) {
-            uint8_t *row0 = (uint8_t *)0x9800 + bg_rj_x;
+            uint8_t *row0 = (uint8_t *)0x9800 + ((uint16_t)bg_rj_y << 5) + bg_rj_x;
             VBK_REG = 0;
-            up_dst = row0; up_src = bg_rj_tiles; copy8();
-            up_dst = row0 + 32; up_src = bg_rj_tiles + 8; copy8();
+            up_dst = row0;      up_src = bg_rj_tiles;      copy8();
+            up_dst = row0 + 8;  up_src = bg_rj_tiles + 8;  copy8();
+            up_dst = row0 + 32; up_src = bg_rj_tiles + 16; copy8();
+            up_dst = row0 + 40; up_src = bg_rj_tiles + 24; copy8();
             VBK_REG = 1;
-            up_dst = row0; up_src = bg_rj_attrs; copy8();
-            up_dst = row0 + 32; up_src = bg_rj_attrs + 8; copy8();
+            up_dst = row0;      up_src = bg_rj_attrs;      copy8();
+            up_dst = row0 + 8;  up_src = bg_rj_attrs + 8;  copy8();
+            up_dst = row0 + 32; up_src = bg_rj_attrs + 16; copy8();
+            up_dst = row0 + 40; up_src = bg_rj_attrs + 24; copy8();
             bg_rj_pending = 0;
         }
     }

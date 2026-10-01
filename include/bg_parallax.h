@@ -37,10 +37,12 @@ extern volatile uint8_t bg_cj_pending;     // 8 tile rows x 2 columns of a strea
 extern uint8_t bg_cj_x, bg_cj_y;
 extern const uint8_t *bg_cj_tiles;         // 16 bytes: (x, x+1) for each of 8 rows
 extern const uint8_t *bg_cj_attrs;
-extern volatile uint8_t bg_rj_pending;     // top two tile rows, 8 tiles wide (four ring positions)
-extern uint8_t bg_rj_x;
-extern uint8_t bg_rj_tiles[16];            // row 0 (8 tiles) then row 1 (8 tiles)
-extern uint8_t bg_rj_attrs[16];
+// Row job: one map row (two tile rows at tile row bg_rj_y), BG_RJ_SLOTS ring positions from bg_rj_x
+#define BG_RJ_SLOTS 8
+extern volatile uint8_t bg_rj_pending;
+extern uint8_t bg_rj_x, bg_rj_y;
+extern uint8_t bg_rj_tiles[2 * 2 * BG_RJ_SLOTS];   // top tile row, then bottom tile row
+extern uint8_t bg_rj_attrs[2 * 2 * BG_RJ_SLOTS];
 // Saw animation: GDMA of bg_saw_blocks 16-byte tiles from bg_saw_src (in ROM bank bg_saw_bank)
 // to VRAM bank 1 at offset bg_saw_dst from 0x8000, after the parallax GDMA (retried when late).
 extern volatile uint8_t bg_saw_pending;

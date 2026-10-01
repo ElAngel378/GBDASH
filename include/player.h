@@ -106,6 +106,7 @@ typedef struct Player {
     uint8_t  mini;         // 1 = mini size (mini portal)
     uint16_t level_end_x;
     uint16_t sp_idx;
+    uint16_t y_base;       // world y of the collision window (world_y is relative to it)
 } Player;
 
 // Reset player state to starting position

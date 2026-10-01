@@ -1,5 +1,6 @@
-#pragma bank 31
+#pragma bank 32
 #include <gbdk/incbin.h>
 
-INCBIN(backontrack_map, "levels/level_data/backontrack_16high.bin")
+// Columns 0..511; the rest are in level_bot_1.c.. (next banks, same address)
+INCBIN(backontrack_map, "levels/level_data/backontrack_16high_0.bin")
 INCBIN_EXTERN(backontrack_map)

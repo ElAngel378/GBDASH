@@ -113,7 +113,9 @@ def export_binary_map(tmx_path, out_bin_path):
         row_0based = [(tid - 1 if tid > 0 else 0) for tid in row]
         grid.append(row_0based)
 
-    crop_height = 16
+    # Maps are MAP_ROWS tall, bottom-aligned: shorter maps get empty rows on top, taller ones
+    # lose their top rows
+    crop_height = MAP_ROWS
     start_y = max(0, height - crop_height)
     cropped_grid = grid[start_y:height]
 
@@ -126,9 +128,11 @@ def export_binary_map(tmx_path, out_bin_path):
             for y in range(crop_height):
                 f.write(bytes([cropped_grid[y][x] & 0xFF]))
 
-# A map is stored in chunks of MAP_BANK_COLS columns (16 bytes each = 16 KB, a whole ROM bank),
-# one chunk per bank, in consecutive banks. Must match MAP_BANK_COLS in include/collision.h.
-MAP_BANK_COLS = 1024
+# A map is MAP_ROWS rows tall, stored column by column (MAP_ROWS bytes per column), in chunks of
+# MAP_BANK_COLS columns (16 KB, a whole ROM bank), one chunk per bank, in consecutive banks.
+# Must match MAP_ROWS / MAP_BANK_COLS in include/collision.h.
+MAP_ROWS = 32
+MAP_BANK_COLS = 16384 // MAP_ROWS
 MAP_MAX_COLS = 4095          # the camera is a 16-bit pixel position
 FIRST_MAP_BANK = 30
 LAST_BANK = 255
@@ -170,7 +174,7 @@ def write_map_wrappers(ident, short_name, out_bin, width, first_bank):
             bin_name = out_bin.name
         else:
             bin_name = f"{ident}_16high_{k}.bin"
-            (LEVEL_DATA_DIR / bin_name).write_bytes(data[k * MAP_BANK_COLS * 16:(k + 1) * MAP_BANK_COLS * 16])
+            (LEVEL_DATA_DIR / bin_name).write_bytes(data[k * MAP_BANK_COLS * MAP_ROWS:(k + 1) * MAP_BANK_COLS * MAP_ROWS])
         c_path = LEVELS_DIR / (f"level_{short_name}.c" if k == 0 else f"level_{short_name}_{k}.c")
         sym = f"{ident}_map" if k == 0 else f"{ident}_map_{k}"
         with open(c_path, 'w') as f:
@@ -199,7 +203,7 @@ def saw_centre_deco(map_bytes):
     def skip(x, y, obj):
         if obj not in (50, 51):
             return False
-        i = (x // 16) * 16 + y // 16
+        i = (x // 16) * MAP_ROWS + y // 16
         return i < len(map_bytes) and map_bytes[i] == SAW_CENTER_MT
     return skip
 
@@ -287,7 +291,8 @@ def generate_assets_c(levels):
             f.write(f'  {lvl["divider"]},\n')
             f.write(f'  {ident}_sp,\n')
             f.write(f'  BANK({ident}_sp),\n')
-            f.write(f'  {ident}_sp_dmg\n')
+            f.write(f'  {ident}_sp_dmg,\n')
+            f.write(f'  {lvl["map_top"]}\n')
             f.write('};\n\n')
 
         # game_levels array
@@ -361,7 +366,7 @@ def build_all():
         width, height = get_map_dimensions(tmx_path)
         if width > MAP_MAX_COLS:
             raise SystemExit(f"{stem}: {width} columns, the maximum is {MAP_MAX_COLS}")
-        print(f"  - Map binary: {out_bin.name} ({width}x16 metatiles)")
+        print(f"  - Map binary: {out_bin.name} ({width}x{MAP_ROWS} metatiles, TMX height {height})")
 
         out_sprites_c = SPRITES_DIR / f"{ident}_sprites.c"
         extract_portals(str(tmx_path), str(out_sprites_c), ident, sprite_bank,
@@ -410,7 +415,8 @@ def build_all():
             "short_name": short_name,
             "title": title,
             "width": width,
-            "height": 16,
+            "height": MAP_ROWS,
+            "map_top": max(0, MAP_ROWS - height),
             "map_bank": map_bank,
             "sprite_bank": sprite_bank,
             "music_bank": music_bank if has_music else 0,

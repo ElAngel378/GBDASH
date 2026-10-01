@@ -104,6 +104,35 @@ static uint8_t bg_drift_px = 0;
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
 
+// Tall levels: maps are MAP_ROWS rows tall and bottom-aligned (a level made for 16 rows sits in
+// rows MAP_ROWS-16 .. MAP_ROWS-1). World y is a 16-bit pixel position.
+#define MAP_Y0 ((uint16_t)(MAP_ROWS - 16u) << 4)
+// The player's physics stay 8.8 inside a 16-row collision window starting at player.y_base
+// (world px, a multiple of 128). The window moves by 128px when the player gets within 48px of
+// its top or bottom, so collision probes never leave it (physics code unchanged, same speed).
+#define Y_BASE_MAX MAP_Y0
+// The level's first row (rows above it are padding): the camera, the collision window and the
+// VRAM band stay below it, and the player dies above it like at the top of a 16-row map before.
+static uint16_t level_top_px;
+#define PLAYER_WORLD_Y() ((uint16_t)(player.y_base + player.world_y.b.h))
+// VRAM band (see mt_renderer.c): 16 rows around the (up to) 10 visible ones. It only moves when
+// the screen comes within 2 rows of its edge, and then so that 3 rows are left on that side.
+#define BAND_MAX ((_cpu == CGB_TYPE) ? (uint8_t)(GROUND_ROW - 15u) : (uint8_t)(MAP_ROWS - 16u))
+static uint8_t band_for_cam(uint16_t cam_y, uint8_t band) {
+    uint8_t vis_top = (uint8_t)(cam_y >> 4);
+    uint8_t vis_bot = (uint8_t)((cam_y + 143u) >> 4);
+    uint8_t band_min = (uint8_t)(level_top_px >> 4);
+    if (band_min > BAND_MAX) band_min = BAND_MAX;
+    if (vis_top < (uint8_t)(band + 2u)) {
+        band = (vis_top > 3u) ? (uint8_t)(vis_top - 3u) : 0;
+    } else if ((uint8_t)(vis_bot + 2u) > (uint8_t)(band + 15u)) {
+        band = (uint8_t)(vis_bot - 12u);
+    }
+    if (band < band_min) band = band_min;
+    if (band > BAND_MAX) band = BAND_MAX;
+    return band;
+}
+
 // Index (0-3) of the default theme in bg_pals:
 // bottom row (light), column 0 (gray). This is used at level start and after death.
 extern uint8_t music_ready;
@@ -130,10 +159,12 @@ static uint16_t loaded_r;
 // uploaded after it), so no single frame has to pay for a whole column. The
 // column is written >= 6 frames before it can scroll into view.
 #define COL_JOB_STEPS 4
-// Ground <-> level-tile switch of the top two tile rows (see below), also spread
-// over frames: ROW0_JOB_PER_FRAME ring positions per frame.
-#define ROW0_JOB_PER_FRAME 4
+// Row job: the map row that just entered the VRAM band is written over 2 frames,
+// ROW_JOB_PER_FRAME ring positions per frame (as fast as the camera can move vertically).
+#define ROW_JOB_PER_FRAME BG_RJ_SLOTS
 static uint8_t row0_job_pos = 16; // == 16: idle
+static uint8_t row_job_row;       // map row being written
+static uint8_t band_cam_row = 0xFF; // camera row the band was last checked against
 static uint8_t col_job_step = COL_JOB_STEPS; // == COL_JOB_STEPS: idle
 static uint8_t col_job_slot;
 static uint8_t col_job_issued;  // slice handed to the VBlank handler, not yet acknowledged
@@ -208,11 +239,12 @@ static void reload_level_state(uint8_t idx) {
         else blank_parallax_vram();
         last_bg_phase = 0;
         load_menu_ground_tiles();
-        vram_row0_is_ground = 1;
-        cam_py = 128;
+        cam_py = MAP_Y0 + 128u;
     } else {
-        cam_py = 112;
+        cam_py = MAP_Y0 + 112u;
     }
+    mt_band = band_for_cam(cam_py, BAND_MAX);
+    band_cam_row = 0xFF;
 
     cam_px = 0;
     scroll_acc = 0;
@@ -227,6 +259,7 @@ static void reload_level_state(uint8_t idx) {
     end_shake_timer = 0;
     end_trigger_requested = 0;
     player_init(&player, 0, 240);
+    player.y_base = Y_BASE_MAX;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
     coins_saved = level_coins[idx];
@@ -377,9 +410,7 @@ static uint8_t pause_menu(uint8_t idx) {
         apply_pause_box_attributes(0);
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
-        if (vram_row0_is_ground) {
-            flush_vram_row0(1);
-        }
+        flush_ground_row();
     } else {
         BGP_REG = saved_bgp;
         OBP0_REG = saved_obp0;
@@ -459,7 +490,7 @@ static void start_end_anim(void) {
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     locked_cam_py = cam_py;
     end_start_x = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
-    end_start_y = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+    end_start_y = (int16_t)PLAYER_WORLD_Y() - (int16_t)cam_py;
 
     if (!player.reversed) {
         end_target_x = 168; // Exit off the right edge of the screen before disappearing
@@ -553,15 +584,17 @@ void play_level(uint8_t idx) BANKED {
     level_map_bank = l->map_bank;
 
     cam_px = 0;
+    // CGB shows the ground strip (16px) below the map, DMG ends at the map's last row
     if (_cpu == CGB_TYPE) {
-        cam_py = 128;
+        cam_py = MAP_Y0 + 128u;
         cam_py_max = (level_map_h << 4) - 128u;
     } else {
-        cam_py = 112;
-        cam_py_max = (level_map_h << 4);
-        if (cam_py_max > 144u) cam_py_max -= 144u;
-        else cam_py_max = 0;
+        cam_py = MAP_Y0 + 112u;
+        cam_py_max = (level_map_h << 4) - 144u;
     }
+    level_top_px = (uint16_t)l->map_top << 4;
+    mt_band = band_for_cam(cam_py, BAND_MAX);
+    band_cam_row = 0xFF;
     loaded_r = BKG_MT_W - 1;
     col_job_step = COL_JOB_STEPS;
     row0_job_pos = 16;
@@ -570,6 +603,7 @@ void play_level(uint8_t idx) BANKED {
 
     target_bg_idx = 0;
     player_init(&player, 0, 240);
+    player.y_base = Y_BASE_MAX;
 
     DISPLAY_OFF;
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
@@ -587,7 +621,6 @@ void play_level(uint8_t idx) BANKED {
         else blank_parallax_vram();
         last_bg_phase = 0;
         load_menu_ground_tiles();
-        vram_row0_is_ground = 1;
         famidash_reset_bg_palettes(idx);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
     }
@@ -709,14 +742,29 @@ void play_level(uint8_t idx) BANKED {
 
         if (player.reversed != prev_reversed) mirror_reload(idx);
 
+        // Move the collision window when the player nears its top or bottom
+        {
+            uint8_t ly = player.world_y.b.h;
+            if (ly < 48u && player.y_base > level_top_px) {
+                uint8_t d = (player.y_base - level_top_px > 128u) ? 128u : (uint8_t)(player.y_base - level_top_px);
+                player.y_base -= d;
+                player.world_y.b.h = (uint8_t)(ly + d);
+                cached_collision_col = 0xFFFF;
+            } else if (ly >= 208u && player.y_base < Y_BASE_MAX) {
+                uint8_t d = (Y_BASE_MAX - player.y_base > 128u) ? 128u : (uint8_t)(Y_BASE_MAX - player.y_base);
+                player.y_base += d;
+                player.world_y.b.h = (uint8_t)(ly - d);
+                cached_collision_col = 0xFFFF;
+            }
+        }
         if (px_curr != cached_collision_col) {
             load_collision_columns(px_curr, level_map, level_map_w,
-                                   level_map_bank, collision_columns);
+                                   level_map_bank, collision_columns, (uint8_t)(player.y_base >> 4));
             cached_collision_col = px_curr;
         }
 
         if (end_anim_state == END_ANIM_INACTIVE) {
-            died = player_update(&player, joy, collision_columns, level_map_h);
+            died = player_update(&player, joy, collision_columns, 16);
 #if ENABLE_DEBUG_MODE
             if (debug_mode) { died = 0; player.dead = 0; } // noclip: hazards and walls can't kill
 #endif
@@ -726,16 +774,17 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_anim_state == END_ANIM_INACTIVE) {
             if (!died) {
-                py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+                int16_t wy = (int16_t)PLAYER_WORLD_Y();
+                py = wy - (int16_t)cam_py;
                 if (py < CAM_Y_TOP_ZONE) {
-                    int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_TOP_ZONE;
-                    if (target_cam_py < 0) target_cam_py = 0;
+                    int16_t target_cam_py = wy - CAM_Y_TOP_ZONE;
+                    if (target_cam_py < (int16_t)level_top_px) target_cam_py = (int16_t)level_top_px;
                     if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
                     cam_py = (uint16_t)target_cam_py;
                 }
                 else if (py > CAM_Y_BOTTOM_ZONE) {
-                    int16_t target_cam_py = (int16_t)player.world_y.b.h - CAM_Y_BOTTOM_ZONE;
-                    if (target_cam_py < 0) target_cam_py = 0;
+                    int16_t target_cam_py = wy - CAM_Y_BOTTOM_ZONE;
+                    if (target_cam_py < (int16_t)level_top_px) target_cam_py = (int16_t)level_top_px;
                     if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
                     cam_py = (uint16_t)target_cam_py;
                 }
@@ -757,7 +806,7 @@ void play_level(uint8_t idx) BANKED {
                 scroll_px = (cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0;
                 sprite_x_final = (cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X;
             }
-            final_py = (int16_t)player.world_y.b.h - (int16_t)cam_py;
+            final_py = (int16_t)PLAYER_WORLD_Y() - (int16_t)cam_py;
             if (final_py < 0) final_py = 0;
             else if (final_py > 144) final_py = 144;
         } else if (end_anim_state == END_ANIM_PULL) {
@@ -906,25 +955,28 @@ void play_level(uint8_t idx) BANKED {
         uint8_t parallax_needed = 0;
         uint8_t bg_phase = 0;
 
-        if (_cpu == CGB_TYPE) {
-            uint8_t target_row0_ground = vram_row0_is_ground;
-            // Tile rows 0-1 are only on screen when cam_py <= 15 (level top) or
-            // cam_py >= 113 (ground, wrapped to the bottom). The thresholds sit
-            // inside the gap with >= 25px (4 frames at the 6px/frame maximum
-            // camera speed) of margin each way, and the switch itself takes 4
-            // frames, so it is finished before the rows scroll into view.
-            if (vram_row0_is_ground) {
-                if (cam_py < 40) target_row0_ground = 0;
-            } else {
-                if (cam_py >= 88) target_row0_ground = 1;
-            }
-            if (target_row0_ground != vram_row0_is_ground) {
-                vram_row0_is_ground = target_row0_ground;
+        // Vertical streaming: move the VRAM band one row towards the camera when the row job is
+        // idle. The new row is BAND_MARGIN rows away from the screen, and a row takes 2 frames
+        // (16px) while the camera moves at most ~8px per frame.
+        uint8_t cam_row = (uint8_t)(cam_py >> 4);
+        if (row0_job_pos >= 16 && cam_row != band_cam_row) {
+            uint8_t target_band = band_for_cam(cam_py, mt_band);
+            if (target_band == mt_band) band_cam_row = cam_row;   // settled: skip until the camera row changes
+            if (target_band != mt_band) {
+                if (target_band > mt_band) {
+                    row_job_row = (uint8_t)(mt_band + 16u);
+                    mt_band++;
+                } else {
+                    mt_band--;
+                    row_job_row = mt_band;
+                }
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
             }
+        }
 
+        if (_cpu == CGB_TYPE) {
             if (setting_show_bg_enabled && setting_parallax_enabled) {
                 bg_phase = player.reversed
                     ? (uint8_t)(scroll_px + bg_drift_px) & 63u
@@ -963,9 +1015,9 @@ void play_level(uint8_t idx) BANKED {
         // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
         // so it never depends on how late this thread wakes up.
         if (bg_gdma_isr_on) {
-            if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW0_JOB_PER_FRAME; }
+            if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
             if (row0_job_pos < 16 && !row0_job_issued) {
-                request_row0_slots(row0_job_pos, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+                request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
                 row0_job_issued = 1;
             }
         }
@@ -994,14 +1046,14 @@ void play_level(uint8_t idx) BANKED {
             famidash_apply_palettes();
         }
 
-        if (!bg_gdma_isr_on && row0_job_pos < 16) {
-            flush_row0_slots(row0_job_pos, ROW0_JOB_PER_FRAME, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-            row0_job_pos += ROW0_JOB_PER_FRAME;
-        }
-
         if (!bg_gdma_isr_on && col_job_step < COL_JOB_STEPS) {
             flush_mt_column_slice(col_job_slot, col_job_step);
             col_job_step++;
+        }
+
+        if (!bg_gdma_isr_on && row0_job_pos < 16) {
+            flush_row_slots(row0_job_pos, ROW_JOB_PER_FRAME, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+            row0_job_pos += ROW_JOB_PER_FRAME;
         }
 
         if (died) handle_death(idx, sprite_x_final, final_py, scroll_px);

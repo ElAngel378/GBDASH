@@ -1,0 +1,6 @@
+#pragma bank 57
+#include <gbdk/incbin.h>
+
+// Columns 512.. of ultiatedestruction (read through ultiatedestruction_map's address)
+INCBIN(ultiatedestruction_map_1, "levels/level_data/ultiatedestruction_16high_1.bin")
+INCBIN_EXTERN(ultiatedestruction_map_1)

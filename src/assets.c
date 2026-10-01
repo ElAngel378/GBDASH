@@ -131,12 +131,13 @@ const Level level_sm = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   stereomadness_map,
-  BG_BASE_TILE_COUNT, 894, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 894, 32, 0, 0,
   BANK(stereomadness_map),
   192,
   stereomadness_sp,
   BANK(stereomadness_sp),
-  stereomadness_sp_dmg
+  stereomadness_sp_dmg,
+  5
 };
 
 const Level level_bot = {
@@ -144,12 +145,13 @@ const Level level_bot = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   backontrack_map,
-  BG_BASE_TILE_COUNT, 846, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 846, 32, 0, 0,
   BANK(backontrack_map),
   184,
   backontrack_sp,
   BANK(backontrack_sp),
-  backontrack_sp_dmg
+  backontrack_sp_dmg,
+  5
 };
 
 const Level level_pg = {
@@ -157,12 +159,13 @@ const Level level_pg = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   polargeist_map,
-  BG_BASE_TILE_COUNT, 935, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 935, 32, 0, 0,
   BANK(polargeist_map),
   193,
   polargeist_sp,
   BANK(polargeist_sp),
-  polargeist_sp_dmg
+  polargeist_sp_dmg,
+  5
 };
 
 const Level level_du = {
@@ -170,12 +173,13 @@ const Level level_du = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   dryout_map,
-  BG_BASE_TILE_COUNT, 842, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 842, 32, 0, 0,
   BANK(dryout_map),
   185,
   dryout_sp,
   BANK(dryout_sp),
-  dryout_sp_dmg
+  dryout_sp_dmg,
+  5
 };
 
 const Level level_bab = {
@@ -183,12 +187,13 @@ const Level level_bab = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   baseafterbase_map,
-  BG_BASE_TILE_COUNT, 869, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 869, 32, 0, 0,
   BANK(baseafterbase_map),
   183,
   baseafterbase_sp,
   BANK(baseafterbase_sp),
-  baseafterbase_sp_dmg
+  baseafterbase_sp_dmg,
+  5
 };
 
 const Level level_clg = {
@@ -196,12 +201,13 @@ const Level level_clg = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   cantletgo_map,
-  BG_BASE_TILE_COUNT, 837, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 837, 32, 0, 0,
   BANK(cantletgo_map),
   196,
   cantletgo_sp,
   BANK(cantletgo_sp),
-  cantletgo_sp_dmg
+  cantletgo_sp_dmg,
+  5
 };
 
 const Level level_ju = {
@@ -209,12 +215,13 @@ const Level level_ju = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   jumper_map,
-  BG_BASE_TILE_COUNT, 897, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 897, 32, 0, 0,
   BANK(jumper_map),
   141,
   jumper_sp,
   BANK(jumper_sp),
-  jumper_sp_dmg
+  jumper_sp_dmg,
+  5
 };
 
 const Level level_tm = {
@@ -222,12 +229,13 @@ const Level level_tm = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   timemachine_map,
-  BG_BASE_TILE_COUNT, 997, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 997, 32, 0, 0,
   BANK(timemachine_map),
   40,
   timemachine_sp,
   BANK(timemachine_sp),
-  timemachine_sp_dmg
+  timemachine_sp_dmg,
+  5
 };
 
 const Level level_cy = {
@@ -235,12 +243,13 @@ const Level level_cy = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   cycles_map,
-  BG_BASE_TILE_COUNT, 823, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 823, 32, 0, 0,
   BANK(cycles_map),
   37,
   cycles_sp,
   BANK(cycles_sp),
-  cycles_sp_dmg
+  cycles_sp_dmg,
+  5
 };
 
 const Level level_xs = {
@@ -248,12 +257,13 @@ const Level level_xs = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   xstep_map,
-  BG_BASE_TILE_COUNT, 844, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 844, 32, 0, 0,
   BANK(xstep_map),
   138,
   xstep_sp,
   BANK(xstep_sp),
-  xstep_sp_dmg
+  xstep_sp_dmg,
+  5
 };
 
 const Level level_ultiatedestruction = {
@@ -261,12 +271,13 @@ const Level level_ultiatedestruction = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   ultiatedestruction_map,
-  BG_BASE_TILE_COUNT, 675, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 675, 32, 0, 0,
   BANK(ultiatedestruction_map),
   183,
   ultiatedestruction_sp,
   BANK(ultiatedestruction_sp),
-  ultiatedestruction_sp_dmg
+  ultiatedestruction_sp_dmg,
+  0
 };
 
 const Level level_cf = {
@@ -274,12 +285,13 @@ const Level level_cf = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   clutterfunk_map,
-  BG_BASE_TILE_COUNT, 1004, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 1004, 32, 0, 0,
   BANK(clutterfunk_map),
   195,
   clutterfunk_sp,
   BANK(clutterfunk_sp),
-  clutterfunk_sp_dmg
+  clutterfunk_sp_dmg,
+  5
 };
 
 const Level level_test = {
@@ -287,12 +299,13 @@ const Level level_test = {
   chr_gb_tiles,
   chr_gb_tiles_rev,
   test_map,
-  BG_BASE_TILE_COUNT, 128, 16, 0, 0,
+  BG_BASE_TILE_COUNT, 128, 32, 0, 0,
   BANK(test_map),
   180,
   test_sp,
   BANK(test_sp),
-  test_sp_dmg
+  test_sp_dmg,
+  0
 };
 
 // Global level list used by the menu and gameplay systems

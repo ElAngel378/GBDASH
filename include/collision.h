@@ -79,10 +79,14 @@ uint8_t col_at_raw(
 uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
 
 // Batch collision context: switches to the map bank once.
-// Level maps: MAP_BANK_COLS columns (16 KB) per ROM bank, in consecutive banks (see collision.c
-// and tools/build_levels.py, which must use the same value)
-#define MAP_BANK_COLS_SHIFT 10
+// Level maps: MAP_ROWS metatile rows per column, MAP_BANK_COLS columns (16 KB) per ROM bank, in
+// consecutive banks (see collision.c and tools/build_levels.py, which must use the same values)
+#define MAP_ROWS_SHIFT 5
+#define MAP_ROWS (1u << MAP_ROWS_SHIFT)
+#define MAP_BANK_COLS_SHIFT 9
 #define MAP_BANK_COLS (1u << MAP_BANK_COLS_SHIFT)
+// CGB: the row below the map shows the ground strip
+#define GROUND_ROW MAP_ROWS
 
 void col_at_begin(uint8_t map_bank);
 void col_at_end(void);
@@ -90,7 +94,10 @@ void col_at_end(void);
 // Safe music initialization from Bank 0
 void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t divider);
 
-void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest);
+void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest, uint8_t band);
+uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank);
+void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed,
+                       const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t *out);
 
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED;
 void flush_mt_column(uint8_t ring_col) BANKED;
@@ -103,21 +110,22 @@ void saw_anim_request(void) BANKED;
 void saw_anim_vblank(void) BANKED;
 void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
-void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
+// Vertical streaming: the VRAM ring (16 metatile rows) holds map rows mt_band .. mt_band+15,
+// map row m in VRAM metatile row m & 15. A row entering the band is written with the row job:
+void request_row_slots(uint8_t first, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
+void flush_row_slots(uint8_t first, uint8_t count, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
+// CGB: rewrites the ground row if the band shows it (after the pause box changed its attributes)
+void flush_ground_row(void) BANKED;
+extern uint8_t mt_band;
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,
-                            uint8_t* columns);
+                            uint8_t* columns, uint8_t row0);
 
-extern uint8_t vram_row0_is_ground;
 void load_menu_ground_tiles(void) BANKED;
-void get_row0_metatiles(uint16_t loaded_r, const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t *out_ids);
-void prepare_row0_level_tiles(uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
-void flush_vram_row0(uint8_t is_ground) BANKED;
-uint8_t get_map_tile0(uint16_t col, const uint8_t *map, uint8_t map_bank);
-void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
+
 
 #endif // COLLISION_H
