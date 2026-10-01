@@ -1,6 +1,6 @@
-"""Imports the saw and ball art from the GDP CHR files into the game's source images.
+"""Imports the saw and mini ball art from the GDP CHR files into the game's source images.
 
-    python tools/import_saws_ball.py            (reads archive/raw_assets/GDP Saws.chr / GDP Ball.chr)
+    python tools/import_saws_ball.py            (reads archive/raw_assets/GDP Saws.chr / GDP Mini Ball.chr)
     python tools/build_bg_tiles.py
     python tools/build_sprite_tiles.py
 
@@ -9,19 +9,19 @@ anywhere: it redraws the art into the layouts the game already uses, so nothing 
 
 Saws (levels/chr_data/bg_tiles.png)
     The CHR holds 3 saws: 42x42 (big), 32x32 (medium), 16x16 (small). Raw colours: 1 = teeth,
-    2 = ring, 3 = hub. In the game's background palettes colour 2 is black and 3 is white, so
-    teeth -> 2 (black), ring -> 1 (darker than the sky), hub -> 3 (white).
+    2 = ring, 3 = hub. Like Famidash's saws (black blade, a ring darker than the sky, and the sky
+    showing through the middle), teeth -> 2 (black), ring -> 1 (darker than the sky), hub -> 0
+    (the sky colour). On DMG that is black / dark grey / the light grey sky.
     Each saw is drawn into the existing saw tile layout of build_bg_tiles.py (SAW_METATILES) as
     3 animation frames, rotated anticlockwise by a third of the saw's tooth angle per frame
     (big 16 teeth: 7.5 deg, medium 12 teeth: 10 deg, small 8 teeth: 15 deg), so the 3 frames
     loop. The big saw's centre metatile (120) gets its own 4 tiles (0x30..0x33).
     Frame 0 goes to SAWS_0 (rows 11..14), frames 1 and 2 to SAWS_1 / SAWS_2 (rows 22..29).
 
-Ball (levels/chr_data/sprite_tiles.png, sprite pairs 6..9)
-    The CHR holds the ball ring (tiles 103 104 / 119 120) and two small cores (121, 122). A frame
-    is the ring with a core drawn over its centre; the two frames use the two cores. Colours as in
-    the old pipeline: ring outline/hole -> 3 (black), ring body -> 2 (player colour 1), core
-    outline -> 3, core body -> 1 (player colour 2).
+Mini ball (levels/chr_data/sprite_tiles.png, sprite pair 62 = tile 124)
+    GDP Mini Ball.chr holds a big ring and two small balls (labelled 1 and 2). Only a small ball
+    is imported, as the mini ball (the big ball is not touched): spikes -> 3 (black), body -> 2
+    (player colour 1), centre -> 1 (player colour 2). MINI_BALL_VARIANT picks 1 or 2.
 """
 import math
 import sys
@@ -37,7 +37,9 @@ RAW = ROOT / "archive" / "raw_assets"
 
 # CHR bounding boxes (x, y, size) of the saws and their tooth counts
 SAWS = {"big": (75, 19, 42, 16), "med": (16, 24, 32, 12), "small": (56, 32, 16, 8)}
-SAW_COLOURS = {0: 0, 1: 2, 2: 1, 3: 3}
+SAW_COLOURS = {0: 0, 1: 2, 2: 1, 3: 0}
+MINI_BALL_VARIANT = 1      # 1 or 2: which of the two small balls in the CHR
+MINI_BALL_PAIR = 62        # sprite pair of the mini ball (tile 124)
 SAW_FRAMES = 3
 SAW_SECTION_TILES = 52
 SAW_SECTION_ROWS = {0: 11, 1: 22, 2: 26}      # first png tile row of each frame's section
@@ -163,33 +165,26 @@ def import_saws(chr_path):
     print("saws: 3 frames written to", BG_PNG.name)
 
 
-def import_ball(chr_path):
+def import_mini_ball(chr_path):
+    """The two small balls in the CHR (tiles 121 and 122, labelled 1 and 2) are mini ball designs;
+    MINI_BALL_VARIANT picks one. The mini ball is the top tile of sprite pair 62 (tile 124)."""
     src = load_chr(chr_path)
-    # tiles 103 104 / 119 120 are at tile (7, 6), (8, 6) / (7, 7), (8, 7)
-    ring = [row[7 * 8: 9 * 8] for row in src[6 * 8: 8 * 8]]
-    cores = [[row[c * 8: c * 8 + 8] for row in src[7 * 8: 8 * 8]] for c in (9, 10)]   # tiles 121, 122
-    outer = {0: 0, 1: 3, 2: 2, 3: 3}
-    core_map = {1: 3, 2: 1, 3: 1}
-
+    col = 9 if MINI_BALL_VARIANT == 1 else 10
+    ball = [row[col * 8: col * 8 + 8] for row in src[7 * 8: 8 * 8]]
+    mapping = {0: 0, 1: 3, 2: 2, 3: 1}   # spikes -> black outline, body -> player colour 1, centre -> colour 2
     img = Image.open(SPR_PNG)
     px = img.load()
     value = png_values(img)
-    for f in range(2):
-        grid = [[outer[v] for v in row] for row in ring]
-        for y in range(8):
-            for x in range(8):
-                c = cores[f][y][x]
-                if c:
-                    grid[y + 4][x + 4] = core_map[c]
-        for y in range(16):
-            for x in range(16):
-                px[(6 + f * 2) * 8 + x, y] = value[grid[y][x]]
+    x0, y0 = (MINI_BALL_PAIR % 16) * 8, (MINI_BALL_PAIR // 16) * 16
+    for y in range(8):
+        for x in range(8):
+            px[x0 + x, y0 + y] = value[mapping[ball[y][x]]]
     img.save(SPR_PNG)
-    print("ball: 2 frames written to", SPR_PNG.name)
+    print("mini ball: design %d written to %s" % (MINI_BALL_VARIANT, SPR_PNG.name))
 
 
 if __name__ == "__main__":
     saws = sys.argv[1] if len(sys.argv) > 1 else RAW / "GDP Saws.chr"
-    ball = sys.argv[2] if len(sys.argv) > 2 else RAW / "GDP Ball.chr"
+    ball = sys.argv[2] if len(sys.argv) > 2 else RAW / "GDP Mini Ball.chr"
     import_saws(saws)
-    import_ball(ball)
+    import_mini_ball(ball)
