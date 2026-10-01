@@ -126,6 +126,84 @@ def export_binary_map(tmx_path, out_bin_path):
             for y in range(crop_height):
                 f.write(bytes([cropped_grid[y][x] & 0xFF]))
 
+# A map is stored in chunks of MAP_BANK_COLS columns (16 bytes each = 16 KB, a whole ROM bank),
+# one chunk per bank, in consecutive banks. Must match MAP_BANK_COLS in include/collision.h.
+MAP_BANK_COLS = 1024
+MAP_MAX_COLS = 4095          # the camera is a 16-bit pixel position
+FIRST_MAP_BANK = 30
+LAST_BANK = 255
+
+
+def used_banks():
+    """Banks of everything that is not a level map (#pragma bank in src/, except src/levels/)."""
+    used = set()
+    for p in SRC_DIR.rglob("*.c"):
+        if p.parent == LEVELS_DIR:
+            continue
+        m = re.search(r'^#pragma\s+bank\s+(\d+)', p.read_text(errors="ignore"), re.M)
+        if m:
+            used.add(int(m.group(1)))
+    return used
+
+
+def allocate_banks(count, start, taken):
+    """First run of `count` consecutive free banks at or after `start`."""
+    b = start
+    while True:
+        run = list(range(b, b + count))
+        if run[-1] > LAST_BANK:
+            raise SystemExit("no %d consecutive free ROM banks for a level map" % count)
+        if not taken & set(run):
+            return b
+        b += 1
+
+
+def write_map_wrappers(ident, short_name, out_bin, width, first_bank):
+    """level_<short>.c holds the first chunk; level_<short>_<k>.c chunk k (k >= 1)."""
+    data = out_bin.read_bytes()
+    chunks = (width + MAP_BANK_COLS - 1) // MAP_BANK_COLS
+    for old in list(LEVELS_DIR.glob(f"level_{short_name}_[0-9]*.c")) + \
+               list(LEVEL_DATA_DIR.glob(f"{ident}_16high_[0-9]*.bin")):
+        old.unlink()
+    for k in range(chunks):
+        if chunks == 1:
+            bin_name = out_bin.name
+        else:
+            bin_name = f"{ident}_16high_{k}.bin"
+            (LEVEL_DATA_DIR / bin_name).write_bytes(data[k * MAP_BANK_COLS * 16:(k + 1) * MAP_BANK_COLS * 16])
+        c_path = LEVELS_DIR / (f"level_{short_name}.c" if k == 0 else f"level_{short_name}_{k}.c")
+        sym = f"{ident}_map" if k == 0 else f"{ident}_map_{k}"
+        with open(c_path, 'w') as f:
+            f.write(f"#pragma bank {first_bank + k}\n")
+            f.write('#include <gbdk/incbin.h>\n\n')
+            if k == 0 and chunks > 1:
+                f.write(f"// Columns 0..{MAP_BANK_COLS - 1}; the rest are in level_{short_name}_1.c.. "
+                        "(next banks, same address)\n")
+            elif k:
+                f.write(f"// Columns {k * MAP_BANK_COLS}.. of {ident} (read through {ident}_map's address)\n")
+            f.write(f'INCBIN({sym}, "levels/level_data/{bin_name}")\n')
+            f.write(f'INCBIN_EXTERN({sym})\n')
+    return chunks
+
+
+# Famidash puts a diamond decoration (deco 50 / 51) on some big saw centres; the saw art has its
+# own hub, so those are dropped. Metatile 120 is the big saw centre in levels with big saws.
+BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
+SAW_CENTER_MT = 120
+
+
+def saw_centre_deco(map_bytes):
+    if not BIG_SAW_PARTS & set(map_bytes):
+        return None
+
+    def skip(x, y, obj):
+        if obj not in (50, 51):
+            return False
+        i = (x // 16) * 16 + y // 16
+        return i < len(map_bytes) and map_bytes[i] == SAW_CENTER_MT
+    return skip
+
+
 def update_music_bank(music_path, target_bank):
     if not music_path.exists():
         return
@@ -252,9 +330,8 @@ def build_all():
 
     levels_info = []
 
-    BASE_MAP_BANK = 30
-    PARALLAX_BANK_FIRST = 41
-    PARALLAX_BANK_COUNT = 4
+    taken = used_banks()
+    next_map_bank = FIRST_MAP_BANK
     BASE_SPRITE_BANK = 100
     BASE_MUSIC_BANK = 200
 
@@ -264,10 +341,6 @@ def build_all():
     for idx, tmx_path in enumerate(tmx_files):
         stem = tmx_path.stem.lower()
         ident = make_c_ident(stem)
-        map_bank = BASE_MAP_BANK + idx
-        # Banks 41..44 hold the parallax background phases: skip them
-        if map_bank >= PARALLAX_BANK_FIRST:
-            map_bank += PARALLAX_BANK_COUNT
         sprite_bank = BASE_SPRITE_BANK + idx
         music_bank = BASE_MUSIC_BANK + idx
 
@@ -286,19 +359,22 @@ def build_all():
         out_bin = LEVEL_DATA_DIR / f"{ident}_16high.bin"
         export_binary_map(tmx_path, out_bin)
         width, height = get_map_dimensions(tmx_path)
+        if width > MAP_MAX_COLS:
+            raise SystemExit(f"{stem}: {width} columns, the maximum is {MAP_MAX_COLS}")
         print(f"  - Map binary: {out_bin.name} ({width}x16 metatiles)")
 
         out_sprites_c = SPRITES_DIR / f"{ident}_sprites.c"
-        extract_portals(str(tmx_path), str(out_sprites_c), ident, sprite_bank)
+        extract_portals(str(tmx_path), str(out_sprites_c), ident, sprite_bank,
+                        skip=saw_centre_deco(out_bin.read_bytes()))
         print(f"  - Sprites: {out_sprites_c.name} (Bank {sprite_bank})")
 
-        out_level_c = LEVELS_DIR / f"level_{short_name}.c"
-        with open(out_level_c, 'w') as f:
-            f.write(f"#pragma bank {map_bank}\n")
-            f.write('#include <gbdk/incbin.h>\n\n')
-            f.write(f'INCBIN({ident}_map, "levels/level_data/{ident}_16high.bin")\n')
-            f.write(f'INCBIN_EXTERN({ident}_map)\n')
-        print(f"  - Level wrapper: {out_level_c.name} (Bank {map_bank})")
+        chunks = (width + MAP_BANK_COLS - 1) // MAP_BANK_COLS
+        map_bank = allocate_banks(chunks, next_map_bank, taken)
+        taken |= set(range(map_bank, map_bank + chunks))
+        next_map_bank = map_bank + chunks
+        write_map_wrappers(ident, short_name, out_bin, width, map_bank)
+        print(f"  - Level wrapper: level_{short_name}.c (Bank {map_bank}"
+              + (f"..{map_bank + chunks - 1}, {chunks} chunks of {MAP_BANK_COLS} columns)" if chunks > 1 else ")"))
 
         music_file = MUSIC_DIR / f"{ident}.c"
         uge_file = find_uge_file(stem)
@@ -341,6 +417,13 @@ def build_all():
             "divider": divider,
             "has_music": has_music
         })
+
+    # src/levels/ only holds generated map wrappers: drop those of levels that are gone
+    wanted = {f"level_{l['short_name']}" for l in levels_info}
+    for p in LEVELS_DIR.glob("level_*.c"):
+        if re.sub(r"_\d+$", "", p.stem) not in wanted:
+            print(f"Removing stale {p.name}")
+            p.unlink()
 
     print("\nGenerating src/assets.c...")
     generate_assets_c(levels_info)

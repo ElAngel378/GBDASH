@@ -79,6 +79,11 @@ uint8_t col_at_raw(
 uint8_t col_at_raw_cached(const uint8_t *col_ptr, uint16_t world_py);
 
 // Batch collision context: switches to the map bank once.
+// Level maps: MAP_BANK_COLS columns (16 KB) per ROM bank, in consecutive banks (see collision.c
+// and tools/build_levels.py, which must use the same value)
+#define MAP_BANK_COLS_SHIFT 10
+#define MAP_BANK_COLS (1u << MAP_BANK_COLS_SHIFT)
+
 void col_at_begin(uint8_t map_bank);
 void col_at_end(void);
 

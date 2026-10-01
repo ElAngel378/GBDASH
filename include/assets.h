@@ -36,7 +36,7 @@ typedef struct {
   uint16_t map_height;  // Height in metatiles
   uint8_t tiles_are_compressed;
   uint8_t map_is_compressed;
-  uint8_t map_bank;     // ROM bank where the map resides
+  uint8_t map_bank;     // ROM bank of the map's first 1024 columns (the rest follow in the next banks)
   uint8_t timer_divider; // The TMA_REG value for hUGEDriver
   const SpDef *sp_list;
   uint8_t sp_bank;

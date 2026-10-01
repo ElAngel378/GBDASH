@@ -3,7 +3,7 @@
 
 BANKREF(clutterfunk_sp)
 
-// Extracted 514 objects from SP layer
+// Extracted 512 objects from SP layer
 const SpDef clutterfunk_sp[] = {
     {352, 240, 43},
     {352, 240, 10},

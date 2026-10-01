@@ -71,7 +71,8 @@ def build_offset_dict(global_settings, level_settings):
                         out[o] = [prev[0] + off[0], prev[1] + off[1]]
     return out
 
-def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
+def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, skip=None):
+    """skip(x_px, y_px, obj_id) -> True drops that object"""
     # Parse the XML tree
     try:
         tree = ET.parse(tmx_filepath)
@@ -207,6 +208,9 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None):
 
     if not sp_layer_found:
         print(f"Warning: 'SP' layer was not found in {tmx_filepath}. Outputting terminator only.")
+
+    if skip is not None:
+        portal_data = [p for p in portal_data if not skip(*p)]
 
     # Sort portals by pixel X coordinate
     portal_data.sort(key=lambda p: p[0])
