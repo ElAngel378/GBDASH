@@ -2,5 +2,5 @@
 #include <gbdk/incbin.h>
 
 // Columns 0..511; the rest are in level_ultiatedestruction_1.c.. (next banks, same address)
-INCBIN(ultiatedestruction_map, "levels/level_data/ultiatedestruction_16high_0.bin")
+INCBIN(ultiatedestruction_map, "levels/level_data/ultiatedestruction_0.bin")
 INCBIN_EXTERN(ultiatedestruction_map)

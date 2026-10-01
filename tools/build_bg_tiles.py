@@ -180,7 +180,7 @@ def main():
     for lv in order:
         name = ident[lv]
         sets = LEVEL_SETS.get(name, {})
-        level_mts = set((ROOT / "levels" / "level_data" / ("%s_16high.bin" % name)).read_bytes())
+        level_mts = set((ROOT / "levels" / "level_data" / ("%s.bin" % name)).read_bytes())
         # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
         big_saw = bool(level_mts & BIG_SAW_PARTS)
         saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}

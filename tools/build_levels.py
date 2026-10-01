@@ -167,13 +167,13 @@ def write_map_wrappers(ident, short_name, out_bin, width, first_bank):
     data = out_bin.read_bytes()
     chunks = (width + MAP_BANK_COLS - 1) // MAP_BANK_COLS
     for old in list(LEVELS_DIR.glob(f"level_{short_name}_[0-9]*.c")) + \
-               list(LEVEL_DATA_DIR.glob(f"{ident}_16high_[0-9]*.bin")):
+               list(LEVEL_DATA_DIR.glob(f"{ident}_[0-9]*.bin")):
         old.unlink()
     for k in range(chunks):
         if chunks == 1:
             bin_name = out_bin.name
         else:
-            bin_name = f"{ident}_16high_{k}.bin"
+            bin_name = f"{ident}_{k}.bin"
             (LEVEL_DATA_DIR / bin_name).write_bytes(data[k * MAP_BANK_COLS * MAP_ROWS:(k + 1) * MAP_BANK_COLS * MAP_ROWS])
         c_path = LEVELS_DIR / (f"level_{short_name}.c" if k == 0 else f"level_{short_name}_{k}.c")
         sym = f"{ident}_map" if k == 0 else f"{ident}_map_{k}"
@@ -361,7 +361,7 @@ def build_all():
 
         print(f"\n[{idx+1}/{len(tmx_files)}] Processing {title} ({stem})...")
 
-        out_bin = LEVEL_DATA_DIR / f"{ident}_16high.bin"
+        out_bin = LEVEL_DATA_DIR / f"{ident}.bin"
         export_binary_map(tmx_path, out_bin)
         width, height = get_map_dimensions(tmx_path)
         if width > MAP_MAX_COLS:
