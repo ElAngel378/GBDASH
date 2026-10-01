@@ -41,6 +41,12 @@ extern volatile uint8_t bg_rj_pending;     // top two tile rows, 8 tiles wide (f
 extern uint8_t bg_rj_x;
 extern uint8_t bg_rj_tiles[16];            // row 0 (8 tiles) then row 1 (8 tiles)
 extern uint8_t bg_rj_attrs[16];
+// Saw animation: GDMA of bg_saw_blocks 16-byte tiles from bg_saw_src (in ROM bank bg_saw_bank)
+// to VRAM bank 1 at offset bg_saw_dst from 0x8000, after the parallax GDMA (retried when late).
+extern volatile uint8_t bg_saw_pending;
+extern uint8_t bg_saw_bank, bg_saw_blocks;
+extern const uint8_t *bg_saw_src;
+extern uint16_t bg_saw_dst;
 extern volatile uint8_t bg_scroll_pending;
 extern volatile uint8_t bg_scx;
 extern volatile uint8_t bg_scy;

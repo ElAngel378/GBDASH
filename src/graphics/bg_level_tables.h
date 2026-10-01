@@ -3,7 +3,7 @@
 #define BG_LEVEL_TABLES_H
 
 #define SAW_VRAM_BASE 64
-#define SAW_MT_COUNT 15
+#define SAW_MT_COUNT 16
 
 // CGB saw metatiles: saw_mt_index[metatile] = row in saw_mt_tiles + 1 (0 = not a saw);
 // the 4 tiles are in VRAM bank 1 (0xFF = keep the sheet tile)
@@ -15,7 +15,7 @@ static const uint8_t saw_mt_index[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 6, 7, 8, 9, 0, 10, 11, 12, 13, 14, 0, 15,
+    0, 0, 0, 0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 16,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -35,6 +35,7 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
     { 0x42, 0x43, 0x52, 0x53 }, /* metatile 117 */
     { 0x44, 0xFF, 0x54, 0x55 }, /* metatile 118 */
     { 0x46, 0x47, 0x56, 0x57 }, /* metatile 119 */
+    { 0x70, 0x71, 0x72, 0x73 }, /* metatile 120 */
     { 0x48, 0x49, 0x58, 0x59 }, /* metatile 121 */
     { 0x4A, 0x4B, 0xFF, 0x5B }, /* metatile 122 */
     { 0x4C, 0x4D, 0x5C, 0x5D }, /* metatile 123 */
@@ -47,33 +48,43 @@ static const uint8_t saw_mt_tiles[SAW_MT_COUNT][4] = {
 //   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)
 //   n, n x (slot, sheet tile)   sheet tiles moved to another slot (DMG)
 //   n, n x (metatile, quarter, tile)
-static const uint8_t bg_cgb_stereomadness[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_stereomadness[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_stereomadness[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_backontrack[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_backontrack[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_backontrack[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_polargeist[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_polargeist[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_polargeist[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_dryout[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_dryout[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_dryout[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_baseafterbase[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_baseafterbase[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_baseafterbase[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_cantletgo[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_cantletgo[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_cantletgo[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_jumper[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_jumper[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_jumper[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_timemachine[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_timemachine[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_timemachine[] = { 0, 2, 0, 158, 1, 159, 0 };
-static const uint8_t bg_cgb_cycles[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_cycles[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_cycles[] = { 0, 8, 0, 144, 1, 145, 2, 153, 3, 154, 4, 156, 5, 157, 6, 158, 7, 159, 0 };
-static const uint8_t bg_cgb_xstep[] = { 5, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0, 2, 137, 0, 23, 3, 139, 0, 37, 3, 142, 0, 2, 12, 0, 0, 13, 2, 1 };
-static const uint8_t bg_dmg_xstep[] = { 3, 0, 0, 2, 137, 0, 23, 3, 139, 0, 37, 3, 142, 12, 2, 144, 3, 145, 4, 146, 5, 147, 6, 148, 7, 149, 8, 150, 9, 151, 10, 152, 11, 153, 104, 154, 105, 155, 2, 12, 0, 0, 13, 2, 1 };
-static const uint8_t bg_cgb_ultiatedestruction[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_xstep[] = { 5, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 2, 93, 0, 23, 3, 95, 0, 37, 3, 98, 0, 2, 12, 0, 0, 13, 2, 1 };
+static const uint8_t bg_dmg_xstep[] = { 3, 0, 0, 2, 93, 0, 23, 3, 95, 0, 37, 3, 98, 12, 2, 144, 3, 145, 4, 146, 5, 147, 6, 148, 7, 149, 8, 150, 9, 151, 10, 152, 11, 153, 104, 154, 105, 155, 2, 12, 0, 0, 13, 2, 1 };
+static const uint8_t bg_cgb_ultiatedestruction[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_ultiatedestruction[] = { 0, 0, 0 };
-static const uint8_t bg_cgb_clutterfunk[] = { 6, 129, 64, 48, 1, 0, 26, 1, 0, 0, 82, 6, 97, 0, 98, 6, 103, 0, 110, 4, 109, 0, 122, 4, 113, 0, 0 };
-static const uint8_t bg_dmg_clutterfunk[] = { 52, 0, 82, 6, 117, 0, 98, 6, 123, 0, 110, 4, 129, 0, 122, 4, 133, 0, 17, 1, 49, 0, 18, 1, 50, 0, 19, 1, 51, 0, 20, 1, 52, 0, 21, 1, 53, 0, 22, 1, 54, 0, 27, 1, 55, 0, 31, 1, 56, 0, 32, 1, 57, 0, 33, 1, 58, 0, 34, 1, 59, 0, 40, 1, 60, 0, 41, 1, 61, 0, 46, 1, 62, 0, 47, 1, 63, 0, 56, 1, 64, 0, 57, 1, 65, 0, 62, 1, 66, 0, 63, 1, 67, 0, 66, 1, 68, 0, 67, 1, 69, 0, 72, 1, 70, 0, 73, 1, 71, 0, 74, 1, 72, 0, 75, 1, 73, 0, 76, 1, 74, 0, 77, 1, 75, 0, 78, 1, 76, 0, 79, 1, 77, 0, 80, 1, 78, 0, 81, 1, 79, 0, 88, 1, 80, 0, 89, 1, 81, 0, 90, 1, 82, 0, 91, 1, 83, 0, 92, 1, 84, 0, 93, 1, 85, 0, 94, 1, 86, 0, 95, 1, 87, 0, 96, 1, 88, 0, 97, 1, 89, 0, 104, 1, 90, 0, 105, 1, 91, 0, 106, 1, 92, 0, 107, 1, 93, 0, 108, 1, 94, 0, 109, 1, 95, 0, 115, 1, 96, 12, 0, 144, 1, 145, 2, 146, 3, 147, 4, 148, 5, 149, 6, 150, 7, 151, 8, 152, 9, 153, 10, 154, 11, 155, 52, 4, 0, 77, 4, 1, 88, 8, 0, 89, 8, 1, 90, 8, 2, 93, 8, 3, 94, 9, 0, 91, 9, 1, 92, 9, 2, 95, 9, 3, 96, 10, 0, 97, 10, 1, 104, 10, 2, 107, 10, 3, 108, 11, 0, 105, 11, 1, 106, 11, 2, 109, 11, 3, 115, 116, 1, 18, 116, 2, 57, 116, 3, 62, 117, 0, 19, 117, 1, 20, 117, 2, 63, 117, 3, 66, 118, 0, 21, 118, 2, 67, 118, 3, 72, 119, 0, 27, 119, 1, 31, 119, 2, 73, 119, 3, 74, 121, 0, 32, 121, 1, 33, 121, 2, 75, 121, 3, 76, 122, 0, 34, 122, 1, 40, 122, 3, 78, 123, 0, 41, 123, 1, 46, 123, 2, 79, 123, 3, 80, 124, 0, 47, 124, 1, 56, 124, 2, 81, 125, 0, 17, 125, 1, 22, 125, 2, 77, 125, 3, 88, 127, 2, 17, 127, 3, 22 };
-static const uint8_t bg_cgb_test[] = { 2, 129, 64, 48, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_cgb_clutterfunk[] = { 6, 129, 64, 52, 1, 0, 26, 1, 0, 0, 82, 6, 53, 0, 98, 6, 59, 0, 110, 4, 65, 0, 122, 4, 69, 0, 0 };
+static const uint8_t bg_dmg_clutterfunk[] = { 56, 0, 82, 6, 73, 0, 98, 6, 79, 0, 110, 4, 85, 0, 122, 4, 89, 0, 17, 1, 1, 0, 18, 1, 2, 0, 19, 1, 3, 0, 20, 1, 4, 0, 21, 1, 5, 0, 22, 1, 6, 0, 27, 1, 7, 0, 31, 1, 8, 0, 32, 1, 9, 0, 33, 1, 10, 0, 34, 1, 11, 0, 40, 1, 12, 0, 41, 1, 13, 0, 46, 1, 14, 0, 47, 1, 15, 0, 56, 1, 16, 0, 57, 1, 17, 0, 62, 1, 18, 0, 63, 1, 19, 0, 66, 1, 20, 0, 67, 1, 21, 0, 72, 1, 22, 0, 73, 1, 23, 0, 74, 1, 24, 0, 75, 1, 25, 0, 76, 1, 26, 0, 77, 1, 27, 0, 78, 1, 28, 0, 79, 1, 29, 0, 80, 1, 30, 0, 81, 1, 31, 0, 88, 1, 32, 0, 89, 1, 33, 0, 90, 1, 34, 0, 91, 1, 35, 0, 92, 1, 36, 0, 93, 1, 37, 0, 94, 1, 38, 0, 95, 1, 39, 0, 96, 1, 40, 0, 97, 1, 41, 0, 104, 1, 42, 0, 105, 1, 43, 0, 106, 1, 44, 0, 107, 1, 45, 0, 108, 1, 46, 0, 109, 1, 47, 0, 115, 1, 48, 0, 116, 1, 49, 0, 117, 1, 50, 0, 118, 1, 51, 0, 119, 1, 52, 12, 0, 144, 1, 145, 2, 146, 3, 147, 4, 148, 5, 149, 6, 150, 7, 151, 8, 152, 9, 153, 10, 154, 11, 155, 56, 4, 0, 77, 4, 1, 88, 8, 0, 89, 8, 1, 90, 8, 2, 93, 8, 3, 94, 9, 0, 91, 9, 1, 92, 9, 2, 95, 9, 3, 96, 10, 0, 97, 10, 1, 104, 10, 2, 107, 10, 3, 108, 11, 0, 105, 11, 1, 106, 11, 2, 109, 11, 3, 115, 116, 1, 18, 116, 2, 57, 116, 3, 62, 117, 0, 19, 117, 1, 20, 117, 2, 63, 117, 3, 66, 118, 0, 21, 118, 2, 67, 118, 3, 72, 119, 0, 27, 119, 1, 31, 119, 2, 73, 119, 3, 74, 120, 0, 116, 120, 1, 117, 120, 2, 118, 120, 3, 119, 121, 0, 32, 121, 1, 33, 121, 2, 75, 121, 3, 76, 122, 0, 34, 122, 1, 40, 122, 3, 78, 123, 0, 41, 123, 1, 46, 123, 2, 79, 123, 3, 80, 124, 0, 47, 124, 1, 56, 124, 2, 81, 125, 0, 17, 125, 1, 22, 125, 2, 77, 125, 3, 88, 127, 2, 17, 127, 3, 22 };
+static const uint8_t bg_cgb_test[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_test[] = { 0, 0, 0 };
 #define BG_LEVEL_COUNT 13
+#define SAW_CENTER_MT 120
+// Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1
+// (CGB streams the 3 frames from saw_anim_tiles.bin: SAW_TILES tiles of 16 bytes per frame)
+#define SAW_ANIM_FRAMES 3
+#define SAW_ANIM_TILES 52
+static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { 1, 101, 153 };
+// 1 = the level has saws (animate them)
+static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+// 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)
+static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
 static const uint8_t * const bg_level_cgb[BG_LEVEL_COUNT] = { bg_cgb_stereomadness, bg_cgb_backontrack, bg_cgb_polargeist, bg_cgb_dryout, bg_cgb_baseafterbase, bg_cgb_cantletgo, bg_cgb_jumper, bg_cgb_timemachine, bg_cgb_cycles, bg_cgb_xstep, bg_cgb_ultiatedestruction, bg_cgb_clutterfunk, bg_cgb_test };
 static const uint8_t * const bg_level_dmg[BG_LEVEL_COUNT] = { bg_dmg_stereomadness, bg_dmg_backontrack, bg_dmg_polargeist, bg_dmg_dryout, bg_dmg_baseafterbase, bg_dmg_cantletgo, bg_dmg_jumper, bg_dmg_timemachine, bg_dmg_cycles, bg_dmg_xstep, bg_dmg_ultiatedestruction, bg_dmg_clutterfunk, bg_dmg_test };
 

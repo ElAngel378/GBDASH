@@ -971,6 +971,7 @@ void play_level(uint8_t idx) BANKED {
         }
         if (bg_gdma_isr_on && famidash_bkg_palettes_dirty) bg_pal_request = 1;
         if (parallax_needed) request_bg_parallax(bg_phase);
+        saw_anim_request();
         // Same for the scroll registers (GBC only; DMG sets them below).
         if (bg_gdma_isr_on) request_bg_scroll(final_scx, final_scy);
 #if ENABLE_DEBUG_MODE
@@ -981,6 +982,7 @@ void play_level(uint8_t idx) BANKED {
 #endif
         bg_wait_vbl();
         if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
+        saw_anim_vblank();
 
         BGP_REG = final_bgp;
         OBP0_REG = final_obp0;

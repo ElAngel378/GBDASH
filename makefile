@@ -34,6 +34,7 @@ $(TEMPDIR)/%.o: %.c
 # No automatic header tracking: list generated headers / INCBIN data explicitly
 $(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extra_tiles.bin
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
+$(TEMPDIR)/saw_anim_data.o: levels/chr_data/saw_anim_tiles.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h
 $(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h levels/chr_data/sprite_tiles.bin
 

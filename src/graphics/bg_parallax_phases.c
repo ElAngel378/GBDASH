@@ -18,11 +18,16 @@ volatile uint8_t bg_rj_pending;
 uint8_t bg_rj_x;
 uint8_t bg_rj_tiles[16];
 uint8_t bg_rj_attrs[16];
+volatile uint8_t bg_saw_pending;
+uint8_t bg_saw_bank, bg_saw_blocks;
+const uint8_t *bg_saw_src;
+uint16_t bg_saw_dst;
 volatile uint8_t bg_scroll_pending;
 volatile uint8_t bg_scx;
 volatile uint8_t bg_scy;
 
 static void parallax_gdma(uint8_t phase);
+static void saw_gdma(void);
 
 void init_bg_parallax(void) {
     if (_cpu == CGB_TYPE) {
@@ -160,7 +165,26 @@ void bg_parallax_vbl_isr(void) {
             bg_rj_pending = 0;
         }
     }
+    // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
+    ly = LY_REG;
+    if (bg_saw_pending && ly >= 144u && ly <= 151u) {
+        bg_saw_pending = 0;
+        saw_gdma();
+    }
     VBK_REG = vbk;
+}
+
+static void saw_gdma(void) {
+    uint8_t prev_b = _current_bank;
+    SWITCH_ROM(bg_saw_bank);
+    VBK_REG = 1;
+    HDMA1_REG = (uint8_t)((uint16_t)bg_saw_src >> 8);
+    HDMA2_REG = (uint8_t)((uint16_t)bg_saw_src & 0xF0);
+    HDMA3_REG = (uint8_t)((bg_saw_dst >> 8) & 0x1F);
+    HDMA4_REG = (uint8_t)(bg_saw_dst & 0xF0);
+    HDMA5_REG = (uint8_t)(bg_saw_blocks - 1u);
+    VBK_REG = 0;
+    SWITCH_ROM(prev_b);
 }
 
 static void parallax_gdma(uint8_t phase) {

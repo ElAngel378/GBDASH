@@ -14,7 +14,10 @@
 #include "bg_level_tables.h"
 INCBIN(bg_extra_tiles, "levels/chr_data/bg_extra_tiles.bin")   // per tile: normal + mirrored
 INCBIN_EXTERN(bg_extra_tiles)
+extern const uint8_t saw_anim_tiles[];   // saw_anim_data.c: SAW_ANIM_FRAMES x SAW_ANIM_TILES x 16 bytes
+BANKREF_EXTERN(saw_anim)
 static uint8_t mt_saws;
+static uint8_t mt_big_saws;   // the level has big saws: SAW_CENTER_MT is their centre
 
 // Metatile tables the renderer uses: the ROM tables, or a per-level copy in WRAM when
 // the level moves sheet tiles or overrides metatile tiles.
@@ -23,6 +26,68 @@ static const uint8_t (*mt_tab_rev)[4] = metatiles_rev;
 static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
 static uint8_t mt_xlat[256];
 
+// ---- Saw animation: the saw tiles are rewritten through 3 frames (rotated anticlockwise).
+// CGB: the VBlank handler GDMAs SAW_CHUNK_TILES tiles of the next frame per VBlank (the saw
+// tiles are at VRAM bank 1 slots SAW_VRAM_BASE.. in every level). DMG: the same tiles are
+// copied from bg_extra_tiles right after VBlank starts, DMG_SAW_TILES_PER_FRAME per frame,
+// into the slots this level loaded them to.
+#define SAW_STEP_FRAMES        2    // idle frames between finishing one animation frame and starting the next
+#define SAW_CHUNK_TILES        13   // CGB tiles per VBlank (SAW_ANIM_TILES / 4)
+#define DMG_SAW_TILES_PER_FRAME 5
+static uint8_t saw_on;               // this level has saws
+static uint8_t saw_reversed;
+static uint8_t saw_frame;            // frame being / last uploaded
+static uint8_t saw_pos;              // next tile of that frame; == SAW_ANIM_TILES: idle
+static uint8_t saw_timer;
+static uint8_t saw_issued;           // CGB: chunk handed to the VBlank handler, not yet done
+static uint8_t saw_dmg_slot[SAW_ANIM_TILES];   // DMG: VRAM slot of each saw tile (0xFF: not loaded)
+
+static void saw_anim_reset(void) {
+    saw_frame = 0;
+    saw_pos = SAW_ANIM_TILES;
+    saw_timer = 0;
+    saw_issued = 0;
+    bg_saw_pending = 0;
+}
+
+// CGB: call once per frame before waiting for VBlank (like request_bg_parallax)
+void saw_anim_request(void) BANKED {
+    if (!saw_on || !bg_gdma_isr_on) return;
+    if (saw_issued) {
+        if (bg_saw_pending) return;
+        saw_issued = 0;
+        saw_pos += SAW_CHUNK_TILES;
+    }
+    if (saw_pos >= SAW_ANIM_TILES) {
+        if (++saw_timer < SAW_STEP_FRAMES) return;
+        saw_timer = 0;
+        saw_frame = (uint8_t)((saw_frame + 1) % SAW_ANIM_FRAMES);
+        saw_pos = 0;
+    }
+    bg_saw_bank = BANK(saw_anim);
+    bg_saw_src = saw_anim_tiles + ((uint16_t)(saw_frame * SAW_ANIM_TILES + saw_pos) << 4);
+    bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(SAW_VRAM_BASE + saw_pos) << 4);
+    bg_saw_blocks = SAW_CHUNK_TILES;
+    bg_saw_pending = 1;
+    saw_issued = 1;
+}
+
+// DMG: call right after VBlank started
+void saw_anim_vblank(void) BANKED {
+    if (!saw_on || bg_gdma_isr_on) return;
+    if (saw_pos >= SAW_ANIM_TILES) {
+        if (++saw_timer < SAW_STEP_FRAMES) return;
+        saw_timer = 0;
+        saw_frame = (uint8_t)((saw_frame + 1) % SAW_ANIM_FRAMES);
+        saw_pos = 0;
+    }
+    const uint8_t *src = bg_extra_tiles + ((uint16_t)(saw_frame_first[saw_frame] + saw_pos) << 5) + (saw_reversed ? 16 : 0);
+    for (uint8_t n = DMG_SAW_TILES_PER_FRAME; n && saw_pos < SAW_ANIM_TILES; n--, saw_pos++, src += 32) {
+        uint8_t slot = saw_dmg_slot[saw_pos];
+        if (slot != 0xFF) set_bkg_data(slot, 1, src);
+    }
+}
+
 // Called after the base sheet was uploaded (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     const uint8_t *r;
@@ -30,15 +95,26 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     uint8_t n, n_moves, n_over, buf[16];
     uint8_t cgb = (_cpu == CGB_TYPE);
     mt_saws = cgb;
+    mt_big_saws = 0;
+    saw_on = 0;
+    saw_anim_reset();
     mt_tab = metatiles;
     mt_tab_rev = metatiles_rev;
     if (level >= BG_LEVEL_COUNT) return;
     r = cgb ? bg_level_cgb[level] : bg_level_dmg[level];
+    mt_big_saws = bg_level_big_saws[level];
+    saw_on = bg_level_saws[level];
+    saw_reversed = reversed;
+    for (n = 0; n < SAW_ANIM_TILES; n++) saw_dmg_slot[n] = 0xFF;
 
     // Extra tiles: (VRAM bank, slot, count, first extra tile); bank bit 7 = never mirrored
     for (n = *r++; n; n--) {
         uint8_t bank = *r++, dst = *r++, count = *r++;
-        const uint8_t *src = bg_extra_tiles + (uint16_t)(*r++) * 32u;
+        uint8_t first_tile = *r++;
+        const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
+        if (!cgb && count == 1 && first_tile >= saw_frame_first[0] && first_tile < saw_frame_first[0] + SAW_ANIM_TILES) {
+            saw_dmg_slot[first_tile - saw_frame_first[0]] = dst;
+        }
         if (reversed && !(bank & 0x80)) src += 16;
         if (cgb) VBK_REG = bank & 1;
         while (count--) {
@@ -146,7 +222,7 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
             uint8_t r0 = row_to_ty0[r];
             uint8_t r1 = r0 + 8u;
             uint8_t si = saw_mt_index[metatile_id];
-            if (si && mt_saws) {
+            if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws)) {
                 saw_dst = dst; saw_dst_attr = dst_attr;
                 put_saw(si, reversed, r0, r1, tl_x, tr_x);
                 dst += 4; dst_attr += 4;
@@ -326,7 +402,7 @@ void request_row0_slots(uint8_t first, uint16_t loaded_r, const uint8_t* map, ui
                 }
             }
             uint8_t si = saw_mt_index[mt_id];
-            if (si && mt_saws) {
+            if (si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws)) {
                 saw_dst = tiles; saw_dst_attr = attrs;
                 put_saw(si, reversed, 0, 8, tl_x, tr_x);
             }
@@ -380,7 +456,7 @@ void flush_row0_slots(uint8_t first, uint8_t count, uint16_t loaded_r, const uin
                 }
             }
             uint8_t si = saw_mt_index[mt_id];
-            if (si && mt_saws) {
+            if (si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws)) {
                 saw_dst = tiles; saw_dst_attr = attrs;
                 put_saw(si, reversed, 0, 8, tl_x, tr_x);
             }

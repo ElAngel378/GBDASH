@@ -10,8 +10,11 @@ Sections (first tile row, tile count). Tile rows are 8 px:
                                include/famidash_metatiles_dmg.c indexes into it
     row 10  BLACK_FILL      1  CGB: replaces tile 26 (Famidash BLACK_* fill: black is
                                colour 2 on CGB, colour 3 on DMG)
-    row 11  SAWS_CGB       48  CGB: sawblades, VRAM bank 1 tiles 64..111 (all levels)
-    row 14  SAWS_DMG       48  DMG: sawblades, loaded into free slots of levels with saws
+    row 11  SAWS_0         52  sawblades, animation frame 0 (rows 11..14; rows 15, 16 are unused)
+                               CGB: VRAM bank 1 tiles 64..115 (all levels); DMG: loaded into free
+                               slots of levels with saws. Colours: 2 = black, 1 = ring, 3 = hub
+    row 22  SAWS_1         52  sawblades, animation frame 1 (rotated anticlockwise)
+    row 26  SAWS_2         52  sawblades, animation frame 2
     row 17  BLOCKS_B_CGB   20  Famidash block set B (CGB), replaces BLOCKS_B_SLOTS
     row 19  BLOCKS_B_DMG   20  Famidash block set B (DMG), replaces BLOCKS_B_SLOTS
     row 21  SPIKES_B_CGB    8  Famidash spike set B background spikes (CGB and DMG: the
@@ -23,6 +26,7 @@ Outputs:
     levels/chr_data/bg_base_tiles.bin          BASE, and the mirrored copy
     levels/chr_data/bg_base_tiles_flipped.bin  (mirror mode loads the flipped sheet)
     levels/chr_data/bg_extra_tiles.bin         every other section, per tile: normal + mirrored
+    levels/chr_data/saw_anim_tiles.bin         the 3 saw frames, contiguous (CGB streams them)
     src/graphics/bg_level_tables.h             saw metatile tables + per level load lists
     include/bg_tiles.h                         BG_BASE_TILE_COUNT
 
@@ -38,14 +42,18 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 PNG = ROOT / "levels" / "chr_data" / "bg_tiles.png"
 
+SAW_FRAMES = 3
+SAW_TILES = 52   # saw tiles per animation frame: 0x00..0x2F (see SAW_METATILES) + 4 centre tiles
+
 SECTIONS = [  # name, first row, tile count
     ("BASE", 0, 160),
     ("BLACK_FILL", 10, 1),
-    ("SAWS_CGB", 11, 48),
-    ("SAWS_DMG", 14, 48),
+    ("SAWS_0", 11, SAW_TILES),
     ("BLOCKS_B_CGB", 17, 20),
     ("BLOCKS_B_DMG", 19, 20),
     ("SPIKES_B_CGB", 21, 8),
+    ("SAWS_1", 22, SAW_TILES),
+    ("SAWS_2", 26, SAW_TILES),
 ]
 BLOCKS_B_SLOTS = [82, 83, 84, 85, 86, 87, 98, 99, 100, 101, 102, 103, 110, 111, 112, 113, 122, 123, 124, 125]
 SPIKES_B_SLOTS = [0, 1, 23, 24, 25, 37, 38, 39]
@@ -60,6 +68,8 @@ LEVEL_SETS = {
     "clutterfunk": {"blocks": "B"},
 }
 
+SAW_CENTER_MT = 120
+BIG_SAW_PARTS = {116, 117, 118, 119, 121, 122, 123, 124}
 SAW_VRAM_BASE = 64           # CGB VRAM bank 1
 DMG_BG_SLOTS = 144           # DMG BG tiles 0..143 (144..159 = coin sprite tiles)
 DMG_RESERVED_TILES = [12, 26] + list(range(48, 54))   # blank, black fill, ground (used by code)
@@ -79,6 +89,7 @@ SAW_METATILES = {
     122: (0x0A, 0x0B, None, 0x1B),  # BIG_SAW_BOTTOM_LEFT
     123: (0x0C, 0x0D, 0x1C, 0x1D),  # BIG_SAW_BOTTOM_MIDDLE
     124: (0x0E, 0x0F, 0x1E, None),  # BIG_SAW_BOTTOM_RIGHT
+    120: (0x30, 0x31, 0x32, 0x33),  # BIG_SAW_CENTER
     125: (0x00, 0x05, 0x1A, 0x1F),  # SMALL_SAW
     127: (None, None, 0x00, 0x05),  # SMALL_SAW_TOP_HALF
 }
@@ -147,6 +158,9 @@ def main():
         k += count
     assert k < 256
     (out_dir / "bg_extra_tiles.bin").write_bytes(extra)
+    # saw animation frames for the CGB VBlank handler: contiguous 16 byte tiles, 3 frames
+    (out_dir / "saw_anim_tiles.bin").write_bytes(b"".join(
+        gb_bytes(t) for f in range(SAW_FRAMES) for t in section["SAWS_%d" % f]))
 
     # levels in game_levels order
     assets = (ROOT / "src" / "assets.c").read_text()
@@ -167,10 +181,13 @@ def main():
         name = ident[lv]
         sets = LEVEL_SETS.get(name, {})
         level_mts = set((ROOT / "levels" / "level_data" / ("%s_16high.bin" % name)).read_bytes())
+        # metatile 120 is also Xstep's diamond: it is the big saw's centre only where big saws are
+        big_saw = bool(level_mts & BIG_SAW_PARTS)
+        saw_mts = {m: t for m, t in SAW_METATILES.items() if m != SAW_CENTER_MT or big_saw}
 
         # --- CGB
         # bank bit 7: never load mirrored (CGB mirrors saws with the X flip attribute)
-        loads = [(0x81, SAW_VRAM_BASE, 48, first["SAWS_CGB"]),
+        loads = [(0x81, SAW_VRAM_BASE, SAW_TILES, first["SAWS_0"]),
                  (0, BLACK_FILL_SLOT, 1, first["BLACK_FILL"])]
         overrides = []
         if sets.get("blocks") == "B":
@@ -197,7 +214,7 @@ def main():
         saw_k = set()
         for m in level_mts:
             for q in range(4):
-                st = SAW_METATILES[m][q] if m in SAW_METATILES else None
+                st = saw_mts[m][q] if m in saw_mts else None
                 if st is not None:
                     saw_k.add(st)
                 else:
@@ -209,11 +226,11 @@ def main():
         moves = list(zip(free, high))
         saw_slot = dict(zip(sorted(saw_k), free[len(high):]))
         for k_ in sorted(saw_slot):
-            loads.append((0, saw_slot[k_], 1, first["SAWS_DMG"] + k_))
-        overrides += [(m, q, saw_slot[SAW_METATILES[m][q]]) for m in sorted(level_mts) if m in SAW_METATILES
-                      for q in range(4) if SAW_METATILES[m][q] is not None]
+            loads.append((0, saw_slot[k_], 1, first["SAWS_0"] + k_))
+        overrides += [(m, q, saw_slot[saw_mts[m][q]]) for m in sorted(level_mts) if m in saw_mts
+                      for q in range(4) if saw_mts[m][q] is not None]
         dmg = stream(loads, moves, overrides)
-        streams.append((lv, name, cgb, dmg))
+        streams.append((lv, name, cgb, dmg, big_saw, any(m in saw_mts for m in level_mts)))
         if moves or saw_slot:
             print("DMG %-20s %d tiles moved above slot %d, %d saw tiles, %d free slots left"
                   % (name, len(moves), DMG_BG_SLOTS, len(saw_slot), len(free) - len(high) - len(saw_k)))
@@ -239,10 +256,21 @@ def main():
           "//   n, n x (VRAM bank (bit 7: never mirrored), slot, count, first bg_extra_tiles tile)",
           "//   n, n x (slot, sheet tile)   sheet tiles moved to another slot (DMG)",
           "//   n, n x (metatile, quarter, tile)"]
-    for lv, name, cgb, dmg in streams:
+    for lv, name, cgb, dmg, _, _ in streams:
         L.append("static const uint8_t bg_cgb_%s[] = { %s };" % (name, ", ".join(map(str, cgb))))
         L.append("static const uint8_t bg_dmg_%s[] = { %s };" % (name, ", ".join(map(str, dmg))))
     L += ["#define BG_LEVEL_COUNT %d" % len(streams),
+          "#define SAW_CENTER_MT %d" % SAW_CENTER_MT,
+          "// Saw animation: frame f of the saw tiles is bg_extra_tiles tile saw_frame_first[f] + 0..SAW_TILES-1",
+          "// (CGB streams the 3 frames from saw_anim_tiles.bin: SAW_TILES tiles of 16 bytes per frame)",
+          "#define SAW_ANIM_FRAMES %d" % SAW_FRAMES,
+          "#define SAW_ANIM_TILES %d" % SAW_TILES,
+          "static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { %s };" % ", ".join(
+              str(first["SAWS_%d" % f]) for f in range(SAW_FRAMES)),
+          "// 1 = the level has saws (animate them)",
+          "static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(s[5])) for s in streams),
+          "// 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)",
+          "static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { %s };" % ", ".join(str(int(s[4])) for s in streams),
           "static const uint8_t * const bg_level_cgb[BG_LEVEL_COUNT] = { %s };" % ", ".join("bg_cgb_" + s[1] for s in streams),
           "static const uint8_t * const bg_level_dmg[BG_LEVEL_COUNT] = { %s };" % ", ".join("bg_dmg_" + s[1] for s in streams),
           "", "#endif", ""]
