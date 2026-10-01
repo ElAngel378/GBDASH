@@ -149,6 +149,31 @@ static void draw_ground(uint8_t phase) {
     }
 }
 
+// DMG sky: a 16x16 px brick pattern (2x2 tiles, VRAM tiles 49..52) that drifts by
+// rewriting those 4 tiles (64 bytes, fits in VBlank) - the map never changes.
+#define DMG_SKY_TILE 49
+// Mortar lines (colour 1) of the 16x16 cell, one bit per pixel, bit 15 = leftmost.
+static const uint16_t dmg_sky_rows[16] = {
+    0xFFFF, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080,
+    0xFFFF, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080
+};
+
+// phase 0..15: the pattern has moved left by that many pixels
+static void update_dmg_sky(uint8_t phase) {
+    uint8_t tiles[4][16];
+    for (uint8_t y = 0; y < 16; y++) {
+        uint16_t m = dmg_sky_rows[y];
+        m = phase ? (uint16_t)((m << phase) | (m >> (16 - phase))) : m;
+        uint8_t t = (y >> 3) << 1;
+        uint8_t r = (uint8_t)((y & 7) << 1);
+        tiles[t][r] = (uint8_t)(m >> 8);
+        tiles[t][r + 1] = 0;
+        tiles[t + 1][r] = (uint8_t)m;
+        tiles[t + 1][r + 1] = 0;
+    }
+    set_bkg_data(DMG_SKY_TILE, 4, &tiles[0][0]);
+}
+
 // Sky rows 2..14: the gameplay parallax pattern (48 tiles in VRAM bank 1, tile row
 // offsets 0/16/32, 8 tiles wide) on CGB, an empty tile on DMG (like gameplay).
 static void draw_sky(void) {
@@ -168,6 +193,12 @@ static void draw_sky(void) {
         VBK_REG = 1;
         fill_bkg_rect(0, 2, 20, GROUND_ROW - 2, 3);      // plain sky colour (palette 3)
         VBK_REG = 0;
+    } else if (setting_show_bg_enabled) {
+        update_dmg_sky(0);
+        for (uint8_t ty = 2; ty < GROUND_ROW; ty++) {
+            for (uint8_t x = 0; x < 20; x++) tiles[x] = (uint8_t)(DMG_SKY_TILE + ((ty & 1) << 1) + (x & 1));
+            set_bkg_tiles(0, ty, 20, 1, tiles);
+        }
     }
 }
 
@@ -360,6 +391,10 @@ GameState update_menu_state(void) BANKED {
         }
         bg_wait_vbl();
         draw_ground(ground_x);
+        if (_cpu != CGB_TYPE && setting_show_bg_enabled && setting_parallax_enabled
+            && (frame_counter & 1) == 0) {
+            update_dmg_sky((uint8_t)(frame_counter >> 1) & 15u);
+        }
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
         }
