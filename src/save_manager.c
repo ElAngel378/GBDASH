@@ -207,7 +207,7 @@ void record_level_coins(uint8_t level_idx, uint8_t coins) BANKED {
     }
 }
 
-void record_level_progress_from_cam(uint8_t level_idx, uint16_t cam_x, uint16_t max_x) BANKED {
+void record_level_progress_from_cam(uint8_t level_idx, uint16_t cam_x, uint16_t max_x, uint8_t is_practice) BANKED {
     if (level_idx >= NUM_SAVE_LEVELS) return;
     uint8_t pct;
     if (max_x == 0) pct = 0;
@@ -216,5 +216,5 @@ void record_level_progress_from_cam(uint8_t level_idx, uint16_t cam_x, uint16_t 
         uint32_t p = ((uint32_t)cam_x * 100u) / max_x;
         pct = (p > 100u) ? 100u : (uint8_t)p;
     }
-    record_level_progress(level_idx, pct, 0);
+    record_level_progress(level_idx, pct, is_practice);
 }

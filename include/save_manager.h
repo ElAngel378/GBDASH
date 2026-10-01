@@ -16,6 +16,6 @@ void init_save_system(void) BANKED;
 void save_game_data(void) BANKED;
 void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) BANKED;
 void record_level_coins(uint8_t level_idx, uint8_t coins) BANKED;
-void record_level_progress_from_cam(uint8_t level_idx, uint16_t cam_x, uint16_t max_x) BANKED;
+void record_level_progress_from_cam(uint8_t level_idx, uint16_t cam_x, uint16_t max_x, uint8_t is_practice) BANKED;
 
 #endif // SAVE_MANAGER_H

@@ -4,6 +4,7 @@
 #include <gbdk/font.h>
 #include <gbdk/console.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "gameplay.h"
 #include "player.h"
@@ -294,6 +295,99 @@ static void reload_level_state(uint8_t idx) {
     enable_interrupts();
 }
 
+static uint8_t practice_mode = 0;
+
+#define MAX_PRACTICE_CHECKPOINTS 10
+
+typedef struct {
+    Player   player;
+    uint16_t cam_px;
+    uint16_t cam_py;
+    uint16_t scroll_acc;
+    uint8_t  bg_drift_px;
+    uint8_t  target_bg_idx;
+    uint8_t  active;
+    palette_color_t bg_palettes[20];
+} PracticeCheckpoint;
+
+static PracticeCheckpoint practice_checkpoints[MAX_PRACTICE_CHECKPOINTS];
+static uint8_t practice_cp_count = 0;
+static uint16_t last_cp_cam_px = 0;
+
+static void practice_clear_checkpoints(void) {
+    uint8_t i;
+    practice_cp_count = 0;
+    last_cp_cam_px = 0;
+    for (i = 0; i < MAX_PRACTICE_CHECKPOINTS; i++) {
+        practice_checkpoints[i].active = 0;
+    }
+}
+
+static void practice_add_checkpoint(void) {
+    uint8_t i;
+    PracticeCheckpoint *cp;
+    if (player.dead || end_anim_state != END_ANIM_INACTIVE || player.level_complete) return;
+    if (practice_cp_count >= MAX_PRACTICE_CHECKPOINTS) {
+        for (i = 0; i < MAX_PRACTICE_CHECKPOINTS - 1; i++) {
+            practice_checkpoints[i] = practice_checkpoints[i + 1];
+        }
+        practice_cp_count = MAX_PRACTICE_CHECKPOINTS - 1;
+    }
+    cp = &practice_checkpoints[practice_cp_count];
+    cp->player = player;
+    cp->cam_px = cam_px;
+    cp->cam_py = cam_py;
+    cp->scroll_acc = scroll_acc;
+    cp->bg_drift_px = bg_drift_px;
+    cp->target_bg_idx = target_bg_idx;
+    cp->active = 1;
+    if (_cpu == CGB_TYPE) {
+        memcpy(cp->bg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+    }
+    practice_cp_count++;
+    last_cp_cam_px = cam_px;
+    if (setting_sfx_enabled) {
+        NR10_REG = 0x16; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x80; NR14_REG = 0xC3;
+    }
+}
+
+static void practice_remove_checkpoint(void) {
+    if (practice_cp_count > 1) {
+        practice_cp_count--;
+        practice_checkpoints[practice_cp_count].active = 0;
+        last_cp_cam_px = practice_checkpoints[practice_cp_count - 1].cam_px;
+        if (setting_sfx_enabled) {
+            NR10_REG = 0x1E; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x00; NR14_REG = 0xC2;
+        }
+    } else if (practice_cp_count == 1) {
+        practice_checkpoints[0].cam_px = 0;
+        if (_cpu == CGB_TYPE) {
+            practice_checkpoints[0].cam_py = MAP_Y0 + 128u;
+        } else {
+            practice_checkpoints[0].cam_py = MAP_Y0 + 112u;
+        }
+        practice_checkpoints[0].scroll_acc = 0;
+        practice_checkpoints[0].bg_drift_px = 0;
+        practice_checkpoints[0].target_bg_idx = 0;
+        player_init(&practice_checkpoints[0].player, 0, 240);
+        practice_checkpoints[0].player.y_base = Y_BASE_MAX;
+        last_cp_cam_px = 0;
+        if (setting_sfx_enabled) {
+            NR10_REG = 0x1E; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x00; NR14_REG = 0xC2;
+        }
+    }
+}
+
+static uint8_t practice_has_checkpoint(void) {
+    return (practice_cp_count > 0 && practice_checkpoints[practice_cp_count - 1].active);
+}
+
+static void practice_init_checkpoint(void) {
+    if (practice_cp_count == 0) {
+        practice_add_checkpoint();
+    }
+}
+
 // ---- play_level helpers: the rarely-run parts of the main loop (pause, level
 // complete, mirror portal, death, level end). Out of play_level because SDCC's
 // register allocator (--max-allocs-per-node50000) is very slow on one huge
@@ -346,19 +440,28 @@ static uint8_t pause_menu(uint8_t idx) {
             RGB8(0, 0, 0), RGB8(30, 245, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
         };
         set_sprite_palette(5, 1, misc_btn_pal);
+
+        // Practice Button: Vibrant emerald green when ON, dim gray when OFF
+        static const palette_color_t practice_pal_on[4] = {
+            RGB8(0, 0, 0), RGB8(50, 255, 50), RGB8(20, 200, 30), RGB8(10, 90, 15)
+        };
+        static const palette_color_t practice_pal_off[4] = {
+            RGB8(0, 0, 0), RGB8(140, 140, 140), RGB8(80, 80, 80), RGB8(40, 40, 40)
+        };
+        set_sprite_palette(4, 1, practice_mode ? practice_pal_on : practice_pal_off);
     } else {
         BGP_REG = dim_dmg_byte(saved_bgp, 1);
         OBP0_REG = 0x90;
         OBP1_REG = 0x1C;
     }
 
-    // Hide all gameplay and level sprites during pause (slots 27..39)
-    for (uint8_t i = 27; i < 40; i++) {
+    // Hide all gameplay and level sprites during pause (slots 34..39)
+    for (uint8_t i = 34; i < 40; i++) {
         shadow_OAM[i].y = 0;
     }
 
     uint8_t selected_btn = PAUSE_BTN_PLAY;
-    draw_pause_menu_sprites(selected_btn);
+    draw_pause_menu_sprites(selected_btn, practice_mode);
 #if ENABLE_DEBUG_MODE
     if (debug_mode) debug_draw_hud(0, 0, 0);
 #endif
@@ -376,13 +479,17 @@ static uint8_t pause_menu(uint8_t idx) {
         p_prev_joy = p_joy;
 
         if (p_pressed & J_LEFT) {
-            if (selected_btn == 0) selected_btn = 2;
+            if (selected_btn == 0) selected_btn = 3;
             else selected_btn--;
-            draw_pause_menu_sprites(selected_btn);
+            draw_pause_menu_sprites(selected_btn, practice_mode);
         } else if (p_pressed & J_RIGHT) {
-            if (selected_btn >= 2) selected_btn = 0;
+            if (selected_btn >= 3) selected_btn = 0;
             else selected_btn++;
-            draw_pause_menu_sprites(selected_btn);
+            draw_pause_menu_sprites(selected_btn, practice_mode);
+        } else if (p_pressed & (J_UP | J_DOWN)) {
+            if (selected_btn == PAUSE_BTN_PRACTICE) selected_btn = PAUSE_BTN_PLAY;
+            else selected_btn = PAUSE_BTN_PRACTICE;
+            draw_pause_menu_sprites(selected_btn, practice_mode);
 #if ENABLE_DEBUG_MODE
         } else if (p_pressed & J_B) {
             // B toggles debug mode (noclip + scanline readout); START resumes
@@ -405,12 +512,32 @@ static uint8_t pause_menu(uint8_t idx) {
             } else if (selected_btn == PAUSE_BTN_RESTART) {
                 restart_level = 1;
                 break;
+            } else if (selected_btn == PAUSE_BTN_PRACTICE) {
+                practice_mode = !practice_mode;
+                if (practice_mode) {
+                    practice_init_checkpoint();
+                } else {
+                    practice_clear_checkpoints();
+                }
+                if (_cpu == CGB_TYPE) {
+                    static const palette_color_t practice_pal_on[4] = {
+                        RGB8(0, 0, 0), RGB8(50, 255, 50), RGB8(20, 200, 30), RGB8(10, 90, 15)
+                    };
+                    static const palette_color_t practice_pal_off[4] = {
+                        RGB8(0, 0, 0), RGB8(140, 140, 140), RGB8(80, 80, 80), RGB8(40, 40, 40)
+                    };
+                    set_sprite_palette(4, 1, practice_mode ? practice_pal_on : practice_pal_off);
+                }
+                draw_pause_menu_sprites(selected_btn, practice_mode);
+                if (setting_sfx_enabled) {
+                    NR10_REG = 0x16; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x80; NR14_REG = 0xC3;
+                }
             }
         }
     }
 
     // Hide all pause menu UI sprites immediately
-    for (uint8_t i = 0; i < 27; i++) {
+    for (uint8_t i = 0; i < 34; i++) {
         shadow_OAM[i].y = 0;
     }
     percent_hud_hide();   // redrawn next frame (the pause menu used its slots)
@@ -431,11 +558,15 @@ static uint8_t pause_menu(uint8_t idx) {
     move_bkg(saved_scx, saved_scy);
 
     if (exit_level) {
+        practice_mode = 0;
+        practice_clear_checkpoints();
         return 1;
     }
 
     if (restart_level) {
+        practice_clear_checkpoints();
         reload_level_state(idx);
+        if (practice_mode) practice_init_checkpoint();
         prev_joy = joypad();
         if (prev_joy & J_UP) prev_joy |= J_A;
         player.last_joy = prev_joy;
@@ -473,8 +604,12 @@ static void complete_text(uint8_t x, uint8_t y, const char *str) {
 }
 
 static void level_complete_screen(uint8_t idx) {
-    record_level_progress(idx, 100, 0);
-    record_level_coins(idx, coins_collected);
+    if (practice_mode) {
+        record_level_progress(idx, 100, 1);
+    } else {
+        record_level_progress(idx, 100, 0);
+        record_level_coins(idx, coins_collected);
+    }
     HIDE_SPRITES;
     move_bkg(0, 0);
     disable_interrupts();
@@ -484,7 +619,11 @@ static void level_complete_screen(uint8_t idx) {
     fill_bkg_rect(0, 0, 32, 32, 0x00);
     VBK_REG = 0;
     fill_bkg_rect(0, 0, 20, 18, 0x00);
-    complete_text(3, 6, "LEVEL COMPLETE");
+    if (practice_mode) {
+        complete_text(2, 6, "PRACTICE COMPLETE");
+    } else {
+        complete_text(3, 6, "LEVEL COMPLETE");
+    }
     complete_text(2, 12, "PRESS A TO EXIT");
     waitpadup();
     while (!(joypad() & J_A)) wait_vbl_done();
@@ -567,8 +706,65 @@ static void mirror_reload(uint8_t idx) {
     prev_reversed = player.reversed;
 }
 
+static void practice_respawn(uint8_t idx) {
+    uint8_t apply_idx;
+    PracticeCheckpoint *cp = &practice_checkpoints[practice_cp_count - 1];
+
+    cam_px = cp->cam_px;
+    cam_py = cp->cam_py;
+    scroll_acc = cp->scroll_acc;
+    bg_drift_px = cp->bg_drift_px;
+    target_bg_idx = cp->target_bg_idx;
+
+    player = cp->player;
+    player.dead = 0;
+
+    mt_band = band_for_cam(cam_py, BAND_MAX);
+    band_cam_row = 0xFF;
+
+    mirror_reload(idx);
+
+    if (_cpu == CGB_TYPE) {
+        if (setting_show_bg_enabled) init_bg_parallax();
+        else blank_parallax_vram();
+        last_bg_phase = 0;
+        load_menu_ground_tiles();
+        flush_ground_row();
+        memcpy(famidash_bg_palettes, cp->bg_palettes, 20 * sizeof(palette_color_t));
+        memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+        set_bkg_palette(0, 5, shadow_bkg_palettes);
+        fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
+    } else {
+        apply_idx = target_bg_idx;
+        if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) apply_idx = 0;
+        BGP_REG = bg_pals[apply_idx];
+        OBP0_REG = BGP_REG;
+        OBP1_REG = BGP_REG;
+    }
+
+    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
+    init_pause_tiles();
+    debug_load_hud_tiles();
+    percent_hud_load_tiles();
+
+    sp_cache_reset(&active_sp, &sp_stream_idx);
+    sp_cache_fill(l, cam_px, &sp_stream_idx);
+    sp_cache_col = 0xFFFF;
+    sp_fill_pending = 0;
+    cached_collision_col = 0xFFFF;
+    previous_oam_index = MAX_HARDWARE_SPRITES;
+
+    percent_hud_reset(max_scroll_px);
+    percent_hud_update(cam_px);
+
+    prev_joy = joypad();
+    if (prev_joy & J_UP) prev_joy |= J_A;
+    player.last_joy = prev_joy;
+    pause_suppress_jump = 1;
+}
+
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
-    record_level_progress_from_cam(idx, cam_px, max_scroll_px);
+    record_level_progress_from_cam(idx, cam_px, max_scroll_px, practice_mode);
     if (setting_effects_enabled) {
         play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
     } else {
@@ -585,7 +781,11 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
-    reload_level_state(idx);
+    if (practice_mode && practice_has_checkpoint()) {
+        practice_respawn(idx);
+    } else {
+        reload_level_state(idx);
+    }
 }
 
 void play_level(uint8_t idx) BANKED {
@@ -683,6 +883,8 @@ void play_level(uint8_t idx) BANKED {
     end_shake_timer = 0;
     end_trigger_requested = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
+    practice_mode = 0;
+    practice_clear_checkpoints();
     coins_reset();
     coins_saved = level_coins[idx];
     percent_hud_reset(max_scroll_px);
@@ -714,10 +916,30 @@ void play_level(uint8_t idx) BANKED {
             break;
         }
 
-        if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
-            reduce_flash = !reduce_flash;
-            setting_dmg_gradient = !reduce_flash;
-            save_game_data();
+        if (practice_mode) {
+            if ((joy & J_B) && !(prev_joy & J_B)) {
+                practice_add_checkpoint();
+            }
+            if (((joy & J_SELECT) && !(prev_joy & J_SELECT)) ||
+                ((joy & J_DOWN) && !(prev_joy & J_DOWN))) {
+                practice_remove_checkpoint();
+            }
+
+            if (!player.dead && end_anim_state == END_ANIM_INACTIVE && !player.level_complete) {
+                if (cam_px > last_cp_cam_px + 140) {
+                    if (player.mode == MODE_SHIP) {
+                        practice_add_checkpoint();
+                    } else if (player.on_ground) {
+                        practice_add_checkpoint();
+                    }
+                }
+            }
+        } else {
+            if ((joy & J_SELECT) && !(prev_joy & J_SELECT)) {
+                reduce_flash = !reduce_flash;
+                setting_dmg_gradient = !reduce_flash;
+                save_game_data();
+            }
         }
         prev_joy = joy;
 

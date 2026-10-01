@@ -15,17 +15,19 @@
 #define BTN_PLAY_TILE_OFFSET 0
 #define BTN_MENU_TILE_OFFSET 16
 #define BTN_RESTART_TILE_OFFSET 28
+#define BTN_PRACTICE_TILE_OFFSET 28
 
 #define PAUSE_BTN_MENU 0
 #define PAUSE_BTN_PLAY 1
 #define PAUSE_BTN_RESTART 2
+#define PAUSE_BTN_PRACTICE 3
 
 #define PAUSE_SPRITE_TILE_BASE 76
 #define PAUSE_CURSOR_TILE_BASE 88
 
 
 void init_pause_tiles(void) BANKED;
-void draw_pause_menu_sprites(uint8_t selected_btn) BANKED;
+void draw_pause_menu_sprites(uint8_t selected_btn, uint8_t practice_mode) BANKED;
 void apply_pause_box_attributes(uint8_t apply) BANKED;
 
 #endif
