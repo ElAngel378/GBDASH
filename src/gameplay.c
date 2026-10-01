@@ -201,6 +201,7 @@ static uint8_t target_bg_idx;
 static uint8_t died;
 static int16_t py;
 static Player player;
+static uint8_t practice_mode = 0;
 
 static const uint8_t bg_pals[] = {
     0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
@@ -241,7 +242,7 @@ static void reload_level_state(uint8_t idx) {
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
-    init_pause_tiles();
+    if (practice_mode) load_checkpoint_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
     bg_drift_px = 0;
@@ -295,7 +296,10 @@ static void reload_level_state(uint8_t idx) {
     enable_interrupts();
 }
 
-static uint8_t practice_mode = 0;
+extern const hUGESong_t practice;
+// StayInsideMe(WIP).uge plays on VBlank (timer off) at 7 ticks/row: ~59.7 Hz from the
+// 4096 Hz timer is 69 counts, TMA = 256 - 69
+#define PRACTICE_MUSIC_DIVIDER 187
 
 #define MAX_PRACTICE_CHECKPOINTS 10
 
@@ -307,6 +311,8 @@ typedef struct {
     uint8_t  bg_drift_px;
     uint8_t  target_bg_idx;
     uint8_t  active;
+    uint16_t world_x;
+    uint16_t world_y;
     palette_color_t bg_palettes[20];
 } PracticeCheckpoint;
 
@@ -340,15 +346,14 @@ static void practice_add_checkpoint(void) {
     cp->scroll_acc = scroll_acc;
     cp->bg_drift_px = bg_drift_px;
     cp->target_bg_idx = target_bg_idx;
+    cp->world_x = cam_px;
+    cp->world_y = PLAYER_WORLD_Y();
     cp->active = 1;
     if (_cpu == CGB_TYPE) {
         memcpy(cp->bg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
     }
     practice_cp_count++;
     last_cp_cam_px = cam_px;
-    if (setting_sfx_enabled) {
-        NR10_REG = 0x16; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x80; NR14_REG = 0xC3;
-    }
 }
 
 static void practice_remove_checkpoint(void) {
@@ -356,9 +361,6 @@ static void practice_remove_checkpoint(void) {
         practice_cp_count--;
         practice_checkpoints[practice_cp_count].active = 0;
         last_cp_cam_px = practice_checkpoints[practice_cp_count - 1].cam_px;
-        if (setting_sfx_enabled) {
-            NR10_REG = 0x1E; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x00; NR14_REG = 0xC2;
-        }
     } else if (practice_cp_count == 1) {
         practice_checkpoints[0].cam_px = 0;
         if (_cpu == CGB_TYPE) {
@@ -369,12 +371,11 @@ static void practice_remove_checkpoint(void) {
         practice_checkpoints[0].scroll_acc = 0;
         practice_checkpoints[0].bg_drift_px = 0;
         practice_checkpoints[0].target_bg_idx = 0;
+        practice_checkpoints[0].world_x = 0;
+        practice_checkpoints[0].world_y = practice_checkpoints[0].cam_py;
         player_init(&practice_checkpoints[0].player, 0, 240);
         practice_checkpoints[0].player.y_base = Y_BASE_MAX;
         last_cp_cam_px = 0;
-        if (setting_sfx_enabled) {
-            NR10_REG = 0x1E; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x00; NR14_REG = 0xC2;
-        }
     }
 }
 
@@ -386,6 +387,36 @@ static void practice_init_checkpoint(void) {
     if (practice_cp_count == 0) {
         practice_add_checkpoint();
     }
+}
+
+static uint8_t practice_draw_checkpoints(uint8_t oam_index, uint16_t cam_x, uint16_t cam_y, uint8_t reversed) {
+    uint8_t cpi;
+    for (cpi = 0; cpi < practice_cp_count; cpi++) {
+        PracticeCheckpoint *cp = &practice_checkpoints[cpi];
+        if (!cp->active) continue;
+        int16_t dist_x = (int16_t)cp->world_x - (int16_t)cam_x;
+        int16_t ox;
+        if (reversed) {
+            ox = (int16_t)MIRROR_PLAYER_SCREEN_X + dist_x + 8;
+        } else {
+            ox = (cam_x < PLAYER_SCREEN_X) ? ((int16_t)cp->world_x + 8) : (dist_x + (int16_t)PLAYER_SCREEN_X + 8);
+        }
+        int16_t oy = (int16_t)cp->world_y - (int16_t)cam_y + 16;
+        if (ox >= 0 && ox <= 168 && oy >= 0 && oy <= 160 && oam_index <= 38) {
+            shadow_OAM[oam_index].x = (uint8_t)ox;
+            shadow_OAM[oam_index].y = (uint8_t)oy;
+            shadow_OAM[oam_index].tile = CHECKPOINT_TILE_BASE;
+            shadow_OAM[oam_index].prop = (_cpu == CGB_TYPE) ? S_PAL(1) : 0;
+            oam_index++;
+
+            shadow_OAM[oam_index].x = (uint8_t)(ox + 8);
+            shadow_OAM[oam_index].y = (uint8_t)oy;
+            shadow_OAM[oam_index].tile = CHECKPOINT_TILE_BASE + 2;
+            shadow_OAM[oam_index].prop = (_cpu == CGB_TYPE) ? S_PAL(1) : 0;
+            oam_index++;
+        }
+    }
+    return oam_index;
 }
 
 // ---- play_level helpers: the rarely-run parts of the main loop (pause, level
@@ -441,27 +472,27 @@ static uint8_t pause_menu(uint8_t idx) {
         };
         set_sprite_palette(5, 1, misc_btn_pal);
 
-        // Practice Button: Vibrant emerald green when ON, dim gray when OFF
-        static const palette_color_t practice_pal_on[4] = {
-            RGB8(0, 0, 0), RGB8(50, 255, 50), RGB8(20, 200, 30), RGB8(10, 90, 15)
+        // Practice Button: White rim & diamond outline, 2-tone green body
+        static const palette_color_t practice_btn_pal[4] = {
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
         };
-        static const palette_color_t practice_pal_off[4] = {
-            RGB8(0, 0, 0), RGB8(140, 140, 140), RGB8(80, 80, 80), RGB8(40, 40, 40)
-        };
-        set_sprite_palette(4, 1, practice_mode ? practice_pal_on : practice_pal_off);
+        set_sprite_palette(4, 1, practice_btn_pal);
     } else {
         BGP_REG = dim_dmg_byte(saved_bgp, 1);
         OBP0_REG = 0x90;
         OBP1_REG = 0x1C;
     }
 
-    // Hide all gameplay and level sprites during pause (slots 34..39)
-    for (uint8_t i = 34; i < 40; i++) {
+    // Hide all gameplay and level sprites, then load the pause tiles: they borrow the death
+    // effect and checkpoint tiles, which must be off screen while they are overwritten
+    for (uint8_t i = 0; i < 40; i++) {
         shadow_OAM[i].y = 0;
     }
+    wait_vbl_done();
+    init_pause_tiles();
 
     uint8_t selected_btn = PAUSE_BTN_PLAY;
-    draw_pause_menu_sprites(selected_btn, practice_mode);
+    draw_pause_menu_sprites(selected_btn);
 #if ENABLE_DEBUG_MODE
     if (debug_mode) debug_draw_hud(0, 0, 0);
 #endif
@@ -481,15 +512,15 @@ static uint8_t pause_menu(uint8_t idx) {
         if (p_pressed & J_LEFT) {
             if (selected_btn == 0) selected_btn = 3;
             else selected_btn--;
-            draw_pause_menu_sprites(selected_btn, practice_mode);
+            draw_pause_menu_sprites(selected_btn);
         } else if (p_pressed & J_RIGHT) {
             if (selected_btn >= 3) selected_btn = 0;
             else selected_btn++;
-            draw_pause_menu_sprites(selected_btn, practice_mode);
+            draw_pause_menu_sprites(selected_btn);
         } else if (p_pressed & (J_UP | J_DOWN)) {
             if (selected_btn == PAUSE_BTN_PRACTICE) selected_btn = PAUSE_BTN_PLAY;
             else selected_btn = PAUSE_BTN_PRACTICE;
-            draw_pause_menu_sprites(selected_btn, practice_mode);
+            draw_pause_menu_sprites(selected_btn);
 #if ENABLE_DEBUG_MODE
         } else if (p_pressed & J_B) {
             // B toggles debug mode (noclip + scanline readout); START resumes
@@ -513,24 +544,20 @@ static uint8_t pause_menu(uint8_t idx) {
                 restart_level = 1;
                 break;
             } else if (selected_btn == PAUSE_BTN_PRACTICE) {
-                practice_mode = !practice_mode;
-                if (practice_mode) {
+                if (!practice_mode) {
+                    practice_mode = 1;
                     practice_init_checkpoint();
+                    if (setting_music_enabled) {
+                        init_music_banked(&practice, 212, PRACTICE_MUSIC_DIVIDER);
+                        current_song_bank = 212;
+                        saved_music_ready = 1;
+                    }
+                    break;
                 } else {
+                    practice_mode = 0;
                     practice_clear_checkpoints();
-                }
-                if (_cpu == CGB_TYPE) {
-                    static const palette_color_t practice_pal_on[4] = {
-                        RGB8(0, 0, 0), RGB8(50, 255, 50), RGB8(20, 200, 30), RGB8(10, 90, 15)
-                    };
-                    static const palette_color_t practice_pal_off[4] = {
-                        RGB8(0, 0, 0), RGB8(140, 140, 140), RGB8(80, 80, 80), RGB8(40, 40, 40)
-                    };
-                    set_sprite_palette(4, 1, practice_mode ? practice_pal_on : practice_pal_off);
-                }
-                draw_pause_menu_sprites(selected_btn, practice_mode);
-                if (setting_sfx_enabled) {
-                    NR10_REG = 0x16; NR11_REG = 0x40; NR12_REG = 0x73; NR13_REG = 0x80; NR14_REG = 0xC3;
+                    restart_level = 1;
+                    break;
                 }
             }
         }
@@ -577,6 +604,10 @@ static uint8_t pause_menu(uint8_t idx) {
     hUGE_reset_wave();
 
     wait_vbl_done();
+
+    // The pause tiles borrowed these (exit and restart reload all sprite tiles)
+    restore_death_tiles();
+    if (practice_mode) load_checkpoint_tiles();
 
     // Synchronize music timer on VBLANK to prevent desync
     TIMA_REG = TMA_REG;
@@ -743,7 +774,7 @@ static void practice_respawn(uint8_t idx) {
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
-    init_pause_tiles();
+    load_checkpoint_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
 
@@ -757,16 +788,17 @@ static void practice_respawn(uint8_t idx) {
     percent_hud_reset(max_scroll_px);
     percent_hud_update(cam_px);
 
+    // Like a normal restart: a held jump acts right away (prev_joy only keeps B/SELECT
+    // from placing or removing a checkpoint on the first frame)
     prev_joy = joypad();
-    if (prev_joy & J_UP) prev_joy |= J_A;
-    player.last_joy = prev_joy;
-    pause_suppress_jump = 1;
+    player.last_joy = 0;
+    pause_suppress_jump = 0;
 }
 
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
     record_level_progress_from_cam(idx, cam_px, max_scroll_px, practice_mode);
     if (setting_effects_enabled) {
-        play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py);
+        play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py, practice_mode);
     } else {
         if (setting_sfx_enabled) {
             NR41_REG = 0x00;
@@ -827,7 +859,6 @@ void play_level(uint8_t idx) BANKED {
         set_bkg_data(12, 1, blank_bg_tile);
     }
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
-    init_pause_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
     bg_drift_px = 0;
@@ -1172,6 +1203,9 @@ void play_level(uint8_t idx) BANKED {
             &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
             player.reversed, oam_index
         );
+        if (practice_mode) {
+            oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, player.reversed);
+        }
         if (oam_index < previous_oam_index) {
             uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
             while (oam_index < previous_oam_index) {

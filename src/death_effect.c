@@ -133,13 +133,15 @@ static const int8_t particle_trajectories[12][36][2] = {
     },
 };
 
-void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py) BANKED {
-    // 1. Cut music and trigger crash noise
-    TAC_REG = 0x00;
-    NR52_REG = 0x00;
-    NR52_REG = 0x80;
-    NR51_REG = 0xFF;
-    NR50_REG = 0x77;
+void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED {
+    // 1. Cut music (not in practice mode) and trigger crash noise
+    if (!keep_music) {
+        TAC_REG = 0x00;
+        NR52_REG = 0x00;
+        NR52_REG = 0x80;
+        NR51_REG = 0xFF;
+        NR50_REG = 0x77;
+    }
 
     if (setting_sfx_enabled) {
         NR41_REG = 0x00;

@@ -1,3 +1,5 @@
+#pragma bank 212
+
 #include "hUGEDriver.h"
 #include <stddef.h>
 
@@ -466,7 +468,7 @@ static const unsigned char P2[] = {
     DN(___,0,0x000),
 };
 static const unsigned char P6[] = {
-    DN(___,0,0x000),
+    DN(C_4,9,0xE00),
     DN(___,0,0x000),
     DN(___,0,0x000),
     DN(___,0,0x000),
@@ -1783,7 +1785,7 @@ static const unsigned char P27[] = {
     DN(F_6,8,0x000),
     DN(F_6,8,0x000),
     DN(F_6,8,0x000),
-    DN(F_6,8,0x000),
+    DN(F_6,8,0xB03),
 };
 
 static const unsigned char itSquareSP1[] = {
@@ -1886,7 +1888,7 @@ static const unsigned char itSquareSP3[] = {
     DN(___,0,0x000),
     DN(___,0,0x000),
     DN(___,0,0x000),
-    DN(___,1,0x000),
+    DN(___,30,0x000),
 };
 static const unsigned char itSquareSP4[] = {
     DN(24,0,0x900),
