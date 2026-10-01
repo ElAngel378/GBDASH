@@ -5,21 +5,14 @@
 #include "assets.h"
 #include "rainbow.h"
 #include "logo.h"
+#include "bg_parallax.h"
+#include "settings.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
-static uint8_t bg_x = 0;
-static uint8_t ground_x = 0;
-
-void menu_stat_isr(void) __nonbanked {
-    if (LYC_REG == 16) {
-        SCX_REG = bg_x;
-        LYC_REG = 120;
-    } else {
-        SCX_REG = ground_x;
-        LYC_REG = 255;
-    }
-}
+// The menu background is static: it is never scrolled and uses no scanline (LYC/HBlank)
+// interrupt. Like in gameplay, the sky is the parallax block pattern, animated by the
+// VBlank handler (CGB), and the ground strip scrolls by rewriting its map rows.
 
 // Set to 1 to easily re-enable the version label in the bottom-right corner
 #define SHOW_MENU_VERSION_LABEL 0
@@ -78,34 +71,104 @@ static void update_menu_sprites(uint8_t sel) {
 
 // This file lives in a switchable ROM bank, so everything that switches ROM
 // banks (to read tile data from other banks) must run from bank 0: __nonbanked.
-extern const uint8_t menu_bg_tiles[];
-extern const uint8_t menu_bg_map[];
 extern const uint8_t menu_ground_tiles[];
-extern const uint8_t menu_ground_map[];
 BANKREF_EXTERN(menu_bg)
 extern const unsigned char playbutton[];
 BANKREF_EXTERN(playbutton)
 
+// Ground strip: menu_ground.png, 3 tile rows (screen y 120..143). Per row: a 64px period
+// of start tile, 6 uniform tiles, end tile. See build_ground_variants().
+#define GROUND_ROW            15
+#define GROUND_ROWS           3
+#define GROUND_PERIOD         64
+#define GROUND_SPEED          3
+#define GROUND_TILE_BASE      1    // VRAM tiles 1..48, 16 per row
+#define GROUND_TILES_PER_ROW  16
+#define GROUND_TILE_COUNT     9
+
+static uint8_t ground_src[GROUND_TILE_COUNT * 16];   // menu_ground_tiles, copied out of its bank
+
 static void menu_load_bg_gfx(void) __nonbanked {
     uint8_t prev_bank = _current_bank;
-    SWITCH_ROM(BANK(chr_gb));
-    set_bkg_data(0, 128, chr_gb_tiles);
     SWITCH_ROM(BANK(menu_bg));
-    set_bkg_data(28, 87, menu_bg_tiles);    // BG tiles at index 28-114
-    set_bkg_data(115, 9, menu_ground_tiles); // Ground tiles at 115-123
-
-    // Clear the whole map first (so top 16px is empty sky/color 0)
-    fill_bkg_rect(0, 0, 32, 32, 0);
-
-    // Draw background map starting at row 2 (16px down), drawing only 28 rows to not wrap
-    set_bkg_tiles(0, 2, 32, 28, menu_bg_map);
-    // Draw ground map at row 15 (120px) - 3 rows tall
-    set_bkg_tiles(0, 15, 32, 3, menu_ground_map);
+    for (uint8_t i = 0; i < GROUND_TILE_COUNT * 16; i++) ground_src[i] = menu_ground_tiles[i];
 
     // Load logo tiles from BANK(logo)
     SWITCH_ROM(BANK(logo));
     set_bkg_data(LOGO_TILE_START, LOGO_TILE_COUNT, logo_tiles);
     SWITCH_ROM(prev_bank);
+}
+
+// The ground is a flat strip with one 8px wide "pillar" every 64px. A pillar at any pixel
+// position is a pair of tiles per row (the left one holds the pillar's first 8-o pixels,
+// the right one the rest), so all 8 offsets o are loaded once and the strip scrolls by
+// choosing tiles in the map. Per row: uniform, L(o) for o = 0..7, R(o) for o = 1..7.
+#define GROUND_UNIFORM(k)  ((uint8_t)(GROUND_TILE_BASE + (k) * GROUND_TILES_PER_ROW))
+#define GROUND_LEFT(k, o)  ((uint8_t)(GROUND_UNIFORM(k) + 1 + (o)))
+#define GROUND_RIGHT(k, o) ((uint8_t)(GROUND_UNIFORM(k) + 8 + (o)))
+
+static void build_ground_variants(void) {
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+        const uint8_t *st = &ground_src[k * 3 * 16];   // tile at the start of the period
+        const uint8_t *un = st + 16;                   // uniform middle tile
+        const uint8_t *en = st + 32;                   // tile at the end of the period
+        set_bkg_data(GROUND_UNIFORM(k), 1, un);
+        for (uint8_t o = 0; o < 8; o++) {
+            uint8_t left[16], right[16];
+            for (uint8_t i = 0; i < 16; i++) {         // bytes alternate between the 2 bit planes
+                // the pillar: last 5 pixels of the end tile + first 3 of the start tile
+                uint8_t pillar = (uint8_t)(((en[i] & 0x1F) << 3) | (st[i] >> 5));
+                uint16_t w = ((uint16_t)un[i] << 8) | un[i];
+                w = (w & ~(0xFF00u >> o)) | (((uint16_t)pillar << 8) >> o);
+                left[i] = (uint8_t)(w >> 8);
+                right[i] = (uint8_t)w;
+            }
+            set_bkg_data(GROUND_LEFT(k, o), 1, left);
+            if (o) set_bkg_data(GROUND_RIGHT(k, o), 1, right);
+        }
+    }
+}
+
+// phase = screen x of the first pillar's left edge (pillars are GROUND_PERIOD apart)
+static void draw_ground(uint8_t phase) {
+    uint8_t rows[GROUND_ROWS][20];
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+        for (uint8_t x = 0; x < 20; x++) rows[k][x] = GROUND_UNIFORM(k);
+    }
+    for (uint8_t j = 0; j < 3; j++) {
+        int16_t xl = (int16_t)phase + (int16_t)(j * GROUND_PERIOD) - 8;
+        int8_t tx = (int8_t)(xl >> 3);
+        uint8_t o = (uint8_t)xl & 7;
+        for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+            if (tx >= 0 && tx < 20) rows[k][tx] = GROUND_LEFT(k, o);
+            if (o && tx + 1 >= 0 && tx + 1 < 20) rows[k][tx + 1] = GROUND_RIGHT(k, o);
+        }
+    }
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+        set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
+    }
+}
+
+// Sky rows 2..14: the gameplay parallax pattern (48 tiles in VRAM bank 1, tile row
+// offsets 0/16/32, 8 tiles wide) on CGB, an empty tile on DMG (like gameplay).
+static void draw_sky(void) {
+    uint8_t tiles[20];
+    if (_cpu == CGB_TYPE && setting_show_bg_enabled) {
+        static const uint8_t row_to_ty0[3] = { 0, 16, 32 };
+        for (uint8_t ty = 2; ty < GROUND_ROW; ty++) {
+            uint8_t ty0 = (uint8_t)(row_to_ty0[(ty >> 1) % 3] + ((ty & 1) << 3));
+            for (uint8_t x = 0; x < 20; x++) tiles[x] = (uint8_t)(ty0 + (x & 7));
+            VBK_REG = 0;
+            set_bkg_tiles(0, ty, 20, 1, tiles);
+        }
+        VBK_REG = 1;
+        fill_bkg_rect(0, 2, 20, GROUND_ROW - 2, 0x0B);   // bank 1, palette 3
+        VBK_REG = 0;
+    } else if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        fill_bkg_rect(0, 2, 20, GROUND_ROW - 2, 3);      // plain sky colour (palette 3)
+        VBK_REG = 0;
+    }
 }
 
 static void menu_load_playbutton_gfx(void) __nonbanked {
@@ -123,11 +186,13 @@ GameState update_menu_state(void) BANKED {
     OBP0_REG = 0xE4;
     OBP1_REG = 0xD2;
 
-    if (_cpu == CGB_TYPE) {
-        apply_rainbow_palette(0);
-    }
+    static uint16_t frame_counter = 0;
 
     menu_load_bg_gfx();
+    static const uint8_t blank_tile[16] = { 0 };
+    set_bkg_data(0, 1, blank_tile);
+    fill_bkg_rect(0, 0, 32, 32, 0);
+    build_ground_variants();
 
 #if SHOW_MENU_VERSION_LABEL
     // Load Pusab font tiles for version label
@@ -146,12 +211,17 @@ GameState update_menu_state(void) BANKED {
         set_bkg_tile_xy(x, 1, (uint8_t)(LOGO_TILE_START + 20 + x));
     }
 
+    draw_sky();
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
-        fill_bkg_rect(0, 0, 32, 32, 0);
-        fill_bkg_rect(0, 0, 20, 2, 1);
+        fill_bkg_rect(0, 0, 20, 2, 1);                    // logo: palette 1
+        fill_bkg_rect(0, GROUND_ROW, 20, GROUND_ROWS, 4); // ground: palette 4
         VBK_REG = 0;
+        // Continue the rainbow where it was (entering with colour 0 flashed red)
+        apply_rainbow_palette((uint8_t)(frame_counter >> 4));
     }
+    uint8_t ground_x = 0;
+    draw_ground(ground_x);
 
     // Play button
     menu_load_playbutton_gfx();
@@ -258,17 +328,10 @@ GameState update_menu_state(void) BANKED {
 
     update_menu_sprites(menu_sel);
 
-    bg_x = 0;
-    ground_x = 0;
     SCX_REG = 0;
     SCY_REG = 0;
 
-    disable_interrupts();
-    add_LCD(menu_stat_isr);
-    STAT_REG |= STATF_LYC;
-    LYC_REG = 16;
-    set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
-    enable_interrupts();
+    if (_cpu == CGB_TYPE && setting_show_bg_enabled) init_bg_parallax();
 
     SHOW_BKG;
     SHOW_SPRITES;
@@ -281,14 +344,25 @@ GameState update_menu_state(void) BANKED {
 #endif
     DISPLAY_ON;
 
-    static uint16_t frame_counter = 0;
+    // VBlank handler: runs the parallax GDMA at the start of VBlank (CGB)
+    bg_parallax_isr_start();
+    uint8_t sky_phase = 0;
     uint8_t prev_joy = joypad();
 
     while (1) {
-        wait_vbl_done();
-        SCX_REG = 0;
-        SCY_REG = 0;
-        LYC_REG = 16;
+        if (_cpu == CGB_TYPE && setting_show_bg_enabled && setting_parallax_enabled) {
+            // the sky drifts left half a pixel per frame
+            uint8_t phase = (uint8_t)(-(int8_t)(frame_counter >> 1)) & 63u;
+            if (phase != sky_phase) {
+                sky_phase = phase;
+                request_bg_parallax(phase);
+            }
+        }
+        bg_wait_vbl();
+        draw_ground(ground_x);
+        if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
+            apply_rainbow_palette((uint8_t)(frame_counter >> 4));
+        }
 
         uint8_t joy = joypad();
         uint8_t pressed = joy & ~prev_joy;
@@ -325,13 +399,7 @@ GameState update_menu_state(void) BANKED {
         }
 
         if (pressed & (J_A | J_START)) {
-            disable_interrupts();
-            remove_LCD(menu_stat_isr);
-            STAT_REG &= ~STATF_LYC;
-            SCX_REG = 0;
-            SCY_REG = 0;
-            set_interrupts(VBL_IFLAG | TIM_IFLAG);
-            enable_interrupts();
+            bg_parallax_isr_stop();
             HIDE_SPRITES;
             HIDE_WIN;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
@@ -345,14 +413,6 @@ GameState update_menu_state(void) BANKED {
         }
 
         frame_counter++;
-        if ((frame_counter & 1) == 0) {
-            bg_x += 1;
-        }
-        ground_x += 3;
-
-        if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
-            uint8_t color_index = (frame_counter >> 4) & 127;
-            apply_rainbow_palette(color_index);
-        }
+        ground_x = (uint8_t)(ground_x - GROUND_SPEED) & (GROUND_PERIOD - 1);
     }
 }

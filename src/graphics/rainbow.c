@@ -136,13 +136,37 @@ const uint16_t rainbow_palettes[128][4] = {
     { 0x041F, 0x041B, 0x000F, 0x0007 },
 };
 
+// c * f / 16, per 5-bit colour component
+static palette_color_t shade(palette_color_t c, uint8_t f) {
+    uint8_t r = (uint8_t)((((uint8_t)c & 0x1F) * f) >> 4);
+    uint8_t g = (uint8_t)(((((uint8_t)(c >> 5)) & 0x1F) * f) >> 4);
+    uint8_t b = (uint8_t)(((((uint8_t)(c >> 10)) & 0x1F) * f) >> 4);
+    return RGB(r, g, b);
+}
+
 void apply_rainbow_palette(uint8_t color_index) BANKED {
-    set_bkg_palette(0, 1, rainbow_palettes[color_index & 127]);
+    const uint16_t *rb = rainbow_palettes[color_index & 127];
+    palette_color_t sky = rb[0];
+
+    set_bkg_palette(0, 1, rb);
 
     palette_color_t logo_pal[4];
-    logo_pal[0] = rainbow_palettes[color_index & 127][0]; // Dynamic Sky background
-    logo_pal[1] = RGB8(185, 250, 70);                    // Top: Bright Lime Yellow-Green
-    logo_pal[2] = RGB8(60, 175, 40);                     // Bottom: Medium Grass Green
-    logo_pal[3] = RGB8(0, 0, 0);                         // Black Outline
+    logo_pal[0] = sky;                  // Dynamic Sky background
+    logo_pal[1] = RGB8(185, 250, 70);   // Top: Bright Lime Yellow-Green
+    logo_pal[2] = RGB8(60, 175, 40);    // Bottom: Medium Grass Green
+    logo_pal[3] = RGB8(0, 0, 0);        // Black Outline
     set_bkg_palette(1, 1, logo_pal);
+
+    // Palette 3: parallax sky blocks, same shades as the gameplay background
+    // (sky, outline, body, shadow). Palette 4: ground (white line, 3 shades).
+    palette_color_t bg_pals[8];
+    bg_pals[0] = sky;
+    bg_pals[1] = shade(sky, 8);
+    bg_pals[2] = shade(sky, 11);
+    bg_pals[3] = shade(sky, 6);
+    bg_pals[4] = RGB(31, 31, 31);
+    bg_pals[5] = shade(sky, 12);
+    bg_pals[6] = shade(sky, 6);
+    bg_pals[7] = shade(sky, 3);
+    set_bkg_palette(3, 2, bg_pals);
 }
