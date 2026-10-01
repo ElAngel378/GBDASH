@@ -420,6 +420,17 @@ static uint8_t pause_menu(uint8_t idx) {
     return 0;
 }
 
+// draw_text() is BANKED (sp_draw's bank is switched in while it runs), so a string literal
+// that lives in this file's bank would be read from the wrong ROM bank. Draw from here.
+static void complete_text(uint8_t x, uint8_t y, const char *str) {
+    for (; *str; str++, x++) {
+        char c = *str;
+        uint8_t tile = 0;
+        if (c >= 'A' && c <= 'Z') tile = (uint8_t)((c - 'A') + 13);
+        set_bkg_tile_xy(x, y, (uint8_t)(FONT_PUSAB_START + tile));
+    }
+}
+
 static void level_complete_screen(uint8_t idx) {
     record_level_progress(idx, 100, 0);
     record_level_coins(idx, coins_collected);
@@ -432,8 +443,8 @@ static void level_complete_screen(uint8_t idx) {
     fill_bkg_rect(0, 0, 32, 32, 0x00);
     VBK_REG = 0;
     fill_bkg_rect(0, 0, 20, 18, 0x00);
-    draw_text(3, 6, "LEVEL COMPLETE");
-    draw_text(3, 12, "PRESS A TO EXIT");
+    complete_text(3, 6, "LEVEL COMPLETE");
+    complete_text(2, 12, "PRESS A TO EXIT");
     waitpadup();
     while (!(joypad() & J_A)) wait_vbl_done();
 }
