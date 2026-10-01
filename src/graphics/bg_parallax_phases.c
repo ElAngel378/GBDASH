@@ -22,6 +22,8 @@ volatile uint8_t bg_saw_pending;
 uint8_t bg_saw_bank, bg_saw_blocks;
 const uint8_t *bg_saw_src;
 uint16_t bg_saw_dst;
+volatile uint8_t bg_saw_dmg_n;
+uint8_t * const *bg_saw_dmg_dsts;
 volatile uint8_t bg_scroll_pending;
 volatile uint8_t bg_scx;
 volatile uint8_t bg_scy;
@@ -174,6 +176,20 @@ void bg_parallax_vbl_isr(void) {
     if (bg_saw_pending && ly >= 144u && ly <= 151u) {
         bg_saw_pending = 0;
         saw_gdma();
+    }
+    // DMG saw tiles (~0.4k dots per tile); retried on the next VBlank when this one started late
+    if (bg_saw_dmg_n && ly >= 144u && ly <= 150u) {
+        uint8_t prev_b = _current_bank;
+        SWITCH_ROM(bg_saw_bank);
+        const uint8_t *src = bg_saw_src;
+        for (uint8_t i = 0; i < bg_saw_dmg_n; i++, src += 32) {
+            uint8_t *dst = bg_saw_dmg_dsts[i];
+            if (!dst) continue;
+            up_src = src;     up_dst = dst;     copy8();
+            up_src = src + 8; up_dst = dst + 8; copy8();
+        }
+        SWITCH_ROM(prev_b);
+        bg_saw_dmg_n = 0;
     }
     VBK_REG = vbk;
 }

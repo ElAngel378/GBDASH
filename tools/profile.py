@@ -1,4 +1,4 @@
-"""Headless per-section cycle profile of the gameplay loop with Mesen (see docs/MESEN_HEADLESS_PROFILING.md).
+"""Headless per-section cycle profile of the gameplay loop with Mesen.
 
     python tools/profile.py --level 9 --dmg --frames 3000
 

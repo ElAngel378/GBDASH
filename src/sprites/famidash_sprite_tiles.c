@@ -27,3 +27,19 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
     }
     if (cgb) VBK_REG = 0;
 }
+
+// Sprite tiles 128..159 of VRAM bank 0 are also background tiles 128..159: after the background
+// tileset was reloaded (mirror portal) only these need to be loaded again (DMG coins).
+void reload_bg_shared_sprite_tiles(void) BANKED {
+    uint8_t cgb = (_cpu == CGB_TYPE);
+    for (uint8_t i = 0; i < SPRITE_LOAD_COUNT; i++) {
+        const uint8_t *l = sprite_loads[i];
+        uint8_t cond = l[0];
+        if (cond == SPR_CGB && !cgb) continue;
+        if (cond == SPR_DMG && cgb) continue;
+        if (cond == SPR_CGB_DECO || cond == SPR_CGB_DECO_CLOUD) continue;
+        if (l[1] != 0 || l[2] >= 160u || (uint16_t)l[2] + l[3] <= 128u) continue;
+        if (cgb) VBK_REG = 0;
+        set_sprite_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
+    }
+}

@@ -105,9 +105,8 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 extern uint8_t mt_spike_b;
 // Level background tiles on top of the base sheet (tools/build_bg_tiles.py)
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED;
-// Saw animation (see mt_renderer.c): CGB request before waiting for VBlank, DMG upload after it
+// Saw animation (see mt_renderer.c): call before waiting for VBlank, the VBlank handler uploads
 void saw_anim_request(void) BANKED;
-void saw_anim_vblank(void) BANKED;
 void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 // Vertical streaming: the VRAM ring (16 metatile rows) holds map rows mt_band .. mt_band+15,

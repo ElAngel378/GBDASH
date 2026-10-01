@@ -25,22 +25,23 @@ static const uint8_t (*mt_tab)[4] = metatiles;
 static const uint8_t (*mt_tab_rev)[4] = metatiles_rev;
 static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
 static uint8_t mt_xlat[256];
+static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
 
 // ---- Saw animation: the saw tiles are rewritten through 3 frames (rotated anticlockwise).
 // CGB: the VBlank handler GDMAs SAW_CHUNK_TILES tiles of the next frame per VBlank (the saw
-// tiles are at VRAM bank 1 slots SAW_VRAM_BASE.. in every level). DMG: the same tiles are
-// copied from bg_extra_tiles right after VBlank starts, DMG_SAW_TILES_PER_FRAME per frame,
-// into the slots this level loaded them to.
+// tiles are at VRAM bank 1 slots SAW_VRAM_BASE.. in every level). DMG: the VBlank handler copies
+// DMG_SAW_TILES_PER_FRAME tiles per VBlank from bg_extra_tiles into the slots this level loaded
+// them to (copying them from the main thread with set_bkg_data cost up to 40% of a frame).
 #define SAW_STEP_FRAMES        2    // idle frames between finishing one animation frame and starting the next
 #define SAW_CHUNK_TILES        13   // CGB tiles per VBlank (SAW_ANIM_TILES / 4)
-#define DMG_SAW_TILES_PER_FRAME 5
+#define DMG_SAW_TILES_PER_FRAME BG_SAW_DMG_MAX
 static uint8_t saw_on;               // this level has saws
 static uint8_t saw_reversed;
 static uint8_t saw_frame;            // frame being / last uploaded
 static uint8_t saw_pos;              // next tile of that frame; == SAW_ANIM_TILES: idle
 static uint8_t saw_timer;
 static uint8_t saw_issued;           // CGB: chunk handed to the VBlank handler, not yet done
-static uint8_t saw_dmg_slot[SAW_ANIM_TILES];   // DMG: VRAM slot of each saw tile (0xFF: not loaded)
+static uint8_t *saw_dmg_dst[SAW_ANIM_TILES];   // DMG: VRAM address of each saw tile (0: not loaded)
 
 static void saw_anim_reset(void) {
     saw_frame = 0;
@@ -48,15 +49,17 @@ static void saw_anim_reset(void) {
     saw_timer = 0;
     saw_issued = 0;
     bg_saw_pending = 0;
+    bg_saw_dmg_n = 0;
 }
 
-// CGB: call once per frame before waiting for VBlank (like request_bg_parallax)
+// Call once per frame before waiting for VBlank (like request_bg_parallax)
 void saw_anim_request(void) BANKED {
-    if (!saw_on || !bg_gdma_isr_on) return;
+    if (!saw_on) return;
+    uint8_t cgb = bg_gdma_isr_on;
     if (saw_issued) {
-        if (bg_saw_pending) return;
+        if (cgb ? bg_saw_pending : bg_saw_dmg_n) return;
         saw_issued = 0;
-        saw_pos += SAW_CHUNK_TILES;
+        saw_pos += cgb ? SAW_CHUNK_TILES : DMG_SAW_TILES_PER_FRAME;
     }
     if (saw_pos >= SAW_ANIM_TILES) {
         if (++saw_timer < SAW_STEP_FRAMES) return;
@@ -64,28 +67,22 @@ void saw_anim_request(void) BANKED {
         saw_frame = (uint8_t)((saw_frame + 1) % SAW_ANIM_FRAMES);
         saw_pos = 0;
     }
-    bg_saw_bank = BANK(saw_anim);
-    bg_saw_src = saw_anim_tiles + ((uint16_t)(saw_frame * SAW_ANIM_TILES + saw_pos) << 4);
-    bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(SAW_VRAM_BASE + saw_pos) << 4);
-    bg_saw_blocks = SAW_CHUNK_TILES;
-    bg_saw_pending = 1;
+    if (cgb) {
+        bg_saw_bank = BANK(saw_anim);
+        bg_saw_src = saw_anim_tiles + ((uint16_t)(saw_frame * SAW_ANIM_TILES + saw_pos) << 4);
+        bg_saw_dst = (uint16_t)0x1000 + ((uint16_t)(SAW_VRAM_BASE + saw_pos) << 4);
+        bg_saw_blocks = SAW_CHUNK_TILES;
+        bg_saw_pending = 1;
+    } else {
+        // bg_extra_tiles is in this file's bank: per tile normal + mirrored (32 bytes)
+        uint8_t n = (uint8_t)(SAW_ANIM_TILES - saw_pos);
+        if (n > DMG_SAW_TILES_PER_FRAME) n = DMG_SAW_TILES_PER_FRAME;
+        bg_saw_src = bg_extra_tiles + ((uint16_t)(saw_frame_first[saw_frame] + saw_pos) << 5) + (saw_reversed ? 16 : 0);
+        bg_saw_dmg_dsts = saw_dmg_dst + saw_pos;
+        bg_saw_bank = _current_bank;
+        bg_saw_dmg_n = n;
+    }
     saw_issued = 1;
-}
-
-// DMG: call right after VBlank started
-void saw_anim_vblank(void) BANKED {
-    if (!saw_on || bg_gdma_isr_on) return;
-    if (saw_pos >= SAW_ANIM_TILES) {
-        if (++saw_timer < SAW_STEP_FRAMES) return;
-        saw_timer = 0;
-        saw_frame = (uint8_t)((saw_frame + 1) % SAW_ANIM_FRAMES);
-        saw_pos = 0;
-    }
-    const uint8_t *src = bg_extra_tiles + ((uint16_t)(saw_frame_first[saw_frame] + saw_pos) << 5) + (saw_reversed ? 16 : 0);
-    for (uint8_t n = DMG_SAW_TILES_PER_FRAME; n && saw_pos < SAW_ANIM_TILES; n--, saw_pos++, src += 32) {
-        uint8_t slot = saw_dmg_slot[saw_pos];
-        if (slot != 0xFF) set_bkg_data(slot, 1, src);
-    }
 }
 
 // Called after the base sheet was uploaded (display off). level: game_levels index.
@@ -105,7 +102,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     mt_big_saws = bg_level_big_saws[level];
     saw_on = bg_level_saws[level];
     saw_reversed = reversed;
-    for (n = 0; n < SAW_ANIM_TILES; n++) saw_dmg_slot[n] = 0xFF;
+    for (n = 0; n < SAW_ANIM_TILES; n++) saw_dmg_dst[n] = 0;
 
     // Extra tiles: (VRAM bank, slot, count, first extra tile); bank bit 7 = never mirrored
     for (n = *r++; n; n--) {
@@ -113,7 +110,8 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         uint8_t first_tile = *r++;
         const uint8_t *src = bg_extra_tiles + (uint16_t)first_tile * 32u;
         if (!cgb && count == 1 && first_tile >= saw_frame_first[0] && first_tile < saw_frame_first[0] + SAW_ANIM_TILES) {
-            saw_dmg_slot[first_tile - saw_frame_first[0]] = dst;
+            // BG tiles 0..127 are at 0x9000, 128..255 at 0x8800
+            saw_dmg_dst[first_tile - saw_frame_first[0]] = (uint8_t *)((dst < 128u ? 0x9000u : 0x8000u) + ((uint16_t)dst << 4));
         }
         if (reversed && !(bank & 0x80)) src += 16;
         if (cgb) VBK_REG = bank & 1;
@@ -128,15 +126,23 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     n_over = *ov++;
     if (!n_moves && !n_over) return;
 
-    // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table
-    n = 0;
-    do { mt_xlat[n] = n; } while (++n);
+    // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The
+    // table only depends on the level, so a mirror portal or a respawn only moves the tiles again.
+    uint8_t rebuild = (mt_ram_level != level);
+    if (rebuild) {
+        n = 0;
+        do { mt_xlat[n] = n; } while (++n);
+    }
     for (n = n_moves, r++; n; n--) {
         uint8_t dst = *r++, src = *r++;
         get_bkg_data(src, 1, buf);
         set_bkg_data(dst, 1, buf);
         mt_xlat[src] = dst;
     }
+    mt_tab = mt_ram[0];
+    mt_tab_rev = mt_ram[1];
+    if (!rebuild) return;
+    mt_ram_level = level;
     {
         const uint8_t *s = &metatiles[0][0];
         uint8_t *d = &mt_ram[0][0][0];
@@ -152,8 +158,6 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         mt_ram[1][n][0] = mt_ram[0][n][1]; mt_ram[1][n][1] = mt_ram[0][n][0];
         mt_ram[1][n][2] = mt_ram[0][n][3]; mt_ram[1][n][3] = mt_ram[0][n][2];
     } while (++n);
-    mt_tab = mt_ram[0];
-    mt_tab_rev = mt_ram[1];
 }
 
 // Saw metatile: writes its 4 tiles/attributes (bank 1, mirrored when reversed).
@@ -252,15 +256,14 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
             if (t == 12) { *dst++ = r1 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
         }
     } else {
-        for (uint8_t r = r_start; r < r_end; r++) {
-            uint8_t metatile_id = *map_ptr++;
-            const uint8_t *tiles = mt_table[metatile_id];
-
-            *dst++ = tiles[0];
-            *dst++ = tiles[1];
-            *dst++ = tiles[2];
-            *dst++ = tiles[3];
-        }
+        // DMG: a metatile's 4 tile ids are exactly its 4 column entries
+        const uint8_t *base = &mt_table[0][0];
+        uint8_t n = (uint8_t)(r_end - r_start);
+        do {
+            const uint8_t *t = base + ((uint16_t)(*map_ptr++) << 2);
+            dst[0] = t[0]; dst[1] = t[1]; dst[2] = t[2]; dst[3] = t[3];
+            dst += 4;
+        } while (--n);
     }
 }
 
@@ -297,6 +300,21 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 
 void flush_mt_column(uint8_t ring_col) BANKED {
     uint8_t bx = ring_col << 1;
+    if (!(LCDC_REG & LCDCF_ON)) {
+        // display off (level start, respawn, mirror portal): plain writes, no STAT waits
+        uint8_t cgb = (_cpu == CGB_TYPE);
+        for (uint8_t pass = 0; pass <= cgb; pass++) {
+            const uint8_t *src = pass ? metatile_column_attributes : metatile_column_tiles;
+            uint8_t *d = (uint8_t *)0x9800 + bx;
+            VBK_REG = pass;
+            for (uint8_t y = 0; y < (BKG_MT_H << 1); y++, d += 32, src += 2) {
+                d[0] = src[0];
+                d[1] = src[1];
+            }
+        }
+        VBK_REG = VBK_TILES;
+        return;
+    }
     VBK_REG = VBK_TILES;
     set_bkg_tiles(bx, 0, 2, BKG_MT_H << 1, metatile_column_tiles);
     if (_cpu == CGB_TYPE) {

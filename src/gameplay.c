@@ -521,15 +521,18 @@ static void mirror_reload(uint8_t idx) {
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
     bg_cj_pending = bg_rj_pending = 0;
     DISPLAY_OFF;
+    PROF_MARK(14);   // mirror: tileset
 
     const uint8_t* target_tiles = player.reversed
         ? l->tiles_rev
         : level_tiles;
     load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
+    PROF_MARK(15);   // mirror: level tiles
     apply_level_bg_tiles(idx, player.reversed);
     if (!setting_show_bg_enabled) {
         set_bkg_data(12, 1, blank_bg_tile);
     }
+    PROF_MARK(16);   // mirror: columns
 
     int32_t col_start = (int32_t)(cam_px >> 4) - 4;
     if (col_start < 0) col_start = 0;
@@ -539,14 +542,16 @@ static void mirror_reload(uint8_t idx) {
             uint8_t vram_slot = (uint8_t)(curr_col & 15);
             if (player.reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15);
             prepare_mt_column(curr_col, level_map, level_map_bank, player.reversed);
+            PROF_MARK(19);   // mirror: column flush
             flush_mt_column(vram_slot);
+            PROF_MARK(16);
         }
     }
 
-    load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
-    init_pause_tiles();
-    debug_load_hud_tiles();
-    percent_hud_load_tiles();
+    PROF_MARK(17);   // mirror: sprite tiles
+    // The tileset reload overwrote sprite tiles 128..159 (shared VRAM); no other sprite changes
+    reload_bg_shared_sprite_tiles();
+    PROF_MARK(18);   // mirror: rest
 
     uint16_t init_scroll_px = player.reversed
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
@@ -1060,7 +1065,6 @@ void play_level(uint8_t idx) BANKED {
         bg_wait_vbl();
         PROF_MARK(10);  // after VBlank: DMG scroll / VRAM writes, saw animation
         if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
-        saw_anim_vblank();
 
         BGP_REG = final_bgp;
         OBP0_REG = final_obp0;

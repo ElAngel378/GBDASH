@@ -49,6 +49,11 @@ extern volatile uint8_t bg_saw_pending;
 extern uint8_t bg_saw_bank, bg_saw_blocks;
 extern const uint8_t *bg_saw_src;
 extern uint16_t bg_saw_dst;
+// DMG version: bg_saw_dmg_n tiles from bg_saw_src (ROM bank bg_saw_bank, 32 bytes apart: normal +
+// mirrored) to bg_saw_dmg_dsts[i] (VRAM addresses, 0 = skip)
+#define BG_SAW_DMG_MAX 6
+extern volatile uint8_t bg_saw_dmg_n;
+extern uint8_t * const *bg_saw_dmg_dsts;
 extern volatile uint8_t bg_scroll_pending;
 extern volatile uint8_t bg_scx;
 extern volatile uint8_t bg_scy;

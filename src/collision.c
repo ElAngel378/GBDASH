@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include "collision.h"
 #include "famidash_metatiles.h"
+#include <string.h>
 
 #define BKG_MT_H 16
 
@@ -92,7 +93,12 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   SWITCH_ROM(bank);
   VBK_REG = VBK_TILES;
   // BG tiles 0..127 and 128.. are separate VRAM blocks (0x9000 / 0x8800)
-  if (tile_count > 128u) {
+  if (!(LCDC_REG & LCDCF_ON)) {
+    // display off: VRAM is always accessible, plain copies (set_bkg_data waits on STAT per byte)
+    uint16_t lo = (tile_count > 128u) ? 128u : tile_count;
+    memcpy((uint8_t *)0x9000, tiles, lo * 16u);
+    if (tile_count > 128u) memcpy((uint8_t *)0x8800, tiles + 128u * 16u, (tile_count - 128u) * 16u);
+  } else if (tile_count > 128u) {
     set_bkg_data(0, 128, tiles);
     set_bkg_data(128, (uint8_t)(tile_count - 128u), tiles + (128u * 16u));
   } else {
@@ -102,7 +108,6 @@ void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
 }
 
 // Buffer current and adjacent map columns in WRAM to reduce bank switches
-#include <string.h>
 
 // The player's collision window: map rows row0 .. row0+15 of columns map_col and map_col+1
 void load_collision_columns(uint16_t map_col, const uint8_t* map,

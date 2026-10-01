@@ -9,10 +9,11 @@ local MARK = @MARK_ADDR@
 local CAMX = @CAMX_ADDR@
 local RUN_FRAMES = @RUN_FRAMES@
 local SKIP_FRAMES = @SKIP_FRAMES@        -- level loading at the start
-local N, WAIT, AFTER = 13, 9, 10
+local N, WAIT, AFTER = 19, 9, 10
 local NAMES = { "input/scroll/cache", "object logic", "physics", "camera/end anim", "player sprite",
                 "level sprites", "column job", "band/bg/row req", "WAIT vblank", "after vblank",
-                "col: map read", "col: build rows", "col: after build" }
+                "col: map read", "col: build rows", "col: after build",
+                "mirror: tileset", "mirror: level tiles", "mirror: columns", "mirror: sprite tiles", "mirror: rest", "mirror: col flush" }
 local MEM = emu.memType.gameboyMemory
 local CPU = emu.cpuType.gameboy
 
