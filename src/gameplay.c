@@ -426,6 +426,8 @@ static uint8_t practice_draw_checkpoints(uint8_t oam_index, uint16_t cam_x, uint
 // cost frames on DMG.
 
 // Pause menu (Start). Returns 1 when the player chose to leave the level.
+static void practice_respawn(uint8_t idx);
+
 static uint8_t pause_menu(uint8_t idx) {
     wait_vbl_done();
 
@@ -588,6 +590,13 @@ static uint8_t pause_menu(uint8_t idx) {
         practice_mode = 0;
         practice_clear_checkpoints();
         return 1;
+    }
+
+    // Practice mode: Restart goes back to the last checkpoint and the practice music keeps
+    // going (resumed below like a normal unpause)
+    if (restart_level && practice_mode) {
+        practice_respawn(idx);
+        restart_level = 0;
     }
 
     if (restart_level) {

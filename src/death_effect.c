@@ -4,6 +4,11 @@
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include "settings.h"
+#include "hUGEDriver.h"
+
+// Practice mode: the crash takes the noise channel from the music this long, then the
+// music gets it back (cut before the crash fully decays so the drums come back cleanly)
+#define DEATH_SFX_FRAMES 16
 
 // Circle offsets for 24 frames of expansion [24][12][2]
 static const int8_t circle_offsets[24][12][2] = {
@@ -143,6 +148,10 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
         NR50_REG = 0x77;
     }
 
+    // hUGE stops writing the noise channel so it can't cut the crash off
+    uint8_t noise_borrowed = keep_music && setting_sfx_enabled && setting_music_enabled;
+    if (noise_borrowed) hUGE_mute_channel(HT_CH4, HT_CH_MUTE);
+
     if (setting_sfx_enabled) {
         NR41_REG = 0x00;
         NR42_REG = 0xF2;
@@ -159,6 +168,13 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
     static const int8_t shake_y[6] = {1, -1, -1, 1, 0, 0};
 
     for (uint8_t frame = 0; frame < 38; frame++) {
+        if (noise_borrowed && frame == DEATH_SFX_FRAMES) {
+            NR42_REG = 0x00;   // DAC off: silences the crash
+            NR44_REG = 0x80;
+            hUGE_mute_channel(HT_CH4, HT_CH_PLAY);
+            noise_borrowed = 0;
+        }
+
         // Screen shake
         if (setting_effects_enabled && frame < 6) {
             int16_t sy = (int16_t)cam_py + shake_y[frame];
