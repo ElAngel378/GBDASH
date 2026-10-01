@@ -66,6 +66,11 @@ def ground(i):
     color = rgb8(i)
     dark = rgb8(one_shade_darker(i))
     grid_9 = scale(color, 0.16)
+    if i < 0x10:
+        # Dark ground colours: Famidash's "one shade darker" is pure black, which turned the
+        # whole ground grid black. Keep a smooth, still-visible step below `color` instead.
+        dark = scale(color, 0.62)
+        grid_9 = scale(color, 0.36)
     # darker = smooth gradient step for ground blocks; grid_18 = Famidash's exact darker shade
     return [to555(c) for c in (scale(color, 0.75), dark, grid_9)]
 
