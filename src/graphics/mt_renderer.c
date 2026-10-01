@@ -272,12 +272,27 @@ void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, u
 
 // Sliced version: step 0..3 builds metatile rows 4*step .. 4*step+3
 // (step 0 also fetches the map column). See flush_mt_column_slice().
+#ifdef DEBUG_PROFILE
+extern volatile uint8_t gpmark;
+#define PROF_MARK(n) (gpmark = (n))
+#else
+#define PROF_MARK(n)
+#endif
 void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t step) BANKED {
+    PROF_MARK(11);
     if (step == 0) {
         cur_map_col = map_col;
         get_map_column(map_col, map, map_bank, col_buf, mt_band);
     }
+    PROF_MARK(12);
+#ifdef DEBUG_PROFILE_NOINT
+    disable_interrupts();
+#endif
     build_mt_rows(reversed, (uint8_t)(step << 2), (uint8_t)((step << 2) + 4u));
+#ifdef DEBUG_PROFILE_NOINT
+    enable_interrupts();
+#endif
+    PROF_MARK(13);
 }
 
 void flush_mt_column(uint8_t ring_col) BANKED {

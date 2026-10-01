@@ -29,3 +29,6 @@ Thumbs.db
 
 # Old AI-session artifacts
 .artifacts/
+# Profiling build (make PROFILE=1, tools/profile.py)
+temp_prof/
+bin/POCKETDASH_prof.*

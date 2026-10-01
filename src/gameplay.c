@@ -140,6 +140,16 @@ extern uint8_t music_ready;
 SpCache active_sp;
 uint8_t collision_columns[32];
 
+// Profiling build only (make PROFILE=1, see tools/profile.py): every section of the main loop
+// writes its id here, and tools/mesen_profile.lua charges the CPU cycles to the sections.
+#ifdef DEBUG_PROFILE
+volatile uint8_t gpmark;
+volatile uint16_t gpcamx;   // camera x, to say where in the level a frame was slow
+#define PROF_MARK(n) (gpmark = (n))
+#else
+#define PROF_MARK(n)
+#endif
+
 static const Level* l;
 static const uint8_t* level_tiles;
 static const uint8_t* level_map;
@@ -673,6 +683,10 @@ void play_level(uint8_t idx) BANKED {
     percent_hud_reset(max_scroll_px);
     bg_parallax_isr_start();
     while (1) {
+        PROF_MARK(1);   // input, scrolling, object cache
+#ifdef DEBUG_PROFILE
+        gpcamx = cam_px;
+#endif
         uint8_t joy = joypad();
         if (joy & J_UP) joy |= J_A;
 
@@ -736,7 +750,9 @@ void play_level(uint8_t idx) BANKED {
             sp_cache_col = sp_col;
         }
 
+        PROF_MARK(2);   // object logic
         process_sprite_logic(&active_sp, cam_px, &player, joy, &target_bg_idx);
+        PROF_MARK(3);   // collision columns, player physics
 
         if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) start_end_anim();
 
@@ -767,6 +783,9 @@ void play_level(uint8_t idx) BANKED {
             died = player_update(&player, joy, collision_columns, 16);
 #if ENABLE_DEBUG_MODE
             if (debug_mode) { died = 0; player.dead = 0; } // noclip: hazards and walls can't kill
+#ifdef DEBUG_GODMODE
+            died = 0; player.dead = 0;
+#endif
 #endif
         } else {
             died = 0;
@@ -793,6 +812,7 @@ void play_level(uint8_t idx) BANKED {
             cam_py = locked_cam_py;
         }
 
+        PROF_MARK(4);   // camera, end animation
         uint16_t scroll_px;
         uint8_t sprite_x_final;
         int16_t final_py;
@@ -848,6 +868,7 @@ void play_level(uint8_t idx) BANKED {
             final_py = 0;
         }
 
+        PROF_MARK(5);   // player sprite
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
@@ -918,6 +939,7 @@ void play_level(uint8_t idx) BANKED {
             }
         }
 
+        PROF_MARK(6);   // level sprites
         // Level sprites
         oam_index = draw_sprites(
             &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
@@ -936,6 +958,7 @@ void play_level(uint8_t idx) BANKED {
         if (debug_mode) debug_draw_hud(1, debug_ly, debug_max_ly);
 #endif
 
+        PROF_MARK(7);   // column job
         if (needs_render) {
             loaded_r = need_col;
             col_job_col = need_col;
@@ -952,6 +975,7 @@ void play_level(uint8_t idx) BANKED {
             if (bg_gdma_isr_on) { request_mt_column_slice(col_job_slot, col_job_step); col_job_issued = 1; }
         }
 
+        PROF_MARK(8);   // band, parallax, palettes, row job requests
         uint8_t parallax_needed = 0;
         uint8_t bg_phase = 0;
 
@@ -1032,7 +1056,9 @@ void play_level(uint8_t idx) BANKED {
             if (debug_ly > debug_max_ly) debug_max_ly = debug_ly;
         }
 #endif
+        PROF_MARK(9);   // waiting for VBlank
         bg_wait_vbl();
+        PROF_MARK(10);  // after VBlank: DMG scroll / VRAM writes, saw animation
         if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
         saw_anim_vblank();
 

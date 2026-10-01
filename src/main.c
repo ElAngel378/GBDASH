@@ -17,7 +17,12 @@ volatile uint8_t current_music_divider = 176;
 volatile uint8_t cgb_music_tick = 0;
 static uint16_t music_time_acc = 0;
 
+#ifdef DEBUG_PROFILE
+GameState current_state = STATE_PLAY_LEVEL;
+volatile uint8_t gplevel;
+#else
 GameState current_state = STATE_MENU;
+#endif
 
 volatile uint8_t level_banner_scx = 0;
 static volatile uint8_t active_banner_scx = 0;
@@ -113,6 +118,12 @@ void main(void) {
   sample_playing = 0;
 
   if (_cpu == CGB_TYPE) cpu_fast();
+
+#ifdef DEBUG_PROFILE
+  // Profiling build: tools/mesen_profile.lua writes level + 1 to gplevel; then straight in
+  while (gplevel == 0) wait_vbl_done();
+  selected = (uint8_t)(gplevel - 1u);
+#endif
 
   init_save_system();
 

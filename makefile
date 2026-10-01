@@ -6,6 +6,14 @@ PROJECT_NAME = POCKETDASH
 SRCDIR = src
 INCDIR = include
 TEMPDIR = temp
+
+# make PROFILE=1: profiling ROM bin/POCKETDASH_prof.gb (own temp dir) with god mode and section
+# markers for tools/profile.py, which also picks the level. Never overwrites the normal ROM.
+ifdef PROFILE
+PROJECT_NAME = POCKETDASH_prof
+TEMPDIR = temp_prof
+PROF_FLAGS = -DDEBUG_PROFILE -DDEBUG_GODMODE $(PROF_EXTRA)
+endif
 BINDIR = bin
 LIBDIR = lib
 
@@ -19,7 +27,7 @@ vpath %.c $(SRCDIR) $(SRCDIR)/graphics $(SRCDIR)/music $(SRCDIR)/sprites $(SRCDI
 # via -Wf. Without these the game cannot hold 60fps: all OAM/metatile work
 # runs at naive -O0 speed.
 # -Wl-yp0x143=0x80 enables GBC support in the ROM header
-LCCFLAGS = -I$(INCDIR) -Isrc/graphics -Wf--opt-code-speed -Wf--max-allocs-per-node50000 -Wa-I. -Wl-j -Wl-yt0x1B -Wl-yo256 -Wl-ya1 -Wl-yp0x143=0x80
+LCCFLAGS = $(PROF_FLAGS) -I$(INCDIR) -Isrc/graphics -Wf--opt-code-speed -Wf--max-allocs-per-node50000 -Wa-I. -Wl-j -Wl-yt0x1B -Wl-yo256 -Wl-ya1 -Wl-yp0x143=0x80
 LIBS = $(LIBDIR)/hUGEDriver.lib
 
 all: prepare $(BINDIR)/$(PROJECT_NAME).gb
