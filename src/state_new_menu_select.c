@@ -327,7 +327,7 @@ static void setup_arrow_sprites(void) {
         fade_set_sprite_palette(0, 3, obj_pals);
     } else {
         OBP0_REG = 0xC0;
-        OBP1_REG = 0xE4;
+        OBP1_REG = 0xC4;
     }
     SHOW_SPRITES;
 }
@@ -472,11 +472,15 @@ static void draw_level_coins(uint8_t level_idx) {
     }
 }
 
+// Text columns inside the level box (6..15); column 16 is the right border.
+#define MENU_NAME_COLS 10
+
 static uint8_t last_rendered_diff = 0xFF;
 
 static void draw_selected_level(void) {
-    // Clear only the 11 columns of text area on rows 6 and 7 with box interior tile 0x16
-    fill_bkg_rect(6, 6, 11, 2, 0x16);
+    // Clear only the text area (columns 6..15) on rows 6 and 7 with box interior tile 0x16.
+    // Column 16 is the box's right border and must stay untouched.
+    fill_bkg_rect(6, 6, MENU_NAME_COLS, 2, 0x16);
     update_level_progress_bars(selected);
     draw_level_coins(selected);
 
@@ -510,28 +514,27 @@ static void draw_selected_level(void) {
     const char *name = game_levels[selected]->name;
     uint8_t len = get_name_length(name);
 
-    if (len <= 11) { // the box interior is wide enough for 11 letters (columns 6..16)
+    if (len <= MENU_NAME_COLS) {
         draw_menu_text(6, 6, name);
     } else {
-        int8_t split_idx = -1;
-        for (int8_t i = 10; i >= 0; i--) {
-            if (name[i] == ' ') {
-                split_idx = i;
-                break;
-            }
-        }
-        if (split_idx == -1) {
-            split_idx = 10;
+        // Wrap onto two lines at the space that balances them best (both lines must fit),
+        // or inside the word when there is no usable space.
+        uint8_t split = (uint8_t)((len * 5 + 4) / 8);   // ~60/40: CLUTTERFUNK -> CLUTTER / FUNK
+        uint8_t best = 0xFF;
+        for (uint8_t i = 1; i < len; i++) {
+            if (name[i] != ' ') continue;
+            uint8_t l2 = len - i - 1;
+            if (i > MENU_NAME_COLS || l2 > MENU_NAME_COLS) continue;
+            uint8_t diff = (i > l2) ? (uint8_t)(i - l2) : (uint8_t)(l2 - i);
+            if (diff < best) { best = diff; split = i; }
         }
 
-        char line1[12];
-        uint8_t i;
-        for (i = 0; i < (uint8_t)split_idx && i < 10; i++) {
-            line1[i] = name[i];
-        }
-        line1[i] = '\0';
+        char line1[MENU_NAME_COLS + 1];
+        uint8_t n1 = (split > MENU_NAME_COLS) ? MENU_NAME_COLS : split;
+        for (uint8_t i = 0; i < n1; i++) line1[i] = name[i];
+        line1[n1] = '\0';
 
-        const char *line2 = &name[split_idx];
+        const char *line2 = &name[split];
         while (*line2 == ' ') line2++;
 
         draw_menu_text(6, 6, line1);
@@ -596,7 +599,8 @@ GameState update_new_menu_select_state(void) BANKED {
         apply_cgb_palettes(current_bg_color, selected);
         fade_set_bkg_palette(0, 8, cgb_menu_pals);
     }
-    fade_set_dmg_palettes(0xE4, 0xC0, 0xC0);
+    // OBP1 = progress bar caps: colour 1 = bar fill (light grey), colour 2 = bar interior (white)
+    fade_set_dmg_palettes(0xE4, 0xC0, 0xC4);
     BGP_REG = 0xE4;
 
     last_rendered_norm = 0xFF;
