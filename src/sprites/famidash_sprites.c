@@ -8,7 +8,10 @@
 
 #define P0 S_PAL(0)
 #define P1 S_PAL(1)
-#define P2 S_PAL(2)
+// DMG has only two sprite palettes: the "blue" objects (blue orbs and pads, the gravity-down and horizontal down
+// portals, all P2) also select OBP1, which gameplay.c sets to OBP0 with shades
+// 1 and 2 swapped. CGB ignores bit 4 of the attributes.
+#define P2 (S_PAL(2) | S_PALETTE)
 #define P3 S_PAL(3)
 #define P4 S_PAL(4)
 #define P5 S_PAL(5)

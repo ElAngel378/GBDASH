@@ -88,15 +88,21 @@ static const int16_t launch_force[2][4][3] = {
 extern const unsigned char FontPusab[];
 #define FONT_PUSAB_START 0xD0
 
-static inline uint8_t is_dmg_portal(uint8_t o) {
-    return (o <= 2) || (o == 8) || (o == 9) || (o >= 16 && o <= 19) || (o == 24) || (o == 25) || (o == 7) || (o == 26) || (o == 27) || (o == 121) || (o == 126);
+static uint8_t sp_has_drawn = 0;
+
+// DMG draws the portals, orbs and pads, coins and mirror portals (the object cache keeps and
+// draws only these there): bit (o & 7) of dmg_drawn_mask[o >> 3], for the object ids below 128.
+static const uint8_t dmg_drawn_mask[16] = {
+    0xE7, 0x7F, 0x0F, 0x0F, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42
+};
+static inline uint8_t is_dmg_drawn(uint8_t o) {
+    return o < 128 && (dmg_drawn_mask[o >> 3] & (uint8_t)(1u << (o & 7)));
 }
-static uint8_t sp_has_portals = 0;
 
 void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     uint8_t i;
     *stream_idx = 0;
-    sp_has_portals = 0;
+    sp_has_drawn = 0;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
 }
 
@@ -114,7 +120,7 @@ void sp_cache_retire(uint16_t cam_px) BANKED {
             if (cache->activated[i]) {
                 uint8_t o = cache->obj[i];
                 if (o >= 128) continue; // Any activated trigger can be safely pruned
-                if (_cpu != CGB_TYPE && !is_dmg_portal(o)) continue;
+                if (_cpu != CGB_TYPE && !is_dmg_drawn(o)) continue;
             }
             if (cache->px[i] >= keep_from) {
                 if (count != i) {
@@ -137,14 +143,14 @@ void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED
 
     sp_cache_load(l->sp_bank, sp_list, cam_px, cache, stream_idx, l->map_height);
 
-    // Only draw_sprites on DMG reads sp_has_portals
-    sp_has_portals = 0;
+    // Only draw_sprites on DMG reads sp_has_drawn
+    sp_has_drawn = 0;
     if (_cpu == CGB_TYPE) return;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
         if (!cache->active[i]) break;
         uint8_t o = cache->obj[i];
-        if (o < 128 && is_dmg_portal(o)) {
-            sp_has_portals = 1;
+        if (o < 128 && is_dmg_drawn(o)) {
+            sp_has_drawn = 1;
             break;
         }
     }
@@ -567,6 +573,34 @@ void process_sprite_logic(
     }
 }
 
+// DMG: the cube / ship / ball portals share their art, so a small icon of the mode (cube, ship,
+// ball) is drawn in front of the portal's centre (lower OAM index = on top).
+static uint8_t draw_oam_dmg_mode_icon(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t t0 = 0, t1 = 0, p0 = 0, p1 = 0;
+    if (obj == OBJ_CUBE_PORTAL)      { t0 = 0;  t1 = 0;  p1 = S_FLIPX; }
+    else if (obj == OBJ_SHIP_PORTAL) { t0 = 8;  t1 = 10; }
+    else                             { t0 = 12; t1 = 14; }
+    if (reversed) {
+        uint8_t t = t0; t0 = t1; t1 = t;
+        p0 ^= S_FLIPX; p1 ^= S_FLIPX;
+    }
+    sx += 4; sy += 16;
+    *oam++ = sy; *oam++ = sx;     *oam++ = t0; *oam++ = p0;
+    *oam++ = sy; *oam++ = sx + 8; *oam++ = t1; *oam++ = p1;
+    return 2;
+}
+
+// DMG orbs and pads: left tile and attributes per object id (the right tile is the left + 2,
+// mirrored). Blue ones (P2 in famidash_sprites.c) use OBP1. Direct table: this runs for every
+// orb and pad on screen, which the generic metasprite path made too slow for DMG frames.
+static const uint8_t dmg_op_tile[38] = {
+    0,0,0,0,0, 184,188,0, 0,0, 180,184,180,180,180, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 192
+};
+static const uint8_t dmg_op_prop[38] = {
+    0,0,0,0,0, S_PALETTE,0,0, 0,0, 0,0,S_FLIPY,S_PALETTE,S_PALETTE | S_FLIPY, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0
+};
+
 // Mini / growth portal (Famidash Mini_Portal / Growth_Portal: 7 8x16 sprites)
 static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     static const int8_t mx[7] = { 0, 8, -8, 0, 8, 0, 8 };
@@ -635,8 +669,8 @@ uint8_t draw_sprites(
     if (coin_frame_ctr >= 20) coin_frame_ctr = 0;
     oam_start = draw_coin_anims(cam_px, cam_py, reversed, oam_start);
 
-    // Skip drawing if no portals exist in cache on DMG
-    if (_cpu != CGB_TYPE && !sp_has_portals) return oam_start;
+    // Skip drawing if no portals, orbs or pads exist in cache on DMG
+    if (_cpu != CGB_TYPE && !sp_has_drawn) return oam_start;
 
     uint16_t lim_ahead = cam_px + 176u;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
@@ -648,7 +682,7 @@ uint8_t draw_sprites(
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 128) continue;
 
-        if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_portal(obj))) continue;
+        if (_cpu != CGB_TYPE && (obj >= 128 || !is_dmg_drawn(obj))) continue;
 
         dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
 
@@ -665,6 +699,18 @@ uint8_t draw_sprites(
         uint16_t d = cache->py[i] - cam_py + 48u;
         if (d > 192u) continue;
         screen_y = (uint8_t)d - 32u;
+
+        if (_cpu != CGB_TYPE && obj < 38 && dmg_op_tile[obj]) {
+            uint8_t t = dmg_op_tile[obj], p = dmg_op_prop[obj];
+            uint8_t *oam = (uint8_t *)&shadow_OAM[oam_start];
+            uint8_t xl = reversed ? screen_x + 8 : screen_x;
+            uint8_t xr = reversed ? screen_x : screen_x + 8;
+            uint8_t fx = reversed ? S_FLIPX : 0;
+            *oam++ = screen_y; *oam++ = xl; *oam++ = t;     *oam++ = p ^ fx;
+            *oam++ = screen_y; *oam++ = xr; *oam++ = t + 2; *oam++ = p ^ (S_FLIPX ^ fx);
+            oam_start += 2;
+            continue;
+        }
 
         if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
             if (oam_start > MAX_HARDWARE_SPRITES - 7) break;
@@ -707,6 +753,10 @@ uint8_t draw_sprites(
         if (obj >= 16 && obj <= 19) {
             oam_start += draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
+            if (_cpu != CGB_TYPE) {
+                if (oam_start > MAX_HARDWARE_SPRITES - 11) break;
+                oam_start += draw_oam_dmg_mode_icon(obj, oam_start, screen_x, screen_y, reversed);
+            }
             oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
             oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);

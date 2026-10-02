@@ -19,6 +19,7 @@ extern volatile uint8_t current_song_bank;
 extern volatile uint8_t current_music_divider;
 extern uint8_t music_ready;
 extern const hUGESong_t menuloop;
+extern const hUGESong_t practice;
 
 typedef struct {
     const char *name;
@@ -48,7 +49,10 @@ static const SfxItem sfx_items[4] = {
 };
 
 #define NUM_SFX_ITEMS 4
-#define NUM_MUSIC_TRACKS 12
+// menu theme + the 12 level songs (level_test is silent, so not listed) + practice mode
+#define NUM_LEVEL_SONGS 12
+#define NUM_MUSIC_TRACKS (NUM_LEVEL_SONGS + 2)
+#define PRACTICE_TRACK (NUM_LEVEL_SONGS + 1)
 
 // Custom font tiles: < (39), > (40), - (41), : (42)
 static const uint8_t extra_font_tiles[4 * 16] = {
@@ -143,6 +147,11 @@ static void get_music_entry(uint8_t idx, MusicEntry *entry) {
         entry->song = &menuloop;
         entry->bank = 1;
         entry->divider = 176;
+    } else if (idx == PRACTICE_TRACK) {
+        entry->name = "PRACTICE MODE";
+        entry->song = &practice;
+        entry->bank = 212;
+        entry->divider = 187;   // PRACTICE_MUSIC_DIVIDER in gameplay.c
     } else {
         uint8_t lvl_idx = idx - 1;
         entry->name = game_levels[lvl_idx]->name;
@@ -164,8 +173,8 @@ static void render_music_section(uint8_t track_idx, uint8_t playing) {
     num_buf[2] = (char)('0' + (num / 10));
     num_buf[3] = (char)('0' + (num % 10));
     num_buf[4] = '/';
-    num_buf[5] = '1';
-    num_buf[6] = '2';
+    num_buf[5] = (char)('0' + (NUM_MUSIC_TRACKS / 10));
+    num_buf[6] = (char)('0' + (NUM_MUSIC_TRACKS % 10));
     num_buf[7] = ' ';
     num_buf[8] = '>';
     num_buf[9] = ' ';

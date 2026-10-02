@@ -210,6 +210,13 @@ static const uint8_t bg_pals[] = {
     0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
 };
 
+// Sprite palette on a black DMG background (bg_pals[3]): shades 1 and 2 as normal, black -> white
+#define DMG_OBP_ON_BLACK 0x24
+// OBP1 (blue orbs, pads and gravity-down portals): OBP0 with shades 1 and 2 swapped. On the dark
+// grey background (idx 2) OBP0 maps both to black, so OBP1 keeps shade 1 for the other look.
+#define DMG_OBP1_ON_DARK 0x34
+#define dmg_obp1(idx, p) ((uint8_t)((idx) == 2 ? DMG_OBP1_ON_DARK :     (((p) & 0xC3) | (((p) & 0x0C) << 2) | (((p) & 0x30) >> 2))))
+
 // Shared blank tile for SHOW BG off (solid areas instead of BG art).
 // Lives in this bank (10), NOT in HOME/bank 0 which is 98% full.
 static const uint8_t blank_bg_tile[16] = {0};
@@ -778,8 +785,8 @@ static void practice_respawn(uint8_t idx) {
         apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) apply_idx = 0;
         BGP_REG = bg_pals[apply_idx];
-        OBP0_REG = BGP_REG;
-        OBP1_REG = BGP_REG;
+        OBP0_REG = (apply_idx == 3) ? DMG_OBP_ON_BLACK : BGP_REG;
+        OBP1_REG = dmg_obp1(apply_idx, OBP0_REG);
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
@@ -882,7 +889,7 @@ void play_level(uint8_t idx) BANKED {
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
-    fade_set_dmg_palettes(bg_pals[0], bg_pals[0], bg_pals[0]);
+    fade_set_dmg_palettes(bg_pals[0], bg_pals[0], dmg_obp1(0, bg_pals[0]));
     fade_set_black();
 
     SPRITES_8x16;
@@ -1293,14 +1300,12 @@ void play_level(uint8_t idx) BANKED {
         uint8_t final_bgp = bg_pals[apply_idx];
         uint8_t final_obp0, final_obp1;
 
-        // Keep sprites visible on DMG during full-black flash
-        if (_cpu != CGB_TYPE && apply_idx == 3) {
-            final_obp0 = bg_pals[0];
-            final_obp1 = bg_pals[0];
-        } else {
-            final_obp0 = final_bgp;
-            final_obp1 = final_bgp;
-        }
+        // DMG: OBP0 follows the background palette, except on a black background (idx 3, every
+        // shade -> black) where the player and objects keep their shades and only their black
+        // outline turns white, so they stay visible. OBP1 (blue orbs/pads, gravity-down portals)
+        // is OBP0 with shades 1 and 2 swapped (dmg_obp1).
+        final_obp0 = (_cpu != CGB_TYPE && apply_idx == 3) ? DMG_OBP_ON_BLACK : final_bgp;
+        final_obp1 = dmg_obp1(apply_idx, final_obp0);
 
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);

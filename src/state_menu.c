@@ -149,35 +149,34 @@ static void draw_ground(uint8_t phase) {
     }
 }
 
-// DMG sky: a 16x16 px brick pattern (2x2 tiles, VRAM tiles 49..52) that drifts by
-// rewriting those 4 tiles (64 bytes, fits in VBlank) - the map never changes.
-#define DMG_SKY_TILE 49
-// Mortar lines (colour 1) of the 16x16 cell, one bit per pixel, bit 15 = leftmost.
-static const uint16_t dmg_sky_rows[16] = {
-    0xFFFF, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080, 0x8080,
-    0xFFFF, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080, 0x0080
-};
+// DMG sky: the gameplay parallax block pattern (phase 0, 48 tiles, 8 tiles = 64px period),
+// loaded into bank 0 VRAM and scrolled with SCX by a scanline (LYC) interrupt, the same
+// look as the CGB menu. Rows 0..1 (logo) and the ground strip are drawn at SCX 0.
+#define DMG_SKY_TILE   53
+#define DMG_SKY_PERIOD 64
+static volatile uint8_t menu_sky_scx;
 
-// phase 0..15: the pattern has moved left by that many pixels
-static void update_dmg_sky(uint8_t phase) {
-    uint8_t tiles[4][16];
-    for (uint8_t y = 0; y < 16; y++) {
-        uint16_t m = dmg_sky_rows[y];
-        m = phase ? (uint16_t)((m << phase) | (m >> (16 - phase))) : m;
-        uint8_t t = (y >> 3) << 1;
-        uint8_t r = (uint8_t)((y & 7) << 1);
-        tiles[t][r] = (uint8_t)(m >> 8);
-        tiles[t][r + 1] = 0;
-        tiles[t + 1][r] = (uint8_t)m;
-        tiles[t + 1][r + 1] = 0;
+static void menu_stat_isr(void) __nonbanked {
+    if (LYC_REG == 16) {
+        SCX_REG = menu_sky_scx;
+        LYC_REG = 120;
+    } else {
+        SCX_REG = 0;
+        LYC_REG = 255;
     }
-    set_bkg_data(DMG_SKY_TILE, 4, &tiles[0][0]);
 }
 
-// Sky rows 2..14: the gameplay parallax pattern (48 tiles in VRAM bank 1, tile row
-// offsets 0/16/32, 8 tiles wide) on CGB, an empty tile on DMG (like gameplay).
+static void menu_load_dmg_sky_tiles(void) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(bg_parallax_data_0));
+    set_bkg_data(DMG_SKY_TILE, BG_PARALLAX_NUM_TILES, bg_parallax_phases_0[0]);
+    SWITCH_ROM(prev_bank);
+}
+
+// Sky rows 2..14: the gameplay parallax pattern (48 tiles, tile row offsets 0/16/32,
+// 8 tiles wide): VRAM bank 1 on CGB, bank 0 at DMG_SKY_TILE on DMG.
 static void draw_sky(void) {
-    uint8_t tiles[20];
+    uint8_t tiles[32];
     if (_cpu == CGB_TYPE && setting_show_bg_enabled) {
         static const uint8_t row_to_ty0[3] = { 0, 16, 32 };
         for (uint8_t ty = 2; ty < GROUND_ROW; ty++) {
@@ -194,10 +193,12 @@ static void draw_sky(void) {
         fill_bkg_rect(0, 2, 20, GROUND_ROW - 2, 3);      // plain sky colour (palette 3)
         VBK_REG = 0;
     } else if (setting_show_bg_enabled) {
-        update_dmg_sky(0);
+        static const uint8_t row_to_ty0[3] = { 0, 16, 32 };
+        menu_load_dmg_sky_tiles();
         for (uint8_t ty = 2; ty < GROUND_ROW; ty++) {
-            for (uint8_t x = 0; x < 20; x++) tiles[x] = (uint8_t)(DMG_SKY_TILE + ((ty & 1) << 1) + (x & 1));
-            set_bkg_tiles(0, ty, 20, 1, tiles);
+            uint8_t ty0 = (uint8_t)(DMG_SKY_TILE + row_to_ty0[(ty >> 1) % 3] + ((ty & 1) << 3));
+            for (uint8_t x = 0; x < 32; x++) tiles[x] = (uint8_t)(ty0 + (x & 7));   // all 32 columns: SCX scrolls
+            set_bkg_tiles(0, ty, 32, 1, tiles);
         }
     }
 }
@@ -364,6 +365,17 @@ GameState update_menu_state(void) BANKED {
 
     if (_cpu == CGB_TYPE && setting_show_bg_enabled) init_bg_parallax();
 
+    uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
+    if (dmg_sky_irq) {
+        menu_sky_scx = 0;
+        disable_interrupts();
+        add_LCD(menu_stat_isr);
+        STAT_REG |= STATF_LYC;
+        LYC_REG = 16;
+        set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+    }
+
     SHOW_BKG;
     SHOW_SPRITES;
 #if SHOW_MENU_VERSION_LABEL
@@ -391,9 +403,13 @@ GameState update_menu_state(void) BANKED {
         }
         bg_wait_vbl();
         draw_ground(ground_x);
-        if (_cpu != CGB_TYPE && setting_show_bg_enabled && setting_parallax_enabled
-            && (frame_counter & 1) == 0) {
-            update_dmg_sky((uint8_t)(frame_counter >> 1) & 15u);
+        if (dmg_sky_irq) {
+            // new frame: logo at SCX 0, the interrupt scrolls the sky from line 16
+            SCX_REG = 0;
+            LYC_REG = 16;
+            if (setting_parallax_enabled) {
+                menu_sky_scx = (uint8_t)(frame_counter >> 1) & (DMG_SKY_PERIOD - 1);
+            }
         }
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
@@ -434,6 +450,14 @@ GameState update_menu_state(void) BANKED {
         }
 
         if (pressed & (J_A | J_START)) {
+            if (dmg_sky_irq) {
+                disable_interrupts();
+                remove_LCD(menu_stat_isr);
+                STAT_REG &= ~STATF_LYC;
+                SCX_REG = 0;
+                set_interrupts(VBL_IFLAG | TIM_IFLAG);
+                enable_interrupts();
+            }
             bg_parallax_isr_stop();
             HIDE_SPRITES;
             HIDE_WIN;
