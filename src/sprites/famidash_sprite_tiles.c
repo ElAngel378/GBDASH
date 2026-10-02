@@ -12,6 +12,7 @@
 #include "sprite_tile_tables.h"
 INCBIN(sprite_tiles, "levels/chr_data/sprite_tiles.bin")
 INCBIN_EXTERN(sprite_tiles)
+#include "dmg_object_icons.h"
 
 void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
     uint8_t cgb = (_cpu == CGB_TYPE);
@@ -26,6 +27,9 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         set_sprite_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
     }
     if (cgb) VBK_REG = 0;
+    // DMG: orbs, pads and portals are one 8x16 icon each (tools/make_dmg_object_icons.py),
+    // over the CGB object art, which DMG does not draw.
+    else set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, DMG_OBJECT_ICON_TILES, dmg_object_icon_tiles);
 }
 
 // Sprite tiles 128..159 of VRAM bank 0 are also background tiles 128..159: after the background

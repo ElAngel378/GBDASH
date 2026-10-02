@@ -166,6 +166,13 @@ static void menu_stat_isr(void) __nonbanked {
     }
 }
 
+// Start of every frame: logo at SCX 0, the STAT handler scrolls the sky from line 16. Done in
+// the VBlank interrupt: the main loop's ground update can run well into the next frame.
+static void menu_vbl_isr(void) __nonbanked {
+    SCX_REG = 0;
+    LYC_REG = 16;
+}
+
 static void menu_load_dmg_sky_tiles(void) __nonbanked {
     uint8_t prev_bank = _current_bank;
     SWITCH_ROM(BANK(bg_parallax_data_0));
@@ -370,6 +377,7 @@ GameState update_menu_state(void) BANKED {
         menu_sky_scx = 0;
         disable_interrupts();
         add_LCD(menu_stat_isr);
+        add_VBL(menu_vbl_isr);
         STAT_REG |= STATF_LYC;
         LYC_REG = 16;
         set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
@@ -404,9 +412,6 @@ GameState update_menu_state(void) BANKED {
         bg_wait_vbl();
         draw_ground(ground_x);
         if (dmg_sky_irq) {
-            // new frame: logo at SCX 0, the interrupt scrolls the sky from line 16
-            SCX_REG = 0;
-            LYC_REG = 16;
             if (setting_parallax_enabled) {
                 menu_sky_scx = (uint8_t)(frame_counter >> 1) & (DMG_SKY_PERIOD - 1);
             }
@@ -453,6 +458,7 @@ GameState update_menu_state(void) BANKED {
             if (dmg_sky_irq) {
                 disable_interrupts();
                 remove_LCD(menu_stat_isr);
+                remove_VBL(menu_vbl_isr);
                 STAT_REG &= ~STATF_LYC;
                 SCX_REG = 0;
                 set_interrupts(VBL_IFLAG | TIM_IFLAG);

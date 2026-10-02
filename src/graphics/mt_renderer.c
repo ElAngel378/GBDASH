@@ -121,6 +121,9 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         if (cgb) VBK_REG = VBK_TILES;
     }
+    // CGB: the saws just loaded from bg_extra_tiles are the DMG version (outlined); stream
+    // frame 0 of the CGB art (saw_anim_tiles) right away
+    if (cgb && saw_on) saw_pos = 0;
     n_moves = *r;
     ov = r + 1 + (n_moves << 1);
     n_over = *ov++;

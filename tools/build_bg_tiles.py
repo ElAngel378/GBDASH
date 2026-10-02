@@ -13,6 +13,7 @@ Sections (first tile row, tile count). Tile rows are 8 px:
     row 11  SAWS_0         52  sawblades, animation frame 0 (rows 11..14; rows 15, 16 are unused)
                                CGB: VRAM bank 1 tiles 64..115 (all levels); DMG: loaded into free
                                slots of levels with saws. Colours: 2 = black, 1 = ring, 3 = hub
+                               (the DMG copy gets a colour 3 outline, see dmg_saw_outline)
     row 22  SAWS_1         52  sawblades, animation frame 1 (rotated anticlockwise)
     row 26  SAWS_2         52  sawblades, animation frame 2
     row 17  BLOCKS_B_CGB   20  Famidash block set B (CGB), replaces BLOCKS_B_SLOTS
@@ -110,6 +111,23 @@ def read_png():
     return tiles
 
 
+def dmg_saw_outline(rows):
+    """DMG saws: the art only uses colours 1 and 2, which the dark DMG background palettes
+    map to black like the dark sky. Saw pixels next to a sky pixel (colour 0) in the same
+    tile become colour 3, which those palettes map to white (and the normal one to black)."""
+    out = [r[:] for r in rows]
+    for y in range(8):
+        for x in range(8):
+            if rows[y][x] == 0:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < 8 and 0 <= ny < 8 and rows[ny][nx] == 0:
+                    out[y][x] = 3
+                    break
+    return out
+
+
 def gb_bytes(rows):
     out = bytearray()
     for row in rows:
@@ -143,6 +161,12 @@ def main():
         section[name] = all_tiles[row * 16: row * 16 + count]
         assert len(section[name]) == count, name
 
+    # The saws in bg_extra_tiles are only shown on DMG (CGB streams saw_anim_tiles.bin):
+    # give them an outline there, see dmg_saw_outline.
+    cgb_saws = [section["SAWS_%d" % f] for f in range(SAW_FRAMES)]
+    for f in range(SAW_FRAMES):
+        section["SAWS_%d" % f] = [dmg_saw_outline(t) for t in cgb_saws[f]]
+
     out_dir = ROOT / "levels" / "chr_data"
     (out_dir / "bg_base_tiles.bin").write_bytes(b"".join(gb_bytes(t) for t in section["BASE"]))
     (out_dir / "bg_base_tiles_flipped.bin").write_bytes(b"".join(gb_bytes(mirrored(t)) for t in section["BASE"]))
@@ -159,8 +183,9 @@ def main():
     assert k < 256
     (out_dir / "bg_extra_tiles.bin").write_bytes(extra)
     # saw animation frames for the CGB VBlank handler: contiguous 16 byte tiles, 3 frames
+    # (the art as drawn: bg_extra_tiles has the DMG version, see dmg_saw_outline)
     (out_dir / "saw_anim_tiles.bin").write_bytes(b"".join(
-        gb_bytes(t) for f in range(SAW_FRAMES) for t in section["SAWS_%d" % f]))
+        gb_bytes(t) for f in range(SAW_FRAMES) for t in cgb_saws[f]))
 
     # levels in game_levels order
     assets = (ROOT / "src" / "assets.c").read_text()
