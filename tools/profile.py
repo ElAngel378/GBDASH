@@ -40,6 +40,7 @@ def main():
     ap.add_argument("--frames", type=int, default=3000)
     ap.add_argument("--skip", type=int, default=400, help="frames of level loading to ignore")
     ap.add_argument("--no-build", action="store_true")
+    ap.add_argument("--no-music", action="store_true", help="switch the music setting off (music cost)")
     a = ap.parse_args()
 
     if not a.no_build:
@@ -48,7 +49,8 @@ def main():
     lua = (ROOT / "tools" / "mesen_profile.lua").read_text()
     lua = (lua.replace("@MARK_ADDR@", hex(symbol("gpmark"))).replace("@CAMX_ADDR@", hex(symbol("gpcamx")))
               .replace("@RUN_FRAMES@", str(a.frames)).replace("@SKIP_FRAMES@", str(a.skip))
-              .replace("@LEVEL@", str(a.level)).replace("@LEVEL_ADDR@", hex(symbol("gplevel"))))
+              .replace("@LEVEL@", str(a.level)).replace("@LEVEL_ADDR@", hex(symbol("gplevel")))
+              .replace("@MUSIC_ADDR@", hex(symbol("setting_music_enabled")) if a.no_music else "nil"))
     script = ROOT / "temp_prof" / ("profile_run_%d_%s.lua" % (a.level, "dmg" if a.dmg else "cgb"))
     script.write_text(lua)
     # The model is a command line setting override (the user's own Mesen settings are not changed)

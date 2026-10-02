@@ -2,10 +2,11 @@
 --   Mesen.exe --testrunner bin/POCKETDASH_prof.gb <generated copy of this script>
 -- The profiling build writes a section id to gpmark at the start of every section of
 -- play_level()'s loop (PROF_MARK in src/gameplay.c). 9 = waiting for VBlank, 10 = after it.
--- Placeholders filled in by profile.py: @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@
+-- Placeholders filled in by profile.py: @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@ @MUSIC_ADDR@
 -- The ROM waits at boot until the level number + 1 is written to gplevel (src/main.c).
 
 local MARK = @MARK_ADDR@
+local MUSIC_ADDR = @MUSIC_ADDR@          -- profile.py --no-music: music setting, kept at 0 until the level starts
 local CAMX = @CAMX_ADDR@
 local RUN_FRAMES = @RUN_FRAMES@
 local SKIP_FRAMES = @SKIP_FRAMES@        -- level loading at the start
@@ -72,6 +73,7 @@ emu.addEventCallback(function()
   -- keep writing until the game has taken it (the boot ROM and the C runtime clear RAM first)
   if not level_set then
     if last_cycles ~= nil then level_set = true else emu.write(@LEVEL_ADDR@, @LEVEL@ + 1, MEM) end
+    if MUSIC_ADDR then emu.write(MUSIC_ADDR, 0, MEM) end
   end
   local c = emu.getState()["cpu.cycleCount"]
   if prev_frame_cycles then frame_cycles = c - prev_frame_cycles end

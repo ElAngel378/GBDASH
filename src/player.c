@@ -58,6 +58,22 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
 };
 static uint8_t quad_x_flip; // 1 in mirror mode (same convention as hazard_kills)
 
+// Saw parts: deadly box (x0, x1, y0, y1, inclusive, unmirrored) inside the 16x16 metatile.
+// The saws are circles: small = one metatile (centre 8,8), half small saws at the top / bottom
+// of their metatile, medium = 2x2 metatiles (centre at their shared corner), big = 3x3 (its
+// corners are quadrant types, its left / right middles deadly on one half, centre empty).
+static const uint8_t saw_boxes[COL_SAW_COUNT][4] = {
+    { 3, 12,  3, 12 },   // 0x40 SMALL_SAW
+    { 3, 12, 11, 15 },   // 0x41 SMALL_SAW_TOP_HALF (saw in the bottom half)
+    { 3, 12,  0,  4 },   // 0x42 SMALL_SAW_BOTTOM_HALF (saw in the top half)
+    { 5, 15,  5, 15 },   // 0x43 MED_SAW_TOP_LEFT
+    { 0, 10,  5, 15 },   // 0x44 MED_SAW_TOP_RIGHT
+    { 5, 15,  0, 10 },   // 0x45 MED_SAW_BOTTOM_LEFT
+    { 0, 10,  0, 10 },   // 0x46 MED_SAW_BOTTOM_RIGHT
+    { 0, 15,  6, 15 },   // 0x47 BIG_SAW_TOP_MIDDLE
+    { 0, 15,  0,  9 },   // 0x48 BIG_SAW_BOTTOM_MIDDLE
+};
+
 // Collision types that depend on where inside the metatile the probe is (half blocks,
 // half spikes, quadrants). Kept out of inline_col_at so its 13 inlined copies in
 // player_update stay small (SDCC compiles the big inlined version very slowly).
@@ -71,6 +87,11 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         return COL_DEATH;
     } else if (col == COL_DEATH_BOTTOM_HALF) {
         if (inner_y >= 8) return COL_NONE;
+        return COL_DEATH;
+    } else if ((uint8_t)(col - COL_SAW_BASE) < COL_SAW_COUNT) {
+        const uint8_t *b = saw_boxes[(uint8_t)(col - COL_SAW_BASE)];
+        if (quad_x_flip) xin = 15u - xin;
+        if (xin < b[0] || xin > b[1] || inner_y < b[2] || inner_y > b[3]) return COL_NONE;
         return COL_DEATH;
     } else if ((uint8_t)(col - COL_QUAD_BASE) < COL_QUAD_COUNT) {
         uint8_t m = col_quads[(uint8_t)(col - COL_QUAD_BASE)];

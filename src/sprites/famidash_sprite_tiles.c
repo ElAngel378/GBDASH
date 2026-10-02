@@ -27,9 +27,13 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         set_sprite_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
     }
     if (cgb) VBK_REG = 0;
-    // DMG: orbs, pads and portals are one 8x16 icon each (tools/make_dmg_object_icons.py),
-    // over the CGB object art, which DMG does not draw.
-    else set_sprite_data(FAMIDASH_SPRITE_TILE_BASE, DMG_OBJECT_ICON_TILES, dmg_object_icon_tiles);
+    else {
+        // DMG (tools/make_dmg_object_icons.py, slots: see sp_draw.c): orb and pad icons over
+        // the CGB orb / pad art, portal badges in sprite tiles unused on DMG
+        set_sprite_data(180, 12, dmg_object_icon_tiles);
+        set_sprite_data(202, 6, dmg_object_icon_tiles + 12 * 16);
+        set_sprite_data(240, 6, dmg_object_icon_tiles + 18 * 16);
+    }
 }
 
 // Sprite tiles 128..159 of VRAM bank 0 are also background tiles 128..159: after the background

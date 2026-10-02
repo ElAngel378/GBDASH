@@ -1,11 +1,12 @@
-"""DMG object icons: one 8x16 sprite per orb, pad and portal instead of the CGB art.
+"""DMG object icons: one sprite per orb and pad instead of the CGB art, and a symbol badge on the portals.
 
     python tools/make_dmg_object_icons.py
 
-The CGB objects are 2..9 sprites each; on DMG that cost too many CPU cycles per frame, so
-every object is drawn as a single 8x16 sprite with a symbol for its type. Pixels: '.' = 0
+Orbs and pads are 2 sprites each on CGB; DMG draws them as a single 8x16 sprite with a
+symbol for its type (cheaper, and readable without colours). Portals keep their art and get
+a badge with the mode symbol on their side, since on DMG they only differ by colour. Pixels: '.' = 0
 (transparent), '1' / '2' / '3' = light grey / dark grey / black. Orbs and pads only use the
-top 8 rows (the bottom tile is empty).
+top 8 rows (the bottom tile is empty), badges are 8x16.
 
 Writes src/sprites/dmg_object_icons.h (tile data, included by famidash_sprite_tiles.c) and a
 preview, levels/chr_data/dmg_object_icons.png.
@@ -47,62 +48,63 @@ ORB_PINK = [     # small jump orb: hollow ring
     "..3333..",
     "........",
 ]
-PAD_YELLOW = [   # jump pad: arrow up on a base
+PAD_YELLOW = [   # jump pad: solid light triangle (narrow top, wide bottom) on a base
     "...33...",
+    "..3113..",
     "..3113..",
     ".311113.",
-    "33311333",
-    "..3113..",
-    "..3113..",
-    "33333333",
+    ".311113.",
     "31111113",
+    "33333333",
+    "........",
 ]
-PAD_BLUE = [     # gravity pad: diamond on a base
-    "...33...",
-    "..3223..",
-    ".322223.",
+PAD_BLUE = [     # gravity pad: dark hourglass (wide top and bottom): a different
+    "33333333",  # silhouette from the yellow triangle even with LCD ghosting
     ".322223.",
     "..3223..",
     "...33...",
+    "..3223..",
+    ".322223.",
     "33333333",
-    "32222223",
+    "........",
 ]
-PAD_PINK = [     # small jump pad: low arrow on a base
+PAD_PINK = [     # small jump pad: low dome on a base
     "........",
     "........",
-    "...33...",
-    "..3113..",
+    "........",
+    "..3333..",
     ".311113.",
-    "33333333",
     "31111113",
+    "33333333",
     "........",
 ]
 
 
-def capsule(symbol):
-    """Portal: a tall capsule outline with a 4x6 symbol in the middle (rows 5..10)."""
-    rows = ["..3333..", ".311113.", "31....13", "31....13", "31....13"]
-    for s in symbol:
-        rows.append("31" + s + "13")
-    rows += ["31....13", "31....13", "31....13", ".311113.", "..3333.."]
-    assert len(rows) == 16, len(rows)
+def badge(symbol):
+    """Portal badge: the small half disc on the side of the original portal art (like the
+    mode icons on Geometry Dash portals), light with a 4x6 black symbol in rows 5..10."""
+    assert len(symbol) == 6
+    rows = ["33333...", "311113..", "3111113.", "31111113", "31111113"]
+    rows += ["31" + s.replace(".", "1") + "13" for s in symbol]
+    rows += ["31111113", "31111113", "3111113.", "311113..", "33333..."]
+    assert len(rows) == 16 and all(len(r) == 8 for r in rows), rows
     return rows
 
 
-PORTAL_CUBE = capsule(["....", "3333", "3113", "3113", "3333", "...."])
-PORTAL_SHIP = capsule(["3...", "33..", "3133", "3133", "33..", "3..."])
-PORTAL_BALL = capsule(["....", ".33.", "3113", "3113", ".33.", "...."])
-PORTAL_GRAVITY = capsule([".33.", ".33.", ".33.", "3333", ".33.", "...."])   # down; up = flipped
-PORTAL_MINI = capsule(["....", "....", "3333", "3333", "....", "...."])      # minus
-PORTAL_GROW = capsule(["....", ".33.", "3333", "3333", ".33.", "...."])      # plus
-PORTAL_MIRROR = capsule(["....", "3..3", "3333", "3333", "3..3", "...."])    # <->
+BADGE_CUBE = badge(["3333", "3..3", "3..3", "3..3", "3..3", "3333"])
+BADGE_SHIP = badge(["3...", "33..", "3333", "3333", "33..", "3..."])
+BADGE_BALL = badge([".33.", "3333", "3333", "3333", "3333", ".33."])
+BADGE_GRAVITY = badge([".33.", ".33.", ".33.", "3333", "3333", ".33."])   # down; up = flipped
+BADGE_MINI = badge(["....", "....", "3333", "3333", "....", "...."])      # minus
+BADGE_GROW = badge(["....", ".33.", "3333", "3333", ".33.", "...."])      # plus
 
-# Tile pair order: must match DMG_ICON_* in src/sp_draw.c
+# Tile pair order: must match DMG_ICON_* / DMG_BADGE_* in src/sp_draw.c. The orb and pad
+# icons go to sprite tiles 180..191 (the CGB orb/pad art), the badges to 202..207 and
+# 240..245 (unused on DMG); the portals keep their own art.
 PAIRS = [
     ORB_YELLOW + E8, ORB_BLUE + E8, ORB_PINK + E8,
     PAD_YELLOW + E8, PAD_BLUE + E8, PAD_PINK + E8,
-    PORTAL_CUBE, PORTAL_SHIP, PORTAL_BALL, PORTAL_GRAVITY,
-    PORTAL_MINI, PORTAL_GROW, PORTAL_MIRROR,
+    BADGE_CUBE, BADGE_SHIP, BADGE_BALL, BADGE_GRAVITY, BADGE_MINI, BADGE_GROW,
 ]
 
 

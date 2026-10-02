@@ -99,11 +99,15 @@ static inline uint8_t is_dmg_drawn(uint8_t o) {
     return o < 128 && (dmg_drawn_mask[o >> 3] & (uint8_t)(1u << (o & 7)));
 }
 
+static uint8_t dmg_portal_art_ready;
+static void dmg_portal_art_init(void);
+
 void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
     uint8_t i;
     *stream_idx = 0;
     sp_has_drawn = 0;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
+    if (_cpu != CGB_TYPE && !dmg_portal_art_ready) dmg_portal_art_init();
 }
 
 // The cache update is split in two halves that run in different frames (see
@@ -573,120 +577,6 @@ void process_sprite_logic(
     }
 }
 
-// DMG: every orb, pad and portal is ONE 8x16 sprite, an icon of its type
-// (tools/make_dmg_object_icons.py, loaded at FAMIDASH_SPRITE_TILE_BASE): the CGB art is 2..9
-// sprites per object and too slow for DMG frames. Per object id below 38: icon pair (0xFF =
-// not drawn), offset from the object's sprite position to the icon's centre, attributes.
-// Blue objects (blue orb and pads, gravity-down portals) use OBP1 (gameplay.c: OBP0 with
-// shades 1 and 2 swapped).
-#define DMG_ICON_ORB_YELLOW 0
-#define DMG_ICON_ORB_BLUE   1
-#define DMG_ICON_ORB_PINK   2
-#define DMG_ICON_PAD_YELLOW 3
-#define DMG_ICON_PAD_BLUE   4
-#define DMG_ICON_PAD_PINK   5
-#define DMG_ICON_CUBE       6
-#define DMG_ICON_SHIP       7
-#define DMG_ICON_BALL       8
-#define DMG_ICON_GRAVITY    9   // arrow down, S_FLIPY = up
-#define DMG_ICON_MINI       10
-#define DMG_ICON_GROW       11
-#define DMG_ICON_MIRROR     12
-#define NI 0xFF
-static const uint8_t dmg_icon[38] = {
-    DMG_ICON_CUBE, DMG_ICON_SHIP, DMG_ICON_BALL, NI, NI,          // 0..4
-    DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,                     // 5..7 (7: coin)
-    DMG_ICON_GRAVITY, DMG_ICON_GRAVITY,                           // 8, 9
-    DMG_ICON_PAD_YELLOW, DMG_ICON_ORB_YELLOW, DMG_ICON_PAD_YELLOW, // 10..12
-    DMG_ICON_PAD_BLUE, DMG_ICON_PAD_BLUE, NI,                     // 13..15
-    DMG_ICON_GRAVITY, DMG_ICON_GRAVITY, DMG_ICON_GRAVITY, DMG_ICON_GRAVITY,  // 16..19
-    NI, NI, NI, NI, DMG_ICON_MINI, DMG_ICON_GROW, NI, NI,         // 20..27
-    NI, NI, NI, NI, NI, NI, NI, NI, NI, DMG_ICON_PAD_PINK         // 28..37
-};
-// Sprite position relative to the object's sprite position (OAM x, y), so the icon is centred
-// on the object: orbs 16x16, pads at the bottom of their cell (ceiling pads at the top: a
-// flipped 8x16 sprite shows its top tile at the bottom), cube/ship/ball portals 24x48, gravity
-// portals 16x48, horizontal gravity portals 48x16, mini / growth portals (draw_oam_mini_portal).
-static const int8_t dmg_icon_x[38] = {
-    8, 8, 8, 0, 0,   4, 4, 0,   4, 4,   4, 4, 4,   4, 4, 0,   20, 20, 20, 20,
-    0, 0, 0, 0, 0, 8, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 4
-};
-static const int8_t dmg_icon_y[38] = {
-    16, 16, 16, 0, 0,   4, 4, 0,   16, 16,   8, 4, -8,   8, -8, 0,   0, 0, 0, 0,
-    0, 0, 0, 0, 16, 16, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
-};
-static const uint8_t dmg_icon_prop[38] = {
-    0, 0, 0, 0, 0,   S_PALETTE, 0, 0,   S_PALETTE, S_FLIPY,   0, 0, S_FLIPY,   S_PALETTE, S_PALETTE | S_FLIPY, 0,
-    S_PALETTE, S_PALETTE, S_FLIPY, S_FLIPY,
-    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-#undef NI
-
-static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t gotten);
-
-// DMG object loop: walks the cache with pointers (indexed SoA access compiles to slow code)
-// and writes one icon sprite per object.
-static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) {
-    const uint8_t *op = cache->obj;
-    const uint16_t *xp = cache->px;
-    const uint16_t *yp = cache->py;
-    const uint8_t *ap = cache->active;
-    const uint8_t *dp = cache->activated;
-    uint16_t lim_ahead = cam_px + 176u;
-    uint16_t ybias = 48u - cam_py;
-    uint8_t cam_lo = (uint8_t)cam_px;
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_start];
-
-    for (uint8_t n = MAX_ACTIVE_SP_OBJECTS; n && oam_start < MAX_HARDWARE_SPRITES - 2;
-         n--, op++, xp++, yp++, ap++, dp++) {
-        if (!*ap) break;
-        uint16_t obj_x = *xp;
-        if (obj_x > lim_ahead) break;
-        uint8_t obj = *op;
-
-        uint8_t icon, xo, prop;
-        int8_t yo;
-        if (obj < 38) {
-            icon = dmg_icon[obj];
-            if (icon == 0xFF && obj != OBJ_COIN1 && obj != OBJ_COIN2 && obj != OBJ_COIN3) continue;
-            xo = (uint8_t)dmg_icon_x[obj]; yo = dmg_icon_y[obj]; prop = dmg_icon_prop[obj];
-        } else if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT) {
-            icon = DMG_ICON_MIRROR; xo = 12; yo = 8;
-            prop = (obj == OBJ_MIRROR_EXIT) ? S_PALETTE : 0;
-        } else {
-            continue;
-        }
-
-        uint8_t dist_x = (uint8_t)obj_x - cam_lo;
-        uint8_t screen_x;
-        if (!reversed) {
-            if (dist_x > 136 && dist_x < 224) continue;
-            screen_x = dist_x + PLAYER_SCREEN_X + 8;
-        } else {
-            if (dist_x > 136 && dist_x < 208) continue;
-            screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
-        }
-        // d = object y - camera y + 48, on screen (incl. 48px above) when d <= 192
-        uint16_t d = *yp + ybias;
-        if (d > 192u) continue;
-        uint8_t screen_y = (uint8_t)d - 32u;
-
-        if (icon == 0xFF) {   // coin: the 2-sprite spinning coin
-            if (*dp) continue;
-            oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
-            oam += 8;
-            continue;
-        }
-        // mirror mode draws every object mirrored inside the same box: same centre
-        *oam++ = (uint8_t)(screen_y + yo);
-        *oam++ = (uint8_t)(screen_x + xo);
-        *oam++ = (uint8_t)(FAMIDASH_SPRITE_TILE_BASE + (icon << 1));
-        *oam++ = prop;
-        oam_start++;
-    }
-    return oam_start;
-}
-
 // Mini / growth portal (Famidash Mini_Portal / Growth_Portal: 7 8x16 sprites)
 static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     static const int8_t mx[7] = { 0, 8, -8, 0, 8, 0, 8 };
@@ -737,6 +627,410 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
         uint8_t sy = (uint8_t)((uint8_t)(coin_anim_y[n] >> 8) - (uint8_t)cam_py) + 16;
         if (sy > 160 && sy < 208) continue;
         oam_start += draw_oam_coin(oam_start, sx, sy, 0);
+    }
+    return oam_start;
+}
+
+// ---- DMG objects (tools/make_dmg_object_icons.py). Orbs and pads are ONE 8x16 sprite each, an
+// icon of their type (the CGB art is 2 sprites and only differs by colour). Portals keep their
+// art plus a badge with the mode symbol on their side (they also only differ by colour).
+#define DMG_ICON_ORB_YELLOW 0
+#define DMG_ICON_ORB_BLUE   1
+#define DMG_ICON_ORB_PINK   2
+#define DMG_ICON_PAD_YELLOW 3
+#define DMG_ICON_PAD_BLUE   4
+#define DMG_ICON_PAD_PINK   5
+#define DMG_ICON_TILE       180   // orb / pad icons: over the CGB orb and pad art (tiles 180..191)
+#define DMG_BADGE_CUBE      0
+#define DMG_BADGE_SHIP      1
+#define DMG_BADGE_BALL      2
+#define DMG_BADGE_GRAVITY   3     // arrow down, S_FLIPY = up
+#define DMG_BADGE_MINI      4
+#define DMG_BADGE_GROW      5
+// Badge tile pairs: sprite tiles 202..207 and 240..245 are unused on DMG
+static const uint8_t dmg_badge_tile[6] = { 202, 204, 206, 240, 242, 244 };
+
+// Per object id below 38. Orbs / pads: icon, its sprite y offset from the object's sprite
+// position (centred: orbs 16x16, pads at the bottom of their cell, ceiling pads at the top - a
+// flipped 8x16 sprite shows its top tile at the bottom) and attributes. Blue ones use OBP1
+// (gameplay.c: OBP0 with shades 1 and 2 swapped). Portals: badge and its attributes.
+#define NI 0xFF
+const uint8_t dmg_icon[38] = {
+    NI, NI, NI, NI, NI,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
+    DMG_ICON_PAD_YELLOW, DMG_ICON_ORB_YELLOW, DMG_ICON_PAD_YELLOW, DMG_ICON_PAD_BLUE, DMG_ICON_PAD_BLUE, NI,
+    NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI,
+    DMG_ICON_PAD_PINK
+};
+const int8_t dmg_icon_y[38] = {
+    0, 0, 0, 0, 0,   4, 4, 0,   0, 0,   8, 4, -8, 8, -8, 0,   0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+};
+const uint8_t dmg_icon_prop[38] = {
+    0, 0, 0, 0, 0,   S_PALETTE, 0, 0,   0, 0,   0, 0, S_FLIPY, S_PALETTE, S_PALETTE | S_FLIPY, 0,
+    0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+static const uint8_t dmg_badge[38] = {
+    DMG_BADGE_CUBE, DMG_BADGE_SHIP, DMG_BADGE_BALL, NI, NI,   NI, NI, NI,
+    DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY,   NI, NI, NI, NI, NI, NI,
+    DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY, DMG_BADGE_GRAVITY,
+    NI, NI, NI, NI, DMG_BADGE_MINI, DMG_BADGE_GROW, NI, NI,   NI, NI, NI, NI, NI, NI, NI, NI, NI, NI
+};
+// Gravity portals 8 / 16 / 17 pull down (arrow down), 9 / 18 / 19 up
+static const uint8_t dmg_badge_prop[38] = {
+    0, 0, 0, 0, 0, 0, 0, 0,   0, S_FLIPY,   0, 0, 0, 0, 0, 0,   0, 0, S_FLIPY, S_FLIPY,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+// Badge x: right of the portal's front ring, at mid height (mirror mode: left of it,
+// mirrored). Portal boxes: cube/ship/ball 24x48, gravity 16x48, mini/growth 24x48 from
+// x -8 / 0 (draw_oam_mini_portal). Horizontal gravity portals (48x16): on the ring's centre.
+static const int8_t dmg_badge_x[38] = {
+    18, 18, 18, 0, 0, 0, 0, 0,   10, 10,   0, 0, 0, 0, 0, 0,   20, 20, 20, 20,
+    0, 0, 0, 0, 10, 18, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+static const int8_t dmg_badge_x_rev[38] = {
+    -2, -2, -2, 0, 0, 0, 0, 0,   -2, -2,   0, 0, 0, 0, 0, 0,   20, 20, 20, 20,
+    0, 0, 0, 0, -10, -2, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+#undef NI
+
+// DMG object loop. The hot part (every cached object, every frame) is hand-written: SDCC kept
+// all its locals on the stack and spent ~180 cycles per object. It writes the orb / pad icons
+// to OAM itself and lists the rest (portals, coins, mirror portals: a few at a time) for C.
+// In: dmgd_*; out: dmgd_oam, dmgd_slow_n entries of dmgd_slow (object, screen x, screen y,
+// cache index).
+static uint16_t dmgd_lim;      // cam_px + 176: the cache is sorted by x, stop past it
+static uint16_t dmgd_ybias;    // 48 - cam_py
+static uint8_t dmgd_camlo;     // (uint8_t)cam_px
+static uint8_t dmgd_rev;       // mirror mode
+static uint8_t dmgd_rej;       // dist_x in 137..dmgd_rej-1 is off screen (224 normal, 208 mirror)
+static uint8_t dmgd_oam;       // next free OAM entry
+static uint8_t dmgd_obj, dmgd_sx;
+static uint8_t dmgd_slow_n;
+static uint8_t dmgd_slow[MAX_ACTIVE_SP_OBJECTS * 4];
+
+// DMG portals (and mirror portals): every frame they were drawn by the C metasprite helpers
+// (9-10 sprites, up to 20% of a frame for two portals). Their sprites only depend on the portal
+// kind and mirror mode, so they are recorded once (dmg_portal_art_init: the helpers drawn at
+// 64, 64, plus the badge) and copied by dmg_copy_art: n, then n x (y, x, tile, attributes)
+// relative to the object's sprite position.
+#define DMG_PT_KINDS 13
+#define DMG_PT_MAX   10
+static uint8_t dmg_portal_art[2][DMG_PT_KINDS][1 + DMG_PT_MAX * 4];
+static const uint8_t *dmgp_src;
+static uint8_t dmgp_sx, dmgp_sy;
+static const uint8_t dmg_pt_obj[DMG_PT_KINDS] = {
+    OBJ_CUBE_PORTAL, OBJ_SHIP_PORTAL, OBJ_BALL_PORTAL, OBJ_GRAVITY_DOWN, OBJ_GRAVITY_UP,
+    16, 17, 18, 19, OBJ_MINI_PORTAL, OBJ_GROW_PORTAL, OBJ_MIRROR_PORTAL, OBJ_MIRROR_EXIT
+};
+
+static uint8_t dmg_portal_kind(uint8_t obj) {
+    if (obj <= OBJ_BALL_PORTAL) return obj;
+    if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) return (uint8_t)(obj - 5);
+    if (obj >= 16 && obj <= 19) return (uint8_t)(obj - 11);
+    if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) return (uint8_t)(obj - 15);
+    if (obj == OBJ_MIRROR_PORTAL) return 11;
+    if (obj == OBJ_MIRROR_EXIT) return 12;
+    return 0xFF;
+}
+
+// A portal drawn the slow way: badge (in front: lower OAM index), then the art.
+static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    if (obj == OBJ_MIRROR_PORTAL || obj == OBJ_MIRROR_EXIT)
+        return draw_oam_mirror_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t horiz = (obj >= 16 && obj <= 19);
+    *oam++ = (uint8_t)(sy + (horiz ? 0 : 16));
+    *oam++ = (uint8_t)(sx + (reversed ? dmg_badge_x_rev[obj] : dmg_badge_x[obj]));
+    *oam++ = dmg_badge_tile[dmg_badge[obj]];
+    *oam = dmg_badge_prop[obj] | ((reversed && !horiz) ? S_FLIPX : 0);
+    oam_idx++;
+    if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
+        return 1 + draw_oam_mini_portal(obj, oam_idx, sx, sy, reversed);
+    if (horiz)
+        return 1 + draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
+    if (obj >= OBJ_GRAVITY_DOWN)
+        return 1 + draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
+    return 1 + draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
+}
+
+// Uses shadow_OAM as scratch: call while the level is loading (it is redrawn every frame).
+static void dmg_portal_art_init(void) {
+    for (uint8_t r = 0; r < 2; r++) {
+        for (uint8_t k = 0; k < DMG_PT_KINDS; k++) {
+            uint8_t n = dmg_draw_portal_slow(dmg_pt_obj[k], 0, 64, 64, r);
+            uint8_t *t = dmg_portal_art[r][k];
+            const uint8_t *o = (const uint8_t *)&shadow_OAM[0];
+            *t++ = n;
+            for (uint8_t i = 0; i < n; i++) {
+                *t++ = (uint8_t)(*o++ - 64);
+                *t++ = (uint8_t)(*o++ - 64);
+                *t++ = *o++;
+                *t++ = *o++;
+            }
+        }
+    }
+    dmg_portal_art_ready = 1;
+}
+
+// Copies portal art dmgp_src to OAM entry dmgd_oam at (dmgp_sx, dmgp_sy); advances dmgd_oam.
+static void dmg_copy_art(void) __naked {
+    __asm
+        ld      hl, #_dmgp_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, (hl+)
+        ld      c, a                    ; c = sprite count (> 0)
+        ld      a, (_dmgd_oam)
+        ld      b, a
+        add     a, c
+        ld      (_dmgd_oam), a
+        ld      a, b
+        add     a, a
+        add     a, a
+        ld      e, a
+        ld      d, #>_shadow_OAM        ; de = &shadow_OAM[dmgd_oam] (256 byte aligned)
+        ld      a, (_dmgp_sy)
+        ld      b, a
+00001$:
+        ld      a, (hl+)
+        add     a, b
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgp_sx)
+        add     a, (hl)
+        inc     hl
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        dec     c
+        jr      NZ, 00001$
+        ret
+    __endasm;
+}
+
+static void dmg_object_loop(void) __naked {
+    __asm
+        xor     a
+        ld      (_dmgd_slow_n), a
+        ld      b, a                    ; b = cache index
+00001$:
+        ld      a, b
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        ret     NC
+        ld      a, (_dmgd_oam)
+        cp      a, #(MAX_HARDWARE_SPRITES - 2)
+        ret     NC
+        ; active[b]
+        ld      hl, #(_active_sp + 80)
+        ld      a, l
+        add     a, b
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        or      a, a
+        ret     Z
+        ; de = px[b]; past the screen: done (sorted by x)
+        ld      a, b
+        add     a, a
+        add     a, #<(_active_sp + 16)
+        ld      l, a
+        ld      a, #>(_active_sp + 16)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      a, (_dmgd_lim)
+        sub     a, e
+        ld      a, (_dmgd_lim + 1)
+        sbc     a, d
+        ret     C
+        ; c = dist_x = (uint8_t)px - camlo
+        ld      a, (_dmgd_camlo)
+        ld      c, a
+        ld      a, e
+        sub     a, c
+        ld      c, a
+        ; obj = obj[b]
+        ld      hl, #_active_sp
+        ld      a, l
+        add     a, b
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        ld      (_dmgd_obj), a
+        cp      a, #38
+        jp      C, 00002$
+        cp      a, #OBJ_MIRROR_PORTAL
+        jp      Z, 00002$
+        cp      a, #OBJ_MIRROR_EXIT
+        jp      NZ, 00009$
+00002$:
+        ; off screen when 137 <= dist_x < rej
+        ld      a, (_dmgd_rej)
+        sub     a, #137
+        ld      d, a
+        ld      a, c
+        sub     a, #137
+        cp      a, d
+        jp      C, 00009$
+        ; screen x: normal dist_x + PLAYER_SCREEN_X + 8, mirror MIRROR_PLAYER_SCREEN_X + 8 - dist_x
+        ld      a, (_dmgd_rev)
+        or      a, a
+        jp      NZ, 00003$
+        ld      a, c
+        add     a, #(PLAYER_SCREEN_X + 8)
+        jp      00004$
+00003$:
+        ld      a, #(MIRROR_PLAYER_SCREEN_X + 8)
+        sub     a, c
+00004$:
+        ld      (_dmgd_sx), a
+        ; d = py[b] + ybias; on screen (48px margin) when <= 192
+        ld      a, b
+        add     a, a
+        add     a, #<(_active_sp + 48)
+        ld      l, a
+        ld      a, #>(_active_sp + 48)
+        adc     a, #0
+        ld      h, a
+        ld      a, (_dmgd_ybias)
+        add     a, (hl)
+        ld      e, a
+        inc     hl
+        ld      a, (_dmgd_ybias + 1)
+        adc     a, (hl)
+        jp      NZ, 00009$
+        ld      a, #192
+        cp      a, e
+        jp      C, 00009$
+        ld      a, e
+        sub     a, #32
+        ld      e, a                    ; e = screen y
+        ; orb / pad: one icon sprite
+        ld      a, (_dmgd_obj)
+        cp      a, #38
+        jp      NC, 00005$
+        ld      c, a                    ; c = obj (dist_x no longer needed)
+        ld      hl, #_dmg_icon
+        add     a, l
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        cp      a, #0xFF
+        jp      Z, 00005$
+        add     a, a
+        add     a, #DMG_ICON_TILE
+        ld      d, a                    ; d = tile
+        ; hl = &shadow_OAM[dmgd_oam] (shadow_OAM is 256 byte aligned)
+        ld      a, (_dmgd_oam)
+        inc     a
+        ld      (_dmgd_oam), a
+        dec     a
+        add     a, a
+        add     a, a
+        push    bc
+        ld      c, a
+        ; y = screen y + dmg_icon_y[obj]
+        ld      hl, #_dmg_icon_y
+        ld      a, (_dmgd_obj)
+        add     a, l
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        add     a, e
+        ld      h, #>_shadow_OAM
+        ld      l, c
+        ld      (hl+), a
+        ld      a, (_dmgd_sx)
+        add     a, #4
+        ld      (hl+), a
+        ld      a, d
+        ld      (hl+), a
+        push    hl
+        ld      hl, #_dmg_icon_prop
+        ld      a, (_dmgd_obj)
+        add     a, l
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        pop     hl
+        ld      (hl), a
+        pop     bc
+        jp      00009$
+00005$:
+        ; anything else: to the list for C (object, screen x, screen y, cache index)
+        ld      a, (_dmgd_slow_n)
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        jp      NC, 00009$
+        inc     a
+        ld      (_dmgd_slow_n), a
+        dec     a
+        add     a, a
+        add     a, a
+        add     a, #<_dmgd_slow
+        ld      l, a
+        ld      a, #>_dmgd_slow
+        adc     a, #0
+        ld      h, a
+        ld      a, (_dmgd_obj)
+        ld      (hl+), a
+        ld      a, (_dmgd_sx)
+        ld      (hl+), a
+        ld      a, e
+        ld      (hl+), a
+        ld      (hl), b
+00009$:
+        inc     b
+        jp      00001$
+    __endasm;
+}
+
+static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) {
+    dmgd_lim = cam_px + 176u;
+    dmgd_ybias = 48u - cam_py;
+    dmgd_camlo = (uint8_t)cam_px;
+    dmgd_rev = reversed;
+    dmgd_rej = reversed ? 208 : 224;
+    dmgd_oam = oam_start;
+    dmg_object_loop();
+    oam_start = dmgd_oam;
+
+    const uint8_t *e = dmgd_slow;
+    for (uint8_t n = dmgd_slow_n; n; n--, e += 4) {
+        uint8_t obj = e[0], screen_x = e[1], screen_y = e[2];
+        if (obj == OBJ_COIN1 || obj == OBJ_COIN2 || obj == OBJ_COIN3) {
+            if (cache->activated[e[3]]) continue;
+            if (oam_start > MAX_HARDWARE_SPRITES - 2) break;
+            oam_start += draw_oam_coin(oam_start, screen_x, screen_y, coins_saved & coin_bit(obj));
+            continue;
+        }
+        uint8_t kind = dmg_portal_kind(obj);
+        if (kind == 0xFF) continue;
+        const uint8_t *art = dmg_portal_art[reversed ? 1 : 0][kind];
+        if ((uint8_t)(oam_start + art[0]) > MAX_HARDWARE_SPRITES) break;
+        dmgd_oam = oam_start;
+        dmgp_src = art;
+        dmgp_sx = screen_x;
+        dmgp_sy = screen_y;
+        dmg_copy_art();
+        oam_start = dmgd_oam;
     }
     return oam_start;
 }
