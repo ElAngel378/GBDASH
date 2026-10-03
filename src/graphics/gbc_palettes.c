@@ -13,8 +13,9 @@ const uint16_t gbc_sprite_palettes[32] = {
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(125, 255, 0), RGB8(255, 255, 255),
     // 2: Normal Gravity (Outline: Black, Primary: Teal, Secondary: Teal)
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(0, 255, 255), RGB8(0, 255, 255),
-    // 3: Inverted Gravity (Outline: Black, Primary: Yellow, Secondary: Yellow)
-    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 255, 0), RGB8(255, 255, 0),
+    // 3: Inverted Gravity, yellow pads / orb, coins (Outline: Black, colour 2: orange (the coin's
+    //    star, the yellow orb's shading; the other users only use colour 3), colour 3: gold)
+    RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(225, 120, 10), RGB8(255, 220, 0),
     // 4: Ship (Outline: Black, Primary: Pink, Secondary: Pink)
     RGB8(255, 255, 255), RGB8(0, 0, 0), RGB8(255, 100, 255), RGB8(255, 100, 255),
     // 5: Ball (Outline: Black, Primary: Red, Secondary: Red)
