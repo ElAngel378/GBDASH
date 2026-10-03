@@ -57,13 +57,17 @@ extern uint8_t * const *bg_saw_dmg_dsts;
 extern volatile uint8_t bg_scroll_pending;
 extern volatile uint8_t bg_scx;
 extern volatile uint8_t bg_scy;
+// DMG: BGP / OBP0 / OBP1 set by the VBlank handler too
+extern volatile uint8_t bg_dmg_pal_pending;
+extern uint8_t bg_dmg_bgp, bg_dmg_obp0, bg_dmg_obp1;
+#define request_bg_dmg_pals(b, o0, o1) do { bg_dmg_bgp = (b); bg_dmg_obp0 = (o0); bg_dmg_obp1 = (o1); bg_dmg_pal_pending = 1; } while (0)
 // Ask the VBlank handler to set SCX/SCY at the start of the next VBlank.
 #define request_bg_scroll(x, y) do { bg_scx = (x); bg_scy = (y); bg_scroll_pending = 1; } while (0)
 #define request_bg_parallax(p) do { bg_gdma_phase = (p); bg_gdma_pending = 1; } while (0)
 void bg_parallax_vbl_isr(void);
 void init_bg_parallax(void);
 // Register/unregister the VBlank handler (CGB only). Not in bank 0 to save space there.
-#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
+#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_dmg_pal_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
 #define bg_parallax_isr_stop() do {     if (bg_vbl_on) { bg_vbl_on = 0; bg_gdma_isr_on = 0; remove_VBL(bg_parallax_vbl_isr); bg_gdma_pending = 0; } } while (0)
 
 // Waits for the next VBlank. GBDK's wait_vbl_done() can sleep through a whole

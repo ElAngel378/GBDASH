@@ -51,16 +51,16 @@ static inline void step_music(void) {
   uint8_t prev_bank = _current_bank;
   uint8_t prev_ie = IE_REG;
   // A music tick takes up to ~3k dots. If VBlank starts meanwhile, the VBlank
-  // handler (which starts the parallax GDMA) must be able to preempt it, or the
-  // GDMA would start too late to finish inside VBlank. Only VBlank may nest.
-  if (bg_gdma_isr_on) {
+  // handler (scroll, palettes, parallax GDMA, map uploads) must be able to preempt
+  // it, or its work would land outside VBlank. Only VBlank may nest.
+  if (bg_vbl_on) {
     IE_REG = VBL_IFLAG;
     enable_interrupts();
   }
   SWITCH_ROM(current_song_bank);
   hUGE_dosound();
   SWITCH_ROM(prev_bank);
-  if (bg_gdma_isr_on) {
+  if (bg_vbl_on) {
     disable_interrupts();
     IE_REG = prev_ie;
   }

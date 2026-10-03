@@ -58,20 +58,34 @@ static const uint8_t col_quads[COL_QUAD_COUNT] = {
 };
 static uint8_t quad_x_flip; // 1 in mirror mode (same convention as hazard_kills)
 
-// Saw parts: deadly box (x0, x1, y0, y1, inclusive, unmirrored) inside the 16x16 metatile.
-// The saws are circles: small = one metatile (centre 8,8), half small saws at the top / bottom
-// of their metatile, medium = 2x2 metatiles (centre at their shared corner), big = 3x3 (its
-// corners are quadrant types, its left / right middles deadly on one half, centre empty).
-static const uint8_t saw_boxes[COL_SAW_COUNT][4] = {
-    { 3, 12,  3, 12 },   // 0x40 SMALL_SAW
-    { 3, 12, 11, 15 },   // 0x41 SMALL_SAW_TOP_HALF (saw in the bottom half)
-    { 3, 12,  0,  4 },   // 0x42 SMALL_SAW_BOTTOM_HALF (saw in the top half)
-    { 5, 15,  5, 15 },   // 0x43 MED_SAW_TOP_LEFT
-    { 0, 10,  5, 15 },   // 0x44 MED_SAW_TOP_RIGHT
-    { 5, 15,  0, 10 },   // 0x45 MED_SAW_BOTTOM_LEFT
-    { 0, 10,  0, 10 },   // 0x46 MED_SAW_BOTTOM_RIGHT
-    { 0, 15,  6, 15 },   // 0x47 BIG_SAW_TOP_MIDDLE
-    { 0, 15,  0,  9 },   // 0x48 BIG_SAW_BOTTOM_MIDDLE
+// Saw parts: deadly inside a circle around the centre of their saw (x, y relative to the
+// part's 16x16 metatile, unmirrored), so the empty corners of the saw's metatiles are safe.
+// The hazard probes sit in a small box at the player's centre, 6px inside its edge (mini:
+// ~3px), so a probe radius of the drawn radius + saw_pad kills when the player's edge reaches
+// ~4px into the saw (past the teeth), from any direction. Small saw = one metatile (half small
+// saws at the top / bottom of theirs), medium = 2x2 metatiles (centre at their shared corner),
+// big = 3x3 (centre in the middle one).
+#define SAW_R_SMALL 8
+#define SAW_R_MED   16
+#define SAW_R_BIG   24
+static int8_t saw_pad;    // 2, mini -1 (set by player_update)
+static const int8_t saw_circles[COL_SAW_COUNT][3] = {
+    {  8,  8, SAW_R_SMALL },   // 0x40 SMALL_SAW
+    {  8, 16, SAW_R_SMALL },   // 0x41 SMALL_SAW_TOP_HALF (saw in the bottom half)
+    {  8,  0, SAW_R_SMALL },   // 0x42 SMALL_SAW_BOTTOM_HALF (saw in the top half)
+    { 16, 16, SAW_R_MED },     // 0x43 MED_SAW_TOP_LEFT
+    {  0, 16, SAW_R_MED },     // 0x44 MED_SAW_TOP_RIGHT
+    { 16,  0, SAW_R_MED },     // 0x45 MED_SAW_BOTTOM_LEFT
+    {  0,  0, SAW_R_MED },     // 0x46 MED_SAW_BOTTOM_RIGHT
+    {  8, 24, SAW_R_BIG },     // 0x47 BIG_SAW_TOP_MIDDLE
+    {  8, -8, SAW_R_BIG },     // 0x48 BIG_SAW_BOTTOM_MIDDLE
+    { 24, 24, SAW_R_BIG },     // 0x49 BIG_SAW_TOP_LEFT
+    { -8, 24, SAW_R_BIG },     // 0x4A BIG_SAW_TOP_RIGHT
+    { 24,  8, SAW_R_BIG },     // 0x4B BIG_SAW_MIDDLE_LEFT
+    { -8,  8, SAW_R_BIG },     // 0x4C BIG_SAW_MIDDLE_RIGHT
+    { 24, -8, SAW_R_BIG },     // 0x4D BIG_SAW_BOTTOM_LEFT
+    { -8, -8, SAW_R_BIG },     // 0x4E BIG_SAW_BOTTOM_RIGHT
+    {  8,  8, SAW_R_BIG },     // 0x4F BIG_SAW_CENTER
 };
 
 // Collision types that depend on where inside the metatile the probe is (half blocks,
@@ -89,9 +103,15 @@ static uint8_t col_at_partial(uint8_t col, uint8_t inner_y, uint8_t xin) {
         if (inner_y >= 8) return COL_NONE;
         return COL_DEATH;
     } else if ((uint8_t)(col - COL_SAW_BASE) < COL_SAW_COUNT) {
-        const uint8_t *b = saw_boxes[(uint8_t)(col - COL_SAW_BASE)];
+        const int8_t *c = saw_circles[(uint8_t)(col - COL_SAW_BASE)];
         if (quad_x_flip) xin = 15u - xin;
-        if (xin < b[0] || xin > b[1] || inner_y < b[2] || inner_y > b[3]) return COL_NONE;
+        int8_t dx = (int8_t)xin - c[0];
+        int8_t dy = (int8_t)inner_y - c[1];
+        if (dx < 0) dx = -dx;
+        if (dy < 0) dy = -dy;
+        uint8_t r = (uint8_t)(c[2] + saw_pad);
+        if ((uint8_t)dx >= r || (uint8_t)dy >= r) return COL_NONE;
+        if ((uint16_t)((uint8_t)dx * (uint8_t)dx) + (uint16_t)((uint8_t)dy * (uint8_t)dy) >= (uint16_t)(r * r)) return COL_NONE;
         return COL_DEATH;
     } else if ((uint8_t)(col - COL_QUAD_BASE) < COL_QUAD_COUNT) {
         uint8_t m = col_quads[(uint8_t)(col - COL_QUAD_BASE)];
@@ -131,6 +151,7 @@ uint8_t player_update(
 
     uint8_t mini = p->mini;
     quad_x_flip = p->reversed ? 1u : 0u;
+    saw_pad = mini ? -1 : 2;
 
     // Acceleration & gravity
     if (p->mode == MODE_SHIP) {

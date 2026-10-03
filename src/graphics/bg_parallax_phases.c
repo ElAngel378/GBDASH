@@ -25,6 +25,8 @@ uint16_t bg_saw_dst;
 volatile uint8_t bg_saw_dmg_n;
 uint8_t * const *bg_saw_dmg_dsts;
 volatile uint8_t bg_scroll_pending;
+volatile uint8_t bg_dmg_pal_pending;
+uint8_t bg_dmg_bgp, bg_dmg_obp0, bg_dmg_obp1;
 volatile uint8_t bg_scx;
 volatile uint8_t bg_scy;
 
@@ -120,6 +122,12 @@ void bg_parallax_vbl_isr(void) {
         SCX_REG = bg_scx;
         SCY_REG = bg_scy;
     }
+    if (bg_dmg_pal_pending) {
+        bg_dmg_pal_pending = 0;
+        BGP_REG = bg_dmg_bgp;
+        OBP0_REG = bg_dmg_obp0;
+        OBP1_REG = bg_dmg_obp1;
+    }
     uint8_t ly = LY_REG;
     // The interrupted code may be in the middle of a VRAM bank-1 write.
     uint8_t vbk = VBK_REG;
@@ -149,10 +157,12 @@ void bg_parallax_vbl_isr(void) {
             up_src = bg_cj_tiles;
             VBK_REG = 0;
             copy_rows2();
-            up_dst = (uint8_t *)0x9800 + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
-            up_src = bg_cj_attrs;
-            VBK_REG = 1;
-            copy_rows2();
+            if (bg_gdma_isr_on) {   // CGB attributes (DMG: no VRAM bank 1, it would overwrite the tiles)
+                up_dst = (uint8_t *)0x9800 + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
+                up_src = bg_cj_attrs;
+                VBK_REG = 1;
+                copy_rows2();
+            }
             bg_cj_pending = 0;
         }
         ly = LY_REG;
@@ -163,11 +173,13 @@ void bg_parallax_vbl_isr(void) {
             up_dst = row0 + 8;  up_src = bg_rj_tiles + 8;  copy8();
             up_dst = row0 + 32; up_src = bg_rj_tiles + 16; copy8();
             up_dst = row0 + 40; up_src = bg_rj_tiles + 24; copy8();
-            VBK_REG = 1;
-            up_dst = row0;      up_src = bg_rj_attrs;      copy8();
-            up_dst = row0 + 8;  up_src = bg_rj_attrs + 8;  copy8();
-            up_dst = row0 + 32; up_src = bg_rj_attrs + 16; copy8();
-            up_dst = row0 + 40; up_src = bg_rj_attrs + 24; copy8();
+            if (bg_gdma_isr_on) {
+                VBK_REG = 1;
+                up_dst = row0;      up_src = bg_rj_attrs;      copy8();
+                up_dst = row0 + 8;  up_src = bg_rj_attrs + 8;  copy8();
+                up_dst = row0 + 32; up_src = bg_rj_attrs + 16; copy8();
+                up_dst = row0 + 40; up_src = bg_rj_attrs + 24; copy8();
+            }
             bg_rj_pending = 0;
         }
     }

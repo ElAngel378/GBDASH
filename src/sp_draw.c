@@ -680,16 +680,19 @@ static const uint8_t dmg_badge_prop[38] = {
     0, 0, 0, 0, 0, 0, 0, 0,   0, S_FLIPY,   0, 0, 0, 0, 0, 0,   0, 0, S_FLIPY, S_FLIPY,
     0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
-// Badge x: right of the portal's front ring, at mid height (mirror mode: left of it,
-// mirrored). Portal boxes: cube/ship/ball 24x48, gravity 16x48, mini/growth 24x48 from
-// x -8 / 0 (draw_oam_mini_portal). Horizontal gravity portals (48x16): on the ring's centre.
+// Badge x: on the portal's side at mid height (mirror mode: the other side, mirrored). It
+// must have the SAME x as the portal sprite column it covers: on DMG overlapping sprites are
+// ordered by x first (smaller x in front) and only then by OAM index (the badge comes first).
+// Portal sprite columns: cube/ship/ball 0/8/16, gravity 0/8, mini -8/0/8, growth 0/8/16.
+// Horizontal gravity portals (48x16 ring, columns 0..40, mirror mode -40..0): the ring's
+// middle is busy, so the badge goes just past its end, overlapping no portal sprite.
 static const int8_t dmg_badge_x[38] = {
-    18, 18, 18, 0, 0, 0, 0, 0,   10, 10,   0, 0, 0, 0, 0, 0,   20, 20, 20, 20,
-    0, 0, 0, 0, 10, 18, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    16, 16, 16, 0, 0, 0, 0, 0,   8, 8,   0, 0, 0, 0, 0, 0,   48, 48, 48, 48,
+    0, 0, 0, 0, 8, 16, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const int8_t dmg_badge_x_rev[38] = {
-    -2, -2, -2, 0, 0, 0, 0, 0,   -2, -2,   0, 0, 0, 0, 0, 0,   20, 20, 20, 20,
-    0, 0, 0, 0, -10, -2, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0,   0, 0, 0, 0, 0, 0,   -48, -48, -48, -48,
+    0, 0, 0, 0, -8, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 #undef NI
 
@@ -742,7 +745,7 @@ static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
     *oam++ = (uint8_t)(sy + (horiz ? 0 : 16));
     *oam++ = (uint8_t)(sx + (reversed ? dmg_badge_x_rev[obj] : dmg_badge_x[obj]));
     *oam++ = dmg_badge_tile[dmg_badge[obj]];
-    *oam = dmg_badge_prop[obj] | ((reversed && !horiz) ? S_FLIPX : 0);
+    *oam = dmg_badge_prop[obj] | (reversed ? S_FLIPX : 0);
     oam_idx++;
     if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
         return 1 + draw_oam_mini_portal(obj, oam_idx, sx, sy, reversed);
@@ -754,15 +757,18 @@ static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
 }
 
 // Uses shadow_OAM as scratch: call while the level is loading (it is redrawn every frame).
+// Drawn at y 200 (below the screen: a VBlank meanwhile must not show it, which it did at the
+// level start), offsets taken from (64, 200).
+#define DMG_PT_REC_Y 200
 static void dmg_portal_art_init(void) {
     for (uint8_t r = 0; r < 2; r++) {
         for (uint8_t k = 0; k < DMG_PT_KINDS; k++) {
-            uint8_t n = dmg_draw_portal_slow(dmg_pt_obj[k], 0, 64, 64, r);
+            uint8_t n = dmg_draw_portal_slow(dmg_pt_obj[k], 0, 64, DMG_PT_REC_Y, r);
             uint8_t *t = dmg_portal_art[r][k];
             const uint8_t *o = (const uint8_t *)&shadow_OAM[0];
             *t++ = n;
             for (uint8_t i = 0; i < n; i++) {
-                *t++ = (uint8_t)(*o++ - 64);
+                *t++ = (uint8_t)(*o++ - DMG_PT_REC_Y);
                 *t++ = (uint8_t)(*o++ - 64);
                 *t++ = *o++;
                 *t++ = *o++;

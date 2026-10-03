@@ -1243,13 +1243,14 @@ void play_level(uint8_t idx) BANKED {
             if (player.reversed) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
             col_job_step = 0;
         }
-        if (bg_gdma_isr_on) {
-            // A slice the VBlank handler has uploaded counts as done.
-            if (col_job_issued && !bg_cj_pending) { col_job_issued = 0; col_job_step++; }
-        }
+        // VRAM uploads (DMG too): the VBlank handler writes them the moment VBlank starts. Done
+        // by this thread after waking up, they could land outside VBlank when the music timer
+        // interrupt ran first. A slice the handler has uploaded counts as done.
+        if (col_job_issued && !bg_cj_pending) { col_job_issued = 0; col_job_step++; }
         if (col_job_step < COL_JOB_STEPS && !col_job_issued) {
             prepare_mt_column_slice(col_job_col, level_map, level_map_bank, player.reversed, col_job_step);
-            if (bg_gdma_isr_on) { request_mt_column_slice(col_job_slot, col_job_step); col_job_issued = 1; }
+            request_mt_column_slice(col_job_slot, col_job_step);
+            col_job_issued = 1;
         }
 
         PROF_MARK(8);   // band, parallax, palettes, row job requests
@@ -1313,18 +1314,17 @@ void play_level(uint8_t idx) BANKED {
         // The parallax GDMA (768 bytes, ~1.9k dots) is executed by the VBlank
         // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
         // so it never depends on how late this thread wakes up.
-        if (bg_gdma_isr_on) {
-            if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
-            if (row0_job_pos < 16 && !row0_job_issued) {
-                request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-                row0_job_issued = 1;
-            }
+        if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
+        if (row0_job_pos < 16 && !row0_job_issued) {
+            request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+            row0_job_issued = 1;
         }
         if (bg_gdma_isr_on && famidash_bkg_palettes_dirty) bg_pal_request = 1;
         if (parallax_needed) request_bg_parallax(bg_phase);
         saw_anim_request();
-        // Same for the scroll registers (GBC only; DMG sets them below).
-        if (bg_gdma_isr_on) request_bg_scroll(final_scx, final_scy);
+        // Same for the scroll registers and the DMG palettes
+        if (_cpu != CGB_TYPE) request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
+        request_bg_scroll(final_scx, final_scy);
 #if ENABLE_DEBUG_MODE
         if (debug_mode) {
             debug_ly = LY_REG;
@@ -1334,27 +1334,6 @@ void play_level(uint8_t idx) BANKED {
         PROF_MARK(9);   // waiting for VBlank
         bg_wait_vbl();
         PROF_MARK(10);  // after VBlank: DMG scroll / VRAM writes, saw animation
-        if (!bg_gdma_isr_on) move_bkg(final_scx, final_scy);
-
-        BGP_REG = final_bgp;
-        OBP0_REG = final_obp0;
-        OBP1_REG = final_obp1;
-
-        // Palette RAM is only writable in VBlank; if the main thread woke up
-        // too late, leave the dirty flag set and apply on the next frame.
-        if (!bg_gdma_isr_on && famidash_bkg_palettes_dirty && (uint8_t)(LY_REG - 144u) < 7u) {
-            famidash_apply_palettes();
-        }
-
-        if (!bg_gdma_isr_on && col_job_step < COL_JOB_STEPS) {
-            flush_mt_column_slice(col_job_slot, col_job_step);
-            col_job_step++;
-        }
-
-        if (!bg_gdma_isr_on && row0_job_pos < 16) {
-            flush_row_slots(row0_job_pos, ROW_JOB_PER_FRAME, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
-            row0_job_pos += ROW_JOB_PER_FRAME;
-        }
 
         if (died) handle_death(idx, sprite_x_final, final_py, scroll_px);
     }

@@ -82,11 +82,13 @@ PAD_PINK = [     # small jump pad: low dome on a base
 
 def badge(symbol):
     """Portal badge: the small half disc on the side of the original portal art (like the
-    mode icons on Geometry Dash portals), light with a 4x6 black symbol in rows 5..10."""
+    mode icons on Geometry Dash portals). Solid shade 3 with the 4x6 symbol in shade 1, so it
+    stands out from the portal body (shades 1 / 2) in every DMG palette: a black disc with a
+    light symbol on the normal background, a white disc with a dark symbol on the inverted ones."""
     assert len(symbol) == 6
-    rows = ["33333...", "311113..", "3111113.", "31111113", "31111113"]
-    rows += ["31" + s.replace(".", "1") + "13" for s in symbol]
-    rows += ["31111113", "31111113", "3111113.", "311113..", "33333..."]
+    rows = ["3333....", "333333..", "3333333.", "33333333", "33333333"]
+    rows += ["33" + s.replace("3", "1").replace(".", "3") + "33" for s in symbol]
+    rows += ["33333333", "33333333", "3333333.", "333333..", "3333...."]
     assert len(rows) == 16 and all(len(r) == 8 for r in rows), rows
     return rows
 
