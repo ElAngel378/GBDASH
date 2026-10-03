@@ -23,11 +23,12 @@ extern uint8_t  end_trigger_requested;
 extern uint16_t end_trigger_obj_x;
 extern uint16_t end_trigger_obj_y;
 
-// Ship / ball camera corridor (Famidash locks the camera there on a game mode portal): its top
-// in world px, set by sp_draw.c when the player takes a mode portal (portal top - 58px)
-#define CAM_CORRIDOR_ABOVE 58u
-#define CAM_CORRIDOR_H 240u
-extern uint16_t cam_corr_top;
+// Ship / ball: the camera y locks to the last mode portal taken (its top y in world px, set
+// by sp_draw.c). Ball: Famidash's lock, screen top = portal top - 58px (PORTAL_TO_TOP_DIFF).
+// Ship: like GD, the portal centred on screen.
+#define CAM_BALL_ABOVE_PORTAL 58u
+#define CAM_PORTAL_H 48u
+extern uint16_t cam_portal_y;
 
 #define FONT_PUSAB_START 0xD0
 
