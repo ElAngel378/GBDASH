@@ -7,6 +7,12 @@
 
 extern palette_color_t famidash_bg_palettes[20];
 extern uint8_t famidash_bkg_palettes_dirty;
+// Colours the colour triggers fade to (famidash_bg_palettes = what is on screen)
+extern palette_color_t famidash_bg_target[20];
+// CGB, once per frame: the 0.3 s fade to famidash_bg_target after a colour trigger
+void famidash_bg_fade_step(void) BANKED;
+// Shows pal (20 colours) right away, no fade
+void famidash_bg_set_now(const palette_color_t *pal) BANKED;
 
 // Apply a background color trigger by NES palette index.
 void famidash_apply_bg_trigger(uint8_t color_id) BANKED;

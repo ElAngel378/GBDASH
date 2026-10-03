@@ -358,7 +358,7 @@ static void practice_add_checkpoint(void) {
     cp->world_y = PLAYER_WORLD_Y();
     cp->active = 1;
     if (_cpu == CGB_TYPE) {
-        memcpy(cp->bg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+        memcpy(cp->bg_palettes, famidash_bg_target, 20 * sizeof(palette_color_t));
     }
     practice_cp_count++;
     last_cp_cam_px = cam_px;
@@ -779,8 +779,7 @@ static void practice_respawn(uint8_t idx) {
         last_bg_phase = 0;
         load_menu_ground_tiles();
         flush_ground_row();
-        memcpy(famidash_bg_palettes, cp->bg_palettes, 20 * sizeof(palette_color_t));
-        memcpy(shadow_bkg_palettes, famidash_bg_palettes, 20 * sizeof(palette_color_t));
+        famidash_bg_set_now(cp->bg_palettes);
         set_bkg_palette(0, 5, shadow_bkg_palettes);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
     } else {
@@ -1325,7 +1324,10 @@ void play_level(uint8_t idx) BANKED {
             request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
             row0_job_issued = 1;
         }
-        if (bg_gdma_isr_on && famidash_bkg_palettes_dirty) bg_pal_request = 1;
+        if (bg_gdma_isr_on) {
+            famidash_bg_fade_step();
+            if (famidash_bkg_palettes_dirty) bg_pal_request = 1;
+        }
         if (parallax_needed) request_bg_parallax(bg_phase);
         saw_anim_request();
         // Same for the scroll registers and the DMG palettes
