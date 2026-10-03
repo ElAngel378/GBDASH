@@ -13,10 +13,9 @@ Where they go (src/sprites/famidash_sprite_tiles.c, drawn by draw_oam_coin in sp
     DMG  pairs 0..7 -> tiles 144..159, 8..9 -> 192..195 (pink pad art, drawn as an icon on DMG),
          10 -> 246..247 (chain block art, not drawn on DMG)
 
-Writes src/sprites/coin_tiles.h and a preview, levels/chr_data/coin_preview.png.
+Writes src/sprites/coin_tiles.h.
 """
 from pathlib import Path
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 CHR = ROOT / "levels" / "chr_data" / "coin.chr"
@@ -81,15 +80,6 @@ def main():
     L += arr("coin_tiles_cgb", tiles({2: 1}))
     (ROOT / "src" / "sprites" / "coin_tiles.h").write_text("\n".join(L) + "\n", newline="\n")
     print("frames (left pair, right pair, x):", frames)
-
-    shade = [(255, 255, 255), (170, 170, 170), (85, 85, 85), (0, 0, 0)]
-    im = Image.new("RGB", (FRAMES * 18, 16), (160, 200, 160))
-    for k in range(FRAMES):
-        for y, row in enumerate(frame(k)):
-            for x, v in enumerate(row):
-                if v:
-                    im.putpixel((k * 18 + x, y), shade[v])
-    im.save(ROOT / "levels" / "chr_data" / "coin_preview.png")
 
 
 if __name__ == "__main__":
