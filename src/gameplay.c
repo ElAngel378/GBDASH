@@ -102,8 +102,20 @@ static uint8_t bg_drift_px = 0;
 // so vertical trajectories stay aligned with scroll (see "Better ship").
 #define SCROLL_SPEED_FP 714
 
+// Camera y. Cube: dead zone (the camera moves when the player leaves screen rows
+// CAM_Y_TOP_ZONE .. CAM_Y_BOTTOM_ZONE). Ship / ball: Famidash locks the camera to a 240px
+// corridor around the mode portal (made for the NES screen), which does not fit the Game Boy
+// screen, so the camera pans through it with the player: player at the corridor's top -> its
+// top on screen, at its bottom -> its bottom. Either way the camera eases to its target (1/4
+// of the distance per frame, 1..CAM_Y_MAX_STEP px) and never lets the player closer than
+// CAM_Y_EDGE to a screen edge.
 #define CAM_Y_TOP_ZONE 20
 #define CAM_Y_BOTTOM_ZONE 100
+#define CAM_Y_EDGE 8
+#define CAM_Y_MAX_STEP 8      // the VRAM band streams one map row (16px) per 2 frames
+#define CAM_VIEW_H ((_cpu == CGB_TYPE) ? 128u : 144u)   // CGB: the ground strip below
+uint16_t cam_corr_top;
+static uint16_t cam_target_y;
 
 // Tall levels: maps are MAP_ROWS rows tall and bottom-aligned (a level made for 16 rows sits in
 // rows MAP_ROWS-16 .. MAP_ROWS-1). World y is a 16-bit pixel position.
@@ -263,6 +275,7 @@ static void reload_level_state(uint8_t idx) {
         cam_py = MAP_Y0 + 112u;
     }
     mt_band = band_for_cam(cam_py, BAND_MAX);
+    cam_target_y = cam_py;
     band_cam_row = 0xFF;
 
     cam_px = 0;
@@ -322,6 +335,7 @@ typedef struct {
     uint16_t world_x;
     uint16_t world_y;
     palette_color_t bg_palettes[20];
+    uint16_t cam_corr_top;
 } PracticeCheckpoint;
 
 static PracticeCheckpoint practice_checkpoints[MAX_PRACTICE_CHECKPOINTS];
@@ -351,6 +365,7 @@ static void practice_add_checkpoint(void) {
     cp->player = player;
     cp->cam_px = cam_px;
     cp->cam_py = cam_py;
+    cp->cam_corr_top = cam_corr_top;
     cp->scroll_acc = scroll_acc;
     cp->bg_drift_px = bg_drift_px;
     cp->target_bg_idx = target_bg_idx;
@@ -761,6 +776,8 @@ static void practice_respawn(uint8_t idx) {
 
     cam_px = cp->cam_px;
     cam_py = cp->cam_py;
+    cam_target_y = cam_py;
+    cam_corr_top = cp->cam_corr_top;
     scroll_acc = cp->scroll_acc;
     bg_drift_px = cp->bg_drift_px;
     target_bg_idx = cp->target_bg_idx;
@@ -769,6 +786,7 @@ static void practice_respawn(uint8_t idx) {
     player.dead = 0;
 
     mt_band = band_for_cam(cam_py, BAND_MAX);
+    cam_target_y = cam_py;
     band_cam_row = 0xFF;
 
     mirror_reload(idx);
@@ -838,6 +856,48 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
     }
 }
 
+static void update_camera_y(void) {
+    int16_t wy = (int16_t)PLAYER_WORLD_Y();
+    uint8_t view = CAM_VIEW_H;
+    int16_t target;
+    if (player.mode == MODE_CUBE) {
+        // dead zone, against the camera's target (not its eased position)
+        target = (int16_t)cam_target_y;
+        int16_t py = wy - target;
+        if (py < CAM_Y_TOP_ZONE) target = wy - CAM_Y_TOP_ZONE;
+        else if (py > CAM_Y_BOTTOM_ZONE) target = wy - CAM_Y_BOTTOM_ZONE;
+    } else {
+        // the player's centre at r (0..240) in the corridor shows at r * view / 240 on screen
+        int16_t r = wy + 8 - (int16_t)cam_corr_top;
+        if (r < 0) r = 0;
+        if (r > (int16_t)CAM_CORRIDOR_H) r = CAM_CORRIDOR_H;
+        uint8_t k = (_cpu == CGB_TYPE) ? 119u : 102u;   // (240 - view) * 256 / 240
+        target = (int16_t)cam_corr_top + (int16_t)(((uint16_t)r * k) >> 8);
+    }
+    if (target < (int16_t)level_top_px) target = (int16_t)level_top_px;
+    if (target > (int16_t)cam_py_max) target = (int16_t)cam_py_max;
+    cam_target_y = (uint16_t)target;
+
+    int16_t cy = (int16_t)cam_py;
+    int16_t d = target - cy;
+    if (d) {
+        int16_t step = d >> 2;            // arithmetic: rounds towards -inf
+        if (d > 0) {
+            if (step < 1) step = 1;
+            if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
+        } else {
+            if (step < -CAM_Y_MAX_STEP) step = -CAM_Y_MAX_STEP;
+        }
+        cy += step;
+    }
+    // never let the player get near a screen edge
+    if (wy - cy < CAM_Y_EDGE) cy = wy - CAM_Y_EDGE;
+    else if (wy - cy > (int16_t)(view - 16u - CAM_Y_EDGE)) cy = wy - (int16_t)(view - 16u - CAM_Y_EDGE);
+    if (cy < (int16_t)level_top_px) cy = (int16_t)level_top_px;
+    if (cy > (int16_t)cam_py_max) cy = (int16_t)cam_py_max;
+    cam_py = (uint16_t)cy;
+}
+
 void play_level(uint8_t idx) BANKED {
     l = game_levels[idx];
     level_tiles = l->tiles;
@@ -859,6 +919,7 @@ void play_level(uint8_t idx) BANKED {
     }
     level_top_px = (uint16_t)l->map_top << 4;
     mt_band = band_for_cam(cam_py, BAND_MAX);
+    cam_target_y = cam_py;
     band_cam_row = 0xFF;
     loaded_r = BKG_MT_W - 1;
     col_job_step = COL_JOB_STEPS;
@@ -1070,22 +1131,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (end_anim_state == END_ANIM_INACTIVE) {
-            if (!died) {
-                int16_t wy = (int16_t)PLAYER_WORLD_Y();
-                py = wy - (int16_t)cam_py;
-                if (py < CAM_Y_TOP_ZONE) {
-                    int16_t target_cam_py = wy - CAM_Y_TOP_ZONE;
-                    if (target_cam_py < (int16_t)level_top_px) target_cam_py = (int16_t)level_top_px;
-                    if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-                    cam_py = (uint16_t)target_cam_py;
-                }
-                else if (py > CAM_Y_BOTTOM_ZONE) {
-                    int16_t target_cam_py = wy - CAM_Y_BOTTOM_ZONE;
-                    if (target_cam_py < (int16_t)level_top_px) target_cam_py = (int16_t)level_top_px;
-                    if ((uint16_t)target_cam_py > cam_py_max) target_cam_py = (int16_t)cam_py_max;
-                    cam_py = (uint16_t)target_cam_py;
-                }
-            }
+            if (!died) update_camera_y();
         } else {
             cam_py = locked_cam_py;
         }

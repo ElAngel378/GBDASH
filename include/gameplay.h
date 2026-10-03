@@ -23,6 +23,12 @@ extern uint8_t  end_trigger_requested;
 extern uint16_t end_trigger_obj_x;
 extern uint16_t end_trigger_obj_y;
 
+// Ship / ball camera corridor (Famidash locks the camera there on a game mode portal): its top
+// in world px, set by sp_draw.c when the player takes a mode portal (portal top - 58px)
+#define CAM_CORRIDOR_ABOVE 58u
+#define CAM_CORRIDOR_H 240u
+extern uint16_t cam_corr_top;
+
 #define FONT_PUSAB_START 0xD0
 
 void draw_text(uint8_t x, uint8_t y, const char *str) BANKED;

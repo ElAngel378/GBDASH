@@ -354,6 +354,7 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
                     else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
                     else p->mode = MODE_BALL;
                     p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity on portal entry
+                    cam_corr_top = (obj_y > CAM_CORRIDOR_ABOVE) ? (uint16_t)(obj_y - CAM_CORRIDOR_ABOVE) : 0;
                     *act = 1;
                 }
             }
