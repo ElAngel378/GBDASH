@@ -16,7 +16,8 @@ Game Boy colour index (white = 0, light grey = 1, dark grey = 2, black = 3).
 
 Only the ranges in LOADS are loaded; the other slots are empty in the image because
 gameplay fills them from the font at runtime ("PAUSED" 76..87, debug HUD and % 90..115)
-or they are background tiles (bank 0 128..159; DMG coins use 144..159).
+or they are background tiles (bank 0 128..159; DMG coins use 144..159), or the coin
+(levels/chr_data/coin.chr, tools/make_coin_tiles.py).
 
 Outputs: levels/chr_data/sprite_tiles.bin, src/sprites/sprite_tile_tables.h
 """
@@ -41,8 +42,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB, 0, 224, 16, "CGB_MIRROR_EXIT", 0),
     (CGB_DECO, 1, 160, 40, "BANK1", 160),  # level decorations
     (CGB_DECO_CLOUD, 1, 160, 40, "DECO_CLOUD", 0),
-    (CGB, 1, 200, 16, "BANK1", 200),       # coins
-    (DMG, 0, 144, 16, "BANK1", 200),       # coins (DMG: bank 0 tiles 144..159)
+    # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
 
 

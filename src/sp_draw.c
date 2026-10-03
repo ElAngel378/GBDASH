@@ -599,18 +599,37 @@ static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
     return 7;
 }
 
-// Coin: 2 8x16 sprites, 4 spin frames (Famidash COIN_SPRITE .. COIN_3_SPRITE, 5 frames each)
+// Coin (tools/make_coin_tiles.py): 6 spin frames, 5 video frames each, 2 sprites (frame 3,
+// edge on: 1 sprite, 4px in). Tile pair p: CGB COIN_TILE_BASE + 2p (VRAM bank 1); DMG
+// dmg_coin_pair[p]. A coin already in the save ("gotten") is silver on CGB (the HUD text
+// palette) and flickers on DMG (half transparent on the LCD).
+#define COIN_FRAME_TICKS 5
+static const uint8_t coin_frame_l[6] = { 0, 2, 4, 6, 7, 9 };
+static const uint8_t coin_frame_r[6] = { 1, 3, 5, 0xFF, 8, 10 };
+static const uint8_t coin_frame_x[6] = { 0, 0, 0, 4, 0, 0 };
+static const uint8_t dmg_coin_pair[11] = {
+    DMG_COIN_TILE_BASE, DMG_COIN_TILE_BASE + 2, DMG_COIN_TILE_BASE + 4, DMG_COIN_TILE_BASE + 6,
+    DMG_COIN_TILE_BASE + 8, DMG_COIN_TILE_BASE + 10, DMG_COIN_TILE_BASE + 12, DMG_COIN_TILE_BASE + 14,
+    DMG_COIN_TILE_B, DMG_COIN_TILE_B + 2, DMG_COIN_TILE_C
+};
 static uint8_t draw_oam_coin(uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t gotten) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t base = ((_cpu == CGB_TYPE) ? COIN_TILE_BASE : DMG_COIN_TILE_BASE) + (gotten ? 8 : 0);
-    uint8_t f = (coin_frame_ctr / 5) & 3;
-    uint8_t p0 = (_cpu == CGB_TYPE) ? (S_PAL(3) | S_BANK) : 0, p1 = p0, t0, t1;
-    if (f == 0)      { t0 = base;     t1 = base;     p1 |= S_FLIPX; }
-    else if (f == 1) { t0 = base + 2; t1 = base + 4; }
-    else if (f == 2) { t0 = base + 6; t1 = base + 6; p1 |= S_FLIPX; }
-    else             { t0 = base + 4; t1 = base + 2; p0 |= S_FLIPX; p1 |= S_FLIPX; }
-    *oam++ = sy; *oam++ = sx;     *oam++ = t0; *oam++ = p0;
-    *oam++ = sy; *oam++ = sx + 8; *oam++ = t1; *oam++ = p1;
+    uint8_t f = coin_frame_ctr / COIN_FRAME_TICKS;
+    uint8_t l = coin_frame_l[f], r = coin_frame_r[f];
+    uint8_t p, tl, tr;
+    if (_cpu == CGB_TYPE) {
+        p = (gotten ? S_PAL(7) : S_PAL(3)) | S_BANK;
+        tl = COIN_TILE_BASE + (uint8_t)(l << 1);
+        tr = COIN_TILE_BASE + (uint8_t)(r << 1);
+    } else {
+        if (gotten && (coin_frame_ctr & 1)) return 0;
+        p = 0;
+        tl = dmg_coin_pair[l];
+        tr = (r == 0xFF) ? 0 : dmg_coin_pair[r];
+    }
+    *oam++ = sy; *oam++ = sx + coin_frame_x[f]; *oam++ = tl; *oam++ = p;
+    if (r == 0xFF) return 1;
+    *oam++ = sy; *oam++ = sx + 8; *oam++ = tr; *oam = p;
     return 2;
 }
 
@@ -1051,8 +1070,7 @@ uint8_t draw_sprites(
     // Limit active decorations (4 on DMG, 12 on CGB) to keep 60 FPS
     uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
 
-    coin_frame_ctr++;
-    if (coin_frame_ctr >= 20) coin_frame_ctr = 0;
+    if (++coin_frame_ctr >= 6 * COIN_FRAME_TICKS) coin_frame_ctr = 0;
     oam_start = draw_coin_anims(cam_px, cam_py, reversed, oam_start);
 
     // DMG: one icon sprite per object (skipped when the cache has nothing DMG draws)

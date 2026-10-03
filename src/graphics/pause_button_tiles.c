@@ -94,6 +94,8 @@ void init_pause_tiles(void) BANKED {
         set_sprite_data(t + 1, 1, blank_tile);
     }
     set_sprite_data(PAUSE_BTN_TILE_BASE + BTN_PRACTICE_TILE_OFFSET, 12, practice_button_tiles);
+    // the "ATTEMPT N" glyphs borrow the Play / Menu / Restart tiles during gameplay (percent_hud.c)
+    set_sprite_data(PAUSE_BTN_TILE_BASE, 30, sprite_tiles + (PAUSE_BTN_TILE_BASE * 16u));
 }
 
 void load_checkpoint_tiles(void) BANKED {

@@ -18,9 +18,13 @@
 #define MINI_PLAYER_TILE_BASE 116  // 5 8x16 pairs: cube 0/22/45 deg, ship, ball
 #define MINI_PORTAL_TILE_A    126  // mini/growth portal pair 0 ...
 #define MINI_PORTAL_TILE_B    248  // ... pairs 1..4 (sprite tiles 248..255 are unused otherwise)
-// CGB VRAM bank 1: coin spin frames (4 pairs) then "already collected" frames (4 pairs)
+// Coin (tools/make_coin_tiles.py): 11 tile pairs. CGB: VRAM bank 1 tiles 200..221. DMG: pairs
+// 0..7 at 144..159 (BG slots 144..159 unused, see DMG_BG_SLOTS), 8..9 at 192..195 (pink pad art,
+// an icon on DMG), 10 at 246..247 (chain block art, not drawn on DMG)
 #define COIN_TILE_BASE        200
-#define DMG_COIN_TILE_BASE    144  // DMG: sprite tiles 144..159 (BG slots 144..159 unused, see DMG_BG_SLOTS)
+#define DMG_COIN_TILE_BASE    144
+#define DMG_COIN_TILE_B       192
+#define DMG_COIN_TILE_C       246
 extern const uint8_t famidash_deco_tiles[FAMIDASH_DECO_TILE_COUNT * 16];
 
 // deco_cloud: use the DECOCLOUD decoration art (Famidash picks the deco type per level)

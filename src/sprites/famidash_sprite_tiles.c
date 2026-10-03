@@ -13,6 +13,15 @@
 INCBIN(sprite_tiles, "levels/chr_data/sprite_tiles.bin")
 INCBIN_EXTERN(sprite_tiles)
 #include "dmg_object_icons.h"
+#include "coin_tiles.h"
+
+// DMG coin tile pairs 0..7 -> 144..159 (shared with background tiles 144..159), 8..9 ->
+// DMG_COIN_TILE_B, 10 -> DMG_COIN_TILE_C (see draw_oam_coin)
+static void load_dmg_coin_tiles(void) {
+    set_sprite_data(DMG_COIN_TILE_BASE, 16, coin_tiles_dmg);
+    set_sprite_data(DMG_COIN_TILE_B, 4, coin_tiles_dmg + 16 * 16);
+    set_sprite_data(DMG_COIN_TILE_C, 2, coin_tiles_dmg + 20 * 16);
+}
 
 void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
     uint8_t cgb = (_cpu == CGB_TYPE);
@@ -26,8 +35,13 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
         if (cgb) VBK_REG = l[1];
         set_sprite_data(l[2], l[3], sprite_tiles + ((uint16_t)l[4] | ((uint16_t)l[5] << 8)) * 16u);
     }
-    if (cgb) VBK_REG = 0;
-    else {
+    if (cgb) {
+        // coin: VRAM bank 1 tiles 200.. (tools/make_coin_tiles.py)
+        VBK_REG = 1;
+        set_sprite_data(COIN_TILE_BASE, COIN_PAIRS * 2, coin_tiles_cgb);
+        VBK_REG = 0;
+    } else {
+        load_dmg_coin_tiles();
         // DMG (tools/make_dmg_object_icons.py, slots: see sp_draw.c): orb and pad icons over
         // the CGB orb / pad art, portal badges in sprite tiles unused on DMG
         set_sprite_data(180, 12, dmg_object_icon_tiles);
@@ -40,6 +54,7 @@ void load_gameplay_sprite_tiles(uint8_t deco_cloud) BANKED {
 // tileset was reloaded (mirror portal) only these need to be loaded again (DMG coins).
 void reload_bg_shared_sprite_tiles(void) BANKED {
     uint8_t cgb = (_cpu == CGB_TYPE);
+    if (!cgb) set_sprite_data(DMG_COIN_TILE_BASE, 16, coin_tiles_dmg);
     for (uint8_t i = 0; i < SPRITE_LOAD_COUNT; i++) {
         const uint8_t *l = sprite_loads[i];
         uint8_t cond = l[0];

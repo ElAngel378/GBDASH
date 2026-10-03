@@ -390,7 +390,11 @@ def build_all():
                 divider = uge_divider
                 print(f"  - Music tempo: auto-detected TMA divider = {divider} (ticks={uge_ticks}) from {uge_file.name}")
             else:
-                print(f"  - Music tempo: {uge_file.name} does not have timer enabled, using divider = {divider}")
+                # No timer: the song is meant to step once per VBlank. The game always drives
+                # the music from the 4096 Hz timer: TMA 187 = 4096 / 69 = 59.4 Hz, the nearest
+                # rate to VBlank (59.7 Hz).
+                divider = 187
+                print(f"  - Music tempo: {uge_file.name} steps on VBlank (no timer): divider = {divider}")
 
             cmd = [str(UGE2SOURCE_BIN), str(uge_file), "-b", str(music_bank), ident, str(music_file)]
             res = subprocess.run(cmd, capture_output=True, text=True)

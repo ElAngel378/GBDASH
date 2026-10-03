@@ -287,7 +287,7 @@ const Level level_cf = {
   clutterfunk_map,
   BG_BASE_TILE_COUNT, 1004, 32, 0, 0,
   BANK(clutterfunk_map),
-  195,
+  187,
   clutterfunk_sp,
   BANK(clutterfunk_sp),
   clutterfunk_sp_dmg,

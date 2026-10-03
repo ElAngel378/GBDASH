@@ -283,6 +283,7 @@ static void reload_level_state(uint8_t idx) {
     coins_reset();
     coins_saved = level_coins[idx];
     percent_hud_reset(max_scroll_px);
+    attempt_text_start(1, cam_px, cam_py);
     sp_cache_col = 0xFFFF;
     sp_fill_pending = 0;
     previous_oam_index = MAX_HARDWARE_SPRITES;
@@ -624,6 +625,7 @@ static uint8_t pause_menu(uint8_t idx) {
     // The pause tiles borrowed these (exit and restart reload all sprite tiles)
     restore_death_tiles();
     if (practice_mode) load_checkpoint_tiles();
+    attempt_text_load_tiles();
 
     // Synchronize music timer on VBLANK to prevent desync
     TIMA_REG = TMA_REG;
@@ -803,6 +805,7 @@ static void practice_respawn(uint8_t idx) {
 
     percent_hud_reset(max_scroll_px);
     percent_hud_update(cam_px);
+    attempt_text_start(cam_px == 0, cam_px, cam_py);
 
     // Like a normal restart: a held jump acts right away (prev_joy only keeps B/SELECT
     // from placing or removing a checkpoint on the first frame)
@@ -935,6 +938,8 @@ void play_level(uint8_t idx) BANKED {
     coins_reset();
     coins_saved = level_coins[idx];
     percent_hud_reset(max_scroll_px);
+    attempt_count = 0;
+    attempt_text_start(1, cam_px, cam_py);
     bg_parallax_isr_start();
     while (1) {
         PROF_MARK(1);   // input, scrolling, object cache
@@ -1222,6 +1227,7 @@ void play_level(uint8_t idx) BANKED {
         if (practice_mode) {
             oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, player.reversed);
         }
+        oam_index = attempt_text_draw(oam_index, cam_px, cam_py);
         if (oam_index < previous_oam_index) {
             uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
             while (oam_index < previous_oam_index) {

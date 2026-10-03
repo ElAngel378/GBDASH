@@ -28,8 +28,90 @@ static uint8_t shown = 0xFF;     // value currently in OAM (0xFF: redraw)
 static uint16_t thr, q, step_q;
 static uint8_t rem, step_r;
 
+// ---- "ATTEMPT N" (like Geometry Dash): text in the level at the start position, scrolling
+// away with it. Glyph pairs (letter / digit on top, blank below) over the pause menu's Play /
+// Menu / Restart button tiles 36..65, which are only on screen in the pause menu: it reloads
+// them (init_pause_tiles) and attempt_text_load_tiles puts the glyphs back on resume.
+#define ATT_TILE_BASE   36
+#define ATT_A 0
+#define ATT_T 1
+#define ATT_E 2
+#define ATT_M 3
+#define ATT_P 4
+#define ATT_DIGIT0 5
+#define ATT_GLYPHS 15
+#define ATT_SCREEN_Y 40     // screen y of the text when the attempt starts
+#define ATT_MAX_CHARS 12
+static const uint8_t att_font[ATT_GLYPHS] = {
+    13 + 0, 13 + 19, 13 + 4, 13 + 12, 13 + 15,   // A T E M P (FontPusab: 'A' = glyph 13)
+    3, 4, 5, 6, 7, 8, 9, 10, 11, 12               // 0-9
+};
+static const uint8_t att_word[7] = { ATT_A, ATT_T, ATT_T, ATT_E, ATT_M, ATT_P, ATT_T };
+
+uint16_t attempt_count;
+static uint8_t att_glyph[ATT_MAX_CHARS];   // 0xFF: space
+static uint8_t att_n;
+static uint8_t att_on;
+static uint16_t att_x0;      // camera x at which the text is at its start position
+static uint16_t att_y0;      // camera y at the attempt start
+static uint8_t att_sx0;      // OAM x of the first character at att_x0
+
+void attempt_text_load_tiles(void) BANKED {
+    static const uint8_t blank[16] = {0};
+    for (uint8_t k = 0; k < ATT_GLYPHS; k++) {
+        uint8_t t = (uint8_t)(ATT_TILE_BASE + (k << 1));
+        set_sprite_data(t, 1, &FontPusab[att_font[k] * 16]);
+        set_sprite_data((uint8_t)(t + 1), 1, blank);
+    }
+}
+
+// An attempt starts at the beginning of the level (camera cam_x, cam_y): count it and show
+// "ATTEMPT N" there. from_start = 0 (practice checkpoint): counted, the text stays at the start.
+void attempt_text_start(uint8_t from_start, uint16_t cam_x, uint16_t cam_y) BANKED {
+    if (attempt_count < 9999u) attempt_count++;
+    if (!from_start) return;
+    uint8_t n = 0;
+    for (; n < 7; n++) att_glyph[n] = att_word[n];
+    att_glyph[n++] = 0xFF;
+    uint16_t v = attempt_count;
+    uint8_t d[4], nd = 0;
+    do { d[nd++] = (uint8_t)(v % 10u); v /= 10u; } while (v);
+    while (nd) att_glyph[n++] = (uint8_t)(ATT_DIGIT0 + d[--nd]);
+    att_n = n;
+    att_sx0 = (uint8_t)(96 + 8 - ((n * GLYPH_W) >> 1));   // centred a bit right of the screen centre
+    att_x0 = cam_x;
+    att_y0 = cam_y;
+    att_on = 1;
+}
+
+void attempt_text_hide(void) BANKED {
+    att_on = 0;
+}
+
+// Draws the text (if still on screen) from OAM slot oam; returns the next free slot
+uint8_t attempt_text_draw(uint8_t oam, uint16_t cam_x, uint16_t cam_y) BANKED {
+    if (!att_on) return oam;
+    uint16_t dx = cam_x - att_x0;
+    if (dx >= (uint16_t)(att_sx0 + att_n * GLYPH_W)) { att_on = 0; return oam; }   // scrolled away
+    int16_t sy = (int16_t)(ATT_SCREEN_Y + 16) - (int16_t)(cam_y - att_y0);
+    if (sy <= 0 || sy >= 160) return oam;
+    uint8_t prop = (_cpu == CGB_TYPE) ? 7 : 0;
+    int16_t sx = (int16_t)att_sx0 - (int16_t)dx;
+    for (uint8_t i = 0; i < att_n && oam < MAX_HARDWARE_SPRITES; i++, sx += GLYPH_W) {
+        uint8_t g = att_glyph[i];
+        if (g == 0xFF || sx <= 0 || sx >= 168) continue;
+        shadow_OAM[oam].y = (uint8_t)sy;
+        shadow_OAM[oam].x = (uint8_t)sx;
+        shadow_OAM[oam].tile = (uint8_t)(ATT_TILE_BASE + (g << 1));
+        shadow_OAM[oam].prop = prop;
+        oam++;
+    }
+    return oam;
+}
+
 void percent_hud_load_tiles(void) BANKED {
     uint8_t k;
+    attempt_text_load_tiles();
     for (k = 0; k < 10; k++) {
         set_sprite_data((uint8_t)(HUD_PAIR_BASE + (k << 1) + 1), 1, &FontPusab[(FONT_DIGIT0 + k) * 16]);
     }

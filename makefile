@@ -44,7 +44,7 @@ $(TEMPDIR)/mt_renderer.o: src/graphics/bg_level_tables.h levels/chr_data/bg_extr
 $(TEMPDIR)/tileset.o: levels/chr_data/bg_base_tiles.bin levels/chr_data/bg_base_tiles_flipped.bin
 $(TEMPDIR)/saw_anim_data.o: levels/chr_data/saw_anim_tiles.bin
 $(TEMPDIR)/assets.o: include/bg_tiles.h
-$(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h src/sprites/dmg_object_icons.h levels/chr_data/sprite_tiles.bin
+$(TEMPDIR)/famidash_sprite_tiles.o: src/sprites/sprite_tile_tables.h src/sprites/dmg_object_icons.h src/sprites/coin_tiles.h levels/chr_data/sprite_tiles.bin
 
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
