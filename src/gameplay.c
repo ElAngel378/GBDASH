@@ -1334,6 +1334,8 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
+                // a column slice already built is uploaded before the row job, which fixes it
+                if (col_job_step < COL_JOB_STEPS) refetch_mt_column(level_map, level_map_bank);
             }
         }
 

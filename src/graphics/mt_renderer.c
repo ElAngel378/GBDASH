@@ -301,6 +301,14 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
     PROF_MARK(13);
 }
 
+// The band moved while a sliced column was being built: re-read its map column for the new
+// band, or the slices still to come would write the row that left the band over the one the
+// row job just streamed in (a wrong metatile, and on CGB a wrong palette, until the ring
+// column is rebuilt).
+void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED {
+    get_map_column(cur_map_col, map, map_bank, col_buf, mt_band);
+}
+
 void flush_mt_column(uint8_t ring_col) BANKED {
     uint8_t bx = ring_col << 1;
     if (!(LCDC_REG & LCDCF_ON)) {
