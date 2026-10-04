@@ -225,64 +225,6 @@ void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r,
   }
 }
 
-const uint8_t *cb_src;
-uint8_t *cb_dst;
-uint8_t cb_bank, cb_row, cb_run;
-
-// Camera look-ahead (gameplay.c): rows cb_row .. cb_row - 7 (cb_row = 8n + 7) of the map column
-// at cb_src (the byte of row cb_row, ROM bank cb_bank), bottom-up, into cam_nb at cb_dst (the
-// entry of row cb_row) down: the first row at or below each one with something the player
-// meets (collision type != COL_NONE). cb_run carries it from the rows below.
-void cam_build_rows(void) __naked {
-    __asm
-        ldh     a, (__current_bank + 0)
-        push    af
-        ld      a, (_cb_bank)
-        ldh     (__current_bank + 0), a
-        ld      (#_rROMB0), a
-        ld      hl, #_cb_src
-        ld      a, (hl+)
-        ld      e, a
-        ld      d, (hl)                 ; de = map byte of row cb_row
-        ld      hl, #_cb_dst
-        ld      a, (hl+)
-        ld      h, (hl)
-        ld      l, a                    ; hl = cam_nb entry of row cb_row
-        ld      a, (_cb_row)
-        ld      c, a                    ; c = row
-        ld      a, (_cb_run)
-        ld      b, a                    ; b = first row below with something in it
-    1$:
-        ld      a, (de)
-        dec     de
-        push    hl
-        ld      hl, #_famidash_metatile_collision
-        add     a, l
-        ld      l, a
-        adc     a, h
-        sub     a, l
-        ld      h, a
-        ld      a, (hl)
-        pop     hl
-        or      a, a
-        jr      Z, 2$
-        ld      b, c
-    2$:
-        ld      (hl), b
-        dec     hl
-        ld      a, c
-        dec     c
-        and     a, #7
-        jr      NZ, 1$
-        ld      a, b
-        ld      (_cb_run), a
-        pop     af
-        ldh     (__current_bank + 0), a
-        ld      (#_rROMB0), a
-        ret
-    __endasm;
-}
-
 uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank) {
   if (row >= MAP_ROWS) return 0;
   uint8_t _prev = _current_bank;

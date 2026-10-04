@@ -103,45 +103,18 @@ static uint8_t bg_drift_px = 0;
 #define SCROLL_SPEED_FP 714
 
 // Camera y. Cube: dead zone, the camera snaps to keep the player within screen rows
-// CAM_Y_TOP_ZONE .. CAM_Y_BOTTOM_ZONE. Ship / ball: shows what the player is about to meet.
-// The map columns from the player's to CAM_LOOK - 1 ahead give a window that must be on screen:
-// below, the nearest obstacle under the player in every one of those columns; above, the
-// nearest obstacle over its head within CAM_REACH_FLY rows (the corridor's ceiling) and CAM_HEAD
-// px of headroom. The camera only moves when the screen stops covering that window, and eases
-// there (1/3 of the distance per frame, 1..CAM_Y_MAX_STEP px). A window taller than the screen
-// (a tall corridor): the player centred, but never past either end, so the nearer wall stays on
-// screen. No ceiling in reach: locked to the mode portal like Famidash. The player never gets
-// closer than CAM_Y_EDGE to a screen edge. The view is 144px on CGB too: its ground strip is the
-// map row below the level and scrolls away when the camera goes up.
+// CAM_Y_TOP_ZONE .. CAM_Y_BOTTOM_ZONE. Ship: the corridor is CAM_SHIP_H (10 blocks) around the
+// ship portal, on the block grid, and on the ground when it would reach below it. The screen
+// (9 blocks) slides through it with the ship: corridor top + (ship y - corridor top) / 9, so the
+// top block is on screen with the ship at the top and the bottom one with it at the bottom.
+// Ball: centred on the ball portal. Both ease there (1/4 of the distance per frame,
+// 1..CAM_Y_MAX_STEP px) and never leave the player off screen.
 #define CAM_Y_TOP_ZONE 20      // cube: dead zone (screen rows the player may move in)
 #define CAM_Y_BOTTOM_ZONE 100
-#define CAM_LOOK 6
-#define CAM_REACH_FLY 9
-#define CAM_HEAD 24
-#define CAM_FOOT 8
-#define CAM_PAD 2             // obstacles: at least half of their tile + CAM_PAD on screen
-#define CAM_Y_EDGE 12
+#define CAM_SHIP_H 160u
 #define CAM_Y_MAX_STEP 8      // the VRAM band streams one map row (16px) per 2 frames
-#define CAM_VIEW_H 144
+#define CAM_VIEW_H 144u
 uint16_t cam_portal_y;
-// Look-ahead tables of the columns c0 .. c0 + 7 (ring: column c in slot c & 7): cam_nb[slot * 32
-// + r] = the first row >= r with something the player meets (collision type != COL_NONE; 32:
-// none, the ground), cam_na[slot * 32 + r] = the last such row <= r (0xFF: none). A column is
-// built ahead of the player in 5 steps (a column scrolls by every ~6 frames): 4 x 8 rows
-// bottom-up (cam_nb), then cam_na; all at once after a (re)start.
-#define CAM_RING 8u
-static uint8_t cam_nb[CAM_RING * 32u], cam_na[CAM_RING * 32u];   // [slot * 32 + row]
-static uint16_t cam_build_col;    // column being built, 0xFFFF: rebuild all
-static uint8_t cam_build_step;
-static uint8_t cam_build_left;    // build steps to do (5 per column the player moves)
-static const uint8_t *cam_build_src;    // its map data (row 0) and ROM bank
-static uint8_t cam_build_bank;
-static uint16_t cam_win_col = 0xFFFF;   // cam_win_top / bot are for this column, row, mode, portal
-static uint8_t cam_win_row, cam_win_fly;
-static uint16_t cam_win_portal;
-static uint16_t cam_win_top, cam_win_bot;   // px: must be on screen (top 0xFFFF: no limit)
-static uint16_t cam_last_wy;      // cam_apply's input last time, and it did not move the camera
-static uint8_t cam_still;
 
 // Tall levels: maps are MAP_ROWS rows tall and bottom-aligned (a level made for 16 rows sits in
 // rows MAP_ROWS-16 .. MAP_ROWS-1). World y is a 16-bit pixel position.
@@ -308,7 +281,6 @@ static void reload_level_state(uint8_t idx) {
         cam_py = MAP_Y0 + 112u;
     }
     mt_band = band_for_cam(cam_py, BAND_MAX);
-    cam_build_col = 0xFFFF;
     band_cam_row = 0xFF;
 
     cam_px = 0;
@@ -809,7 +781,6 @@ static void practice_respawn(uint8_t idx) {
 
     cam_px = cp->cam_px;
     cam_py = cp->cam_py;
-    cam_build_col = 0xFFFF;
     cam_portal_y = cp->cam_portal_y;
     scroll_acc = cp->scroll_acc;
     bg_drift_px = cp->bg_drift_px;
@@ -819,7 +790,6 @@ static void practice_respawn(uint8_t idx) {
     player.dead = 0;
 
     mt_band = band_for_cam(cam_py, BAND_MAX);
-    cam_build_col = 0xFFFF;
     band_cam_row = 0xFF;
 
     mirror_reload(idx);
@@ -889,702 +859,52 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
     }
 }
 
-// Look-ahead table builders, hand-written (in C one step took ~1/16 of a DMG frame). The
-// rows of a map column: cam_build_rows in collision.c (HOME: it switches the ROM bank).
-// cam_build_na: cam_na at cb_dst from cam_nb at cb_src (32 rows).
-static void cam_build_na(void) __naked {
-    __asm
-        ld      hl, #_cb_dst
-        ld      a, (hl+)
-        ld      e, a
-        ld      d, (hl)                 ; de = cam_na
-        ld      hl, #_cb_src
-        ld      a, (hl+)
-        ld      h, (hl)
-        ld      l, a                    ; hl = cam_nb
-        ld      b, #0xFF                ; b = last row with something in it
-        ; unrolled over the 32 rows: cam_nb[r] == r means row r has something in it
-        ld      a, (hl+)
-        cp      a, #0
-        jr      NZ, 1$
-        ld      b, a
-    1$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #1
-        jr      NZ, 2$
-        ld      b, a
-    2$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #2
-        jr      NZ, 3$
-        ld      b, a
-    3$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #3
-        jr      NZ, 4$
-        ld      b, a
-    4$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #4
-        jr      NZ, 5$
-        ld      b, a
-    5$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #5
-        jr      NZ, 6$
-        ld      b, a
-    6$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #6
-        jr      NZ, 7$
-        ld      b, a
-    7$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #7
-        jr      NZ, 8$
-        ld      b, a
-    8$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #8
-        jr      NZ, 9$
-        ld      b, a
-    9$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #9
-        jr      NZ, 10$
-        ld      b, a
-    10$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #10
-        jr      NZ, 11$
-        ld      b, a
-    11$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #11
-        jr      NZ, 12$
-        ld      b, a
-    12$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #12
-        jr      NZ, 13$
-        ld      b, a
-    13$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #13
-        jr      NZ, 14$
-        ld      b, a
-    14$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #14
-        jr      NZ, 15$
-        ld      b, a
-    15$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #15
-        jr      NZ, 16$
-        ld      b, a
-    16$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #16
-        jr      NZ, 17$
-        ld      b, a
-    17$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #17
-        jr      NZ, 18$
-        ld      b, a
-    18$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #18
-        jr      NZ, 19$
-        ld      b, a
-    19$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #19
-        jr      NZ, 20$
-        ld      b, a
-    20$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #20
-        jr      NZ, 21$
-        ld      b, a
-    21$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #21
-        jr      NZ, 22$
-        ld      b, a
-    22$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #22
-        jr      NZ, 23$
-        ld      b, a
-    23$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #23
-        jr      NZ, 24$
-        ld      b, a
-    24$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #24
-        jr      NZ, 25$
-        ld      b, a
-    25$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #25
-        jr      NZ, 26$
-        ld      b, a
-    26$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #26
-        jr      NZ, 27$
-        ld      b, a
-    27$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #27
-        jr      NZ, 28$
-        ld      b, a
-    28$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #28
-        jr      NZ, 29$
-        ld      b, a
-    29$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #29
-        jr      NZ, 30$
-        ld      b, a
-    30$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #30
-        jr      NZ, 31$
-        ld      b, a
-    31$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ld      a, (hl+)
-        cp      a, #31
-        jr      NZ, 32$
-        ld      b, a
-    32$:
-        ld      a, b
-        ld      (de), a
-        inc     de
-        ret
-    __endasm;
-}
-
-// Next step (0..4) of building the look-ahead tables of column cam_build_col (see cam_nb)
-static uint8_t cam_build_slot;
-static void cam_build(void) {
-    uint8_t step = cam_build_step;
-    if (!step) {
-        uint16_t col = cam_build_col;
-        cam_build_slot = (uint8_t)((uint8_t)col & (CAM_RING - 1u)) << 5;
-        cb_run = 32;
-        cam_build_bank = 0;   // past the map's end: nothing
-        if (col < level_map_w) {
-            cam_build_bank = (uint8_t)(level_map_bank + (uint8_t)(col >> MAP_BANK_COLS_SHIFT));
-            cam_build_src = level_map + (((uint16_t)col & (MAP_BANK_COLS - 1u)) << MAP_ROWS_SHIFT);
-        }
-    }
-    if (step < 4u) {
-        uint8_t row = (uint8_t)(31u - (step << 3));   // rows 24..31 first
-        cb_dst = &cam_nb[(uint8_t)(cam_build_slot | row)];
-        if (cam_build_bank) {
-            cb_bank = cam_build_bank;
-            cb_src = cam_build_src + row;
-            cb_row = row;
-            cam_build_rows();
-        } else {
-            memset(cb_dst - 7, 32, 8);
-        }
-    } else {
-        cb_src = &cam_nb[cam_build_slot];
-        cb_dst = &cam_na[cam_build_slot];
-        cam_build_na();
-    }
-    if (++cam_build_step == 5u) { cam_build_step = 0; cam_build_col++; }
-}
-
-// The window's rows from the look-ahead tables of the CAM_LOOK columns from cw_s (column & 7):
-// cw_below = max(cw_below, the first row >= cw_frow1 with something in it), cw_above = min(cw_above,
-// the last row <= cw_prow - 1 with something in it, if >= cw_lim). Hand-written like cam_apply.
-static uint8_t cw_s, cw_n, cw_frow1, cw_prow, cw_lim, cw_below, cw_above;
-static void cam_window(void) __naked {
-    __asm
-        ld      a, #CAM_LOOK
-        ld      (_cw_n), a
-    1$:
-        ld      a, (_cw_s)
-        and     a, #7
-        swap    a
-        add     a, a
-        ld      c, a                    ; c = slot * 32
-        ld      a, (_cw_frow1)
-        cp      a, #32
-        jr      NC, 2$
-        or      a, c
-        ld      hl, #_cam_nb
-        add     a, l
-        ld      l, a
-        adc     a, h
-        sub     a, l
-        ld      h, a
-        ld      a, (_cw_below)
-        cp      a, (hl)
-        jr      NC, 2$
-        ld      a, (hl)
-        ld      (_cw_below), a
-    2$:
-        ld      a, (_cw_prow)
-        or      a, a
-        jr      Z, 3$
-        dec     a
-        or      a, c
-        ld      hl, #_cam_na
-        add     a, l
-        ld      l, a
-        adc     a, h
-        sub     a, l
-        ld      h, a
-        ld      a, (hl)
-        cp      a, #0xFF
-        jr      Z, 3$
-        ld      b, a                    ; b = row
-        ld      a, (_cw_lim)
-        ld      e, a
-        ld      a, b
-        cp      a, e
-        jr      C, 3$                   ; out of reach
-        ld      a, (_cw_above)
-        cp      a, b
-        jr      C, 3$
-        jr      Z, 3$
-        ld      a, b
-        ld      (_cw_above), a
-    3$:
-        ld      hl, #_cw_s
-        inc     (hl)
-        ld      hl, #_cw_n
-        dec     (hl)
-        jr      NZ, 1$
-        ret
-    __endasm;
-}
-
-// Camera step for a distance a: 1/3 of it (~ 1/4 + 1/16 + 1/64), 1 .. CAM_Y_MAX_STEP px
-static const uint8_t cam_step_tab[28] = {
-    0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7
-};
-
-// The per-frame part of update_camera_y, hand-written (SDCC's 16-bit code took ~1/40 of a DMG
-// frame). In: cam_wy (the player's world y), cam_win_top / bot, cam_py. Out: cam_py.
-//   hi = min(wy - CAM_HEAD, win_top), lo = max(wy + 16 + CAM_FOOT, win_bot) - CAM_VIEW_H (both
-//   cannot fit: the player centred within hi .. lo, so the nearer end of the window stays on
-//   screen); the target is cam_py clamped to lo .. hi and to the level; cam_py
-//   moves towards it by cam_step_tab, then keeps the player CAM_Y_EDGE from the screen edges.
-static uint16_t cam_wy;
-static void cam_apply(void) __naked {
-    __asm
-        ld      hl, #_cam_wy
-        ld      a, (hl+)
-        ld      c, a
-        ld      b, (hl)                 ; bc = wy (kept to the end)
-        ; hl = hi = wy - CAM_HEAD (0 below it), then min with win_top
-        ld      a, c
-        sub     a, #CAM_HEAD
-        ld      l, a
-        ld      a, b
-        sbc     a, #0
-        ld      h, a
-        jr      NC, 1$
-        ld      hl, #0
-    1$:
-        ld      a, (_cam_win_top)
-        sub     a, l
-        ld      a, (_cam_win_top + 1)
-        sbc     a, h
-        jr      NC, 2$
-        ld      a, (_cam_win_top)
-        ld      l, a
-        ld      a, (_cam_win_top + 1)
-        ld      h, a
-    2$:
-        push    hl                      ; hi
-        ; de = bot = max(wy + 16 + CAM_FOOT, win_bot)
-        ld      hl, #(16 + CAM_FOOT)
-        add     hl, bc
-        ld      e, l
-        ld      d, h
-        ld      a, (_cam_win_bot)
-        ld      l, a
-        ld      a, (_cam_win_bot + 1)
-        ld      h, a
-        ld      a, e
-        sub     a, l
-        ld      a, d
-        sbc     a, h
-        jr      NC, 3$
-        ld      e, l
-        ld      d, h
-    3$:
-        ; de = lo = bot - CAM_VIEW_H (0 below it)
-        ld      a, e
-        sub     a, #CAM_VIEW_H
-        ld      e, a
-        ld      a, d
-        sbc     a, #0
-        ld      d, a
-        jr      NC, 4$
-        ld      de, #0
-    4$:
-        pop     hl                      ; hl = hi
-        ; lo > hi (the window is taller than the screen): both = the player centred, but
-        ; within hi .. lo, so the nearer end of the window stays on screen
-        ld      a, l
-        sub     a, e
-        ld      a, h
-        sbc     a, d
-        jr      NC, 5$
-        push    de                      ; lo
-        ld      a, c
-        sub     a, #(CAM_VIEW_H / 2 - 8)
-        ld      e, a
-        ld      a, b
-        sbc     a, #0
-        ld      d, a                    ; de = wy + 8 - CAM_VIEW_H / 2
-        jr      NC, 51$
-        ld      de, #0
-    51$:
-        ld      a, e
-        sub     a, l
-        ld      a, d
-        sbc     a, h
-        jr      NC, 52$
-        ld      e, l                    ; not above hi
-        ld      d, h
-    52$:
-        pop     hl                      ; hl = lo
-        ld      a, l
-        sub     a, e
-        ld      a, h
-        sbc     a, d
-        jr      NC, 53$
-        ld      e, l                    ; not below lo
-        ld      d, h
-    53$:
-        ld      l, e
-        ld      h, d
-    5$:
-        push    hl                      ; hi
-        ld      hl, #_cam_py
-        ld      a, (hl+)
-        ld      h, (hl)
-        ld      l, a                    ; hl = target = cam_py
-        ld      a, l
-        sub     a, e
-        ld      a, h
-        sbc     a, d
-        jr      NC, 6$
-        ld      l, e                    ; below lo
-        ld      h, d
-        pop     de
-        jr      7$
-    6$:
-        pop     de                      ; de = hi
-        ld      a, e
-        sub     a, l
-        ld      a, d
-        sbc     a, h
-        jr      NC, 7$
-        ld      l, e                    ; above hi
-        ld      h, d
-    7$:
-        call    30$                     ; target within the level
-        ; de = cy = cam_py, hl = target - cy
-        ld      a, (_cam_py)
-        ld      e, a
-        ld      a, (_cam_py + 1)
-        ld      d, a
-        ld      a, l
-        sub     a, e
-        ld      l, a
-        ld      a, h
-        sbc     a, d
-        ld      h, a
-        jr      C, 9$                   ; target < cy: down
-        or      a, l
-        jr      Z, 12$                  ; there already
-        call    40$                     ; a = step
-        add     a, e                    ; cy += step
-        ld      e, a
-        ld      a, d
-        adc     a, #0
-        ld      d, a
-        jr      12$
-    9$:
-        xor     a, a                    ; hl = cy - target
-        sub     a, l
-        ld      l, a
-        ld      a, #0
-        sbc     a, h
-        ld      h, a
-        call    40$                     ; a = step
-        ld      l, a                    ; cy -= step
-        ld      a, e
-        sub     a, l
-        ld      e, a
-        ld      a, d
-        sbc     a, #0
-        ld      d, a
-    12$:
-        ; de = cy; the player at least CAM_Y_EDGE from the screen edges
-        ld      hl, #CAM_Y_EDGE
-        add     hl, de                  ; hl = cy + CAM_Y_EDGE
-        ld      a, c
-        sub     a, l
-        ld      a, b
-        sbc     a, h
-        jr      NC, 13$
-        ld      a, c                    ; wy < cy + EDGE: cy = wy - EDGE (0 below it)
-        sub     a, #CAM_Y_EDGE
-        ld      l, a
-        ld      a, b
-        sbc     a, #0
-        ld      h, a
-        jr      NC, 15$
-        ld      hl, #0
-        jr      15$
-    13$:
-        ld      hl, #(CAM_VIEW_H - 16 - CAM_Y_EDGE)
-        add     hl, de                  ; hl = cy + VIEW - 16 - EDGE
-        ld      a, l
-        sub     a, c
-        ld      a, h
-        sbc     a, b
-        jr      NC, 14$
-        ld      a, c                    ; wy below that: cy = wy - (VIEW - 16 - EDGE)
-        sub     a, #(CAM_VIEW_H - 16 - CAM_Y_EDGE)
-        ld      l, a
-        ld      a, b
-        sbc     a, #0
-        ld      h, a
-        jr      15$
-    14$:
-        ld      l, e
-        ld      h, d
-    15$:
-        call    30$
-        ld      a, l
-        ld      (_cam_py), a
-        ld      a, h
-        ld      (_cam_py + 1), a
-        ret
-    30$:
-        ; hl clamped to level_top_px .. cam_py_max (uses de)
-        ld      a, (_level_top_px)
-        ld      e, a
-        ld      a, (_level_top_px + 1)
-        ld      d, a
-        ld      a, l
-        sub     a, e
-        ld      a, h
-        sbc     a, d
-        jr      NC, 31$
-        ld      l, e
-        ld      h, d
-    31$:
-        ld      a, (_cam_py_max)
-        ld      e, a
-        ld      a, (_cam_py_max + 1)
-        ld      d, a
-        ld      a, e
-        sub     a, l
-        ld      a, d
-        sbc     a, h
-        ret     NC
-        ld      l, e
-        ld      h, d
-        ret
-    40$:
-        ; a = step for the distance hl (> 0): cam_step_tab, CAM_Y_MAX_STEP from 28 on
-        ld      a, h
-        or      a, a
-        jr      NZ, 41$
-        ld      a, l
-        cp      a, #28
-        jr      NC, 41$
-        add     a, #<_cam_step_tab
-        ld      l, a
-        ld      a, #0
-        adc     a, #>_cam_step_tab
-        ld      h, a
-        ld      a, (hl)
-        ret
-    41$:
-        ld      a, #CAM_Y_MAX_STEP
-        ret
-    __endasm;
-}
-
 static void update_camera_y(void) {
     uint16_t wy = PLAYER_WORLD_Y();
-    uint16_t c0 = cam_px >> 4;
-    uint8_t fly = (player.mode != MODE_CUBE);
+    uint16_t t;
 
-    // look-ahead tables: columns c0 .. c0 + CAM_LOOK - 1, and the next two being built
-    if (cam_build_col == 0xFFFF) {
-        cam_build_col = c0;
-        cam_build_step = 0;
-        while (cam_build_col < c0 + CAM_RING) cam_build();
-        cam_build_left = 0;
-        cam_still = 0;
-        cam_win_col = c0;
-        cam_win_row = 0xFF;   // recompute the window
-    } else if (cam_build_left) {
-        // One step per frame (a column every ~6 frames needs 5); two when it fell behind
-        cam_build();
-        if (--cam_build_left > 5u) { cam_build(); cam_build_left--; }
-    }
-
-    if (!fly) {
+    if (player.mode == MODE_CUBE) {
         // Cube: the dead zone camera (the player stays within screen rows CAM_Y_TOP_ZONE ..
         // CAM_Y_BOTTOM_ZONE, the camera snaps there)
         int16_t py = (int16_t)wy - (int16_t)cam_py;
-        int16_t t;
-        if (py < CAM_Y_TOP_ZONE) t = (int16_t)wy - CAM_Y_TOP_ZONE;
-        else if (py > CAM_Y_BOTTOM_ZONE) t = (int16_t)wy - CAM_Y_BOTTOM_ZONE;
+        int16_t c;
+        if (py < CAM_Y_TOP_ZONE) c = (int16_t)wy - CAM_Y_TOP_ZONE;
+        else if (py > CAM_Y_BOTTOM_ZONE) c = (int16_t)wy - CAM_Y_BOTTOM_ZONE;
         else return;
-        if (t < (int16_t)level_top_px) t = (int16_t)level_top_px;
-        if ((uint16_t)t > cam_py_max) t = (int16_t)cam_py_max;
-        cam_py = (uint16_t)t;
-        cam_still = 0;
+        if (c < (int16_t)level_top_px) c = (int16_t)level_top_px;
+        if ((uint16_t)c > cam_py_max) c = (int16_t)cam_py_max;
+        cam_py = (uint16_t)c;
         return;
     }
 
-    // Ship / ball: the window, when the player's column, row, mode or portal changed
-    uint8_t prow = (uint8_t)(wy >> 4);
-    if ((uint8_t)c0 != (uint8_t)cam_win_col || prow != cam_win_row || fly != cam_win_fly || cam_portal_y != cam_win_portal) {
-        if ((uint8_t)c0 != (uint8_t)cam_win_col) cam_build_left += 5;   // one more column to build
-        cam_still = 0;
-        cam_win_col = c0; cam_win_row = prow; cam_win_fly = fly; cam_win_portal = cam_portal_y;
-        uint8_t frow1 = (uint8_t)(((wy + 15u) >> 4) + 1u);
-        uint8_t lim = (uint8_t)(prow - CAM_REACH_FLY);   // rows above it: out of reach
-        if (lim > prow) lim = 0;
-        cw_s = (uint8_t)c0; cw_frow1 = frow1; cw_prow = prow; cw_lim = lim;
-        cw_below = frow1; cw_above = 0xFF;
-        cam_window();
-        uint8_t below = cw_below, above = cw_above;
-        if (frow1 >= 32u) below = 32;
-        // obstacles: at least half of their tile + CAM_PAD on screen
-        cam_win_top = (above != 0xFF) ? (uint16_t)(((uint16_t)above << 4) + (8 - CAM_PAD)) : 0xFFFF;
-        cam_win_bot = ((uint16_t)below << 4) + ((below < 32u) ? (8 + CAM_PAD) : CAM_PAD);
-        if (fly && above == 0xFF) {
-            // no ceiling in reach: Famidash's lock to the mode portal
-            uint16_t c = cam_portal_y + (CAM_PORTAL_H / 2u);
-            if (c - (CAM_VIEW_H / 2u) < cam_win_top) cam_win_top = c - (CAM_VIEW_H / 2u);
-            if (c + (CAM_VIEW_H / 2u) > cam_win_bot) cam_win_bot = c + (CAM_VIEW_H / 2u);
-        }
+    if (player.mode == MODE_SHIP) {
+        // the corridor: its centre on the portal's (48px tall), rounded down to the block grid
+        uint16_t top = (cam_portal_y > 40u) ? ((cam_portal_y - 40u) & 0xFFF0u) : 0;
+        uint16_t ground = level_map_h << 4;
+        if (top + CAM_SHIP_H > ground) top = ground - CAM_SHIP_H;
+        uint16_t d = (wy > top) ? (wy - top) : 0;   // 0 .. 144: the ship at the top .. bottom
+        if (d > CAM_VIEW_H) d = CAM_VIEW_H;
+        t = top + (uint8_t)((uint8_t)d / (uint8_t)9);
+    } else {
+        t = (cam_portal_y > CAM_VIEW_H / 2u - 24u) ? (cam_portal_y - (CAM_VIEW_H / 2u - 24u)) : 0;
     }
+    // the player on screen whatever happens (outside the corridor, or the portal far away)
+    if (t > wy) t = wy;
+    if (t + (CAM_VIEW_H - 16u) < wy) t = wy - (CAM_VIEW_H - 16u);
+    if (t < level_top_px) t = level_top_px;
+    if (t > cam_py_max) t = cam_py_max;
 
-    // nothing changed and the camera has settled: nothing to do (the cube running on the ground)
-    if (cam_still && wy == cam_last_wy) return;
-    cam_last_wy = wy;
-    uint16_t before = cam_py;
-    cam_wy = wy;
-    cam_apply();
-    cam_still = (cam_py == before);
+    if (t > cam_py) {
+        uint16_t step = (t - cam_py) >> 2;
+        if (!step) step = 1;
+        else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
+        cam_py += step;
+    } else if (t < cam_py) {
+        uint16_t step = (cam_py - t) >> 2;
+        if (!step) step = 1;
+        else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
+        cam_py -= step;
+    }
 }
 
 void play_level(uint8_t idx) BANKED {
@@ -1608,7 +928,6 @@ void play_level(uint8_t idx) BANKED {
     }
     level_top_px = (uint16_t)l->map_top << 4;
     mt_band = band_for_cam(cam_py, BAND_MAX);
-    cam_build_col = 0xFFFF;
     band_cam_row = 0xFF;
     loaded_r = BKG_MT_W - 1;
     col_job_step = COL_JOB_STEPS;
