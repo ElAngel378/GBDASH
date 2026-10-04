@@ -52,6 +52,7 @@ $(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu
 $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)
 
 $(BINDIR)/$(PROJECT_NAME).gb: $(OBJS)
+	-rm -f $@
 	$(GBCC) $(LCCFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:

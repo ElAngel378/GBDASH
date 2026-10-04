@@ -130,7 +130,8 @@ static const SettingItem settings_list[] = {
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW %",       SETTING_TYPE_TOGGLE, &setting_show_percent,     0, 1, toggle_labels, on_setting_change, NULL },
     { "SHIP CAM",     SETTING_TYPE_TOGGLE, &setting_old_ship_cam,     0, 1, ship_cam_labels, on_setting_change, NULL },
-    { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,          NULL,              on_wipe_save_action }
+    { "AUTO CP",      SETTING_TYPE_TOGGLE, &setting_auto_checkpoints, 0, 1, toggle_labels,   on_setting_change, NULL },
+    { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,            NULL,              on_wipe_save_action }
 };
 #define NUM_SETTINGS (sizeof(settings_list) / sizeof(settings_list[0]))
 #define VISIBLE_ROWS 5

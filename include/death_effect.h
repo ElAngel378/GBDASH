@@ -15,7 +15,7 @@
 #define DEATH_TILE_PART_SMALL_GREEN (DEATH_TILE_BASE + 12)
 #define DEATH_TILE_PART_TINY (DEATH_TILE_BASE + 14)
 
-// keep_music: practice mode, the music keeps playing through the death
-void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED;
+// keep_music: practice mode, the music keeps playing through the death. Returns number of checkpoint removal requests during animation.
+uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED;
 
 #endif

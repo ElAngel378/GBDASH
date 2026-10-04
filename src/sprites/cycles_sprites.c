@@ -3,9 +3,8 @@
 
 BANKREF(cycles_sp)
 
-// Extracted 411 objects from SP layer
+// Extracted 410 objects from SP layer
 const SpDef cycles_sp[] = {
-    {0, 496, 132},
     {256, 496, 43},
     {288, 400, 45},
     {304, 400, 45},
@@ -419,9 +418,8 @@ const SpDef cycles_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 100 gameplay-critical objects for DMG mode
+// Extracted 99 gameplay-critical objects for DMG mode
 const SpDef cycles_sp_dmg[] = {
-    {0, 496, 132},
     {448, 496, 10},
     {528, 480, 11},
     {608, 448, 9},

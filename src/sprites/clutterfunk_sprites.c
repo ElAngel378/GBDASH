@@ -1,9 +1,9 @@
-#pragma bank 111
+#pragma bank 110
 #include "assets.h"
 
 BANKREF(clutterfunk_sp)
 
-// Extracted 512 objects from SP layer
+// Extracted 513 objects from SP layer
 const SpDef clutterfunk_sp[] = {
     {352, 496, 43},
     {352, 496, 10},
@@ -24,6 +24,7 @@ const SpDef clutterfunk_sp[] = {
     {1040, 368, 45},
     {1072, 368, 45},
     {1104, 400, 45},
+    {1120, 448, 121},
     {1136, 352, 45},
     {1168, 320, 45},
     {1216, 384, 60},
@@ -520,7 +521,7 @@ const SpDef clutterfunk_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 238 gameplay-critical objects for DMG mode
+// Extracted 239 gameplay-critical objects for DMG mode
 const SpDef clutterfunk_sp_dmg[] = {
     {352, 496, 10},
     {432, 480, 11},
@@ -528,6 +529,7 @@ const SpDef clutterfunk_sp_dmg[] = {
     {640, 496, 10},
     {800, 480, 148},
     {1008, 464, 13},
+    {1120, 448, 121},
     {1280, 432, 150},
     {1296, 384, 14},
     {1504, 480, 10},

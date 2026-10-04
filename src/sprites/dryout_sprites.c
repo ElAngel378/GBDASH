@@ -3,9 +3,8 @@
 
 BANKREF(dryout_sp)
 
-// Extracted 213 objects from SP layer
+// Extracted 212 objects from SP layer
 const SpDef dryout_sp[] = {
-    {0, 464, 150},
     {576, 464, 43},
     {608, 496, 46},
     {736, 496, 134},
@@ -221,9 +220,8 @@ const SpDef dryout_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 31 gameplay-critical objects for DMG mode
+// Extracted 30 gameplay-critical objects for DMG mode
 const SpDef dryout_sp_dmg[] = {
-    {0, 464, 150},
     {736, 496, 134},
     {1552, 480, 133},
     {2080, 464, 132},

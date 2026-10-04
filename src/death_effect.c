@@ -138,7 +138,7 @@ static const int8_t particle_trajectories[12][36][2] = {
     },
 };
 
-void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED {
+uint8_t play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px, uint8_t cam_py, uint8_t keep_music) BANKED {
     // 1. Cut music (not in practice mode) and trigger crash noise
     if (!keep_music) {
         TAC_REG = 0x00;
@@ -159,6 +159,9 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
         NR44_REG = 0x80;
     }
 
+    uint8_t prev_pad = joypad();
+    uint8_t removes = 0;
+
     // Center of death in hardware OAM coordinates (screen + 8x, + 16y)
     int16_t center_x = (int16_t)screen_x + 8 + 8;
     int16_t center_y = (int16_t)screen_y + 8 + 16;
@@ -168,6 +171,15 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
     static const int8_t shake_y[6] = {1, -1, -1, 1, 0, 0};
 
     for (uint8_t frame = 0; frame < 38; frame++) {
+        if (keep_music) {
+            uint8_t pad = joypad();
+            if (((pad & J_SELECT) && !(prev_pad & J_SELECT)) ||
+                ((pad & J_DOWN) && !(prev_pad & J_DOWN))) {
+                removes++;
+            }
+            prev_pad = pad;
+        }
+
         if (noise_borrowed && frame == DEATH_SFX_FRAMES) {
             NR42_REG = 0x00;   // DAC off: silences the crash
             NR44_REG = 0x80;
@@ -249,4 +261,5 @@ void play_death_animation(uint8_t screen_x, uint8_t screen_y, uint8_t scroll_px,
     }
     move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
     wait_vbl_done();
+    return removes;
 }

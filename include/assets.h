@@ -42,6 +42,8 @@ typedef struct {
   uint8_t sp_bank;
   const SpDef *sp_list_dmg;
   uint8_t map_top;      // first map row of the level (rows above it are padding, see build_levels.py)
+  uint8_t bg_color;     // Starting background NES color ID from metadata
+  uint8_t g_color;      // Starting ground NES color ID from metadata
 } Level;
 
 // Per-level song pointers (same order as game_levels[]; NULL = silent)

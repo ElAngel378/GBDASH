@@ -1,4 +1,4 @@
-#pragma bank 59
+#pragma bank 57
 #include <gbdk/incbin.h>
 
 // Columns 512.. of clutterfunk (read through clutterfunk_map's address)

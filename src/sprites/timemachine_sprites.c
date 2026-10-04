@@ -3,9 +3,8 @@
 
 BANKREF(timemachine_sp)
 
-// Extracted 469 objects from SP layer
+// Extracted 468 objects from SP layer
 const SpDef timemachine_sp[] = {
-    {0, 464, 170},
     {272, 480, 171},
     {272, 496, 219},
     {336, 464, 43},

@@ -3,9 +3,8 @@
 
 BANKREF(xstep_sp)
 
-// Extracted 511 objects from SP layer
+// Extracted 510 objects from SP layer
 const SpDef xstep_sp[] = {
-    {0, 464, 156},
     {304, 480, 42},
     {336, 480, 10},
     {400, 384, 45},
@@ -519,9 +518,8 @@ const SpDef xstep_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 237 gameplay-critical objects for DMG mode
+// Extracted 236 gameplay-critical objects for DMG mode
 const SpDef xstep_sp_dmg[] = {
-    {0, 464, 156},
     {336, 480, 10},
     {416, 496, 10},
     {544, 416, 9},

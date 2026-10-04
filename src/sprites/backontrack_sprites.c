@@ -3,9 +3,8 @@
 
 BANKREF(backontrack_sp)
 
-// Extracted 183 objects from SP layer
+// Extracted 182 objects from SP layer
 const SpDef backontrack_sp[] = {
-    {0, 464, 148},
     {208, 496, 10},
     {560, 480, 43},
     {624, 464, 43},
@@ -191,9 +190,8 @@ const SpDef backontrack_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 35 gameplay-critical objects for DMG mode
+// Extracted 34 gameplay-critical objects for DMG mode
 const SpDef backontrack_sp_dmg[] = {
-    {0, 464, 148},
     {208, 496, 10},
     {768, 496, 10},
     {1640, 496, 10},

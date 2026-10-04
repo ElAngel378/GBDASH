@@ -31,8 +31,8 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0, 248, 248), // Time Machine
     RGB8(  0, 122, 248), // Cycles
     RGB8(  0,   0, 255), // xStep
-    RGB8(248,   0, 248), // Ultimate Destruction
     RGB8(230,  50,  80), // Clutterfunk
+    RGB8(248,   0, 248), // Ultimate Destruction
     RGB8(  0,   0, 255), // Test
 };
 
@@ -56,8 +56,8 @@ static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
     3, // Time Machine
     3, // Cycles
     4, // xStep
-    5, // Ultimate Destruction
     4, // Clutterfunk
+    5, // Ultimate Destruction
     0  // Test
 };
 

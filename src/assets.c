@@ -29,10 +29,10 @@ BANKREF_EXTERN(cycles_map)
 extern const uint8_t cycles_map[];
 BANKREF_EXTERN(xstep_map)
 extern const uint8_t xstep_map[];
-BANKREF_EXTERN(ultiatedestruction_map)
-extern const uint8_t ultiatedestruction_map[];
 BANKREF_EXTERN(clutterfunk_map)
 extern const uint8_t clutterfunk_map[];
+BANKREF_EXTERN(ultiatedestruction_map)
+extern const uint8_t ultiatedestruction_map[];
 BANKREF_EXTERN(test_map)
 extern const uint8_t test_map[];
 
@@ -67,12 +67,12 @@ BANKREF_EXTERN(cycles_sp)
 extern const SpDef xstep_sp[];
 extern const SpDef xstep_sp_dmg[];
 BANKREF_EXTERN(xstep_sp)
-extern const SpDef ultiatedestruction_sp[];
-extern const SpDef ultiatedestruction_sp_dmg[];
-BANKREF_EXTERN(ultiatedestruction_sp)
 extern const SpDef clutterfunk_sp[];
 extern const SpDef clutterfunk_sp_dmg[];
 BANKREF_EXTERN(clutterfunk_sp)
+extern const SpDef ultiatedestruction_sp[];
+extern const SpDef ultiatedestruction_sp_dmg[];
+BANKREF_EXTERN(ultiatedestruction_sp)
 extern const SpDef test_sp[];
 extern const SpDef test_sp_dmg[];
 BANKREF_EXTERN(test_sp)
@@ -88,8 +88,8 @@ extern const hUGESong_t jumper;
 extern const hUGESong_t timemachine;
 extern const hUGESong_t cycles;
 extern const hUGESong_t xstep;
-extern const hUGESong_t ultiatedestruction;
 extern const hUGESong_t clutterfunk;
+extern const hUGESong_t ultiatedestruction;
 
 // Level songs array
 const hUGESong_t * const level_songs[] = {
@@ -103,8 +103,8 @@ const hUGESong_t * const level_songs[] = {
   &timemachine, // level_tm
   &cycles, // level_cy
   &xstep, // level_xs
-  &ultiatedestruction, // level_ultiatedestruction
   &clutterfunk, // level_cf
+  &ultiatedestruction, // level_ultiatedestruction
   NULL, // level_test (silent)
 };
 
@@ -120,8 +120,8 @@ const uint8_t song_bank[] = {
   207u, // level_tm
   208u, // level_cy
   209u, // level_xs
-  210u, // level_ultiatedestruction
-  211u, // level_cf
+  210u, // level_cf
+  211u, // level_ultiatedestruction
   0u, // level_test
 };
 
@@ -137,7 +137,9 @@ const Level level_sm = {
   stereomadness_sp,
   BANK(stereomadness_sp),
   stereomadness_sp_dmg,
-  5
+  5,
+  18,
+  2
 };
 
 const Level level_bot = {
@@ -151,7 +153,9 @@ const Level level_bot = {
   backontrack_sp,
   BANK(backontrack_sp),
   backontrack_sp_dmg,
-  5
+  5,
+  20,
+  20
 };
 
 const Level level_pg = {
@@ -165,7 +169,9 @@ const Level level_pg = {
   polargeist_sp,
   BANK(polargeist_sp),
   polargeist_sp_dmg,
-  5
+  5,
+  42,
+  26
 };
 
 const Level level_du = {
@@ -179,7 +185,9 @@ const Level level_du = {
   dryout_sp,
   BANK(dryout_sp),
   dryout_sp_dmg,
-  5
+  5,
+  22,
+  22
 };
 
 const Level level_bab = {
@@ -193,7 +201,9 @@ const Level level_bab = {
   baseafterbase_sp,
   BANK(baseafterbase_sp),
   baseafterbase_sp_dmg,
-  5
+  5,
+  17,
+  17
 };
 
 const Level level_clg = {
@@ -207,7 +217,9 @@ const Level level_clg = {
   cantletgo_sp,
   BANK(cantletgo_sp),
   cantletgo_sp_dmg,
-  5
+  5,
+  20,
+  4
 };
 
 const Level level_ju = {
@@ -221,7 +233,9 @@ const Level level_ju = {
   jumper_sp,
   BANK(jumper_sp),
   jumper_sp_dmg,
-  5
+  5,
+  19,
+  19
 };
 
 const Level level_tm = {
@@ -235,7 +249,9 @@ const Level level_tm = {
   timemachine_sp,
   BANK(timemachine_sp),
   timemachine_sp_dmg,
-  5
+  5,
+  42,
+  26
 };
 
 const Level level_cy = {
@@ -249,7 +265,9 @@ const Level level_cy = {
   cycles_sp,
   BANK(cycles_sp),
   cycles_sp_dmg,
-  5
+  5,
+  4,
+  20
 };
 
 const Level level_xs = {
@@ -263,21 +281,9 @@ const Level level_xs = {
   xstep_sp,
   BANK(xstep_sp),
   xstep_sp_dmg,
-  5
-};
-
-const Level level_ultiatedestruction = {
-  "UTLIMATE DESTCTN",
-  chr_gb_tiles,
-  chr_gb_tiles_rev,
-  ultiatedestruction_map,
-  BG_BASE_TILE_COUNT, 675, 32, 0, 0,
-  BANK(ultiatedestruction_map),
-  183,
-  ultiatedestruction_sp,
-  BANK(ultiatedestruction_sp),
-  ultiatedestruction_sp_dmg,
-  0
+  5,
+  28,
+  12
 };
 
 const Level level_cf = {
@@ -291,7 +297,25 @@ const Level level_cf = {
   clutterfunk_sp,
   BANK(clutterfunk_sp),
   clutterfunk_sp_dmg,
-  5
+  5,
+  22,
+  6
+};
+
+const Level level_ultiatedestruction = {
+  "UTLIMATE DESTCTN",
+  chr_gb_tiles,
+  chr_gb_tiles_rev,
+  ultiatedestruction_map,
+  BG_BASE_TILE_COUNT, 675, 32, 0, 0,
+  BANK(ultiatedestruction_map),
+  183,
+  ultiatedestruction_sp,
+  BANK(ultiatedestruction_sp),
+  ultiatedestruction_sp_dmg,
+  0,
+  17,
+  17
 };
 
 const Level level_test = {
@@ -305,7 +329,9 @@ const Level level_test = {
   test_sp,
   BANK(test_sp),
   test_sp_dmg,
-  0
+  0,
+  17,
+  17
 };
 
 // Global level list used by the menu and gameplay systems
@@ -320,8 +346,8 @@ const Level* const game_levels[] = {
   &level_tm,
   &level_cy,
   &level_xs,
-  &level_ultiatedestruction,
   &level_cf,
+  &level_ultiatedestruction,
   &level_test,
 };
 const uint8_t MAX_LEVELS = sizeof(game_levels) / sizeof(game_levels[0]);

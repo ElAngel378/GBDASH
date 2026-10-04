@@ -3,9 +3,8 @@
 
 BANKREF(stereomadness_sp)
 
-// Extracted 221 objects from SP layer
+// Extracted 220 objects from SP layer
 const SpDef stereomadness_sp[] = {
-    {0, 464, 145},
     {800, 480, 43},
     {848, 496, 48},
     {864, 464, 43},
@@ -229,9 +228,8 @@ const SpDef stereomadness_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 24 gameplay-critical objects for DMG mode
+// Extracted 23 gameplay-critical objects for DMG mode
 const SpDef stereomadness_sp_dmg[] = {
-    {0, 464, 145},
     {960, 480, 145},
     {1712, 480, 147},
     {4128, 480, 146},

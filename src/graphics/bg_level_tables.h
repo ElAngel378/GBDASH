@@ -68,10 +68,10 @@ static const uint8_t bg_cgb_cycles[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_cycles[] = { 0, 8, 0, 144, 1, 145, 2, 153, 3, 154, 4, 156, 5, 157, 6, 158, 7, 159, 0 };
 static const uint8_t bg_cgb_xstep[] = { 5, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0, 2, 93, 0, 23, 3, 95, 0, 37, 3, 98, 0, 2, 12, 0, 0, 13, 2, 1 };
 static const uint8_t bg_dmg_xstep[] = { 3, 0, 0, 2, 93, 0, 23, 3, 95, 0, 37, 3, 98, 12, 2, 144, 3, 145, 4, 146, 5, 147, 6, 148, 7, 149, 8, 150, 9, 151, 10, 152, 11, 153, 104, 154, 105, 155, 2, 12, 0, 0, 13, 2, 1 };
-static const uint8_t bg_cgb_ultiatedestruction[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
-static const uint8_t bg_dmg_ultiatedestruction[] = { 0, 0, 0 };
 static const uint8_t bg_cgb_clutterfunk[] = { 6, 129, 64, 52, 1, 0, 26, 1, 0, 0, 82, 6, 53, 0, 98, 6, 59, 0, 110, 4, 65, 0, 122, 4, 69, 0, 0 };
 static const uint8_t bg_dmg_clutterfunk[] = { 56, 0, 82, 6, 73, 0, 98, 6, 79, 0, 110, 4, 85, 0, 122, 4, 89, 0, 17, 1, 1, 0, 18, 1, 2, 0, 19, 1, 3, 0, 20, 1, 4, 0, 21, 1, 5, 0, 22, 1, 6, 0, 31, 1, 7, 0, 32, 1, 8, 0, 33, 1, 9, 0, 34, 1, 10, 0, 40, 1, 11, 0, 41, 1, 12, 0, 46, 1, 13, 0, 47, 1, 14, 0, 56, 1, 15, 0, 57, 1, 16, 0, 62, 1, 17, 0, 63, 1, 18, 0, 66, 1, 19, 0, 67, 1, 20, 0, 72, 1, 21, 0, 73, 1, 22, 0, 74, 1, 23, 0, 75, 1, 24, 0, 76, 1, 25, 0, 77, 1, 26, 0, 78, 1, 27, 0, 79, 1, 28, 0, 80, 1, 29, 0, 81, 1, 30, 0, 88, 1, 31, 0, 89, 1, 32, 0, 90, 1, 33, 0, 91, 1, 34, 0, 92, 1, 35, 0, 93, 1, 36, 0, 94, 1, 37, 0, 95, 1, 38, 0, 96, 1, 39, 0, 97, 1, 40, 0, 104, 1, 41, 0, 105, 1, 42, 0, 106, 1, 43, 0, 107, 1, 44, 0, 108, 1, 45, 0, 109, 1, 46, 0, 115, 1, 47, 0, 116, 1, 48, 0, 117, 1, 49, 0, 118, 1, 50, 0, 119, 1, 51, 0, 120, 1, 52, 12, 0, 144, 1, 145, 2, 146, 3, 147, 4, 148, 5, 149, 6, 150, 7, 151, 8, 152, 9, 153, 10, 154, 11, 155, 56, 4, 0, 78, 4, 1, 89, 8, 0, 90, 8, 1, 91, 8, 2, 94, 8, 3, 95, 9, 0, 92, 9, 1, 93, 9, 2, 96, 9, 3, 97, 10, 0, 104, 10, 1, 105, 10, 2, 108, 10, 3, 109, 11, 0, 106, 11, 1, 107, 11, 2, 115, 11, 3, 116, 116, 1, 18, 116, 2, 62, 116, 3, 63, 117, 0, 19, 117, 1, 20, 117, 2, 66, 117, 3, 67, 118, 0, 21, 118, 2, 72, 118, 3, 73, 119, 0, 31, 119, 1, 32, 119, 2, 74, 119, 3, 75, 120, 0, 117, 120, 1, 118, 120, 2, 119, 120, 3, 120, 121, 0, 33, 121, 1, 34, 121, 2, 76, 121, 3, 77, 122, 0, 40, 122, 1, 41, 122, 3, 79, 123, 0, 46, 123, 1, 47, 123, 2, 80, 123, 3, 81, 124, 0, 56, 124, 1, 57, 124, 2, 88, 125, 0, 17, 125, 1, 22, 125, 2, 78, 125, 3, 89, 127, 2, 17, 127, 3, 22 };
+static const uint8_t bg_cgb_ultiatedestruction[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
+static const uint8_t bg_dmg_ultiatedestruction[] = { 0, 0, 0 };
 static const uint8_t bg_cgb_test[] = { 2, 129, 64, 52, 1, 0, 26, 1, 0, 0, 0 };
 static const uint8_t bg_dmg_test[] = { 0, 0, 0 };
 #define BG_LEVEL_COUNT 13
@@ -82,10 +82,10 @@ static const uint8_t bg_dmg_test[] = { 0, 0, 0 };
 #define SAW_ANIM_TILES 52
 static const uint8_t saw_frame_first[SAW_ANIM_FRAMES] = { 1, 101, 153 };
 // 1 = the level has saws (animate them)
-static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
+static const uint8_t bg_level_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
 // 1 = the level has big saws, so metatile SAW_CENTER_MT is their centre (CGB)
-static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 };
-static const uint8_t * const bg_level_cgb[BG_LEVEL_COUNT] = { bg_cgb_stereomadness, bg_cgb_backontrack, bg_cgb_polargeist, bg_cgb_dryout, bg_cgb_baseafterbase, bg_cgb_cantletgo, bg_cgb_jumper, bg_cgb_timemachine, bg_cgb_cycles, bg_cgb_xstep, bg_cgb_ultiatedestruction, bg_cgb_clutterfunk, bg_cgb_test };
-static const uint8_t * const bg_level_dmg[BG_LEVEL_COUNT] = { bg_dmg_stereomadness, bg_dmg_backontrack, bg_dmg_polargeist, bg_dmg_dryout, bg_dmg_baseafterbase, bg_dmg_cantletgo, bg_dmg_jumper, bg_dmg_timemachine, bg_dmg_cycles, bg_dmg_xstep, bg_dmg_ultiatedestruction, bg_dmg_clutterfunk, bg_dmg_test };
+static const uint8_t bg_level_big_saws[BG_LEVEL_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
+static const uint8_t * const bg_level_cgb[BG_LEVEL_COUNT] = { bg_cgb_stereomadness, bg_cgb_backontrack, bg_cgb_polargeist, bg_cgb_dryout, bg_cgb_baseafterbase, bg_cgb_cantletgo, bg_cgb_jumper, bg_cgb_timemachine, bg_cgb_cycles, bg_cgb_xstep, bg_cgb_clutterfunk, bg_cgb_ultiatedestruction, bg_cgb_test };
+static const uint8_t * const bg_level_dmg[BG_LEVEL_COUNT] = { bg_dmg_stereomadness, bg_dmg_backontrack, bg_dmg_polargeist, bg_dmg_dryout, bg_dmg_baseafterbase, bg_dmg_cantletgo, bg_dmg_jumper, bg_dmg_timemachine, bg_dmg_cycles, bg_dmg_xstep, bg_dmg_clutterfunk, bg_dmg_ultiatedestruction, bg_dmg_test };
 
 #endif

@@ -41,7 +41,7 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 // Famidash chooses the decoration art per level: only Xstep (index 9) uses DECOCLOUD
 // (ground "spikes" drawn as round bushes); every other level uses DECO1.
 #define LEVEL_XSTEP 9
-#define LEVEL_CLUTTERFUNK 11
+#define LEVEL_CLUTTERFUNK 10
 #define LEVEL_DECO_CLOUD(idx) ((idx) == LEVEL_XSTEP || (idx) == LEVEL_CLUTTERFUNK)
 // ... and spike set B (background spikes drawn as round bushes, see mt_renderer.c)
 #define LEVEL_SPIKES_B(idx) ((idx) == LEVEL_XSTEP)
@@ -389,7 +389,7 @@ static void practice_remove_checkpoint(void) {
     if (practice_cp_count > 1) {
         practice_cp_count--;
         practice_checkpoints[practice_cp_count].active = 0;
-        last_cp_cam_px = practice_checkpoints[practice_cp_count - 1].cam_px;
+        last_cp_cam_px = cam_px;
     } else if (practice_cp_count == 1) {
         practice_checkpoints[0].cam_px = 0;
         if (_cpu == CGB_TYPE) {
@@ -404,7 +404,7 @@ static void practice_remove_checkpoint(void) {
         practice_checkpoints[0].world_y = practice_checkpoints[0].cam_py;
         player_init(&practice_checkpoints[0].player, 0, 240);
         practice_checkpoints[0].player.y_base = Y_BASE_MAX;
-        last_cp_cam_px = 0;
+        last_cp_cam_px = cam_px;
     }
 }
 
@@ -786,6 +786,7 @@ static void practice_respawn(uint8_t idx) {
     scroll_acc = cp->scroll_acc;
     bg_drift_px = cp->bg_drift_px;
     target_bg_idx = cp->target_bg_idx;
+    last_cp_cam_px = cp->cam_px;
 
     player = cp->player;
     player.dead = 0;
@@ -837,8 +838,9 @@ static void practice_respawn(uint8_t idx) {
 
 static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, uint16_t scroll_px) {
     record_level_progress_from_cam(idx, cam_px, max_scroll_px, practice_mode);
+    uint8_t removes = 0;
     if (setting_effects_enabled) {
-        play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py, practice_mode);
+        removes = play_death_animation(sprite_x_final, (uint8_t)final_py, (uint8_t)scroll_px, (uint8_t)cam_py, practice_mode);
     } else {
         if (setting_sfx_enabled) {
             NR41_REG = 0x00;
@@ -849,6 +851,10 @@ static void handle_death(uint8_t idx, uint8_t sprite_x_final, int16_t final_py, 
         for (uint8_t i = 0; i < 40; i++) shadow_OAM[i].y = 0;
         move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
         wait_vbl_done();
+    }
+    while (removes > 0) {
+        practice_remove_checkpoint();
+        removes--;
     }
     NR52_REG = 0x80;
     NR51_REG = 0xFF;
@@ -1049,7 +1055,7 @@ void play_level(uint8_t idx) BANKED {
                 practice_remove_checkpoint();
             }
 
-            if (!player.dead && end_anim_state == END_ANIM_INACTIVE && !player.level_complete) {
+            if (setting_auto_checkpoints && !player.dead && end_anim_state == END_ANIM_INACTIVE && !player.level_complete) {
                 if (cam_px > last_cp_cam_px + 140) {
                     if (player.mode == MODE_SHIP) {
                         practice_add_checkpoint();

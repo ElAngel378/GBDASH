@@ -3,9 +3,8 @@
 
 BANKREF(cantletgo_sp)
 
-// Extracted 171 objects from SP layer
+// Extracted 170 objects from SP layer
 const SpDef cantletgo_sp[] = {
-    {0, 464, 148},
     {176, 464, 43},
     {208, 496, 46},
     {288, 496, 48},
@@ -179,9 +178,8 @@ const SpDef cantletgo_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 55 gameplay-critical objects for DMG mode
+// Extracted 54 gameplay-critical objects for DMG mode
 const SpDef cantletgo_sp_dmg[] = {
-    {0, 464, 148},
     {976, 432, 11},
     {1328, 496, 10},
     {1408, 480, 11},

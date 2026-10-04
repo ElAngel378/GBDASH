@@ -4,6 +4,7 @@ import glob
 import re
 import struct
 import subprocess
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -29,10 +30,26 @@ KNOWN_LEVELS = {
     "timemachine":   {"title": "TIME MACHINE",    "divider": 41,  "order": 8, "short": "tm"},
     "cycles":        {"title": "CYCLES",          "divider": 183, "order": 9, "short": "cy"},
     "xstep":         {"title": "XSTEP",           "divider": 138, "order": 10, "short": "xs"},
-    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 11, "short": "ultiatedestruction"},
-    # 1.4 levels (music converted from Famidash by tools/famidash_song_to_huge.py)
-    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 12, "short": "cf"},
+    "clutterfunk":   {"title": "CLUTTERFUNK",     "divider": 195, "order": 11, "short": "cf"},
+    "ultiatedestruction": {"title": "UTLIMATE DESTCTN", "divider": 183, "order": 12, "short": "ultiatedestruction"},
 }
+
+def load_level_colors(level_name, metadata_dir=None):
+    if metadata_dir is None:
+        metadata_dir = REPO_ROOT / "levels" / "metadata"
+    target = level_name.lower().replace("_", "").replace("-", "")
+    for mf in metadata_dir.glob("*.json"):
+        try:
+            with open(mf, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+            all_lvls = data.get("official_levels", []) + data.get("community_levels", [])
+            for lvl in all_lvls:
+                cur_name = lvl.get("level", "").lower().replace("_", "").replace("-", "")
+                if cur_name == target:
+                    return (lvl.get("startingBackgroundColor", 17), lvl.get("startingGroundColor", 17))
+        except Exception:
+            continue
+    return (17, 17)
 
 def read_uge_tempo(uge_path):
     """
@@ -292,7 +309,9 @@ def generate_assets_c(levels):
             f.write(f'  {ident}_sp,\n')
             f.write(f'  BANK({ident}_sp),\n')
             f.write(f'  {ident}_sp_dmg,\n')
-            f.write(f'  {lvl["map_top"]}\n')
+            f.write(f'  {lvl["map_top"]},\n')
+            f.write(f'  {lvl["bg_color"]},\n')
+            f.write(f'  {lvl["g_color"]}\n')
             f.write('};\n\n')
 
         # game_levels array
@@ -414,6 +433,8 @@ def build_all():
             has_music = False
             print(f"  - Music: Not found for {stem} (Will play silent)")
 
+        bg_color, g_color = load_level_colors(stem)
+
         levels_info.append({
             "ident": ident,
             "short_name": short_name,
@@ -425,7 +446,9 @@ def build_all():
             "sprite_bank": sprite_bank,
             "music_bank": music_bank if has_music else 0,
             "divider": divider,
-            "has_music": has_music
+            "has_music": has_music,
+            "bg_color": bg_color,
+            "g_color": g_color
         })
 
     # src/levels/ only holds generated map wrappers: drop those of levels that are gone

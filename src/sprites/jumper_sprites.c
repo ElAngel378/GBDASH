@@ -3,9 +3,8 @@
 
 BANKREF(jumper_sp)
 
-// Extracted 251 objects from SP layer
+// Extracted 250 objects from SP layer
 const SpDef jumper_sp[] = {
-    {0, 464, 147},
     {224, 496, 44},
     {432, 496, 46},
     {448, 448, 43},
@@ -259,9 +258,8 @@ const SpDef jumper_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 54 gameplay-critical objects for DMG mode
+// Extracted 53 gameplay-critical objects for DMG mode
 const SpDef jumper_sp_dmg[] = {
-    {0, 464, 147},
     {784, 496, 10},
     {1216, 480, 148},
     {1664, 464, 11},
