@@ -629,7 +629,7 @@ GameState update_new_menu_select_state(void) BANKED {
     add_VBL(level_select_vbl_isr);
     add_LCD(level_select_stat_isr);
     STAT_REG |= STATF_LYC;
-    LYC_REG = 31;
+    LYC_REG = 30;   // one line early: level_select_stat_isr waits for line 31
     set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
     enable_interrupts();
 

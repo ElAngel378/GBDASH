@@ -27,11 +27,14 @@ GameState current_state = STATE_MENU;
 volatile uint8_t level_banner_scx = 0;
 static volatile uint8_t active_banner_scx = 0;
 
+// One line early, then waits for the line itself (see menu_stat_isr in state_menu.c)
 void level_select_stat_isr(void) {
-  if (LYC_REG == 31) {
+  if (LYC_REG == 30) {
+    while (LY_REG < 31u);
     SCX_REG = active_banner_scx;
-    LYC_REG = 120;
+    LYC_REG = 119;
   } else {
+    while (LY_REG < 120u);
     SCX_REG = 0;
     LYC_REG = 255;
   }
@@ -39,7 +42,7 @@ void level_select_stat_isr(void) {
 
 void level_select_vbl_isr(void) {
   SCX_REG = 0;
-  LYC_REG = 31;
+  LYC_REG = 30;
   active_banner_scx = level_banner_scx;
 }
 
@@ -52,15 +55,19 @@ static inline void step_music(void) {
   uint8_t prev_ie = IE_REG;
   // A music tick takes up to ~3k dots. If VBlank starts meanwhile, the VBlank
   // handler (scroll, palettes, parallax GDMA, map uploads) must be able to preempt
-  // it, or its work would land outside VBlank. Only VBlank may nest.
-  if (bg_vbl_on) {
-    IE_REG = VBL_IFLAG;
+  // it, or its work would land outside VBlank. Only VBlank may nest, and the scanline
+  // (STAT) handler when it is on: the DMG menus change SCX at a scanline, and a music
+  // tick in the way made that land up to 7 lines late (the sky's top rows jumped).
+  // With a scanline handler on, VBlank nests too (the level select has no bg handler).
+  uint8_t nest = (bg_vbl_on || (prev_ie & LCD_IFLAG)) ? (uint8_t)(VBL_IFLAG | (prev_ie & LCD_IFLAG)) : 0;
+  if (nest) {
+    IE_REG = nest;
     enable_interrupts();
   }
   SWITCH_ROM(current_song_bank);
   hUGE_dosound();
   SWITCH_ROM(prev_bank);
-  if (bg_vbl_on) {
+  if (nest) {
     disable_interrupts();
     IE_REG = prev_ie;
   }

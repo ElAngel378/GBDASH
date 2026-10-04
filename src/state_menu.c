@@ -156,11 +156,15 @@ static void draw_ground(uint8_t phase) {
 #define DMG_SKY_PERIOD 64
 static volatile uint8_t menu_sky_scx;
 
+// The interrupt comes one line early and waits for the line itself: an interrupt in the way
+// (the music tick) can no longer make the split land a line late.
 static void menu_stat_isr(void) __nonbanked {
-    if (LYC_REG == 16) {
+    if (LYC_REG == 15) {
+        while (LY_REG < 16u);
         SCX_REG = menu_sky_scx;
-        LYC_REG = 120;
+        LYC_REG = 119;
     } else {
+        while (LY_REG < 120u);
         SCX_REG = 0;
         LYC_REG = 255;
     }
@@ -170,7 +174,7 @@ static void menu_stat_isr(void) __nonbanked {
 // the VBlank interrupt: the main loop's ground update can run well into the next frame.
 static void menu_vbl_isr(void) __nonbanked {
     SCX_REG = 0;
-    LYC_REG = 16;
+    LYC_REG = 15;
 }
 
 static void menu_load_dmg_sky_tiles(void) __nonbanked {
@@ -379,7 +383,7 @@ GameState update_menu_state(void) BANKED {
         add_LCD(menu_stat_isr);
         add_VBL(menu_vbl_isr);
         STAT_REG |= STATF_LYC;
-        LYC_REG = 16;
+        LYC_REG = 15;
         set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
         enable_interrupts();
     }
