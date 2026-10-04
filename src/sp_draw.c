@@ -651,8 +651,9 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
     return oam_start;
 }
 
-// ---- DMG objects (tools/make_dmg_object_icons.py). Orbs and pads are ONE 8x16 sprite each, an
-// icon of their type (the CGB art is 2 sprites and only differs by colour). Portals keep their
+// ---- DMG objects (tools/make_dmg_object_icons.py). Pads are ONE 8x16 sprite each, an icon of
+// their type (the CGB art is 2 sprites and only differs by colour). Orbs are GD-style 16x16
+// rings with a disc (2 sprites, one tile pair mirrored). Portals keep their
 // art plus a badge with the mode symbol on their side (they also only differ by colour).
 #define DMG_ICON_ORB_YELLOW 0
 #define DMG_ICON_ORB_BLUE   1
@@ -671,9 +672,10 @@ static uint8_t draw_coin_anims(uint16_t cam_px, uint16_t cam_py, uint8_t reverse
 static const uint8_t dmg_badge_tile[6] = { 202, 204, 206, 240, 242, 244 };
 
 // Per object id below 38. Orbs / pads: icon, its sprite y offset from the object's sprite
-// position (centred: orbs 16x16, pads at the bottom of their cell, ceiling pads at the top - a
-// flipped 8x16 sprite shows its top tile at the bottom) and attributes. Blue ones use OBP1
-// (gameplay.c: OBP0 with shades 1 and 2 swapped). Portals: badge and its attributes.
+// position (orbs: 16x16 at it, drawn by dmg_object_loop as 2 sprites; pads at the bottom of
+// their cell, ceiling pads at the top - a flipped 8x16 sprite shows its top tile at the
+// bottom) and attributes (pads only). Blue pads use OBP1 (gameplay.c: OBP0 with shades 1 and 2
+// swapped); the blue orb has its own arrow. Portals: badge and its attributes.
 #define NI 0xFF
 const uint8_t dmg_icon[38] = {
     NI, NI, NI, NI, NI,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
@@ -682,11 +684,11 @@ const uint8_t dmg_icon[38] = {
     DMG_ICON_PAD_PINK
 };
 const int8_t dmg_icon_y[38] = {
-    0, 0, 0, 0, 0,   4, 4, 0,   0, 0,   8, 4, -8, 8, -8, 0,   0, 0, 0, 0,
+    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   8, 0, -8, 8, -8, 0,   0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
 };
 const uint8_t dmg_icon_prop[38] = {
-    0, 0, 0, 0, 0,   S_PALETTE, 0, 0,   0, 0,   0, 0, S_FLIPY, S_PALETTE, S_PALETTE | S_FLIPY, 0,
+    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, S_PALETTE, S_PALETTE | S_FLIPY, 0,
     0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const uint8_t dmg_badge[38] = {
@@ -700,19 +702,19 @@ static const uint8_t dmg_badge_prop[38] = {
     0, 0, 0, 0, 0, 0, 0, 0,   0, S_FLIPY,   0, 0, 0, 0, 0, 0,   0, 0, S_FLIPY, S_FLIPY,
     0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
-// Badge x: on the portal's side at mid height (mirror mode: the other side, mirrored). It
-// must have the SAME x as the portal sprite column it covers: on DMG overlapping sprites are
-// ordered by x first (smaller x in front) and only then by OAM index (the badge comes first).
-// Portal sprite columns: cube/ship/ball 0/8/16, gravity 0/8, mini -8/0/8, growth 0/8/16.
-// Horizontal gravity portals (48x16 ring, columns 0..40, mirror mode -40..0): the ring's
-// middle is busy, so the badge goes just past its end, overlapping no portal sprite.
+// Badge x: just right of the portal's ring at mid height, like the GD badges (mirror mode: the
+// other side, mirrored). It never overlaps the portal's own sprite columns: on DMG overlapping
+// sprites are ordered by x first (smaller x in front), so a badge on top of the ring merged with
+// it into one black blob (gravity portals). Portal sprite columns: cube/ship/ball 0/8/16,
+// gravity 0/8, mini -8/0/8, growth 0/8/16. Horizontal gravity portals (48x16 ring, columns
+// 0..40, mirror mode -40..0): the badge goes just past the ring's end.
 static const int8_t dmg_badge_x[38] = {
-    16, 16, 16, 0, 0, 0, 0, 0,   8, 8,   0, 0, 0, 0, 0, 0,   48, 48, 48, 48,
-    0, 0, 0, 0, 8, 16, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    16, 16, 16, 0, 0, 0, 0, 0,   16, 16,   0, 0, 0, 0, 0, 0,   48, 48, 48, 48,
+    0, 0, 0, 0, 16, 24, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const int8_t dmg_badge_x_rev[38] = {
-    0, 0, 0, 0, 0, 0, 0, 0,   0, 0,   0, 0, 0, 0, 0, 0,   -48, -48, -48, -48,
-    0, 0, 0, 0, -8, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0,   -8, -8,   0, 0, 0, 0, 0, 0,   -48, -48, -48, -48,
+    0, 0, 0, 0, -16, -8, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 #undef NI
 
@@ -982,6 +984,31 @@ static void dmg_object_loop(void) __naked {
         ld      h, #>_shadow_OAM
         ld      l, c
         ld      (hl+), a
+        ld      c, a                    ; c = y
+        ld      a, d
+        cp      a, #(DMG_ICON_TILE + 6)
+        jr      NC, 00010$
+        ; orb: 16x16, the right half is the left tile pair mirrored (2 OAM entries are free)
+        ld      a, (_dmgd_sx)
+        ld      (hl+), a
+        ld      a, d
+        ld      (hl+), a
+        xor     a, a
+        ld      (hl+), a
+        ld      a, c
+        ld      (hl+), a
+        ld      a, (_dmgd_sx)
+        add     a, #8
+        ld      (hl+), a
+        ld      a, d
+        ld      (hl+), a
+        ld      (hl), #0x20             ; S_FLIPX
+        ld      hl, #_dmgd_oam
+        inc     (hl)
+        pop     bc
+        jp      00009$
+00010$:
+        ; pad: one sprite, centred
         ld      a, (_dmgd_sx)
         add     a, #4
         ld      (hl+), a
