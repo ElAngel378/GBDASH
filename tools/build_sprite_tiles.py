@@ -33,7 +33,7 @@ ALWAYS, CGB, DMG, CGB_DECO, CGB_DECO_CLOUD = 0, 1, 2, 3, 4
 LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile in section
     (ALWAYS, 0, 0, 20, "BANK0", 0),        # player: cube 0..7, ship 8..11, ball 12..19
     (ALWAYS, 0, 20, 16, "BANK0", 20),      # death effect
-    (ALWAYS, 0, 36, 40, "BANK0", 36),      # pause menu buttons
+    (ALWAYS, 0, 36, 28, "BANK0", 36),      # ship rotation frames 0..6 (pause menu buttons are embedded in pause_button_tiles.c)
     (ALWAYS, 0, 88, 2, "BANK0", 88),       # pause menu cursor
     (ALWAYS, 0, 116, 10, "BANK0", 116),    # mini player (cube 0/22/45 deg, ship, ball)
     (ALWAYS, 0, 126, 2, "BANK0", 126),     # mini / growth portal pair 0

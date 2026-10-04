@@ -3,7 +3,7 @@
 
 BANKREF(clutterfunk_sp)
 
-// Extracted 513 objects from SP layer
+// Extracted 514 objects from SP layer
 const SpDef clutterfunk_sp[] = {
     {352, 496, 43},
     {352, 496, 10},
@@ -13,6 +13,7 @@ const SpDef clutterfunk_sp[] = {
     {560, 416, 45},
     {608, 448, 45},
     {640, 496, 10},
+    {672, 432, 126},
     {720, 464, 43},
     {784, 448, 43},
     {800, 480, 148},
@@ -521,12 +522,13 @@ const SpDef clutterfunk_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 239 gameplay-critical objects for DMG mode
+// Extracted 240 gameplay-critical objects for DMG mode
 const SpDef clutterfunk_sp_dmg[] = {
     {352, 496, 10},
     {432, 480, 11},
     {544, 496, 10},
     {640, 496, 10},
+    {672, 432, 126},
     {800, 480, 148},
     {1008, 464, 13},
     {1120, 448, 121},

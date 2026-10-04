@@ -5,6 +5,7 @@
 #include "percent_hud.h"
 #include "settings.h"
 #include "debug_mode.h"
+#include "pause_buttons.h"
 
 extern const unsigned char FontPusab[];
 
@@ -58,11 +59,14 @@ static uint8_t att_sx0;      // OAM x of the first character at att_x0
 
 void attempt_text_load_tiles(void) BANKED {
     static const uint8_t blank[16] = {0};
+    // CGB: VRAM bank 1 (free there), so the ship frames in bank 0 stay intact
+    if (_cpu == CGB_TYPE) VBK_REG = 1;
     for (uint8_t k = 0; k < ATT_GLYPHS; k++) {
         uint8_t t = (uint8_t)(ATT_TILE_BASE + (k << 1));
         set_sprite_data(t, 1, &FontPusab[att_font[k] * 16]);
         set_sprite_data((uint8_t)(t + 1), 1, blank);
     }
+    if (_cpu == CGB_TYPE) VBK_REG = 0;
 }
 
 // An attempt starts at the beginning of the level (camera cam_x, cam_y): count it and show
@@ -85,6 +89,7 @@ void attempt_text_start(uint8_t from_start, uint16_t cam_x, uint16_t cam_y) BANK
 }
 
 void attempt_text_hide(void) BANKED {
+    if (att_on && _cpu != CGB_TYPE) restore_ship_tiles();
     att_on = 0;
 }
 
@@ -92,10 +97,10 @@ void attempt_text_hide(void) BANKED {
 uint8_t attempt_text_draw(uint8_t oam, uint16_t cam_x, uint16_t cam_y) BANKED {
     if (!att_on) return oam;
     uint16_t dx = cam_x - att_x0;
-    if (dx >= (uint16_t)(att_sx0 + att_n * GLYPH_W)) { att_on = 0; return oam; }   // scrolled away
+    if (dx >= (uint16_t)(att_sx0 + att_n * GLYPH_W)) { att_on = 0; if (_cpu != CGB_TYPE) restore_ship_tiles(); return oam; }   // scrolled away
     int16_t sy = (int16_t)(ATT_SCREEN_Y + 16) - (int16_t)(cam_y - att_y0);
     if (sy <= 0 || sy >= 160) return oam;
-    uint8_t prop = (_cpu == CGB_TYPE) ? 7 : 0;
+    uint8_t prop = (_cpu == CGB_TYPE) ? (7 | S_BANK) : 0;
     int16_t sx = (int16_t)att_sx0 - (int16_t)dx;
     for (uint8_t i = 0; i < att_n && oam < MAX_HARDWARE_SPRITES; i++, sx += GLYPH_W) {
         uint8_t g = att_glyph[i];

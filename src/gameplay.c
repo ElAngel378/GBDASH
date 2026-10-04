@@ -645,6 +645,7 @@ static uint8_t pause_menu(uint8_t idx) {
 
     // The pause tiles borrowed these (exit and restart reload all sprite tiles)
     restore_death_tiles();
+    restore_ship_tiles();
     if (practice_mode) load_checkpoint_tiles();
     attempt_text_load_tiles();
 
@@ -1267,12 +1268,22 @@ void play_level(uint8_t idx) BANKED {
             oam_index = PERCENT_HUD_OAM + 1;
         } else if (end_anim_state != END_ANIM_SHAKE) {
             if (player.mode == MODE_SHIP) {
+                // 7-frame rotation from vertical velocity (positive = toward the rest surface)
+                int16_t vy = player.gravity_flipped ? -player.vel_y.w : player.vel_y.w;
+                uint8_t ship_frame = SHIP_FRAME_NEUTRAL;
+                if (vy < -550) ship_frame = 6;
+                else if (vy < -250) ship_frame = 5;
+                else if (vy < -80) ship_frame = 4;
+                else if (vy > 550) ship_frame = 0;
+                else if (vy > 250) ship_frame = 1;
+                else if (vy > 80) ship_frame = 2;
+                const metasprite_t *ship_ms = ship_metasprites[ship_frame];
                 if (player.gravity_flipped) {
-                    if (player.reversed) oam_index += move_metasprite_hvflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 24);
-                    else oam_index += move_metasprite_hflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                    if (player.reversed) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
+                    else oam_index += move_metasprite_hflip(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 32);
                 } else {
-                    if (player.reversed) oam_index += move_metasprite_vflip(ship_metasprites[0], 0, oam_index, sprite_x_final + 24, final_py + 16);
-                    else oam_index += move_metasprite(ship_metasprites[0], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                    if (player.reversed) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else if (player.mode == MODE_BALL) {
                 uint8_t ball_frame = (player.anim_frame >> 1) & 1;

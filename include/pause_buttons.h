@@ -32,6 +32,7 @@
 void init_pause_tiles(void) BANKED;
 void load_checkpoint_tiles(void) BANKED;
 void restore_death_tiles(void) BANKED;
+void restore_ship_tiles(void) BANKED;
 void draw_pause_menu_sprites(uint8_t selected_btn) BANKED;
 void apply_pause_box_attributes(uint8_t apply) BANKED;
 
