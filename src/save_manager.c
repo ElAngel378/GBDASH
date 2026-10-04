@@ -10,7 +10,7 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 5
+#define SAVE_VERSION 6
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
@@ -27,6 +27,9 @@ uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
 // Version 5: version 4 + one more settings byte (SHOW %) before the checksum
 #define V5_SHOW_PCT_OFS (5 + V4_DATA_LEN)
 #define V5_DATA_LEN  (V4_DATA_LEN + 1)
+// Version 6: version 5 + SHIP CAM
+#define V6_SHIP_CAM_OFS (5 + V5_DATA_LEN)
+#define V6_DATA_LEN  (V5_DATA_LEN + 1)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -35,6 +38,7 @@ uint8_t setting_show_bg_enabled = 1;
 uint8_t setting_parallax_enabled = 1;
 uint8_t setting_effects_enabled = 1;
 uint8_t setting_show_percent    = 1;
+uint8_t setting_old_ship_cam    = 0;
 
 static uint8_t calc_checksum(const uint8_t *data, uint8_t len) {
     uint8_t sum = 0x5A;
@@ -52,9 +56,10 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 5 || sram[4] == 4) {
-            uint8_t v5 = (sram[4] == 5);
-            uint8_t len = v5 ? V5_DATA_LEN : V4_DATA_LEN;
+        if (sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+            uint8_t v5 = (sram[4] >= 5);
+            uint8_t v6 = (sram[4] == 6);
+            uint8_t len = v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN);
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
@@ -71,9 +76,10 @@ void init_save_system(void) BANKED {
                 setting_parallax_enabled = sram[5 + NUM_SAVE_LEVELS * 2 + 4] ? 1 : 0;
                 setting_effects_enabled  = sram[5 + NUM_SAVE_LEVELS * 2 + 5] ? 1 : 0;
                 setting_show_percent     = v5 ? (sram[V5_SHOW_PCT_OFS] ? 1 : 0) : 1;
+                setting_old_ship_cam     = v6 ? (sram[V6_SHIP_CAM_OFS] ? 1 : 0) : 0;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v5) save_game_data();   // upgrade to version 5
+                if (!v6) save_game_data();   // upgrade to version 6
                 return;
             }
         } else if (sram[4] == 3) {
@@ -147,6 +153,7 @@ void init_save_system(void) BANKED {
     setting_parallax_enabled = 1;
     setting_effects_enabled = 1;
     setting_show_percent    = 1;
+    setting_old_ship_cam    = 0;
     DISABLE_RAM;
     save_game_data();
 }
@@ -178,7 +185,8 @@ void save_game_data(void) BANKED {
     }
 
     sram[V5_SHOW_PCT_OFS] = setting_show_percent;
-    sram[5 + V5_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V5_DATA_LEN);
+    sram[V6_SHIP_CAM_OFS] = setting_old_ship_cam;
+    sram[5 + V6_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V6_DATA_LEN);
     DISABLE_RAM;
 }
 

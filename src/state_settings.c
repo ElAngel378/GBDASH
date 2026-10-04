@@ -54,6 +54,7 @@ typedef struct {
 #include "settings.h"
 
 static const char * const toggle_labels[] = { "OFF", "ON" };
+static const char * const ship_cam_labels[] = { "NEW", "OLD" };
 
 static uint8_t action_feedback_timer = 0;
 
@@ -128,6 +129,7 @@ static const SettingItem settings_list[] = {
     { "PARALLAX",     SETTING_TYPE_TOGGLE, &setting_parallax_enabled, 0, 1, toggle_labels, on_parallax_change, NULL },
     { "EFFECTS",      SETTING_TYPE_TOGGLE, &setting_effects_enabled,  0, 1, toggle_labels, on_setting_change, NULL },
     { "SHOW %",       SETTING_TYPE_TOGGLE, &setting_show_percent,     0, 1, toggle_labels, on_setting_change, NULL },
+    { "SHIP CAM",     SETTING_TYPE_TOGGLE, &setting_old_ship_cam,     0, 1, ship_cam_labels, on_setting_change, NULL },
     { "WIPE SAVE",    SETTING_TYPE_ACTION, NULL,                      0, 0, NULL,          NULL,              on_wipe_save_action }
 };
 #define NUM_SETTINGS (sizeof(settings_list) / sizeof(settings_list[0]))
