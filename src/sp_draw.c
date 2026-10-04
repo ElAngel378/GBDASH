@@ -113,32 +113,213 @@ void sp_cache_reset(SpCache *cache_arg, uint16_t *stream_idx) BANKED {
 // The cache update is split in two halves that run in different frames (see
 // play_level): retiring objects behind the camera, then loading the new ones.
 // Together with the per-frame object work they could overrun a DMG frame.
-void sp_cache_retire(uint16_t cam_px) BANKED {
-    uint8_t i;
-    uint8_t count = 0;
-    uint16_t keep_from = (cam_px >= 48u) ? (uint16_t)(cam_px - 48u) : 0;   // px + 48 >= cam_px
+// Retires the cache entries behind the camera (px < cr_keep) and the activated ones that are
+// not drawn (any trigger; on DMG the objects it does not draw), and compacts the rest. The
+// active entries are always the first ones. Hand-written: in C it took up to ~20k dots (30% of
+// a DMG frame) with a full cache. SpCache layout: obj +0, px +16, py +48, active +80, activated +96
+// (entry b of an array at offset off: _active_sp + off + b, the 16-bit ones at 2b).
+static uint16_t cr_keep;
+static uint8_t cr_dmg;
+static const uint8_t bit_of[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+static void cache_retire(void) __naked {
+    __asm
+        ld      bc, #0                  ; b = read index, c = write index
+    1$:
+        ld      a, b
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        jp      NC, 8$
+        ld      a, b
+        add     a, #<(_active_sp + 80)
+        ld      l, a
+        ld      a, #>(_active_sp + 80)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        or      a, a
+        jp      Z, 8$                   ; first inactive entry: done
+        ld      a, b
+        add     a, #<(_active_sp + 96)
+        ld      l, a
+        ld      a, #>(_active_sp + 96)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        or      a, a
+        jr      Z, 3$                   ; not activated: keep if not behind
+        ld      a, b
+        add     a, #<(_active_sp + 0)
+        ld      l, a
+        ld      a, #>(_active_sp + 0)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        cp      a, #128
+        jp      NC, 7$                  ; an activated trigger: retire
+        ld      a, (_cr_dmg)
+        or      a, a
+        jr      Z, 3$
+        ld      a, (hl)                 ; DMG: retire if it is not drawn
+        ld      e, a
+        srl     a
+        srl     a
+        srl     a
+        add     a, #<_dmg_drawn_mask
+        ld      l, a
+        ld      a, #0
+        adc     a, #>_dmg_drawn_mask
+        ld      h, a
+        ld      d, (hl)
+        ld      a, e
+        and     a, #7
+        add     a, #<_bit_of
+        ld      l, a
+        ld      a, #0
+        adc     a, #>_bit_of
+        ld      h, a
+        ld      a, (hl)
+        and     a, d
+        jp      Z, 7$
+    3$:
+        ; behind the camera (px < cr_keep): retire
+        ld      a, b
+        add     a, a
+        add     a, #<(_active_sp + 16)
+        ld      l, a
+        ld      a, #>(_active_sp + 16)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = px
+        ld      a, (_cr_keep)
+        ld      l, a
+        ld      a, e
+        sub     a, l
+        ld      a, (_cr_keep + 1)
+        ld      l, a
+        ld      a, d
+        sbc     a, l
+        jr      C, 7$
+        ; keep: move it to the write index when they differ
+        ld      a, b
+        cp      a, c
+        jr      Z, 6$
+        push    bc
+        ld      a, b
+        add     a, #<(_active_sp + 0)
+        ld      l, a
+        ld      a, #>(_active_sp + 0)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        ld      d, a
+        ld      b, c
+        ld      a, b
+        add     a, #<(_active_sp + 0)
+        ld      l, a
+        ld      a, #>(_active_sp + 0)
+        adc     a, #0
+        ld      h, a
+        ld      (hl), d
+        pop     bc
+        push    bc
+        ld      a, b
+        add     a, #<(_active_sp + 96)
+        ld      l, a
+        ld      a, #>(_active_sp + 96)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        ld      d, a
+        ld      b, c
+        ld      a, b
+        add     a, #<(_active_sp + 96)
+        ld      l, a
+        ld      a, #>(_active_sp + 96)
+        adc     a, #0
+        ld      h, a
+        ld      (hl), d
+        pop     bc
+        push    bc                      ; px and py (16 bit)
+        ld      a, b
+        add     a, a
+        ld      b, a
+        ld      a, b
+        add     a, #<(_active_sp + 16)
+        ld      l, a
+        ld      a, #>(_active_sp + 16)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      a, c
+        add     a, a
+        ld      b, a
+        ld      a, b
+        add     a, #<(_active_sp + 16)
+        ld      l, a
+        ld      a, #>(_active_sp + 16)
+        adc     a, #0
+        ld      h, a
+        ld      a, e
+        ld      (hl+), a
+        ld      (hl), d
+        pop     bc
+        push    bc
+        ld      a, b
+        add     a, a
+        ld      b, a
+        ld      a, b
+        add     a, #<(_active_sp + 48)
+        ld      l, a
+        ld      a, #>(_active_sp + 48)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      a, c
+        add     a, a
+        ld      b, a
+        ld      a, b
+        add     a, #<(_active_sp + 48)
+        ld      l, a
+        ld      a, #>(_active_sp + 48)
+        adc     a, #0
+        ld      h, a
+        ld      a, e
+        ld      (hl+), a
+        ld      (hl), d
+        pop     bc
+    6$:
+        inc     c
+    7$:
+        inc     b
+        jp      1$
+    8$:
+        ; entries c .. 15: inactive
+        ld      b, c
+    9$:
+        ld      a, b
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        ret     NC
+        ld      a, b
+        add     a, #<(_active_sp + 80)
+        ld      l, a
+        ld      a, #>(_active_sp + 80)
+        adc     a, #0
+        ld      h, a
+        ld      (hl), #0
+        inc     b
+        jr      9$
+    __endasm;
+}
 
-    /* Retire old entries and compact in a single pass */
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
-        if (cache->active[i]) {
-            if (cache->activated[i]) {
-                uint8_t o = cache->obj[i];
-                if (o >= 128) continue; // Any activated trigger can be safely pruned
-                if (_cpu != CGB_TYPE && !is_dmg_drawn(o)) continue;
-            }
-            if (cache->px[i] >= keep_from) {
-                if (count != i) {
-                    cache->obj[count] = cache->obj[i];
-                    cache->px[count] = cache->px[i];
-                    cache->py[count] = cache->py[i];
-                    cache->active[count] = 1;
-                    cache->activated[count] = cache->activated[i];
-                }
-                count++;
-            }
-        }
-    }
-    for (i = count; i < MAX_ACTIVE_SP_OBJECTS; i++) cache->active[i] = 0;
+void sp_cache_retire(uint16_t cam_px) BANKED {
+    cr_keep = (cam_px >= 48u) ? (uint16_t)(cam_px - 48u) : 0;   // px + 48 >= cam_px
+    cr_dmg = (_cpu != CGB_TYPE);
+    cache_retire();
 }
 
 void sp_cache_fill(const Level *l, uint16_t cam_px, uint16_t *stream_idx) BANKED {

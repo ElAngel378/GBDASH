@@ -96,6 +96,35 @@ static void copy8(void) __naked {
     __endasm;
 }
 
+// Row job upload: 16 bytes from up_src to up_dst, then the next 16 to up_dst + 32 (the two tile
+// rows of a map row). Unrolled: as 4 copy8 calls it took ~4 scanlines and could run past VBlank,
+// where the DMG drops VRAM writes (a stale tile when the camera climbs fast).
+static void copy_row16x2(void) __naked {
+    __asm
+        ld      hl, #_up_src
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      hl, #_up_dst
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        .rept 16
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        .endm
+        ld      bc, #16
+        add     hl, bc
+        .rept 16
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        .endm
+        ret
+    __endasm;
+}
+
 // Writes the 40 bytes of famidash_bg_palettes to CGB background palette RAM 0..
 static void upload_palette(void) __naked {
     __asm
@@ -111,9 +140,83 @@ static void upload_palette(void) __naked {
     __endasm;
 }
 
+// DMG saw tiles: copies tiles from bg_saw_src (32 bytes apart: normal + mirrored) to
+// bg_saw_dmg_dsts[i] (0: not loaded, skipped) while LY is 144..151 (a tile takes ~1 line), and
+// leaves bg_saw_src / bg_saw_dmg_dsts / bg_saw_dmg_n at the first tile not copied. The C loop
+// took ~1.1k dots per tile: 6 tiles were ~1/10 of every frame in levels with saws, and ran past
+// VBlank (DMG drops VRAM writes outside it).
+static void saw_dmg_copy(void) __naked {
+    __asm
+        ld      hl, #_bg_saw_src
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = source tile
+        ld      a, (_bg_saw_dmg_n)
+        ld      b, a                    ; b = tiles left
+        ld      hl, #_bg_saw_dmg_dsts
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = destination table entry
+    1$:
+        ldh     a, (_LY_REG + 0)
+        cp      a, #144
+        jr      C, 4$                   ; past VBlank: the rest next time
+        cp      a, #152
+        jr      NC, 4$
+        ld      a, (hl+)
+        ld      c, a
+        ld      a, (hl+)
+        push    hl
+        ld      h, a
+        ld      l, c                    ; hl = VRAM address
+        or      a, c
+        jr      Z, 2$                   ; tile not loaded in this level
+        .rept 16
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        .endm
+        ld      a, e                    ; de += 16: the mirrored copy
+        add     a, #16
+        ld      e, a
+        jr      NC, 3$
+        inc     d
+        jr      3$
+    2$:
+        ld      a, e                    ; de += 32: next tile
+        add     a, #32
+        ld      e, a
+        jr      NC, 3$
+        inc     d
+    3$:
+        pop     hl
+        dec     b
+        jr      NZ, 1$
+    4$:
+        ld      a, b
+        ld      (_bg_saw_dmg_n), a
+        ld      a, e
+        ld      (_bg_saw_src), a
+        ld      a, d
+        ld      (_bg_saw_src + 1), a
+        ld      a, l
+        ld      (_bg_saw_dmg_dsts), a
+        ld      a, h
+        ld      (_bg_saw_dmg_dsts + 1), a
+        ret
+    __endasm;
+}
+
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
+#ifdef DEBUG_PROFILE
+extern volatile uint8_t gpmark;
+#endif
 void bg_parallax_vbl_isr(void) {
+#ifdef DEBUG_PROFILE
+    uint8_t prof_prev = gpmark;
+    gpmark = 21;   // tools/profile.py: "VBlank handler"
+#endif
     bg_vbl_seen = 1;
     // Latch this frame's scroll first thing, so it can never land in the
     // visible frame however late the main thread wakes up.
@@ -131,16 +234,6 @@ void bg_parallax_vbl_isr(void) {
     uint8_t ly = LY_REG;
     // The interrupted code may be in the middle of a VRAM bank-1 write.
     uint8_t vbk = VBK_REG;
-    if (bg_gdma_pending) {
-        // Started outside the first lines of VBlank (interrupts were masked for
-        // a long time): the transfer would run into the visible frame, so keep
-        // the request and retry on the next VBlank.
-        if (ly >= 144u && ly <= 149u) {
-            bg_gdma_pending = 0;
-            parallax_gdma(bg_gdma_phase);
-            ly = LY_REG;
-        }
-    }
     if (bg_pal_request && ly >= 144u && ly <= 150u) {
         bg_pal_request = 0;
         upload_palette();
@@ -166,21 +259,31 @@ void bg_parallax_vbl_isr(void) {
             bg_cj_pending = 0;
         }
         ly = LY_REG;
-        if (bg_rj_pending && ly >= 144u && ly <= 151u) {
+        // never before a column slice still pending: built for the band before it moved, it
+        // would overwrite the new row afterwards (a stale tile while climbing fast)
+        // DMG: from line 150 on it could run past VBlank (CGB, double speed: 151)
+        if (bg_rj_pending && !bg_cj_pending && ly >= 144u && ly <= (bg_gdma_isr_on ? 151u : 150u)) {
             uint8_t *row0 = (uint8_t *)0x9800 + ((uint16_t)bg_rj_y << 5) + bg_rj_x;
             VBK_REG = 0;
-            up_dst = row0;      up_src = bg_rj_tiles;      copy8();
-            up_dst = row0 + 8;  up_src = bg_rj_tiles + 8;  copy8();
-            up_dst = row0 + 32; up_src = bg_rj_tiles + 16; copy8();
-            up_dst = row0 + 40; up_src = bg_rj_tiles + 24; copy8();
+            up_dst = row0; up_src = bg_rj_tiles; copy_row16x2();
             if (bg_gdma_isr_on) {
                 VBK_REG = 1;
-                up_dst = row0;      up_src = bg_rj_attrs;      copy8();
-                up_dst = row0 + 8;  up_src = bg_rj_attrs + 8;  copy8();
-                up_dst = row0 + 32; up_src = bg_rj_attrs + 16; copy8();
-                up_dst = row0 + 40; up_src = bg_rj_attrs + 24; copy8();
+                up_dst = row0; up_src = bg_rj_attrs; copy_row16x2();
             }
             bg_rj_pending = 0;
+        }
+    }
+    // Parallax GDMA (CGB, ~3.5 lines), after the map uploads: first, it often left the row job
+    // too little of VBlank, and in a fast climb the rows fell behind (stale rows on screen). A
+    // late one is retried on the next VBlank (the sky drifts a frame later).
+    ly = LY_REG;
+    if (bg_gdma_pending) {
+        // Started outside the first lines of VBlank: the transfer would run into the visible
+        // frame, so keep the request and retry on the next VBlank.
+        if (ly >= 144u && ly <= 149u) {
+            bg_gdma_pending = 0;
+            parallax_gdma(bg_gdma_phase);
+            ly = LY_REG;
         }
     }
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
@@ -189,21 +292,17 @@ void bg_parallax_vbl_isr(void) {
         bg_saw_pending = 0;
         saw_gdma();
     }
-    // DMG saw tiles (~0.4k dots per tile); retried on the next VBlank when this one started late
-    if (bg_saw_dmg_n && ly >= 144u && ly <= 150u) {
+    // DMG saw tiles: as many as fit in this VBlank, the rest on the next one
+    if (bg_saw_dmg_n && ly >= 144u && ly <= 151u) {
         uint8_t prev_b = _current_bank;
         SWITCH_ROM(bg_saw_bank);
-        const uint8_t *src = bg_saw_src;
-        for (uint8_t i = 0; i < bg_saw_dmg_n; i++, src += 32) {
-            uint8_t *dst = bg_saw_dmg_dsts[i];
-            if (!dst) continue;
-            up_src = src;     up_dst = dst;     copy8();
-            up_src = src + 8; up_dst = dst + 8; copy8();
-        }
+        saw_dmg_copy();
         SWITCH_ROM(prev_b);
-        bg_saw_dmg_n = 0;
     }
     VBK_REG = vbk;
+#ifdef DEBUG_PROFILE
+    gpmark = prof_prev;
+#endif
 }
 
 static void saw_gdma(void) {

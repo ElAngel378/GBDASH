@@ -142,23 +142,87 @@ void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint
 
 // Metatiles of map row `row` at ring positions first .. first+n-1 (the columns loaded_r maps them
 // to), with as few bank switches as possible. Rows below the map read as 0.
+// Reads rr_n map bytes from rr_src (ROM bank rr_bank) to rr_dst, rr_src stepping by rr_step
+// (+32: next column, -32: previous one).
+static const uint8_t *rr_src;
+static uint8_t *rr_dst;
+static uint8_t rr_bank, rr_n;
+static int16_t rr_step;
+static void map_row_read(void) __naked {
+    __asm
+        ldh     a, (__current_bank + 0)
+        push    af
+        ld      a, (_rr_bank)
+        ldh     (__current_bank + 0), a
+        ld      (#_rROMB0), a
+        ld      hl, #_rr_step
+        ld      a, (hl+)
+        ld      c, a
+        ld      b, (hl)                 ; bc = step
+        ld      hl, #_rr_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = destination
+        ld      hl, #_rr_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = source
+        ld      a, (_rr_n)
+    1$:
+        push    af
+        ld      a, (hl)
+        ld      (de), a
+        inc     de
+        add     hl, bc
+        pop     af
+        dec     a
+        jr      NZ, 1$
+        ld      a, e
+        ld      (_rr_dst), a
+        ld      a, d
+        ld      (_rr_dst + 1), a
+        pop     af
+        ldh     (__current_bank + 0), a
+        ld      (#_rROMB0), a
+        ret
+    __endasm;
+}
+
 void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed,
                        const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t *out) {
-  uint8_t _prev = _current_bank;
-  uint8_t cur = _prev;
-  for (uint8_t i = 0; i < n; i++) {
-    uint8_t slot = (uint8_t)(first + i);
-    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
-    uint16_t c = loaded_r - ((loaded_r - slot) & 15u);
-    uint8_t id = 0;
-    if (c < map_w && row < MAP_ROWS) {
-      uint8_t b = MAP_BANK(map_bank, c);
-      if (b != cur) { SWITCH_ROM(b); cur = b; }
-      id = MAP_COL(map, c)[row];
-    }
-    out[i] = id;
+  if (row >= MAP_ROWS) {
+    memset(out, 0, n);
+    return;
   }
-  if (cur != _prev) SWITCH_ROM(_prev);
+  // Consecutive ring positions are consecutive columns (backwards in mirror mode), except where
+  // the ring wraps: read runs of columns (cut at the wrap and at ROM bank boundaries) with
+  // map_row_read. Column by column in C this took ~0.8k dots per position, ~1/10 of a DMG
+  // frame per row job, and a long climb has a row job almost every frame.
+  uint8_t slot = reversed ? (uint8_t)(-(int8_t)first & 15u) : first;
+  uint16_t c = loaded_r - (uint8_t)((uint8_t)((uint8_t)loaded_r - slot) & 15u);
+  uint16_t lo = loaded_r - 15u;     // the ring holds columns lo .. loaded_r
+  rr_dst = out;
+  rr_step = reversed ? -(int16_t)MAP_ROWS : (int16_t)MAP_ROWS;
+  while (n) {
+    // run: up to the ring's end and the bank's end in this direction
+    uint16_t in_bank = (uint16_t)c & (MAP_BANK_COLS - 1u);
+    uint16_t run = reversed ? (uint16_t)(c - lo + 1u) : (uint16_t)(loaded_r - c + 1u);
+    uint16_t to_bank = reversed ? in_bank + 1u : MAP_BANK_COLS - in_bank;
+    if (to_bank < run) run = to_bank;
+    if (run > n) run = n;
+    if (c < map_w) {
+      rr_src = MAP_COL(map, c) + row;
+      rr_bank = MAP_BANK(map_bank, c);
+      rr_n = (uint8_t)run;
+      map_row_read();
+    } else {
+      memset(rr_dst, 0, (uint8_t)run);
+      rr_dst += (uint8_t)run;
+    }
+    n -= (uint8_t)run;
+    if (!reversed) c = (c + run > loaded_r) ? lo : c + run;
+    else c = (c - run < lo || c < run) ? loaded_r : c - run;
+  }
 }
 
 const uint8_t *cb_src;

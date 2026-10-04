@@ -373,6 +373,59 @@ void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_
 static uint8_t row_tiles[2][16];   // top / bottom tile row of ROW_JOB_SLOTS ring positions
 static uint8_t row_attrs[2][16];
 
+// DMG: row_tiles from the metatile ids rt_ids[0 .. rt_n-1] through the table rt_mt
+// (hand-written: in C it took ~0.8k dots per position)
+static uint8_t rt_ids[16];
+static uint8_t rt_n;
+static const uint8_t *rt_mt;
+static void row_tiles_dmg(void) __naked {
+    __asm
+        ld      de, #_rt_ids
+        ld      bc, #_row_tiles         ; top tile row (the bottom one is 16 bytes on)
+        ld      a, (_rt_n)
+    1$:
+        push    af
+        ld      a, (de)
+        inc     de
+        push    de
+        ld      l, a
+        ld      h, #0
+        add     hl, hl
+        add     hl, hl
+        ld      a, (_rt_mt)
+        add     a, l
+        ld      l, a
+        ld      a, (_rt_mt + 1)
+        adc     a, h
+        ld      h, a                    ; hl = the 4 tiles of the metatile
+        ld      e, c
+        ld      d, b
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, (hl+)
+        ld      (de), a
+        ld      a, e
+        add     a, #15
+        ld      e, a
+        adc     a, d
+        sub     a, e
+        ld      d, a                    ; de = same position, bottom tile row
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, (hl)
+        ld      (de), a
+        inc     bc
+        inc     bc
+        pop     de
+        pop     af
+        dec     a
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
 static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) {
     const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
     uint8_t ids[BG_RJ_SLOTS];
@@ -380,12 +433,10 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     uint8_t *t1 = row_tiles[1];
     if (_cpu != CGB_TYPE) {
         // DMG: tiles straight from the metatile table (no attributes, parallax or saw tiles)
-        get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, ids);
-        for (uint8_t i = 0; i < n; i++) {
-            const uint8_t *mt = mt_table[ids[i]];
-            *t0++ = mt[0]; *t0++ = mt[1];
-            *t1++ = mt[2]; *t1++ = mt[3];
-        }
+        get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, rt_ids);
+        rt_n = n;
+        rt_mt = mt_table[0];
+        row_tiles_dmg();
         return;
     }
     uint8_t *a0 = row_attrs[0];
@@ -435,7 +486,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
 void request_row_slots(uint8_t first, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED {
     build_row_slots(first, BG_RJ_SLOTS, row, loaded_r, map, map_w, map_bank, reversed);
     memcpy(bg_rj_tiles, row_tiles, sizeof(row_tiles));
-    memcpy(bg_rj_attrs, row_attrs, sizeof(row_attrs));
+    if (_cpu == CGB_TYPE) memcpy(bg_rj_attrs, row_attrs, sizeof(row_attrs));
     bg_rj_x = (uint8_t)(first << 1);
     bg_rj_y = (uint8_t)((row & 15u) << 1);
     bg_rj_pending = 1;
