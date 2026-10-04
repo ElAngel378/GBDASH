@@ -112,6 +112,7 @@ extern uint8_t mt_spike_b;
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED;
 // Saw animation (see mt_renderer.c): call before waiting for VBlank, the VBlank handler uploads
 void saw_anim_request(void) BANKED;
+extern uint8_t saw_on;   // the level has saws (mt_renderer.c)
 void flush_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 void request_mt_column_slice(uint8_t ring_col, uint8_t step) BANKED;
 // Vertical streaming: the VRAM ring (16 metatile rows) holds map rows mt_band .. mt_band+15,

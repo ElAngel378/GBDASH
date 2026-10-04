@@ -35,7 +35,7 @@ static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends 
 #define SAW_STEP_FRAMES        2    // idle frames between finishing one animation frame and starting the next
 #define SAW_CHUNK_TILES        13   // CGB tiles per VBlank (SAW_ANIM_TILES / 4)
 #define DMG_SAW_TILES_PER_FRAME BG_SAW_DMG_MAX
-static uint8_t saw_on;               // this level has saws
+uint8_t saw_on;                      // this level has saws (player.c: saw collision)
 static uint8_t saw_reversed;
 static uint8_t saw_frame;            // frame being / last uploaded
 static uint8_t saw_pos;              // next tile of that frame; == SAW_ANIM_TILES: idle
