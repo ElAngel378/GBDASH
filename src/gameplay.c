@@ -102,22 +102,20 @@ static uint8_t bg_drift_px = 0;
 // so vertical trajectories stay aligned with scroll (see "Better ship").
 #define SCROLL_SPEED_FP 714
 
-// Camera y: shows what the player is about to meet. The map columns from the player's to
-// CAM_LOOK - 1 ahead give a window that must be on screen: below, the nearest obstacle under
-// the player's feet in every one of those columns (where it lands); above, the nearest obstacle
-// over its head within reach (CAM_REACH rows, ship / ball CAM_REACH_FLY: the corridor's
-// ceiling) and CAM_HEAD px of headroom. The camera only moves when the screen stops covering
-// that window, so it stays still most of the time, and eases there (1/3 of the distance per
-// frame, 1..CAM_Y_MAX_STEP px). A window taller than the screen (a tall ship corridor): the
-// player centred, but never past either end, so the nearer wall stays on screen. Ship / ball
-// without a ceiling in reach: locked to the mode portal like Famidash. The player never gets
-// closer than CAM_Y_EDGE to a screen edge. The view is 144px on CGB too: its ground strip is
-// the map row below the level and scrolls away when the camera goes up.
-// (Recorded runs of Stereo Madness, Cycles and Xstep: obstacles near the player's path that
-// were never on screen before it got there went from 53 / 33 / 29 (CGB) to 8 / 3 / 1; the old
-// dead zone camera hid floor spikes under the cube and the ceilings of ship / ball corridors.)
+// Camera y. Cube: dead zone, the camera snaps to keep the player within screen rows
+// CAM_Y_TOP_ZONE .. CAM_Y_BOTTOM_ZONE. Ship / ball: shows what the player is about to meet.
+// The map columns from the player's to CAM_LOOK - 1 ahead give a window that must be on screen:
+// below, the nearest obstacle under the player in every one of those columns; above, the
+// nearest obstacle over its head within CAM_REACH_FLY rows (the corridor's ceiling) and CAM_HEAD
+// px of headroom. The camera only moves when the screen stops covering that window, and eases
+// there (1/3 of the distance per frame, 1..CAM_Y_MAX_STEP px). A window taller than the screen
+// (a tall corridor): the player centred, but never past either end, so the nearer wall stays on
+// screen. No ceiling in reach: locked to the mode portal like Famidash. The player never gets
+// closer than CAM_Y_EDGE to a screen edge. The view is 144px on CGB too: its ground strip is the
+// map row below the level and scrolls away when the camera goes up.
+#define CAM_Y_TOP_ZONE 20      // cube: dead zone (screen rows the player may move in)
+#define CAM_Y_BOTTOM_ZONE 100
 #define CAM_LOOK 6
-#define CAM_REACH 3
 #define CAM_REACH_FLY 9
 #define CAM_HEAD 24
 #define CAM_FOOT 8
@@ -132,8 +130,6 @@ uint16_t cam_portal_y;
 // built ahead of the player in 5 steps (a column scrolls by every ~6 frames): 4 x 8 rows
 // bottom-up (cam_nb), then cam_na; all at once after a (re)start.
 #define CAM_RING 8u
-#define CAM_BUILD_LY_EARLY 40   // scanline before which a frame has time for 2 build steps
-#define CAM_BUILD_LY_LATE 80    // ... from which it does none (unless the builder is behind)
 static uint8_t cam_nb[CAM_RING * 32u], cam_na[CAM_RING * 32u];   // [slot * 32 + row]
 static uint16_t cam_build_col;    // column being built, 0xFFFF: rebuild all
 static uint8_t cam_build_step;
@@ -1537,25 +1533,34 @@ static void update_camera_y(void) {
         cam_win_col = c0;
         cam_win_row = 0xFF;   // recompute the window
     } else if (cam_build_left) {
-        // The builder may fall up to 2 columns (10 steps) behind: the ring's 2 spare columns.
-        // On a frame that is already late (LY, the main loop starts in VBlank) it waits, on an
-        // early one it does two steps: the work goes to the frames that have time for it.
-        uint8_t ly = LY_REG;
-        uint8_t early = (ly >= 144u || ly < CAM_BUILD_LY_EARLY);
-        if (early || cam_build_left > 10u || ly < CAM_BUILD_LY_LATE) {
-            cam_build();
-            if (--cam_build_left && early) { cam_build(); cam_build_left--; }
-        }
+        // One step per frame (a column every ~6 frames needs 5); two when it fell behind
+        cam_build();
+        if (--cam_build_left > 5u) { cam_build(); cam_build_left--; }
     }
 
-    // the window, when the player's column, row, mode or portal changed
+    if (!fly) {
+        // Cube: the dead zone camera (the player stays within screen rows CAM_Y_TOP_ZONE ..
+        // CAM_Y_BOTTOM_ZONE, the camera snaps there)
+        int16_t py = (int16_t)wy - (int16_t)cam_py;
+        int16_t t;
+        if (py < CAM_Y_TOP_ZONE) t = (int16_t)wy - CAM_Y_TOP_ZONE;
+        else if (py > CAM_Y_BOTTOM_ZONE) t = (int16_t)wy - CAM_Y_BOTTOM_ZONE;
+        else return;
+        if (t < (int16_t)level_top_px) t = (int16_t)level_top_px;
+        if ((uint16_t)t > cam_py_max) t = (int16_t)cam_py_max;
+        cam_py = (uint16_t)t;
+        cam_still = 0;
+        return;
+    }
+
+    // Ship / ball: the window, when the player's column, row, mode or portal changed
     uint8_t prow = (uint8_t)(wy >> 4);
     if ((uint8_t)c0 != (uint8_t)cam_win_col || prow != cam_win_row || fly != cam_win_fly || cam_portal_y != cam_win_portal) {
         if ((uint8_t)c0 != (uint8_t)cam_win_col) cam_build_left += 5;   // one more column to build
         cam_still = 0;
         cam_win_col = c0; cam_win_row = prow; cam_win_fly = fly; cam_win_portal = cam_portal_y;
         uint8_t frow1 = (uint8_t)(((wy + 15u) >> 4) + 1u);
-        uint8_t lim = (uint8_t)(prow - (fly ? CAM_REACH_FLY : CAM_REACH));   // rows above it: out of reach
+        uint8_t lim = (uint8_t)(prow - CAM_REACH_FLY);   // rows above it: out of reach
         if (lim > prow) lim = 0;
         cw_s = (uint8_t)c0; cw_frow1 = frow1; cw_prow = prow; cw_lim = lim;
         cw_below = frow1; cw_above = 0xFF;
