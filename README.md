@@ -108,3 +108,8 @@ The output is `bin/POCKETDASH.gb`. Music playback uses [hUGEDriver](https://gith
 # Thank you
 ### To <a href="https://github.com/tfdsoft/famidash"><ins>TFDSoft</ins></a> , the Famidash team for assets (such as level files, graphics)
 ### And, of course, the game we all love: Geometry Dash by RobTop Games.
+### AI Disclosure
+
+AI tools (LLMs) are used in this project to help with things like boilerplate code, optimizing parts of the code, and brainstorming solutions. However, the project is not vibecoded.
+
+Developing for the original 1989 Game Boy with GBDK 2020 requires a solid understanding of things like memory management, bank switching, hardware registers, and low-level C/Assembly optimization. AI is used as a tool and pair-programmer to speed things up and explore ideas, but the development, decisions, testing, and debugging are still done by us.
