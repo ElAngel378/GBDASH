@@ -870,9 +870,35 @@ static void update_camera_y(void) {
     uint16_t wy = PLAYER_WORLD_Y();
     uint16_t t;
 
-    if (player.mode == MODE_CUBE || (player.mode == MODE_SHIP && setting_old_ship_cam)) {
-        // Cube (and the ship with SHIP CAM: OLD): the dead zone camera (the player stays within screen rows CAM_Y_TOP_ZONE ..
-        // CAM_Y_BOTTOM_ZONE, the camera snaps there)
+    if (player.mode == MODE_CUBE) {
+        // Cube: the dead zone camera with slight easing (softens the edge transitions)
+        int16_t py = (int16_t)wy - (int16_t)cam_py;
+        int16_t c;
+        if (py < CAM_Y_TOP_ZONE) c = (int16_t)wy - CAM_Y_TOP_ZONE;
+        else if (py > CAM_Y_BOTTOM_ZONE) c = (int16_t)wy - CAM_Y_BOTTOM_ZONE;
+        else return;
+        if (c < (int16_t)level_top_px) c = (int16_t)level_top_px;
+        if ((uint16_t)c > cam_py_max) c = (int16_t)cam_py_max;
+
+        uint16_t target = (uint16_t)c;
+        if (target > cam_py) {
+            uint16_t step = (target - cam_py) >> 1;
+            if (!step) step = 1;
+            else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
+            cam_py += step;
+        } else if (target < cam_py) {
+            uint16_t step = (cam_py - target) >> 1;
+            if (!step) step = 1;
+            else if (step > CAM_Y_MAX_STEP) step = CAM_Y_MAX_STEP;
+            cam_py -= step;
+        }
+        if (cam_py > wy) cam_py = wy;
+        if (cam_py + (CAM_VIEW_H - 16u) < wy) cam_py = wy - (CAM_VIEW_H - 16u);
+        return;
+    }
+
+    if (player.mode == MODE_SHIP && setting_old_ship_cam) {
+        // Ship with SHIP CAM: OLD: the original dead zone camera that snaps directly
         int16_t py = (int16_t)wy - (int16_t)cam_py;
         int16_t c;
         if (py < CAM_Y_TOP_ZONE) c = (int16_t)wy - CAM_Y_TOP_ZONE;
