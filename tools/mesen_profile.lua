@@ -2,7 +2,8 @@
 --   Mesen.exe --testrunner bin/POCKETDASH_prof.gb <generated copy of this script>
 -- The profiling build writes a section id to gpmark at the start of every section of
 -- play_level()'s loop (PROF_MARK in src/gameplay.c). 9 = waiting for VBlank, 10 = after it.
--- Placeholders filled in by profile.py: @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@ @MUSIC_ADDR@
+-- The interrupt handlers mark themselves (20 music, 21 VBlank) and restore the section after.
+-- Placeholders filled in by profile.py: @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@ @MUSIC_ADDR@ @JUMP@
 -- The ROM waits at boot until the level number + 1 is written to gplevel (src/main.c).
 
 local MARK = @MARK_ADDR@
@@ -10,11 +11,11 @@ local MUSIC_ADDR = @MUSIC_ADDR@          -- profile.py --no-music: music setting
 local CAMX = @CAMX_ADDR@
 local RUN_FRAMES = @RUN_FRAMES@
 local SKIP_FRAMES = @SKIP_FRAMES@        -- level loading at the start
-local N, WAIT, AFTER = 19, 9, 10
+local N, WAIT, AFTER = 21, 9, 10
 local NAMES = { "input/scroll/cache", "object logic", "physics", "camera/end anim", "player sprite",
                 "level sprites", "column job", "band/bg/row req", "WAIT vblank", "after vblank",
                 "col: map read", "col: build rows", "col: after build",
-                "mirror: tileset", "mirror: level tiles", "mirror: columns", "mirror: sprite tiles", "mirror: rest", "mirror: col flush" }
+                "mirror: tileset", "mirror: level tiles", "mirror: columns", "mirror: sprite tiles", "mirror: rest", "mirror: col flush", "music (timer ISR)", "VBlank handler" }
 local MEM = emu.memType.gameboyMemory
 local CPU = emu.cpuType.gameboy
 
@@ -28,6 +29,13 @@ local seen_after, dropped, dropped_at = false, 0, {}
 local frame_cycles, prev_frame_cycles = nil, nil
 local finished = false
 local level_set = false
+
+local SLOW_FRAC = 1.0                   -- iterations busier than this part of a frame are listed
+local SLOW_SHOW = 12
+local JUMP = @JUMP@                      -- profile.py --jump N: A held 6 frames every N frames
+if JUMP > 0 then
+  emu.addEventCallback(function() emu.setInput({a = (frame % JUMP) < 6}, 0) end, emu.eventType.inputPolled)
+end
 
 local function camx() return emu.read(CAMX, MEM) + 256 * emu.read(CAMX + 1, MEM) end
 
@@ -52,7 +60,7 @@ emu.addMemoryCallback(function(addr, value)
       if p > 0.95 then busy_hist[4] = busy_hist[4] + 1 elseif p > 0.9 then busy_hist[3] = busy_hist[3] + 1
       elseif p > 0.8 then busy_hist[2] = busy_hist[2] + 1 else busy_hist[1] = busy_hist[1] + 1 end
     end
-    if frame_cycles and iter_busy > frame_cycles then
+    if frame_cycles and iter_busy > frame_cycles * SLOW_FRAC then
       local s = {}
       for i = 1, N do s[i] = iter_sect[i] end
       slow[#slow + 1] = { busy = iter_busy, sect = s, frame = frame, x = camx() }
@@ -99,7 +107,7 @@ emu.addEventCallback(function()
     end
     print(string.format("slow iterations (busy > 1 frame): %d", #slow))
     table.sort(slow, function(a, b) return a.busy > b.busy end)
-    for k = 1, math.min(12, #slow) do
+    for k = 1, math.min(SLOW_SHOW, #slow) do
       local s = slow[k]
       local parts = {}
       for i = 1, N do

@@ -87,7 +87,19 @@ static inline void step_music(void) {
 #include "settings.h"
 
 // Called by the timer interrupt to update music or stream samples
+#ifdef DEBUG_PROFILE
+extern volatile uint8_t gpmark;
+static void play_music_safe_(void);
 void play_music_safe(void) {
+  uint8_t prof_prev = gpmark;
+  gpmark = 20;   // tools/profile.py: "music (timer)"
+  play_music_safe_();
+  gpmark = prof_prev;
+}
+static void play_music_safe_(void) {
+#else
+void play_music_safe(void) {
+#endif
   if (sample_playing) {
     sample_play_isr();
     if (!sample_playing) {
