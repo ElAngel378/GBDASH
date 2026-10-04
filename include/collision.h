@@ -100,6 +100,11 @@ void init_music_banked(const struct hUGESong_t * song, uint8_t bank, uint8_t div
 
 void get_map_column(uint16_t map_col, const uint8_t *map, uint8_t map_bank, uint8_t *dest, uint8_t band);
 uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_bank);
+// Camera look-ahead tables (gameplay.c): 8 rows of a map column, see collision.c
+extern const uint8_t *cb_src;
+extern uint8_t *cb_dst;
+extern uint8_t cb_bank, cb_row, cb_run;
+void cam_build_rows(void);
 void get_map_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t loaded_r, uint8_t reversed,
                        const uint8_t *map, uint16_t map_w, uint8_t map_bank, uint8_t *out);
 
