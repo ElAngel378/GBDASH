@@ -1271,12 +1271,12 @@ void play_level(uint8_t idx) BANKED {
                 // 7-frame rotation from vertical velocity (positive = toward the rest surface)
                 int16_t vy = player.gravity_flipped ? -player.vel_y.w : player.vel_y.w;
                 uint8_t ship_frame = SHIP_FRAME_NEUTRAL;
-                if (vy < -550) ship_frame = 6;
-                else if (vy < -250) ship_frame = 5;
-                else if (vy < -80) ship_frame = 4;
-                else if (vy > 550) ship_frame = 0;
-                else if (vy > 250) ship_frame = 1;
-                else if (vy > 80) ship_frame = 2;
+                if (vy < -500) ship_frame = 6;
+                else if (vy < -220) ship_frame = 5;
+                else if (vy < -60) ship_frame = 4;
+                else if (vy > 500) ship_frame = 0;
+                else if (vy > 220) ship_frame = 1;
+                else if (vy > 60) ship_frame = 2;
                 const metasprite_t *ship_ms = ship_metasprites[ship_frame];
                 if (player.gravity_flipped) {
                     if (player.reversed) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
