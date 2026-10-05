@@ -59,6 +59,9 @@ static uint8_t att_sx0;      // OAM x of the first character at att_x0
 
 void attempt_text_load_tiles(void) BANKED {
     static const uint8_t blank[16] = {0};
+    // DMG: the glyphs overwrite the ship frames (tiles 36..63), so only while the text is on
+    // (attempt_text_hide / attempt_text_draw put the ship back when it is off)
+    if (_cpu != CGB_TYPE && !att_on) return;
     // CGB: VRAM bank 1 (free there), so the ship frames in bank 0 stay intact
     if (_cpu == CGB_TYPE) VBK_REG = 1;
     for (uint8_t k = 0; k < ATT_GLYPHS; k++) {
@@ -86,6 +89,7 @@ void attempt_text_start(uint8_t from_start, uint16_t cam_x, uint16_t cam_y) BANK
     att_x0 = cam_x;
     att_y0 = cam_y;
     att_on = 1;
+    if (_cpu != CGB_TYPE) attempt_text_load_tiles();   // (CGB: loaded with the other HUD tiles)
 }
 
 void attempt_text_hide(void) BANKED {
