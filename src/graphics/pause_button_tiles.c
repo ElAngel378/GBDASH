@@ -23,13 +23,14 @@ void apply_pause_box_attributes(uint8_t apply) BANKED {
     if (_cpu != CGB_TYPE) return;
     uint8_t scx_tile = (SCX_REG >> 3);
     uint8_t scy_tile = (SCY_REG >> 3);
+    uint16_t map = (LCDC_REG & LCDCF_BG9C00) ? 0x9C00u : 0x9800u;   // mirror portals switch maps
 
     VBK_REG = 1;
     for (uint8_t sy = 2; sy < 17; sy++) {
         uint8_t my = (uint8_t)(scy_tile + sy) & 31;
         for (uint8_t sx = 1; sx < 19; sx++) {
             uint8_t mx = (uint8_t)(scx_tile + sx) & 31;
-            uint8_t *addr = (uint8_t *)(0x9800 + ((uint16_t)my << 5) + mx);
+            uint8_t *addr = (uint8_t *)(map + ((uint16_t)my << 5) + mx);
             while (STAT_REG & 0x02);
             if (apply) {
                 *addr |= 0x04;

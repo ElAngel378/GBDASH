@@ -207,7 +207,27 @@ static uint16_t sp_stream_idx;
 static uint16_t sp_cache_col;
 static uint8_t sp_fill_pending;
 static uint16_t cached_collision_col;
-static uint8_t prev_reversed;
+static uint8_t view_rev;   // the orientation on screen (player.reversed: the one the game is in)
+
+// CGB seamless mirror portal (mt_cgb_flip levels): the mirrored picture is built into the BG map
+// that is not shown while the game runs (a few columns per frame, in the time left before
+// VBlank), from when a mirror portal comes near; once the player is through it and the map holds
+// the current column window, the VBlank handler switches LCDC to it together with the new
+// scroll. Elsewhere (DMG) mirror_reload() redraws everything with the display off.
+#define OBJ_MIRROR_PORTAL 126
+#define OBJ_MIRROR_EXIT   121
+#define MJ_LY_LIMIT 96u        // start a column / row only before this line (one takes ~45 lines)
+#define MJ_MAX_WAIT 90u        // frames the switch may wait (then mirror_reload)
+static uint8_t seamless;       // this level uses the seamless switch
+static uint8_t mj_active;      // building the other map
+static uint8_t mj_target;      // its orientation (!view_rev)
+static uint8_t mj_map_hi;      // its address >> 8 (0x98 / 0x9C)
+static uint16_t mj_next;       // next map column to build into it
+static uint8_t mj_row_pending; // map row to write into it (the band moved), 0xFF: none
+static uint8_t mj_wait;        // frames player.reversed != view_rev
+static uint8_t mj_frame;       // bg_vbl_frames when this game loop iteration started
+static uint8_t dmg_mirror_due; // DMG: mirror the picture right after the coming VBlank
+static void bg_map_reset(void);
 static uint8_t reduce_flash;
 static uint8_t pause_suppress_jump;
 #if ENABLE_DEBUG_MODE
@@ -259,6 +279,8 @@ static void reload_level_state(uint8_t idx) {
     NR50_REG = 0x77;
     disable_interrupts();
     DISPLAY_OFF;
+    bg_map_reset();
+    view_rev = 0;
 
     // Reload tileset and sprite data on respawn/restart
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
@@ -703,14 +725,14 @@ static void start_end_anim(void) {
     percent_hud_complete();
     end_anim_state = END_ANIM_PULL;
     end_anim_frame = 0;
-    locked_scroll_px = player.reversed
+    locked_scroll_px = view_rev
         ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     locked_cam_py = cam_py;
-    end_start_x = player.reversed ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
+    end_start_x = view_rev ? MIRROR_PLAYER_SCREEN_X : ((cam_px < PLAYER_SCREEN_X) ? (uint8_t)cam_px : PLAYER_SCREEN_X);
     end_start_y = (int16_t)PLAYER_WORLD_Y() - (int16_t)cam_py;
 
-    if (!player.reversed) {
+    if (!view_rev) {
         end_target_x = 168; // Exit off the right edge of the screen before disappearing
     } else {
         end_target_x = (int16_t)-16; // Exit off the left edge of the screen in mirror mode
@@ -722,6 +744,85 @@ static void start_end_anim(void) {
     end_trigger_requested = 0;
 }
 
+// First map column of the 16 the VRAM ring holds for camera column px (as mirror_reload loads them)
+#define RING_COL0(px) ((px) >= 4u ? (uint16_t)((px) - 4u) : 0u)
+
+// Display off: back to the 0x9800 map, no seamless switch in progress
+static void bg_map_reset(void) {
+    LCDC_REG &= (uint8_t)~LCDCF_BG9C00;
+    bg_lcdc_map = 0xFF;
+    mj_active = 0;
+    mj_wait = 0;
+    dmg_mirror_due = 0;
+}
+
+// A mirror portal that would change the view is (nearly) on screen
+static uint8_t mirror_portal_ahead(void) {
+    uint8_t want = view_rev ? OBJ_MIRROR_EXIT : OBJ_MIRROR_PORTAL;
+    for (uint8_t i = 0; i < MAX_ACTIVE_SP_OBJECTS; i++) {
+        if (active_sp.active[i] && active_sp.obj[i] == want && !active_sp.activated[i]) {
+            uint16_t x = active_sp.px[i];
+            if (x + 64u > cam_px && x < cam_px + 320u) return 1;
+        }
+    }
+    return 0;
+}
+
+// Per frame, after the frame's work (CGB seamless levels): start, cancel or advance the build
+// of the other map. Stops when VBlank comes near.
+static void mirror_job(uint16_t px) {
+    uint8_t needed = (player.reversed != view_rev);
+    if (!mj_active) {
+        if (!needed && !mirror_portal_ahead()) return;
+        mj_active = 1;
+        mj_target = !view_rev;
+        mj_map_hi = (LCDC_REG & LCDCF_BG9C00) ? 0x98u : 0x9Cu;
+        mj_next = 0;
+        mj_row_pending = 0xFF;
+    } else if (!needed && !mirror_portal_ahead()) {
+        mj_active = 0;   // the portal was missed
+        return;
+    }
+    uint16_t col0 = RING_COL0(px);
+    uint16_t end = col0 + 16u;
+    if (end > level_map_w) end = level_map_w;
+    if (mj_next < col0) mj_next = col0;
+    while (bg_vbl_frames == mj_frame && LY_REG < MJ_LY_LIMIT) {
+        if (mj_row_pending != 0xFF) {
+            mj_build_row(mj_row_pending, mj_next ? mj_next - 1u : 0, level_map, level_map_w, level_map_bank, mj_target, mj_map_hi);
+            mj_row_pending = 0xFF;
+        } else if (mj_next < end) {
+            mj_build_column(mj_next, level_map, level_map_bank, mj_target, mj_map_hi);
+            mj_next++;
+        } else {
+            break;
+        }
+    }
+}
+
+// The other map holds the window of camera column px and no row is missing
+static uint8_t mirror_job_ready(uint16_t px) {
+    uint16_t end = RING_COL0(px) + 16u;
+    if (end > level_map_w) end = level_map_w;
+    return mj_active && mj_row_pending == 0xFF && mj_next >= end;
+}
+
+// Show the other map from the next VBlank on, and stream in the new orientation
+static void mirror_switch(uint16_t px) {
+    view_rev = mj_target;
+    mj_active = 0;
+    mj_wait = 0;
+    loaded_r = RING_COL0(px) + 15u;
+    col_job_step = COL_JOB_STEPS;
+    col_job_issued = 0;
+    bg_cj_pending = 0;
+    row0_job_pos = 16;
+    row0_job_issued = 0;
+    bg_rj_pending = 0;
+    band_cam_row = 0xFF;
+    bg_lcdc_map = (mj_map_hi == 0x9Cu) ? LCDCF_BG9C00 : LCDCF_BG9800;
+}
+
 // Mirror portal: reload the (mirrored) tileset and redraw the visible columns
 static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     col_job_step = COL_JOB_STEPS;
@@ -729,9 +830,12 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
     bg_cj_pending = bg_rj_pending = 0;
     DISPLAY_OFF;
+    bg_map_reset();
+    view_rev = player.reversed;
     PROF_MARK(14);   // mirror: tileset
 
-    const uint8_t* target_tiles = player.reversed
+    // CGB flip mode: the normal sheet, the X flip attribute mirrors it
+    const uint8_t* target_tiles = (player.reversed && !mt_cgb_flip)
         ? l->tiles_rev
         : level_tiles;
     load_bkg_tileset(target_tiles, level_tile_count, level_tiles_bank);
@@ -774,7 +878,56 @@ static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     }
 
     loaded_r = (uint16_t)(col_start + 15);
-    prev_reversed = player.reversed;
+}
+
+// DMG mirror portal, right after VBlank (so turning the display off does not wait): the
+// mirrored sheet, and the map mirrored in place (see bg_map_reflect) instead of rebuilt. The
+// ring holds the same columns either way; a column or row job still in progress was writing the
+// other orientation, so it starts again.
+static void mirror_reflect(uint8_t idx) {
+    // Still in VBlank: switch the LCD off now. display_off() waits for the start of a VBlank,
+    // which here would be the next one (a whole frame). Outside VBlank (a late frame) it is the
+    // safe way: turning a DMG LCD off while it draws can damage it.
+    disable_interrupts();
+    if (LY_REG >= 144u && LY_REG <= 152u) LCDC_REG &= (uint8_t)~LCDCF_ON;
+    enable_interrupts();
+    DISPLAY_OFF;   // returns at once when it is off
+    PROF_MARK(14);   // mirror: tileset
+    load_bkg_tileset(player.reversed ? l->tiles_rev : level_tiles, level_tile_count, level_tiles_bank);
+    PROF_MARK(15);   // mirror: level tiles
+    apply_level_bg_tiles(idx, player.reversed);
+    if (!setting_show_bg_enabled) set_bkg_data(12, 1, blank_bg_tile);
+    PROF_MARK(16);   // mirror: columns (map mirrored in place)
+    bg_map_reflect();
+    PROF_MARK(17);   // mirror: sprite tiles
+    // the tileset overwrote sprite tiles 128..159 (shared VRAM)
+    reload_bg_shared_sprite_tiles();
+    PROF_MARK(18);   // mirror: rest
+    view_rev = player.reversed;
+    // A column or row job in progress was writing the other orientation: finish it now, whole
+    // (restarting it would delay it, and its last slice could then meet the next column's start)
+    bg_cj_pending = bg_rj_pending = 0;
+    col_job_issued = row0_job_issued = 0;
+    if (col_job_step < COL_JOB_STEPS) {
+        col_job_slot = (uint8_t)(col_job_col & 15);
+        if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
+        prepare_mt_column(col_job_col, level_map, level_map_bank, view_rev);
+        flush_mt_column(col_job_slot);
+        col_job_step = COL_JOB_STEPS;
+    }
+    if (row0_job_pos < 16) {
+        flush_row_slots(0, BG_RJ_SLOTS, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
+        flush_row_slots(BG_RJ_SLOTS, BG_RJ_SLOTS, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
+        row0_job_pos = 16;
+    }
+    uint16_t scroll_px = view_rev
+        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
+    move_bkg((uint8_t)scroll_px, (uint8_t)cam_py);
+    SHOW_BKG;
+    SHOW_SPRITES;
+    SPRITES_8x16;
+    DISPLAY_ON;
 }
 
 static void practice_respawn(uint8_t idx) {
@@ -986,6 +1139,13 @@ void play_level(uint8_t idx) BANKED {
     player.y_base = Y_BASE_MAX;
 
     DISPLAY_OFF;
+    bg_map_reset();
+    view_rev = 0;
+    bg_level_set_flip_mode(idx);
+    seamless = mt_cgb_flip;
+#ifdef DEBUG_NO_SEAMLESS
+    seamless = 0;   // test builds: CGB mirror portals through mirror_reload
+#endif
     load_bkg_tileset(level_tiles, level_tile_count, level_tiles_bank);
     apply_level_bg_tiles(idx, 0);
     if (!setting_show_bg_enabled) {
@@ -1039,7 +1199,6 @@ void play_level(uint8_t idx) BANKED {
     sp_cache_col = 0xFFFF;
     sp_fill_pending = 0;
     cached_collision_col = 0xFFFF;
-    prev_reversed = player.reversed;
     reduce_flash = setting_dmg_gradient ? 0 : 1;
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
@@ -1058,6 +1217,7 @@ void play_level(uint8_t idx) BANKED {
     bg_parallax_isr_start();
     while (1) {
         PROF_MARK(1);   // input, scrolling, object cache
+        mj_frame = bg_vbl_frames;
 #ifdef DEBUG_PROFILE
         gpcamx = cam_px;
         gpcamy = cam_py;
@@ -1153,7 +1313,20 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) start_end_anim();
 
-        if (player.reversed != prev_reversed) mirror_reload(idx, 1);
+        uint8_t mj_switched = 0;
+        if (player.reversed != view_rev) {
+            if (_cpu != CGB_TYPE) {
+                dmg_mirror_due = 1;
+            } else if (!seamless) {
+                mirror_reload(idx, 1);
+            } else if (mirror_job_ready(px_curr)) {
+                mirror_switch(px_curr);
+                needs_render = 0;
+                mj_switched = 1;
+            } else if (++mj_wait > MJ_MAX_WAIT) {
+                mirror_reload(idx, 1);
+            }
+        }
 
         // Move the collision window when the player nears its top or bottom
         {
@@ -1203,7 +1376,7 @@ void play_level(uint8_t idx) BANKED {
         int16_t final_py;
 
         if (end_anim_state == END_ANIM_INACTIVE) {
-            if (player.reversed) {
+            if (view_rev) {
                 // Mirror Mode: SCX decreases as progress advances
                 scroll_px = (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X);
                 sprite_x_final = MIRROR_PLAYER_SCREEN_X; // Mirrored player position (112)
@@ -1232,7 +1405,7 @@ void play_level(uint8_t idx) BANKED {
             player.anim_timer += 10;
             if (player.anim_timer >= 21) {
                 player.anim_timer -= 21;
-                if (player.reversed) {
+                if (view_rev) {
                     if (player.anim_frame == 0) player.anim_frame = 23;
                     else player.anim_frame--;
                 } else {
@@ -1273,7 +1446,7 @@ void play_level(uint8_t idx) BANKED {
             uint8_t oy = (uint8_t)(final_py + 16 + 3);
             if (player.gravity_flipped) { prop ^= S_FLIPY; oy -= 8; }
             uint8_t ox = (uint8_t)(sprite_x_final + 8);
-            if (player.reversed) { prop ^= S_FLIPX; ox += 8; }
+            if (view_rev) { prop ^= S_FLIPX; ox += 8; }
             shadow_OAM[PERCENT_HUD_OAM].y = oy;
             shadow_OAM[PERCENT_HUD_OAM].x = ox;
             shadow_OAM[PERCENT_HUD_OAM].tile = tile;
@@ -1292,25 +1465,25 @@ void play_level(uint8_t idx) BANKED {
                 else if (vy > 60) ship_frame = 2;
                 const metasprite_t *ship_ms = ship_metasprites[ship_frame];
                 if (player.gravity_flipped) {
-                    if (player.reversed) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
+                    if (view_rev) oam_index += move_metasprite_hvflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 24);
                     else oam_index += move_metasprite_hflip(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 32);
                 } else {
-                    if (player.reversed) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    if (view_rev) oam_index += move_metasprite_vflip(ship_ms, 0, oam_index, sprite_x_final + 24, final_py + 16);
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else if (player.mode == MODE_BALL) {
                 uint8_t ball_frame = (player.anim_frame >> 1) & 1;
-                if (player.reversed) {
+                if (view_rev) {
                     oam_index += move_metasprite_vflip(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 24, final_py + 16);
                 } else {
                     oam_index += move_metasprite(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else {
                 if (player.gravity_flipped) {
-                    if (player.reversed) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
+                    if (view_rev) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
                     else oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 32);
                 } else {
-                    if (player.reversed) oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    if (view_rev) oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 16);
                     else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             }
@@ -1338,10 +1511,10 @@ void play_level(uint8_t idx) BANKED {
         // Level sprites
         oam_index = draw_sprites(
             &active_sp, (uint16_t)((int16_t)cam_px + cur_shake_x), (uint16_t)((int16_t)cam_py + cur_shake_y),
-            player.reversed, oam_index
+            view_rev, oam_index
         );
         if (practice_mode) {
-            oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, player.reversed);
+            oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, view_rev);
         }
         oam_index = attempt_text_draw(oam_index, cam_px, cam_py);
         if (oam_index < previous_oam_index) {
@@ -1358,11 +1531,14 @@ void play_level(uint8_t idx) BANKED {
 #endif
 
         PROF_MARK(7);   // column job
+        // The frame that switches maps issues no map job: it could reach the VBlank handler
+        // before the switch does and land in the map going out.
+        if (!mj_switched) {
         if (needs_render) {
             loaded_r = need_col;
             col_job_col = need_col;
             col_job_slot = (uint8_t)(need_col & 15);
-            if (player.reversed) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
+            if (view_rev) col_job_slot = (uint8_t)(-(int8_t)col_job_slot & 15);
             col_job_step = 0;
         }
         // VRAM uploads (DMG too): the VBlank handler writes them the moment VBlank starts. Done
@@ -1370,9 +1546,10 @@ void play_level(uint8_t idx) BANKED {
         // interrupt ran first. A slice the handler has uploaded counts as done.
         if (col_job_issued && !bg_cj_pending) { col_job_issued = 0; col_job_step++; }
         if (col_job_step < COL_JOB_STEPS && !col_job_issued) {
-            prepare_mt_column_slice(col_job_col, level_map, level_map_bank, player.reversed, col_job_step);
+            prepare_mt_column_slice(col_job_col, level_map, level_map_bank, view_rev, col_job_step);
             request_mt_column_slice(col_job_slot, col_job_step);
             col_job_issued = 1;
+        }
         }
 
         PROF_MARK(8);   // band, parallax, palettes, row job requests
@@ -1397,6 +1574,11 @@ void play_level(uint8_t idx) BANKED {
                 row0_job_pos = 0;
                 row0_job_issued = 0;
                 bg_rj_pending = 0;
+                if (mj_active) {
+                    // the other map needs the row too (two moves before it got the first: rebuild)
+                    if (mj_row_pending != 0xFF) mj_next = 0;
+                    mj_row_pending = row_job_row;
+                }
                 // a column slice already built is uploaded before the row job, which fixes it
                 if (col_job_step < COL_JOB_STEPS) refetch_mt_column(level_map, level_map_bank);
             }
@@ -1404,7 +1586,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (_cpu == CGB_TYPE) {
             if (setting_show_bg_enabled && setting_parallax_enabled) {
-                bg_phase = player.reversed
+                bg_phase = view_rev
                     ? (uint8_t)(scroll_px + bg_drift_px) & 63u
                     : (uint8_t)(scroll_px - bg_drift_px) & 63u;
                 if (bg_phase != last_bg_phase) {
@@ -1439,8 +1621,8 @@ void play_level(uint8_t idx) BANKED {
         // interrupt itself the instant VBlank starts (see bg_parallax_phases.c),
         // so it never depends on how late this thread wakes up.
         if (row0_job_issued && !bg_rj_pending) { row0_job_issued = 0; row0_job_pos += ROW_JOB_PER_FRAME; }
-        if (row0_job_pos < 16 && !row0_job_issued) {
-            request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, player.reversed);
+        if (row0_job_pos < 16 && !row0_job_issued && !mj_switched) {
+            request_row_slots(row0_job_pos, row_job_row, loaded_r, level_map, level_map_w, level_map_bank, view_rev);
             row0_job_issued = 1;
         }
         if (bg_gdma_isr_on) {
@@ -1452,6 +1634,7 @@ void play_level(uint8_t idx) BANKED {
         // Same for the scroll registers and the DMG palettes
         if (_cpu != CGB_TYPE) request_bg_dmg_pals(final_bgp, final_obp0, final_obp1);
         request_bg_scroll(final_scx, final_scy);
+        if (seamless && !mj_switched && end_anim_state == END_ANIM_INACTIVE && !died) mirror_job(px_curr);
 #if ENABLE_DEBUG_MODE
         if (debug_mode) {
             debug_ly = LY_REG;
@@ -1461,6 +1644,11 @@ void play_level(uint8_t idx) BANKED {
         PROF_MARK(9);   // waiting for VBlank
         bg_wait_vbl();
         PROF_MARK(10);  // after VBlank: DMG scroll / VRAM writes, saw animation
+        if (dmg_mirror_due && !died) {
+            dmg_mirror_due = 0;
+            mirror_reflect(idx);
+            PROF_MARK(10);
+        }
 
         if (died) handle_death(idx, sprite_x_final, final_py, scroll_px);
     }
@@ -1478,6 +1666,7 @@ void play_level(uint8_t idx) BANKED {
         fade_to_black(2);
         while (is_sample_playing()) wait_vbl_done();
         stop_sample();
+        LCDC_REG &= (uint8_t)~LCDCF_BG9C00;   // a mirror portal may have left the level on the 0x9C00 map
     }
 
     HIDE_SPRITES;

@@ -292,6 +292,7 @@ static GameState leave(GameState next) {
     HIDE_SPRITES;
     SCX_REG = 0;
     SCY_REG = 0;
+    LCDC_REG &= (uint8_t)~LCDCF_BG9C00;   // a mirror portal may have left the level on the 0x9C00 map
     if (next != STATE_PLAY_LEVEL) restore_menu_music();
     return next;
 }

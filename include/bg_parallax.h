@@ -27,6 +27,7 @@ extern volatile uint8_t bg_gdma_phase;
 extern volatile uint8_t bg_gdma_isr_on;
 extern volatile uint8_t bg_vbl_on;
 extern volatile uint8_t bg_vbl_seen;
+extern volatile uint8_t bg_vbl_frames;   // incremented by the VBlank handler
 extern volatile uint8_t bg_pal_request; // apply famidash_bg_palettes in the VBlank handler (CGB palette RAM is VBlank-only)
 
 // VRAM uploads done by the VBlank handler right after the parallax GDMA (fast,
@@ -55,6 +56,9 @@ extern uint16_t bg_saw_dst;
 extern volatile uint8_t bg_saw_dmg_n;
 extern uint8_t * const *bg_saw_dmg_dsts;
 extern volatile uint8_t bg_scroll_pending;
+// CGB seamless mirror portal: LCDCF_BG9800 / LCDCF_BG9C00 to switch to with the next scroll
+// latch (0xFF: none). The VBlank handler streams to the map LCDC shows.
+extern volatile uint8_t bg_lcdc_map;
 extern volatile uint8_t bg_scx;
 extern volatile uint8_t bg_scy;
 // DMG: BGP / OBP0 / OBP1 set by the VBlank handler too
@@ -68,7 +72,7 @@ void bg_parallax_vbl_isr(void);
 void init_bg_parallax(void);
 void set_bg_parallax_phase(uint8_t phase);
 // Register/unregister the VBlank handler (CGB only). Not in bank 0 to save space there.
-#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_dmg_pal_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
+#define bg_parallax_isr_start() do {     bg_gdma_pending = 0; bg_scroll_pending = 0; bg_lcdc_map = 0xFF; bg_dmg_pal_pending = 0; bg_vbl_seen = 0;     add_VBL(bg_parallax_vbl_isr); bg_vbl_on = 1;     bg_gdma_isr_on = (_cpu == CGB_TYPE); } while (0)
 #define bg_parallax_isr_stop() do {     if (bg_vbl_on) { bg_vbl_on = 0; bg_gdma_isr_on = 0; remove_VBL(bg_parallax_vbl_isr); bg_gdma_pending = 0; } } while (0)
 
 // Waits for the next VBlank. GBDK's wait_vbl_done() can sleep through a whole

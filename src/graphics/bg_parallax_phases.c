@@ -9,6 +9,7 @@ volatile uint8_t bg_gdma_phase;
 volatile uint8_t bg_gdma_isr_on;
 volatile uint8_t bg_vbl_on;
 volatile uint8_t bg_vbl_seen;
+volatile uint8_t bg_vbl_frames;   // VBlanks seen (wraps)
 volatile uint8_t bg_pal_request;
 volatile uint8_t bg_cj_pending;
 uint8_t bg_cj_x, bg_cj_y;
@@ -27,6 +28,7 @@ uint8_t * const *bg_saw_dmg_dsts;
 volatile uint8_t bg_scroll_pending;
 volatile uint8_t bg_dmg_pal_pending;
 uint8_t bg_dmg_bgp, bg_dmg_obp0, bg_dmg_obp1;
+volatile uint8_t bg_lcdc_map;   // 0xFF: none, else LCDC bit 3 to set with the next scroll latch
 volatile uint8_t bg_scx;
 volatile uint8_t bg_scy;
 
@@ -222,13 +224,21 @@ void bg_parallax_vbl_isr(void) {
     gpmark = 21;   // tools/profile.py: "VBlank handler"
 #endif
     bg_vbl_seen = 1;
+    bg_vbl_frames++;
     // Latch this frame's scroll first thing, so it can never land in the
     // visible frame however late the main thread wakes up.
     if (bg_scroll_pending) {
         bg_scroll_pending = 0;
         SCX_REG = bg_scx;
         SCY_REG = bg_scy;
+        if (bg_lcdc_map != 0xFF) {
+            // seamless mirror portal: the other BG map, in the same VBlank as its scroll
+            LCDC_REG = (uint8_t)((LCDC_REG & (uint8_t)~LCDCF_BG9C00) | bg_lcdc_map);
+            bg_lcdc_map = 0xFF;
+        }
     }
+    // the BG map shown (and streamed)
+    uint8_t *map = (LCDC_REG & LCDCF_BG9C00) ? (uint8_t *)0x9C00 : (uint8_t *)0x9800;
     if (bg_dmg_pal_pending) {
         bg_dmg_pal_pending = 0;
         BGP_REG = bg_dmg_bgp;
@@ -250,12 +260,12 @@ void bg_parallax_vbl_isr(void) {
     {
         ly = LY_REG;
         if (bg_cj_pending && ly >= 144u && ly <= 150u) {
-            up_dst = (uint8_t *)0x9800 + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
+            up_dst = map + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
             up_src = bg_cj_tiles;
             VBK_REG = 0;
             copy_rows2();
             if (bg_gdma_isr_on) {   // CGB attributes (DMG: no VRAM bank 1, it would overwrite the tiles)
-                up_dst = (uint8_t *)0x9800 + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
+                up_dst = map + ((uint16_t)bg_cj_y << 5) + bg_cj_x;
                 up_src = bg_cj_attrs;
                 VBK_REG = 1;
                 copy_rows2();
@@ -267,7 +277,7 @@ void bg_parallax_vbl_isr(void) {
         // would overwrite the new row afterwards (a stale tile while climbing fast)
         // DMG: from line 150 on it could run past VBlank (CGB, double speed: 151)
         if (bg_rj_pending && !bg_cj_pending && ly >= 144u && ly <= (bg_gdma_isr_on ? 151u : 150u)) {
-            uint8_t *row0 = (uint8_t *)0x9800 + ((uint16_t)bg_rj_y << 5) + bg_rj_x;
+            uint8_t *row0 = map + ((uint16_t)bg_rj_y << 5) + bg_rj_x;
             VBK_REG = 0;
             up_dst = row0; up_src = bg_rj_tiles; copy_row16x2();
             if (bg_gdma_isr_on) {

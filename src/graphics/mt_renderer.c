@@ -163,6 +163,23 @@ static void copy_tiles_strided(void) __naked {
     __endasm;
 }
 
+// CGB mirror mode by attribute: the tiles stay the normal sheet and the metatile tiles get the
+// X flip attribute (tools/build_bg_tiles.py: the mirrored sheet / extra tiles are exactly the
+// normal ones flipped). Off on DMG, and for a level with bank 0 tiles that are never mirrored
+// (they would show flipped): those load the mirrored sheet like DMG.
+uint8_t mt_cgb_flip;
+void bg_level_set_flip_mode(uint8_t level) BANKED {
+    mt_cgb_flip = 0;
+    if (_cpu != CGB_TYPE) return;
+    if (level < BG_LEVEL_COUNT) {
+        const uint8_t *r = bg_level_cgb[level];
+        for (uint8_t n = *r++; n; n--, r += 4) {
+            if ((r[0] & 0x80) && !(r[0] & 1)) return;
+        }
+    }
+    mt_cgb_flip = 1;
+}
+
 // VRAM address of BG tile slot (BG tiles 0..127 are at 0x9000, 128..255 at 0x8800)
 #define BG_TILE_ADDR(slot) ((uint8_t *)((((slot) < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)(slot) << 4)))
 
@@ -195,7 +212,7 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
             // BG tiles 0..127 are at 0x9000, 128..255 at 0x8800
             saw_dmg_dst[first_tile - saw_frame_first[0]] = (uint8_t *)((dst < 128u ? 0x9000u : 0x8000u) + ((uint16_t)dst << 4));
         }
-        if (reversed && !(bank & 0x80)) src += 16;
+        if (reversed && !(bank & 0x80) && !mt_cgb_flip) src += 16;
         if (cgb) VBK_REG = bank & 1;
         if (display_off) {
             if (dst < 128u && (uint8_t)(dst + count) > 128u) {
@@ -324,6 +341,7 @@ static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of
 static uint8_t bm_info[256];        // per metatile: palette | 0x80 if it is drawn as a saw (C fix-up)
 static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws) bm_info was built for
 static uint8_t bm_saw;              // the asm saw a saw metatile
+static uint8_t bm_flip;             // 0x20 (X flip) in CGB flip mirror mode, else 0
 static uint8_t row_r0[16];          // first parallax tile of each VRAM metatile row (for mt_band)
 static uint8_t row_r0_band = 0xFF;
 
@@ -376,6 +394,8 @@ static void build_rows_cgb_asm(void) __naked {
         ld      hl, #_bm_saw
         ld      (hl), #1
     5$:
+        ld      hl, #_bm_flip
+        or      a, (hl)
         ld      (_bm_pal), a
         pop     af
         ld      l, a
@@ -387,7 +407,7 @@ static void build_rows_cgb_asm(void) __naked {
         ld      l, a
         ld      a, (_bm_tab + 1)
         adc     a, h
-        ld      h, a                    ; hl = the metatile's 4 tiles
+        ld      h, a                    ; hl = the 4 tiles of the metatile
         ld      a, (hl+)
         cp      a, #12
         jr      NZ, 30$
@@ -515,9 +535,10 @@ static void build_rows_dmg_asm(void) __naked {
     __endasm;
 }
 
-static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
-    bm_src = col_buf + r_start;
-    bm_dst = metatile_column_tiles + ((uint8_t)r_start << 2);
+// ids: the column's 16 metatile ids (VRAM rows), out: 64 tile bytes then 64 attribute bytes
+static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, uint8_t reversed, uint8_t r_start, uint8_t r_end) {
+    bm_src = ids + r_start;
+    bm_dst = out + ((uint8_t)r_start << 2);
     bm_tab = reversed ? &mt_tab_rev[0][0] : &mt_tab[0][0];
     bm_n = (uint8_t)(r_end - r_start);
     if (_cpu != CGB_TYPE) {
@@ -525,10 +546,11 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
         return;
     }
 
-    uint8_t vram_slot = (uint8_t)(cur_map_col & 15u);
+    uint8_t vram_slot = (uint8_t)(map_col & 15u);
     if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
     uint8_t tl_x = (uint8_t)((vram_slot & 3u) << 1);
     uint8_t tr_x = tl_x + 1u;
+    bm_flip = (reversed && mt_cgb_flip) ? 0x20 : 0;
     bm_off[0] = tl_x; bm_off[1] = tr_x;
     bm_off[2] = (uint8_t)(tl_x + 8u); bm_off[3] = (uint8_t)(tr_x + 8u);
 
@@ -554,8 +576,8 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     uint8_t gr = (uint8_t)(GROUND_ROW & 15u);
     uint8_t has_ground = ((uint8_t)(GROUND_ROW - mt_band) <= 15u && gr >= r_start && gr < r_end);
     if (has_ground) {
-        uint8_t *d = metatile_column_tiles + (gr << 2);
-        uint8_t *da = metatile_column_attributes + (gr << 2);
+        uint8_t *d = out + (gr << 2);
+        uint8_t *da = out + BKG_MT_H * 4 + (gr << 2);
         d[0] = ground_top[tl_x]; d[1] = ground_top[tr_x];
         d[2] = ground_bot[tl_x]; d[3] = ground_bot[tr_x];
         da[0] = da[1] = da[2] = da[3] = 0x0C;   // Bank 1 + Palette 4
@@ -563,12 +585,12 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
     // Saw metatiles: bank 1 tiles (mirrored when reversed)
     if (!bm_saw) return;
     for (uint8_t r = r_start; r < r_end; r++) {
-        uint8_t metatile_id = col_buf[r];
+        uint8_t metatile_id = ids[r];
         uint8_t si = saw_mt_index[metatile_id];
         if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws) && !(has_ground && r == gr)) {
             uint8_t r0 = row_r0[r];
-            saw_dst = metatile_column_tiles + (r << 2);
-            saw_dst_attr = metatile_column_attributes + (r << 2);
+            saw_dst = out + (r << 2);
+            saw_dst_attr = out + BKG_MT_H * 4 + (r << 2);
             put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
         }
     }
@@ -577,7 +599,7 @@ static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
 void prepare_mt_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed) BANKED {
     cur_map_col = map_col;
     get_map_column(map_col, map, map_bank, col_buf, mt_band);
-    build_mt_rows(reversed, 0, BKG_MT_H);
+    build_mt_rows(map_col, col_buf, metatile_column_buf, reversed, 0, BKG_MT_H);
 }
 
 // Sliced version: step 0..3 builds metatile rows 4*step .. 4*step+3
@@ -598,7 +620,7 @@ void prepare_mt_column_slice(uint16_t map_col, const uint8_t* map, uint8_t map_b
 #ifdef DEBUG_PROFILE_NOINT
     disable_interrupts();
 #endif
-    build_mt_rows(reversed, (uint8_t)(step << 2), (uint8_t)((step << 2) + 4u));
+    build_mt_rows(cur_map_col, col_buf, metatile_column_buf, reversed, (uint8_t)(step << 2), (uint8_t)((step << 2) + 4u));
 #ifdef DEBUG_PROFILE_NOINT
     enable_interrupts();
 #endif
@@ -649,13 +671,14 @@ void flush_mt_column(uint8_t ring_col) BANKED {
     uint8_t bx = ring_col << 1;
     if (!(LCDC_REG & LCDCF_ON)) {
         // display off (level start, respawn, mirror portal): plain writes, no STAT waits
-        fc_dst = (uint8_t *)0x9800 + bx;
+        uint8_t *map = (LCDC_REG & LCDCF_BG9C00) ? (uint8_t *)0x9C00 : (uint8_t *)0x9800;
+        fc_dst = map + bx;
         VBK_REG = VBK_TILES;
         fc_src = metatile_column_tiles;
         flush_col_plain();
         if (_cpu == CGB_TYPE) {
             VBK_REG = VBK_ATTRIBUTES;
-            fc_dst = (uint8_t *)0x9800 + bx;
+            fc_dst = map + bx;
             fc_src = metatile_column_attributes;
             flush_col_plain();
             VBK_REG = VBK_TILES;
@@ -788,6 +811,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
     }
     get_map_row_slots(first, n, row, loaded_r, reversed, map, map_w, map_bank, ids);
     uint8_t r0 = row_ty0[row];
+    uint8_t flip = (reversed && mt_cgb_flip) ? 0x20 : 0;
     for (uint8_t i = 0; i < n; i++) {
         uint8_t tiles[4];
         uint8_t attrs[4];
@@ -805,7 +829,7 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
                 attrs[q] = 0x0B;
             } else {
                 tiles[q] = t;
-                attrs[q] = pal;
+                attrs[q] = (uint8_t)(pal | flip);
             }
         }
         uint8_t si = saw_mt_index[mt_id];
@@ -856,4 +880,175 @@ void flush_ground_row(void) BANKED {
     VBK_REG = 1;
     fill_bkg_rect(0, y, 32, 2, 0x0C);
     VBK_REG = 0;
+}
+
+// ---- CGB seamless mirror portal (gameplay.c): the mirrored picture is built in the BG map that
+// is not shown, a column / map row at a time while the game runs, then LCDC switches maps. That
+// map is not displayed, but VRAM is still locked while the PPU draws (mode 3), so the writes go
+// in short bursts at the start of HBlank (>= 167 dots until the next mode 3: the rest of
+// HBlank plus mode 2). Double speed only (CGB): a burst is <= ~130 dots.
+static const uint8_t *mjw_src;
+static uint8_t *mjw_dst;
+static uint8_t mjw_n;
+static uint8_t mj_col[16];
+static uint8_t mj_out[BKG_MT_H * 8];
+
+// Returns at the start of an HBlank with interrupts disabled (the caller enables them again).
+// Interrupts stay enabled while waiting for mode 3.
+static void hblank_sync(void) __naked {
+    __asm
+    1$:
+        ei
+        ldh     a, (_STAT_REG + 0)
+        and     a, #3
+        cp      a, #3
+        jr      NZ, 1$                  ; wait for mode 3 (drawing)
+        di
+        ldh     a, (_STAT_REG + 0)
+        and     a, #3
+        cp      a, #3
+        jr      NZ, 1$                  ; an interrupt ran in between: again
+    2$:
+        ldh     a, (_STAT_REG + 0)
+        and     a, #3
+        jr      NZ, 2$                  ; wait for mode 0 (HBlank)
+        ret
+    __endasm;
+}
+
+// 2 bytes x 32 rows from mjw_src (contiguous) to mjw_dst (rows 32 bytes apart), 4 rows a burst
+static void mj_write_col_asm(void) __naked {
+    __asm
+        ld      a, #8
+        ld      (_mjw_n), a
+        ld      hl, #_mjw_src
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = source
+        ld      hl, #_mjw_dst
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = map
+        ld      bc, #31
+    1$:
+        call    _hblank_sync
+        .rept 4
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        ld      a, (de)
+        inc     de
+        ld      (hl), a
+        add     hl, bc
+        .endm
+        ei
+        ld      a, (_mjw_n)
+        dec     a
+        ld      (_mjw_n), a
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+// mjw_n x 8 contiguous bytes from mjw_src to mjw_dst, 8 bytes a burst
+static void mj_write_run_asm(void) __naked {
+    __asm
+        ld      hl, #_mjw_src
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      hl, #_mjw_dst
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+    1$:
+        call    _hblank_sync
+        .rept 8
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        .endm
+        ei
+        ld      a, (_mjw_n)
+        dec     a
+        ld      (_mjw_n), a
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+// Map column map_col for `reversed` (current mt_band) into its ring slot of the BG map at
+// map_hi << 8 (0x98 / 0x9C). CGB, display on.
+void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
+    uint8_t slot = (uint8_t)(map_col & 15u);
+    if (reversed) slot = (uint8_t)(-(int8_t)slot & 15u);
+    get_map_column(map_col, map, map_bank, mj_col, mt_band);
+    build_mt_rows(map_col, mj_col, mj_out, reversed, 0, BKG_MT_H);
+    uint8_t *dst = (uint8_t *)((uint16_t)map_hi << 8) + (uint8_t)(slot << 1);
+    VBK_REG = 0;
+    mjw_src = mj_out; mjw_dst = dst;
+    mj_write_col_asm();
+    VBK_REG = 1;
+    mjw_src = mj_out + BKG_MT_H * 4; mjw_dst = dst;
+    mj_write_col_asm();
+    VBK_REG = 0;
+}
+
+// Map row `row` (all 16 ring positions, the columns loaded_r maps them to) into the BG map at
+// map_hi << 8. CGB, display on.
+void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED {
+    uint8_t *base = (uint8_t *)((uint16_t)map_hi << 8) + ((uint16_t)(row & 15u) << 6);
+    for (uint8_t half = 0; half < 2; half++) {
+        build_row_slots((uint8_t)(half << 3), BG_RJ_SLOTS, row, loaded_r, map, map_w, map_bank, reversed);
+        uint8_t *d = base + (uint8_t)(half << 4);
+        for (uint8_t b = 0; b < 2; b++) {
+            VBK_REG = b;
+            mjw_src = b ? row_attrs[0] : row_tiles[0]; mjw_dst = d; mjw_n = 2;
+            mj_write_run_asm();
+            mjw_src = b ? row_attrs[1] : row_tiles[1]; mjw_dst = d + 32; mjw_n = 2;
+            mj_write_run_asm();
+        }
+    }
+    VBK_REG = 0;
+}
+
+// DMG mirror portal, display off: mirrors the 0x9800 map in place. On DMG a reversed column is
+// the normal one with its left / right tiles swapped (same tile ids, the mirrored sheet) in ring
+// slot (-col) & 15, so the whole map is its own mirror image: tile x goes to (1 - x) & 31.
+static void reflect_map_asm(void) __naked {
+    __asm
+        ld      hl, #0x9800
+        ld      b, #32
+    1$:
+        push    hl
+        ld      a, (hl+)                ; swap x 0 and 1
+        ld      c, (hl)
+        ld      (hl-), a
+        ld      (hl), c
+        ld      d, h
+        ld      a, l
+        add     a, #2
+        ld      e, a                    ; de = x 2 (rows are 32-byte aligned: no carry)
+        ld      a, l
+        add     a, #31
+        ld      l, a                    ; hl = x 31
+        .rept 15                        ; swap x 2..16 with 31..17
+        ld      a, (de)
+        ld      c, (hl)
+        ld      (hl-), a
+        ld      a, c
+        ld      (de), a
+        inc     e
+        .endm
+        pop     hl
+        ld      de, #32
+        add     hl, de
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+void bg_map_reflect(void) BANKED {
+    reflect_map_asm();
 }

@@ -110,6 +110,16 @@ void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED;
 extern uint8_t mt_spike_b;
 // Level background tiles on top of the base sheet (tools/build_bg_tiles.py)
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED;
+// CGB: mirror mode by the X flip attribute (normal tiles), see mt_renderer.c. Set per level
+// before its tiles are loaded.
+extern uint8_t mt_cgb_flip;
+void bg_level_set_flip_mode(uint8_t level) BANKED;
+// CGB seamless mirror portal: build a map column / row into the BG map at map_hi << 8 with the
+// display on (HBlank-synced writes)
+// DMG mirror portal, display off: mirror the 0x9800 map in place
+void bg_map_reflect(void) BANKED;
+void mj_build_column(uint16_t map_col, const uint8_t* map, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED;
+void mj_build_row(uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed, uint8_t map_hi) BANKED;
 // Saw animation (see mt_renderer.c): call before waiting for VBlank, the VBlank handler uploads
 void saw_anim_request(void) BANKED;
 extern uint8_t saw_on;   // the level has saws (mt_renderer.c)
