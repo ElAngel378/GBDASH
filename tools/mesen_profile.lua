@@ -3,7 +3,7 @@
 -- The profiling build writes a section id to gpmark at the start of every section of
 -- play_level()'s loop (PROF_MARK in src/gameplay.c). 9 = waiting for VBlank, 10 = after it.
 -- The interrupt handlers mark themselves (20 music, 21 VBlank) and restore the section after.
--- Placeholders filled in by profile.py: @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@ @MUSIC_ADDR@ @JUMP@
+-- Placeholders filled in by profile.py: @MIRROR@ @PLAYER_PTR_ADDR@ @MARK_ADDR@ @CAMX_ADDR@ @RUN_FRAMES@ @SKIP_FRAMES@ @LEVEL@ @LEVEL_ADDR@ @MUSIC_ADDR@ @JUMP@
 -- The ROM waits at boot until the level number + 1 is written to gplevel (src/main.c).
 
 local MARK = @MARK_ADDR@
@@ -36,6 +36,10 @@ local JUMP = @JUMP@                      -- profile.py --jump N: A held 6 frames
 if JUMP > 0 then
   emu.addEventCallback(function() emu.setInput({a = (frame % JUMP) < 6}, 0) end, emu.eventType.inputPolled)
 end
+
+local MIRROR = @MIRROR@                    -- profile.py --mirror N: flip player.reversed every N frames
+local PLAYER_PTR = @PLAYER_PTR_ADDR@
+local REVERSED_OFS = 10                    -- offsetof(Player, reversed)
 
 local function camx() return emu.read(CAMX, MEM) + 256 * emu.read(CAMX + 1, MEM) end
 
@@ -82,6 +86,10 @@ emu.addEventCallback(function()
   if not level_set then
     if last_cycles ~= nil then level_set = true else emu.write(@LEVEL_ADDR@, @LEVEL@ + 1, MEM) end
     if MUSIC_ADDR then emu.write(MUSIC_ADDR, 0, MEM) end
+  end
+  if MIRROR > 0 and frame > SKIP_FRAMES and (frame - SKIP_FRAMES) % MIRROR == 0 then
+    local p = emu.read(PLAYER_PTR, MEM) + 256 * emu.read(PLAYER_PTR + 1, MEM)
+    emu.write(p + REVERSED_OFS, 1 - emu.read(p + REVERSED_OFS, MEM), MEM)
   end
   local c = emu.getState()["cpu.cycleCount"]
   if prev_frame_cycles then frame_cycles = c - prev_frame_cycles end

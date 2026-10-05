@@ -125,6 +125,7 @@ extern uint8_t mt_band;
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 
+void vram_copy(uint8_t *dst, const uint8_t *src, uint16_t n);   // display off, n % 16 == 0, 16-aligned dst
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank);
 void load_collision_columns(uint16_t map_col, const uint8_t* map,
                             uint16_t map_w, uint8_t map_bank,

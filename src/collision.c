@@ -2,6 +2,7 @@
 #include "collision.h"
 #include "famidash_metatiles.h"
 #include <string.h>
+#include <gb/cgb.h>
 
 #define BKG_MT_H 16
 
@@ -87,17 +88,119 @@ uint8_t col_at(
     return res;
 }
 
+// Display-off VRAM copy of n bytes (a multiple of 16) to a 16-byte aligned dst: general purpose
+// DMA on CGB when src is 16-byte aligned too (the DMA ignores the low 4 bits of the source; 16
+// bytes per 8 cycles, the CPU halts), an unrolled loop otherwise. The ROM bank holding src must
+// already be switched in.
+static const uint8_t *vc_src;
+static uint8_t *vc_dst;
+static uint16_t vc_blocks;   // 16-byte blocks left
+static void vram_copy_dmg(void) __naked {
+    __asm
+        ld      hl, #_vc_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = dst
+        ld      hl, #_vc_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = src
+        ld      bc, #_vc_blocks
+        ld      a, (bc)
+        ld      c, a
+        ld      a, (_vc_blocks + 1)
+        ld      b, a                    ; bc = blocks (never 0)
+    1$:
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de                      ; e wrapped to the next block: carry into d
+        dec     bc
+        ld      a, b
+        or      a, c
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+void vram_copy(uint8_t *dst, const uint8_t *src, uint16_t n) {
+    if (!n) return;
+    if (_cpu == CGB_TYPE && !((uint8_t)src & 15u)) {
+        while (n) {
+            uint8_t b = (n >= 2048u) ? 128u : (uint8_t)(n >> 4);
+            HDMA1_REG = (uint8_t)((uint16_t)src >> 8);
+            HDMA2_REG = (uint8_t)src;
+            HDMA3_REG = (uint8_t)((uint16_t)dst >> 8);
+            HDMA4_REG = (uint8_t)dst;
+            HDMA5_REG = (uint8_t)(b - 1u);   // bit 7 clear: general purpose DMA
+            src += (uint16_t)b << 4;
+            dst += (uint16_t)b << 4;
+            n -= (uint16_t)b << 4;
+        }
+        return;
+    }
+    vc_src = src;
+    vc_dst = dst;
+    vc_blocks = n >> 4;
+    vram_copy_dmg();
+}
+
 // Upload tileset graphics to VRAM
 void load_bkg_tileset(const uint8_t* tiles, uint16_t tile_count, uint8_t bank) {
   uint8_t _prev = _current_bank;
+  uint8_t lcd_on = LCDC_REG & LCDCF_ON;   // read first: SDCC miscompiled the test inside the if
   SWITCH_ROM(bank);
   VBK_REG = VBK_TILES;
   // BG tiles 0..127 and 128.. are separate VRAM blocks (0x9000 / 0x8800)
-  if (!(LCDC_REG & LCDCF_ON)) {
+  if (!lcd_on) {
     // display off: VRAM is always accessible, plain copies (set_bkg_data waits on STAT per byte)
     uint16_t lo = (tile_count > 128u) ? 128u : tile_count;
-    memcpy((uint8_t *)0x9000, tiles, lo * 16u);
-    if (tile_count > 128u) memcpy((uint8_t *)0x8800, tiles + 128u * 16u, (tile_count - 128u) * 16u);
+    vram_copy((uint8_t *)0x9000, tiles, lo * 16u);
+    if (tile_count > 128u) vram_copy((uint8_t *)0x8800, tiles + 128u * 16u, (tile_count - 128u) * 16u);
   } else if (tile_count > 128u) {
     set_bkg_data(0, 128, tiles);
     set_bkg_data(128, (uint8_t)(tile_count - 128u), tiles + (128u * 16u));

@@ -85,12 +85,94 @@ void saw_anim_request(void) BANKED {
     saw_issued = 1;
 }
 
+// Display off: `count` tiles from sc_src (every other 16 bytes: bg_extra_tiles holds normal +
+// mirrored) to consecutive tile slots at sc_dst.
+static const uint8_t *sc_src;
+static uint8_t *sc_dst;
+static uint8_t sc_count;
+static void copy_tiles_strided(void) __naked {
+    __asm
+        ld      hl, #_sc_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = VRAM
+        ld      hl, #_sc_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = source
+        ld      a, (_sc_count)
+        ld      b, a
+    1$:
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, l
+        add     a, #16                  ; skip the other orientation
+        ld      l, a
+        jr      NC, 2$
+        inc     h
+    2$:
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+// VRAM address of BG tile slot (BG tiles 0..127 are at 0x9000, 128..255 at 0x8800)
+#define BG_TILE_ADDR(slot) ((uint8_t *)((((slot) < 128u) ? 0x9000u : 0x8000u) + ((uint16_t)(slot) << 4)))
+
 // Called after the base sheet was uploaded (display off). level: game_levels index.
 void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     const uint8_t *r;
     const uint8_t *ov;
     uint8_t n, n_moves, n_over, buf[16];
     uint8_t cgb = (_cpu == CGB_TYPE);
+    uint8_t display_off = !(LCDC_REG & LCDCF_ON);
     mt_saws = cgb;
     mt_big_saws = 0;
     saw_on = 0;
@@ -115,9 +197,25 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
         }
         if (reversed && !(bank & 0x80)) src += 16;
         if (cgb) VBK_REG = bank & 1;
-        while (count--) {
-            set_bkg_data(dst++, 1, src);
-            src += 32;
+        if (display_off) {
+            if (dst < 128u && (uint8_t)(dst + count) > 128u) {
+                // the run crosses from 0x9000.. to 0x8800..
+                uint8_t first = (uint8_t)(128u - dst);
+                sc_src = src; sc_dst = BG_TILE_ADDR(dst); sc_count = first;
+                copy_tiles_strided();
+                src += (uint16_t)first << 5;
+                dst = 128u; count -= first;
+            }
+            if (count) {
+                sc_src = src; sc_dst = BG_TILE_ADDR(dst); sc_count = count;
+                copy_tiles_strided();
+            }
+            count = 0;
+        } else {
+            while (count--) {
+                set_bkg_data(dst++, 1, src);
+                src += 32;
+            }
         }
         if (cgb) VBK_REG = VBK_TILES;
     }
@@ -138,8 +236,12 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     }
     for (n = n_moves, r++; n; n--) {
         uint8_t dst = *r++, src = *r++;
-        get_bkg_data(src, 1, buf);
-        set_bkg_data(dst, 1, buf);
+        if (display_off) {
+            memcpy(BG_TILE_ADDR(dst), BG_TILE_ADDR(src), 16);
+        } else {
+            get_bkg_data(src, 1, buf);
+            set_bkg_data(dst, 1, buf);
+        }
         mt_xlat[src] = dst;
     }
     mt_tab = mt_ram[0];
@@ -199,74 +301,276 @@ static const uint8_t row_ty0[48] = {
 };
 #define BAND_ROW(k) ((uint8_t)(mt_band + ((uint8_t)((k) - mt_band) & 15u)))
 
-static uint8_t metatile_column_tiles[BKG_MT_H * 4];
-static uint8_t metatile_column_attributes[BKG_MT_H * 4];
+static uint8_t metatile_column_buf[BKG_MT_H * 8];   // tiles, then (+BKG_MT_H * 4) attributes
+#define metatile_column_tiles       (metatile_column_buf)
+#define metatile_column_attributes  (metatile_column_buf + BKG_MT_H * 4)
 static uint8_t col_buf[16];
 
 static uint16_t cur_map_col;
 
 // Builds VRAM metatile rows [r_start, r_end) of the column in col_buf into
 // metatile_column_tiles/attributes.
+//
+// CGB: hand-written loop for the common metatile (tiles from the table, the empty tile 12
+// becomes the parallax tile of the row/slot, attribute = metatile palette or 0x0B for the
+// parallax), then C fixes up the ground row and the saw metatiles. DMG: 4 table bytes per row.
+static const uint8_t *bm_src;       // metatile ids of the first row
+static uint8_t *bm_dst;             // tiles of the first row (attributes: +BKG_MT_H * 4)
+static const uint8_t *bm_tab;       // metatile table (4 tile ids per metatile)
+static const uint8_t *bm_r0p;       // row_r0 of the first row
+static uint8_t bm_n;                // rows
+static uint8_t bm_pal, bm_r0cur;
+static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
+static uint8_t bm_info[256];        // per metatile: palette | 0x80 if it is drawn as a saw (C fix-up)
+static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws) bm_info was built for
+static uint8_t bm_saw;              // the asm saw a saw metatile
+static uint8_t row_r0[16];          // first parallax tile of each VRAM metatile row (for mt_band)
+static uint8_t row_r0_band = 0xFF;
+
+static void build_rows_cgb_asm(void) __naked {
+    __asm
+        ld      hl, #_bm_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = tiles
+        ld      a, e
+        add     a, #64
+        ld      c, a
+        ld      a, d
+        adc     a, #0
+        ld      b, a                    ; bc = attributes (tiles + 64)
+    1$:
+        ; row start: id = *bm_src++, r0 = *bm_r0p++
+        ld      hl, #_bm_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, (hl+)                ; a = metatile id
+        push    af
+        ld      a, l
+        ld      (_bm_src), a
+        ld      a, h
+        ld      (_bm_src + 1), a
+        ld      hl, #_bm_r0p
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, (hl+)
+        ld      (_bm_r0cur), a
+        ld      a, l
+        ld      (_bm_r0p), a
+        ld      a, h
+        ld      (_bm_r0p + 1), a
+        pop     af                      ; a = id
+        push    af
+        ld      hl, #_bm_info
+        add     a, l
+        ld      l, a
+        jr      NC, 2$
+        inc     h
+    2$:
+        ld      a, (hl)
+        bit     7, a
+        jr      Z, 5$
+        and     a, #0x7F
+        ld      hl, #_bm_saw
+        ld      (hl), #1
+    5$:
+        ld      (_bm_pal), a
+        pop     af
+        ld      l, a
+        ld      h, #0
+        add     hl, hl
+        add     hl, hl
+        ld      a, (_bm_tab)
+        add     a, l
+        ld      l, a
+        ld      a, (_bm_tab + 1)
+        adc     a, h
+        ld      h, a                    ; hl = the metatile's 4 tiles
+        ld      a, (hl+)
+        cp      a, #12
+        jr      NZ, 30$
+        push    hl
+        ld      hl, #(_bm_off + 0)
+        ld      a, (_bm_r0cur)
+        add     a, (hl)
+        pop     hl
+        ld      (de), a
+        inc     de
+        ld      a, #0x0B
+        jr      40$
+    30$:
+        ld      (de), a
+        inc     de
+        ld      a, (_bm_pal)
+    40$:
+        ld      (bc), a
+        inc     bc
+        ld      a, (hl+)
+        cp      a, #12
+        jr      NZ, 31$
+        push    hl
+        ld      hl, #(_bm_off + 1)
+        ld      a, (_bm_r0cur)
+        add     a, (hl)
+        pop     hl
+        ld      (de), a
+        inc     de
+        ld      a, #0x0B
+        jr      41$
+    31$:
+        ld      (de), a
+        inc     de
+        ld      a, (_bm_pal)
+    41$:
+        ld      (bc), a
+        inc     bc
+        ld      a, (hl+)
+        cp      a, #12
+        jr      NZ, 32$
+        push    hl
+        ld      hl, #(_bm_off + 2)
+        ld      a, (_bm_r0cur)
+        add     a, (hl)
+        pop     hl
+        ld      (de), a
+        inc     de
+        ld      a, #0x0B
+        jr      42$
+    32$:
+        ld      (de), a
+        inc     de
+        ld      a, (_bm_pal)
+    42$:
+        ld      (bc), a
+        inc     bc
+        ld      a, (hl+)
+        cp      a, #12
+        jr      NZ, 33$
+        push    hl
+        ld      hl, #(_bm_off + 3)
+        ld      a, (_bm_r0cur)
+        add     a, (hl)
+        pop     hl
+        ld      (de), a
+        inc     de
+        ld      a, #0x0B
+        jr      43$
+    33$:
+        ld      (de), a
+        inc     de
+        ld      a, (_bm_pal)
+    43$:
+        ld      (bc), a
+        inc     bc
+        ld      a, (_bm_n)
+        dec     a
+        ld      (_bm_n), a
+        jp      NZ, 1$
+        ret
+    __endasm;
+}
+
+static void build_rows_dmg_asm(void) __naked {
+    __asm
+        ld      hl, #_bm_src
+        ld      a, (hl+)
+        ld      c, a
+        ld      b, (hl)                 ; bc = metatile ids
+        ld      hl, #_bm_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = tiles
+    1$:
+        ld      a, (bc)
+        inc     bc
+        ld      l, a
+        ld      h, #0
+        add     hl, hl
+        add     hl, hl
+        ld      a, (_bm_tab)
+        add     a, l
+        ld      l, a
+        ld      a, (_bm_tab + 1)
+        adc     a, h
+        ld      h, a
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ld      a, (hl)
+        ld      (de), a
+        inc     de
+        ld      a, (_bm_n)
+        dec     a
+        ld      (_bm_n), a
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
 static void build_mt_rows(uint8_t reversed, uint8_t r_start, uint8_t r_end) {
-    uint8_t tl_x = 0;
-    uint8_t tr_x = 1;
-    if (_cpu == CGB_TYPE) {
-        uint8_t vram_slot = (uint8_t)(cur_map_col & 15u);
-        if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
-        tl_x = (uint8_t)((vram_slot & 3u) << 1);
-        tr_x = tl_x + 1u;
+    bm_src = col_buf + r_start;
+    bm_dst = metatile_column_tiles + ((uint8_t)r_start << 2);
+    bm_tab = reversed ? &mt_tab_rev[0][0] : &mt_tab[0][0];
+    bm_n = (uint8_t)(r_end - r_start);
+    if (_cpu != CGB_TYPE) {
+        build_rows_dmg_asm();
+        return;
     }
 
-    const uint8_t *map_ptr = col_buf + r_start;
-    const uint8_t (*mt_table)[4] = reversed ? mt_tab_rev : mt_tab;
-    uint8_t *dst = metatile_column_tiles + ((uint8_t)r_start << 2);
+    uint8_t vram_slot = (uint8_t)(cur_map_col & 15u);
+    if (reversed) vram_slot = (uint8_t)(-(int8_t)vram_slot & 15u);
+    uint8_t tl_x = (uint8_t)((vram_slot & 3u) << 1);
+    uint8_t tr_x = tl_x + 1u;
+    bm_off[0] = tl_x; bm_off[1] = tr_x;
+    bm_off[2] = (uint8_t)(tl_x + 8u); bm_off[3] = (uint8_t)(tr_x + 8u);
 
-    if (_cpu == CGB_TYPE) {
-        uint8_t *dst_attr = metatile_column_attributes + ((uint8_t)r_start << 2);
-        for (uint8_t r = r_start; r < r_end; r++) {
-            uint8_t metatile_id = *map_ptr++;
-            uint8_t m = BAND_ROW(r);
-            if (m == GROUND_ROW) {
-                *dst++ = ground_top[tl_x];
-                *dst++ = ground_top[tr_x];
-                *dst++ = ground_bot[tl_x];
-                *dst++ = ground_bot[tr_x];
-                *dst_attr++ = 0x0C; // Bank 1 + Palette 4
-                *dst_attr++ = 0x0C;
-                *dst_attr++ = 0x0C;
-                *dst_attr++ = 0x0C;
-                continue;
-            }
-            uint8_t r0 = row_ty0[m];
-            uint8_t r1 = r0 + 8u;
-            uint8_t si = saw_mt_index[metatile_id];
-            if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws)) {
-                saw_dst = dst; saw_dst_attr = dst_attr;
-                put_saw(si, reversed, r0, r1, tl_x, tr_x);
-                dst += 4; dst_attr += 4;
-                continue;
-            }
-            const uint8_t *tiles = mt_table[metatile_id];
-            uint8_t palette = famidash_metatile_palettes[metatile_id];
-            uint8_t t;
-            t = tiles[0];
-            if (t == 12) { *dst++ = r0 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
-            t = tiles[1];
-            if (t == 12) { *dst++ = r0 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
-            t = tiles[2];
-            if (t == 12) { *dst++ = r1 + tl_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
-            t = tiles[3];
-            if (t == 12) { *dst++ = r1 + tr_x; *dst_attr++ = 0x0B; } else { *dst++ = t; *dst_attr++ = palette; }
-        }
-    } else {
-        // DMG: a metatile's 4 tile ids are exactly its 4 column entries
-        const uint8_t *base = &mt_table[0][0];
-        uint8_t n = (uint8_t)(r_end - r_start);
+    if (row_r0_band != mt_band) {
+        for (uint8_t r = 0; r < 16; r++) row_r0[r] = row_ty0[BAND_ROW(r)];
+        row_r0_band = mt_band;
+    }
+    bm_r0p = row_r0 + r_start;
+    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws);
+    if (key != bm_info_key) {
+        uint8_t n = 0;
         do {
-            const uint8_t *t = base + ((uint16_t)(*map_ptr++) << 2);
-            dst[0] = t[0]; dst[1] = t[1]; dst[2] = t[2]; dst[3] = t[3];
-            dst += 4;
-        } while (--n);
+            uint8_t info = famidash_metatile_palettes[n];
+            if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
+            bm_info[n] = info;
+        } while (++n);
+        bm_info_key = key;
+    }
+    bm_saw = 0;
+    build_rows_cgb_asm();
+
+    // The ground row (below the map) shows the ground strip
+    uint8_t gr = (uint8_t)(GROUND_ROW & 15u);
+    uint8_t has_ground = ((uint8_t)(GROUND_ROW - mt_band) <= 15u && gr >= r_start && gr < r_end);
+    if (has_ground) {
+        uint8_t *d = metatile_column_tiles + (gr << 2);
+        uint8_t *da = metatile_column_attributes + (gr << 2);
+        d[0] = ground_top[tl_x]; d[1] = ground_top[tr_x];
+        d[2] = ground_bot[tl_x]; d[3] = ground_bot[tr_x];
+        da[0] = da[1] = da[2] = da[3] = 0x0C;   // Bank 1 + Palette 4
+    }
+    // Saw metatiles: bank 1 tiles (mirrored when reversed)
+    if (!bm_saw) return;
+    for (uint8_t r = r_start; r < r_end; r++) {
+        uint8_t metatile_id = col_buf[r];
+        uint8_t si = saw_mt_index[metatile_id];
+        if (si && mt_saws && (metatile_id != SAW_CENTER_MT || mt_big_saws) && !(has_ground && r == gr)) {
+            uint8_t r0 = row_r0[r];
+            saw_dst = metatile_column_tiles + (r << 2);
+            saw_dst_attr = metatile_column_attributes + (r << 2);
+            put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
+        }
     }
 }
 
@@ -309,21 +613,53 @@ void refetch_mt_column(const uint8_t* map, uint8_t map_bank) BANKED {
     get_map_column(cur_map_col, map, map_bank, col_buf, mt_band);
 }
 
+// Display off: the 2 x 32 bytes at fc_src to the 2 map columns at fc_dst (32 rows, 32 bytes apart)
+static const uint8_t *fc_src;
+static uint8_t *fc_dst;
+static void flush_col_plain(void) __naked {
+    __asm
+        ld      hl, #_fc_dst
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)                 ; de = map address
+        ld      hl, #_fc_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = source
+        ld      b, #32
+    1$:
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        ld      a, (hl+)
+        ld      (de), a
+        ld      a, e
+        add     a, #31
+        ld      e, a
+        jr      NC, 2$
+        inc     d
+    2$:
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
 void flush_mt_column(uint8_t ring_col) BANKED {
     uint8_t bx = ring_col << 1;
     if (!(LCDC_REG & LCDCF_ON)) {
         // display off (level start, respawn, mirror portal): plain writes, no STAT waits
-        uint8_t cgb = (_cpu == CGB_TYPE);
-        for (uint8_t pass = 0; pass <= cgb; pass++) {
-            const uint8_t *src = pass ? metatile_column_attributes : metatile_column_tiles;
-            uint8_t *d = (uint8_t *)0x9800 + bx;
-            VBK_REG = pass;
-            for (uint8_t y = 0; y < (BKG_MT_H << 1); y++, d += 32, src += 2) {
-                d[0] = src[0];
-                d[1] = src[1];
-            }
-        }
+        fc_dst = (uint8_t *)0x9800 + bx;
         VBK_REG = VBK_TILES;
+        fc_src = metatile_column_tiles;
+        flush_col_plain();
+        if (_cpu == CGB_TYPE) {
+            VBK_REG = VBK_ATTRIBUTES;
+            fc_dst = (uint8_t *)0x9800 + bx;
+            fc_src = metatile_column_attributes;
+            flush_col_plain();
+            VBK_REG = VBK_TILES;
+        }
         return;
     }
     VBK_REG = VBK_TILES;
