@@ -314,7 +314,6 @@ static palette_color_t level_colour(void) {
 
 GameState update_level_complete_state(void) BANKED {
     uint8_t c, y;
-    music_ready = 0;
     skip = 0;
     prev_joy = joypad();
 

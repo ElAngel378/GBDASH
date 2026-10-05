@@ -427,7 +427,7 @@ static uint8_t practice_draw_checkpoints(uint8_t oam_index, uint16_t cam_x, uint
         int16_t dist_x = (int16_t)cp->world_x - (int16_t)cam_x;
         int16_t ox;
         if (reversed) {
-            ox = (int16_t)MIRROR_PLAYER_SCREEN_X + dist_x + 8;
+            ox = (int16_t)MIRROR_PLAYER_SCREEN_X - dist_x + 8;
         } else {
             ox = (cam_x < PLAYER_SCREEN_X) ? ((int16_t)cp->world_x + 8) : (dist_x + (int16_t)PLAYER_SCREEN_X + 8);
         }
@@ -723,7 +723,7 @@ static void start_end_anim(void) {
 }
 
 // Mirror portal: reload the (mirrored) tileset and redraw the visible columns
-static void mirror_reload(uint8_t idx) {
+static void mirror_reload(uint8_t idx, uint8_t enable_display) {
     col_job_step = COL_JOB_STEPS;
     row0_job_pos = 16;
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
@@ -766,10 +766,12 @@ static void mirror_reload(uint8_t idx) {
         : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
     move_bkg((uint8_t)init_scroll_px, (uint8_t)cam_py);
 
-    SHOW_BKG;
-    SHOW_SPRITES;
-    SPRITES_8x16;
-    DISPLAY_ON;
+    if (enable_display) {
+        SHOW_BKG;
+        SHOW_SPRITES;
+        SPRITES_8x16;
+        DISPLAY_ON;
+    }
 
     loaded_r = (uint16_t)(col_start + 15);
     prev_reversed = player.reversed;
@@ -793,12 +795,19 @@ static void practice_respawn(uint8_t idx) {
     mt_band = band_for_cam(cam_py, BAND_MAX);
     band_cam_row = 0xFF;
 
-    mirror_reload(idx);
+    mirror_reload(idx, 0);
+
+    uint16_t scroll_px = player.reversed
+        ? (uint16_t)(-(int16_t)cam_px - MIRROR_PLAYER_SCREEN_X)
+        : ((cam_px > PLAYER_SCREEN_X) ? (cam_px - PLAYER_SCREEN_X) : 0);
 
     if (_cpu == CGB_TYPE) {
-        if (setting_show_bg_enabled) init_bg_parallax();
+        uint8_t cur_bg_phase = player.reversed
+            ? (uint8_t)(scroll_px + bg_drift_px) & 63u
+            : (uint8_t)(scroll_px - bg_drift_px) & 63u;
+        if (setting_show_bg_enabled) set_bg_parallax_phase(cur_bg_phase);
         else blank_parallax_vram();
-        last_bg_phase = 0;
+        last_bg_phase = cur_bg_phase;
         load_menu_ground_tiles();
         flush_ground_row();
         famidash_bg_set_now(cp->bg_palettes);
@@ -827,6 +836,11 @@ static void practice_respawn(uint8_t idx) {
     percent_hud_reset(max_scroll_px);
     percent_hud_update(cam_px);
     attempt_text_start(cam_px == 0, cam_px, cam_py);
+
+    SHOW_BKG;
+    SHOW_SPRITES;
+    SPRITES_8x16;
+    DISPLAY_ON;
 
     // Like a normal restart: a held jump acts right away (prev_joy only keeps B/SELECT
     // from placing or removing a checkpoint on the first frame)
@@ -1139,7 +1153,7 @@ void play_level(uint8_t idx) BANKED {
 
         if (end_trigger_requested && end_anim_state == END_ANIM_INACTIVE) start_end_anim();
 
-        if (player.reversed != prev_reversed) mirror_reload(idx);
+        if (player.reversed != prev_reversed) mirror_reload(idx, 1);
 
         // Move the collision window when the player nears its top or bottom
         {
@@ -1452,13 +1466,13 @@ void play_level(uint8_t idx) BANKED {
     }
 
     bg_parallax_isr_stop();
-    music_ready = 0;
     if (lc_pending) {
-        // Level complete: the level stays on screen (sprites included) and the jingle keeps
-        // playing (it drives the timer) into STATE_LEVEL_COMPLETE
+        // Level complete: the level stays on screen (sprites included) and the song keeps
+        // playing into STATE_LEVEL_COMPLETE until it finishes
         redraw = 1;
         return;
     } else {
+        music_ready = 0;
         TAC_REG = 0x00;
         play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
         fade_to_black(2);

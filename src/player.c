@@ -167,6 +167,7 @@ uint8_t player_update(
     if (p->level_complete) return 0;
 
     uint8_t mini = p->mini;
+    uint8_t was_on_ground = p->on_ground;
 
     // Acceleration & gravity
     if (p->mode == MODE_SHIP) {
@@ -382,6 +383,14 @@ uint8_t player_update(
             p->dead = 1; return 1;
         }
 #undef ON_SAW
+    }
+
+    // Falling off a ledge / block: start rotation at frame 1 if resting flat (frame 0)
+    if (was_on_ground && !p->on_ground && p->mode == MODE_CUBE) {
+        if (p->anim_frame == 0 || mod6_table[p->anim_frame] == 0) {
+            p->anim_frame = (uint8_t)((p->anim_frame + 1u) % 24u);
+            p->anim_timer = 0;
+        }
     }
 
     // Ground jump handling

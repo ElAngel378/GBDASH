@@ -33,11 +33,15 @@ volatile uint8_t bg_scy;
 static void parallax_gdma(uint8_t phase);
 static void saw_gdma(void);
 
-void init_bg_parallax(void) {
+void set_bg_parallax_phase(uint8_t phase) {
     if (_cpu == CGB_TYPE) {
         bg_gdma_pending = 0;
-        parallax_gdma(0);
+        parallax_gdma(phase);
     }
+}
+
+void init_bg_parallax(void) {
+    set_bg_parallax_phase(0);
 }
 
 // Hand-written copy loops for the VBlank handler (C compiles to ~3x slower code

@@ -72,7 +72,7 @@ static inline void step_music(void) {
     IE_REG = prev_ie;
   }
 
-  if (current_song_bank != 1) {
+  if (current_song_bank != 1 && current_song_bank != 212) {
     if (order_before == (uint8_t)(HUGE_ORDER_CNT - 2) && HUGE_CURRENT_ORDER == 0) {
       music_ready = 0;
       NR12_REG = 0; NR14_REG = 0x80;
