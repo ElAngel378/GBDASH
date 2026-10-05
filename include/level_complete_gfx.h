@@ -6,9 +6,9 @@
 
 #define LEVEL_COMPLETE_TEXT_COLS 16
 #define LEVEL_COMPLETE_TEXT_ROWS 4
-#define LEVEL_COMPLETE_TEXT_TILES 64
+#define LEVEL_COMPLETE_TEXT_UNIQUE 44
 
-extern const uint8_t level_complete_text_tiles[LEVEL_COMPLETE_TEXT_TILES * 16];
-extern const uint8_t level_complete_text_used[LEVEL_COMPLETE_TEXT_TILES];
+extern const uint8_t level_complete_text_tiles[LEVEL_COMPLETE_TEXT_UNIQUE * 16];
+extern const uint8_t level_complete_text_map[LEVEL_COMPLETE_TEXT_COLS * LEVEL_COMPLETE_TEXT_ROWS];
 
 #endif

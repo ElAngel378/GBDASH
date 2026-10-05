@@ -2,14 +2,12 @@
 
 // STATE_LEVEL_COMPLETE: the end of a completed level. play_level() returns right after the end
 // animation's shake with the level still on screen (gameplay.c fills in the lc_* result):
-//   1. "LEVEL COMPLETE!" appears over the level as sprites, a column at a time
-//   2. after about 2 seconds it moves up and a box like the settings menu's is drawn over the
-//      level (background tiles, in the VRAM slots the visible level does not use), with the
-//      run's stats and the RETRY / MENU choice.
+//   1. "LEVEL COMPLETE!" is drawn over the level, a column at a time
+//   2. about 2 seconds later a box like the settings menu's is drawn below it, with the run's
+//      stats and the RETRY / MENU choice.
 //
-// The text is 26 8x16 sprites (LEVEL: 10 columns; COMPLETE!: 16 columns). The hardware draws at
-// most 10 sprites per scanline, so on COMPLETE!'s lines the OAM order alternates every frame
-// between two sets of 10 columns (the middle columns stay solid, the outer ones shimmer).
+// Everything is background tiles drawn into the level's own map. The tiles go into the VRAM
+// slots (BG tiles 0..127) that no visible cell shows, so the rest of the level stays as it was.
 
 #include <gb/gb.h>
 #include <gb/cgb.h>
@@ -32,39 +30,31 @@ extern const hUGESong_t menuloop;
 extern volatile uint8_t current_song_bank;
 extern uint8_t music_ready;
 
-// ---- text sprites
-#define TEXT_SPRITE_TILE   0     // sprite tiles 0..51 (the player's: it has left the screen)
-#define LEVEL_COLS         10
-#define LEVEL_X_SHIFT      3     // LEVEL is centred over COMPLETE!
-#define COMPLETE_COLS      16
-#define OAM_FIRST          4     // slots 0..3: the % display
-#define OAM_LEVEL          OAM_FIRST
-#define OAM_COMPLETE       (OAM_LEVEL + LEVEL_COLS)
-#define TEXT_X             16    // screen x of the first COMPLETE! column
-#define TEXT_Y_CENTRE      56    // screen y of the top of the text block while it is centred
-#define TEXT_Y_TOP         8     // ... and when the box is up
-#define TEXT_SLIDE_FRAMES  24
-
-// ---- box (cells on screen like the settings board: border x 2..17, text columns 3..16)
-#define BOX_TOP            6
-#define BOX_BOTTOM         14
-#define BOX_ROW_ATTEMPTS   8
-#define BOX_ROW_COINS      10
-#define BOX_ROW_MODE       11
-#define BOX_ROW_BUTTONS    13
+// ---- layout (screen cells, 20 x 18)
+#define TEXT_X             2     // the 16 x 4 text block
+#define TEXT_Y             2
+#define LEVEL_COLS         10    // LEVEL is 10 columns wide, centred over COMPLETE!
+#define LEVEL_X_SHIFT      3
+#define BOX_TOP            8     // like the settings board: border x 2..17, text columns 3..16
+#define BOX_BOTTOM         16
+#define BOX_ROW_ATTEMPTS   10
+#define BOX_ROW_COINS      12
+#define BOX_ROW_MODE       13
+#define BOX_ROW_BUTTONS    15
 #define PAL_BORDER         5     // CGB BG palettes 5..7 are unused in gameplay
 #define PAL_BOARD          6
-#define PAL_CORNER         7
+#define PAL_TEXT           7
+#define TILE_BLANK         12    // the gameplay sheet's transparent tile: the board interior
+
+uint8_t lc_dbg_free, lc_dbg_need;   // free / needed tile slots (tools: how tight is it)
 
 static uint8_t skip;        // A pressed during the animation: the rest runs without waits
 static uint8_t prev_joy;
-static uint8_t rot;         // OAM order of the COMPLETE! columns
-static uint8_t text_y;
-static uint8_t level_shown, complete_shown;
 
-static uint8_t map_x0, map_y0;          // BG map cell shown at the top left of the screen
-static uint8_t border_slot[10];         // VRAM slots of the box border tiles
-static uint8_t font_slot[44];           // VRAM slots of the font glyphs (0xFF: not loaded)
+static uint8_t map_x0, map_y0;                          // BG map cell at the top left of the screen
+static uint8_t text_slot[LEVEL_COMPLETE_TEXT_UNIQUE];   // VRAM slots of the text's tiles
+static uint8_t border_slot[10];                         // ... of the box border tiles
+static uint8_t font_slot[44];                           // ... of the font glyphs (0xFF: not loaded)
 
 // settings_bg tiles of the box border, in border_slot order
 static const uint8_t border_src[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0x19 };
@@ -78,7 +68,6 @@ static const uint8_t border_src[10] = { 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0x19 };
 #define B_NOTCH1 7
 #define B_BL     8
 #define B_BR     9
-#define TILE_BLANK 12            // the gameplay sheet's transparent tile: the board interior
 
 static void wait_frames(uint8_t n) {
     while (n--) {
@@ -90,56 +79,34 @@ static void wait_frames(uint8_t n) {
     }
 }
 
-// ---------------------------------------------------------------- text sprites
-
-static void level_text_draw(void);
-
-// n frames, redrawing the text each one (the OAM order alternates every frame)
-static void wait_draw(uint8_t n) {
-    while (n--) {
-        wait_frames(1);
-        level_text_draw();
+static void put(uint8_t x, uint8_t y, uint8_t tile, uint8_t attr) {
+    uint8_t mx = (uint8_t)((map_x0 + x) & 31), my = (uint8_t)((map_y0 + y) & 31);
+    set_bkg_tile_xy(mx, my, tile);
+    if (_cpu == CGB_TYPE) {
+        VBK_REG = 1;
+        set_bkg_tile_xy(mx, my, attr);
+        VBK_REG = 0;
     }
 }
 
-static void level_text_load(void) {
-    uint8_t p;
-    VBK_REG = 0;
-    for (p = 0; p < LEVEL_COLS; p++) {            // LEVEL: tile rows 0 and 1
-        set_sprite_data((uint8_t)(TEXT_SPRITE_TILE + (p << 1)), 1, level_complete_text_tiles + (uint16_t)p * 16u);
-        set_sprite_data((uint8_t)(TEXT_SPRITE_TILE + (p << 1) + 1), 1,
-                        level_complete_text_tiles + ((uint16_t)LEVEL_COMPLETE_TEXT_COLS + p) * 16u);
+// Loads one tile. The text art uses colour 1 for its outline, 2 for the light fill and 3 for the
+// shaded fill (CGB palette); on DMG the colours are renumbered to read dark outline, light fill.
+static void load_tile(uint8_t slot, const uint8_t *src, uint8_t dmg_text) {
+    if (!dmg_text || _cpu == CGB_TYPE) {
+        set_bkg_data(slot, 1, src);
+        return;
     }
-    for (p = 0; p < COMPLETE_COLS; p++) {         // COMPLETE!: tile rows 2 and 3
-        uint8_t t = (uint8_t)(TEXT_SPRITE_TILE + ((LEVEL_COLS + p) << 1));
-        set_sprite_data(t, 1, level_complete_text_tiles + ((uint16_t)2 * LEVEL_COMPLETE_TEXT_COLS + p) * 16u);
-        set_sprite_data((uint8_t)(t + 1), 1, level_complete_text_tiles + ((uint16_t)3 * LEVEL_COMPLETE_TEXT_COLS + p) * 16u);
+    uint8_t buf[16], i;
+    for (i = 0; i < 16; i += 2) {
+        uint8_t lo = src[i], hi = src[i + 1];
+        uint8_t p1 = lo & (uint8_t)~hi, p2 = (uint8_t)~lo & hi, p3 = lo & hi;
+        buf[i] = p2 | p1;        // new colour 1 (old 2) and 3 (old 1)
+        buf[i + 1] = p3 | p1;    // new colour 2 (old 3) and 3 (old 1)
     }
+    set_bkg_data(slot, 1, buf);
 }
 
-static void level_text_draw(void) {
-    uint8_t i, c;
-    for (i = OAM_FIRST; i < 40; i++) shadow_OAM[i].y = 0;
-    for (c = 0; c < level_shown; c++) {
-        uint8_t o = (uint8_t)(OAM_LEVEL + c);
-        shadow_OAM[o].y = (uint8_t)(text_y + 16);
-        shadow_OAM[o].x = (uint8_t)(TEXT_X + 8 + ((LEVEL_X_SHIFT + c) << 3));
-        shadow_OAM[o].tile = (uint8_t)(TEXT_SPRITE_TILE + (c << 1));
-        shadow_OAM[o].prop = 0;
-    }
-    // 16 columns, 10 sprites per line: the first 10 in OAM order win, rotate the order
-    uint8_t start = (rot & 1) ? 6 : 0;
-    for (c = 0; c < complete_shown; c++) {
-        uint8_t o = (uint8_t)(OAM_COMPLETE + ((c + COMPLETE_COLS - start) & 15));
-        shadow_OAM[o].y = (uint8_t)(text_y + 32);
-        shadow_OAM[o].x = (uint8_t)(TEXT_X + 8 + (c << 3));
-        shadow_OAM[o].tile = (uint8_t)(TEXT_SPRITE_TILE + ((LEVEL_COLS + c) << 1));
-        shadow_OAM[o].prop = 0;
-    }
-    rot++;
-}
-
-// ---------------------------------------------------------------- box (background tiles)
+// ---------------------------------------------------------------- text
 
 static uint8_t font_tile(char c) {
     if (c == ' ') return 0;
@@ -158,54 +125,90 @@ static void need_glyphs(const char *s) {
     }
 }
 
-static void put(uint8_t x, uint8_t y, uint8_t tile, uint8_t attr) {
-    uint8_t mx = (uint8_t)((map_x0 + x) & 31), my = (uint8_t)((map_y0 + y) & 31);
-    set_bkg_tile_xy(mx, my, tile);
-    if (_cpu == CGB_TYPE) {
-        VBK_REG = 1;
-        set_bkg_tile_xy(mx, my, attr);
-        VBK_REG = 0;
-    }
+// Cell of the text block's tile i: LEVEL (rows 0..1) is shifted to the middle
+static uint8_t text_cell_x(uint8_t i) {
+    uint8_t c = (uint8_t)(i & (LEVEL_COMPLETE_TEXT_COLS - 1));
+    return (uint8_t)(TEXT_X + c + ((i < 2 * LEVEL_COMPLETE_TEXT_COLS) ? LEVEL_X_SHIFT : 0));
+}
+static uint8_t text_cell_y(uint8_t i) {
+    return (uint8_t)(TEXT_Y + (i >> 4));
 }
 
-// Picks VRAM slots (BG tiles 0..127) that no visible cell outside the box shows, and loads the
-// box's border and font tiles there. Returns 0 when there are not enough free slots.
-static uint8_t box_tiles_load(void) {
+// Is cell (x, y) drawn over by the text (its art is not empty there)?
+static uint8_t text_covers(uint8_t x, uint8_t y) {
+    if (y < TEXT_Y || y >= TEXT_Y + LEVEL_COMPLETE_TEXT_ROWS) return 0;
+    uint8_t r = (uint8_t)(y - TEXT_Y);
+    int8_t c = (int8_t)x - TEXT_X - (r < 2 ? LEVEL_X_SHIFT : 0);
+    if (c < 0 || c >= LEVEL_COMPLETE_TEXT_COLS) return 0;
+    return level_complete_text_map[(uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c)] != 0xFF;
+}
+
+// Picks VRAM slots no visible cell outside the text and the box shows, and loads the tiles there.
+// Returns 0 when there are not enough free slots.
+static uint8_t tiles_load(void) {
     uint8_t used[128];
-    uint8_t x, y, i, t, n = 0;
+    uint8_t x, y, i, t, n;
     for (i = 0; i < 128; i++) used[i] = 0;
     used[TILE_BLANK] = 1;
     for (y = 0; y < 18; y++) {
         for (x = 0; x < 20; x++) {
             if (y >= BOX_TOP && y <= BOX_BOTTOM && x >= 2 && x <= 17) continue;   // overwritten
-            t = get_bkg_tile_xy((uint8_t)((map_x0 + x) & 31), (uint8_t)((map_y0 + y) & 31));
+            if (text_covers(x, y)) continue;
+            uint8_t mx = (uint8_t)((map_x0 + x) & 31), my = (uint8_t)((map_y0 + y) & 31);
+            if (_cpu == CGB_TYPE) {         // a cell showing a bank 1 tile (parallax, saws) uses no slot here
+                VBK_REG = 1;
+                t = get_bkg_tile_xy(mx, my);
+                VBK_REG = 0;
+                if (t & 8) continue;
+            }
+            t = get_bkg_tile_xy(mx, my);
             if (t < 128) used[t] = 1;
         }
     }
     for (i = 0; i < 44; i++) font_slot[i] = 0xFF;
-    need_glyphs("ATTEMPTS COINS RETRY MENU PRACTICE RUN 0123456789/>");
-    uint8_t need = 10;
+    need_glyphs("ATTEMPTS COINS RETRY MENU PRACTICE RUN");
+    need_glyphs("0123456789/>");
+    uint8_t need = (uint8_t)(LEVEL_COMPLETE_TEXT_UNIQUE + 10);
     for (i = 0; i < 44; i++) if (font_slot[i] == 0) need++;
     uint8_t free_n = 0;
     for (i = 0; i < 128; i++) if (!used[i]) free_n++;
+    lc_dbg_free = free_n;
+    lc_dbg_need = need;
     if (free_n < need) return 0;
 
     i = 0;
+    for (n = 0; n < LEVEL_COMPLETE_TEXT_UNIQUE; n++) {
+        while (used[i]) i++;
+        text_slot[n] = i;
+        used[i] = 1;
+        load_tile(i, level_complete_text_tiles + (uint16_t)n * 16u, 1);
+    }
     for (n = 0; n < 10; n++) {
         while (used[i]) i++;
         border_slot[n] = i;
         used[i] = 1;
-        set_bkg_data(i, 1, settings_bg_tiles + (uint16_t)border_src[n] * 16u);
+        load_tile(i, settings_bg_tiles + (uint16_t)border_src[n] * 16u, 0);
     }
     for (n = 0; n < 44; n++) {
         if (font_slot[n] != 0) continue;
         while (used[i]) i++;
         font_slot[n] = i;
         used[i] = 1;
-        set_bkg_data(i, 1, n >= 39 ? extra_font_tiles + (uint16_t)(n - 39) * 16u : FontPusab + (uint16_t)n * 16u);
+        load_tile(i, n >= 39 ? extra_font_tiles + (uint16_t)(n - 39) * 16u : FontPusab + (uint16_t)n * 16u, 0);
     }
     return 1;
 }
+
+// One column of the text: LEVEL (c 0..9, rows 0..1) or COMPLETE! (c 0..15, rows 2..3)
+static void text_column(uint8_t row0, uint8_t c) {
+    for (uint8_t r = row0; r < (uint8_t)(row0 + 2); r++) {
+        uint8_t i = (uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c);
+        uint8_t u = level_complete_text_map[i];
+        if (u != 0xFF) put(text_cell_x(i), text_cell_y(i), text_slot[u], PAL_TEXT);
+    }
+}
+
+// ---------------------------------------------------------------- box
 
 static void box_text(uint8_t x, uint8_t y, const char *s) {
     for (; *s; s++, x++) {
@@ -225,16 +228,16 @@ static void box_number(uint8_t right_x, uint8_t y, uint16_t v) {
 static void box_row(uint8_t y) {
     uint8_t x;
     if (y == BOX_TOP) {
-        put(2, y, border_slot[B_TL], PAL_CORNER);
+        put(2, y, border_slot[B_TL], PAL_BORDER);
         for (x = 3; x < 17; x++) put(x, y, border_slot[B_TOP], PAL_BORDER);
-        put(17, y, border_slot[B_TR], PAL_CORNER);
+        put(17, y, border_slot[B_TR], PAL_BORDER);
     } else if (y == BOX_BOTTOM) {
-        put(2, y, border_slot[B_BL], PAL_CORNER);
+        put(2, y, border_slot[B_BL], PAL_BORDER);
         for (x = 3; x < 17; x++) {
-            if (x == 9 || x == 10) put(x, y, border_slot[x == 9 ? B_NOTCH0 : B_NOTCH1], PAL_CORNER);
+            if (x == 9 || x == 10) put(x, y, border_slot[x == 9 ? B_NOTCH0 : B_NOTCH1], PAL_BORDER);
             else put(x, y, border_slot[B_BOTTOM], PAL_BORDER);
         }
-        put(17, y, border_slot[B_BR], PAL_CORNER);
+        put(17, y, border_slot[B_BR], PAL_BORDER);
     } else {
         put(2, y, border_slot[B_LEFT], PAL_BORDER);
         for (x = 3; x < 17; x++) put(x, y, TILE_BLANK, PAL_BOARD);
@@ -293,83 +296,81 @@ static GameState leave(GameState next) {
     return next;
 }
 
+// The colour the level shows around the text: the most common colour of the tile left of it
+static palette_color_t level_colour(void) {
+    if (_cpu != CGB_TYPE) return 0;
+    uint8_t mx = (uint8_t)((map_x0 + 1) & 31), my = (uint8_t)((map_y0 + TEXT_Y + 1) & 31);
+    uint8_t t = get_bkg_tile_xy(mx, my), buf[16], cnt[4] = { 0, 0, 0, 0 }, i, x, best = 0;
+    VBK_REG = 1;
+    uint8_t attr = get_bkg_tile_xy(mx, my);
+    VBK_REG = 0;
+    if (attr & 8) return shadow_bkg_palettes[(attr & 7) << 2];      // bank 1 tile: its palette's colour 0
+    get_bkg_data(t, 1, buf);
+    for (i = 0; i < 16; i += 2)
+        for (x = 0; x < 8; x++) cnt[((buf[i + 1] >> x) & 1) << 1 | ((buf[i] >> x) & 1)]++;
+    for (i = 1; i < 4; i++) if (cnt[i] > cnt[best]) best = i;
+    return shadow_bkg_palettes[((attr & 7) << 2) + best];
+}
+
 GameState update_level_complete_state(void) BANKED {
     uint8_t c, y;
     music_ready = 0;
     skip = 0;
-    rot = 0;
-    level_shown = complete_shown = 0;
-    text_y = TEXT_Y_CENTRE;
     prev_joy = joypad();
 
-    // the text: tiles over the player's (it has left the screen), a green palette
-    level_text_load();
-    if (_cpu == CGB_TYPE) {
-        static const palette_color_t text_pal[4] = {
-            RGB8(0, 0, 0), RGB8(196, 255, 72), RGB8(72, 200, 28), RGB8(8, 40, 4)
-        };
-        fade_set_sprite_palette(0, 1, text_pal);
-    }
-    level_text_draw();              // hides the level's object sprites (their OAM slots)
-
-    wait_frames(6);
-    for (c = 1; c <= LEVEL_COLS; c++) {
-        level_shown = c;
-        level_text_draw();
-        wait_frames(2);
-    }
-    wait_frames(4);
-    for (c = 1; c <= COMPLETE_COLS; c++) {
-        complete_shown = c;
-        level_text_draw();
-        wait_frames(2);
-    }
-    // 2 seconds with the text on the level (A skips the wait)
-    for (y = 0; y < 120 && !skip; y++) wait_draw(1);
-    skip = 0;
-
-    // the box: grid-lock the scroll like the pause menu does, then pick the tile slots
+    // grid-lock the scroll like the pause menu does, then pick the tile slots
     uint8_t scx = (uint8_t)(SCX_REG & 0xF8u), scy = (uint8_t)(SCY_REG & 0xF8u);
     move_bkg(scx, scy);
     map_x0 = (uint8_t)(scx >> 3);
     map_y0 = (uint8_t)(scy >> 3);
-    uint8_t have_box = box_tiles_load();
+    uint8_t have_gfx = tiles_load();
     if (_cpu == CGB_TYPE) {
-        // the settings board's palettes 1, 2 and 7 (border, board + text, corners)
+        palette_color_t pal[4];
+        pal[0] = level_colour();                       // around the letters
+        pal[1] = RGB8(20, 48, 6);                      // outline
+        pal[2] = RGB8(176, 226, 64);                   // light fill
+        pal[3] = RGB8(104, 178, 28);                   // shaded fill
+        set_bkg_palette(PAL_TEXT, 1, pal);
+        // the settings board's palettes 1 (border) and 2 (board + text)
         set_bkg_palette(PAL_BORDER, 1, settings_bg_palettes + 1 * 4);
         set_bkg_palette(PAL_BOARD, 1, settings_bg_palettes + 2 * 4);
-        set_bkg_palette(PAL_CORNER, 1, settings_bg_palettes + 7 * 4);
     }
-
-    // the text moves up while the box drops in
-    for (c = 1; c <= TEXT_SLIDE_FRAMES; c++) {
-        text_y = (uint8_t)(TEXT_Y_CENTRE - (uint8_t)((uint16_t)c * (2u * TEXT_SLIDE_FRAMES - c) / 12u));
-        wait_draw(1);
-    }
-    text_y = TEXT_Y_TOP;
-    level_text_draw();
+    // the level's object sprites would be drawn over the text and the box
+    for (c = 4; c < 40; c++) shadow_OAM[c].y = 0;
 
     uint8_t sel = 0;
-    if (have_box) {
+    if (have_gfx) {
+        wait_frames(6);
+        for (c = 0; c < LEVEL_COLS; c++) {
+            text_column(0, c);
+            wait_frames(2);
+        }
+        wait_frames(4);
+        for (c = 0; c < LEVEL_COMPLETE_TEXT_COLS; c++) {
+            text_column(2, c);
+            wait_frames(2);
+        }
+        // 2 seconds with the text on the level (A skips the wait)
+        for (y = 0; y < 120 && !skip; y++) wait_frames(1);
+        skip = 0;
         for (y = BOX_TOP; y <= BOX_BOTTOM; y++) {
             box_row(y);
-            wait_draw(2);
+            wait_frames(2);
         }
         draw_stats();
         draw_buttons(sel);
     }
     // the A that may still be held from the level must not choose RETRY right away
     prev_joy = joypad();
-    while (joypad() & (J_A | J_START | J_B)) { wait_vbl_done(); level_text_draw(); }
+    while (joypad() & (J_A | J_START | J_B)) wait_vbl_done();
     prev_joy = joypad();
 
     while (1) {
         wait_vbl_done();
-        level_text_draw();
         uint8_t joy = joypad();
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
-        if (have_box && (pressed & (J_LEFT | J_RIGHT))) {
+        if (have_gfx && (pressed & (J_LEFT | J_RIGHT))) {
             sel ^= 1;
             draw_buttons(sel);
         }
