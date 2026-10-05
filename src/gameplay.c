@@ -1442,8 +1442,10 @@ void play_level(uint8_t idx) BANKED {
     bg_parallax_isr_stop();
     music_ready = 0;
     if (lc_pending) {
-        // Level complete: the jingle keeps playing (it drives the timer) into the next state
-        fade_to_black(2);
+        // Level complete: the level stays on screen (sprites included) and the jingle keeps
+        // playing (it drives the timer) into STATE_LEVEL_COMPLETE
+        redraw = 1;
+        return;
     } else {
         TAC_REG = 0x00;
         play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
