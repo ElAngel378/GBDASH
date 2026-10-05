@@ -493,18 +493,18 @@ static uint8_t pause_menu(uint8_t idx) {
         set_sprite_palette(7, 1, pause_pal);
 
         // Play / Menu / Restart: white ring, light green body (top sprites) and dark green body
-        // (bottom sprites), white icon with a black border
+        // (bottom sprites), yellow / cyan icon with a white border
         static const palette_color_t play_btn_pal[4] = {
-            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(0, 0, 0)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(255, 235, 20)
         };
         static const palette_color_t play_btn_pal_dark[4] = {
-            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(0, 0, 0)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(255, 235, 20)
         };
         static const palette_color_t misc_btn_pal[4] = {
-            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(0, 0, 0)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(30, 245, 255)
         };
         static const palette_color_t misc_btn_pal_dark[4] = {
-            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(0, 0, 0)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(30, 245, 255)
         };
         set_sprite_palette(6, 1, play_btn_pal);
         set_sprite_palette(2, 1, play_btn_pal_dark);

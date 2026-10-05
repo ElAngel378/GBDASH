@@ -4,8 +4,7 @@ Like the Geometry Dash buttons: white ring, green body split light (top half) / 
 a coloured icon (yellow play triangle, cyan menu list, cyan restart arrow). Each button is drawn
 as columns of two 8x16 sprites; the split of the body is the boundary between the two sprites, so
 the top sprite uses a palette with the light green and the bottom one the dark green:
-colour 1 = ring and icon (white), 2 = body, 3 = black outline of the icon (a sprite has only 3
-colours, so the icon shares the ring's colour).
+colour 1 = ring and the white border of the icon, 2 = body, 3 = icon.
 
     python tools/make_pause_buttons.py [preview.png]
 """
@@ -50,17 +49,18 @@ def fill_poly(g, poly, colour=4):
 
 
 def outline(g):
-    """icon pixels are drawn as colour 4: turn them white and the body pixels next to them black"""
+    """icon pixels are drawn as colour 4: turn them into the icon colour (3) and the body pixels
+    next to them white (1, like the ring)"""
     h, w = len(g), len(g[0])
     add = [(x, y) for y in range(h) for x in range(w) if g[y][x] == 2 and
            any(0 <= y + dy < h and 0 <= x + dx < w and g[y + dy][x + dx] == 4
                for dy in (-1, 0, 1) for dx in (-1, 0, 1))]
     for x, y in add:
-        g[y][x] = 3
+        g[y][x] = 1
     for y in range(h):
         for x in range(w):
             if g[y][x] == 4:
-                g[y][x] = 1
+                g[y][x] = 3
 
 
 def play():
@@ -137,14 +137,14 @@ def main():
         icon = {1: (255, 255, 255)}
         im = Image.new("RGB", (32 * 3 + 12, 32), (40, 50, 90))
         x0 = 0
-        for g, w, ic in ((m, 24, 0), (p, 32, 0), (r, 24, 0)):
+        for g, w, ic in ((m, 24, (30, 245, 255)), (p, 32, (255, 235, 20)), (r, 24, (30, 245, 255))):
             for y in range(32):
                 for x in range(w):
                     v = g[y][x]
                     if v == 0:
                         continue
                     body = (176, 232, 96) if y < 16 else (116, 196, 52)
-                    im.putpixel((x0 + x, y), {1: (255, 255, 255), 2: body, 3: (0, 0, 0)}[v])
+                    im.putpixel((x0 + x, y), {1: (255, 255, 255), 2: body, 3: ic}[v])
             x0 += w + 6
         im.resize((im.width * 8, im.height * 8), Image.NEAREST).save(sys.argv[1])
 
