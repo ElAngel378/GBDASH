@@ -506,9 +506,14 @@ static uint8_t pause_menu(uint8_t idx) {
 
         // Practice Button: White rim & diamond outline, 2-tone green body
         static const palette_color_t practice_btn_pal[4] = {
-            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(116, 196, 52)
         };
         set_sprite_palette(4, 1, practice_btn_pal);
+        // the inside of its diamond: pale green on top, bright green below
+        static const palette_color_t practice_diamond_pal[4] = {
+            RGB8(0, 0, 0), RGB8(176, 244, 176), RGB8(92, 240, 56), RGB8(255, 255, 255)
+        };
+        set_sprite_palette(3, 1, practice_diamond_pal);
     } else {
         BGP_REG = dim_dmg_byte(saved_bgp, 1);
         OBP0_REG = 0x90;

@@ -340,15 +340,16 @@ GameState update_level_complete_state(void) BANKED {
 
     uint8_t sel = 0;
     if (have_gfx) {
-        wait_frames(6);
-        for (c = 0; c < LEVEL_COLS; c++) {
-            text_column(0, c);
-            wait_frames(2);
-        }
         wait_frames(4);
-        for (c = 0; c < LEVEL_COMPLETE_TEXT_COLS; c++) {
-            text_column(2, c);
-            wait_frames(2);
+        // both lines grow from the middle outwards, a column on each side per step
+        for (c = 0; c < LEVEL_COMPLETE_TEXT_COLS / 2; c++) {
+            if (c < LEVEL_COLS / 2) {
+                text_column(0, (uint8_t)(LEVEL_COLS / 2 - 1 - c));
+                text_column(0, (uint8_t)(LEVEL_COLS / 2 + c));
+            }
+            text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 - 1 - c));
+            text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 + c));
+            wait_frames(3);
         }
         // 2 seconds with the text on the level (A skips the wait)
         for (y = 0; y < 120 && !skip; y++) wait_frames(1);
