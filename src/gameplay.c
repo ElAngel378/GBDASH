@@ -492,17 +492,24 @@ static uint8_t pause_menu(uint8_t idx) {
         };
         set_sprite_palette(7, 1, pause_pal);
 
-        // Play Button: Vibrant golden yellow icon & rim, rich 2-tone green body
+        // Play / Menu / Restart: white ring, light green body (top sprites) and dark green body
+        // (bottom sprites), yellow / cyan icon
         static const palette_color_t play_btn_pal[4] = {
-            RGB8(0, 0, 0), RGB8(255, 235, 20), RGB8(80, 210, 20), RGB8(15, 110, 10)
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(255, 235, 20)
+        };
+        static const palette_color_t play_btn_pal_dark[4] = {
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(255, 235, 20)
+        };
+        static const palette_color_t misc_btn_pal[4] = {
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(176, 232, 96), RGB8(30, 245, 255)
+        };
+        static const palette_color_t misc_btn_pal_dark[4] = {
+            RGB8(0, 0, 0), RGB8(255, 255, 255), RGB8(116, 196, 52), RGB8(30, 245, 255)
         };
         set_sprite_palette(6, 1, play_btn_pal);
-
-        // Menu & Restart Buttons: Electric cyan icon & rim, rich 2-tone green body
-        static const palette_color_t misc_btn_pal[4] = {
-            RGB8(0, 0, 0), RGB8(30, 245, 255), RGB8(80, 210, 20), RGB8(15, 110, 10)
-        };
+        set_sprite_palette(2, 1, play_btn_pal_dark);
         set_sprite_palette(5, 1, misc_btn_pal);
+        set_sprite_palette(1, 1, misc_btn_pal_dark);
 
         // Practice Button: White rim & diamond outline, 2-tone green body
         static const palette_color_t practice_btn_pal[4] = {

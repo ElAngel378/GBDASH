@@ -93,6 +93,10 @@ const uint8_t checkpoint_diamond_tiles[64] = {
 #define DIAMOND_TILE   12
 #define DIAMOND_PAL    3
 
+// CGB Play / Menu / Restart buttons (tools/make_pause_buttons.py), drawn over the monochrome ones
+// above; the top sprite of each column has the light green palette, the bottom one the dark green
+#include "pause_buttons_cgb.inc"
+
 // Pause menu Play/Menu/Restart/Practice button tiles (40 tiles, sprite tiles 36..75), embedded so
 // they do not depend on sprite_tiles.bin (tiles 36..63 hold the ship frames there)
 const uint8_t pause_menu_btn_tiles[640] = {
@@ -156,6 +160,11 @@ void init_pause_tiles(void) BANKED {
     }
     // the "ATTEMPT N" glyphs borrow the Play / Menu / Restart tiles during gameplay (percent_hud.c)
     set_sprite_data(PAUSE_BTN_TILE_BASE, 40, pause_menu_btn_tiles);
+    if (_cpu == CGB_TYPE) {
+        set_sprite_data(PAUSE_BTN_TILE_BASE + BTN_PLAY_TILE_OFFSET, 16, pause_play_tiles_cgb);
+        set_sprite_data(PAUSE_BTN_TILE_BASE + BTN_MENU_TILE_OFFSET, 12, pause_menu_tiles_cgb);
+        set_sprite_data(PAUSE_BTN_TILE_BASE + BTN_RESTART_TILE_OFFSET, 12, pause_restart_tiles_cgb);
+    }
 }
 
 void restore_ship_tiles(void) BANKED {
@@ -174,6 +183,11 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
     uint8_t prop_txt = (_cpu == CGB_TYPE) ? S_PAL(7) : S_PALETTE;
     uint8_t prop_play = (_cpu == CGB_TYPE) ? S_PAL(6) : 0;
     uint8_t prop_misc = (_cpu == CGB_TYPE) ? S_PAL(5) : 0;
+    // CGB: the bottom sprites have the dark green palettes; the Menu / Restart circles sit 4 px
+    // higher in their sprites so that the body splits in the middle
+    uint8_t prop_play2 = (_cpu == CGB_TYPE) ? S_PAL(2) : 0;
+    uint8_t prop_misc2 = (_cpu == CGB_TYPE) ? S_PAL(1) : 0;
+    uint8_t dy = (_cpu == CGB_TYPE) ? 4 : 0;
     uint8_t prop_prac = (_cpu == CGB_TYPE) ? S_PAL(4) : 0;
 
     // "PAUSED" text banner moved 24px down (OAM Y = 48, screen Y = 32)
@@ -185,7 +199,7 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
     }
 
     // Menu button on left (6 sprites: Slots 6..11, Screen X = 24, base Y = 58)
-    uint8_t menu_y = (selected_btn == PAUSE_BTN_MENU) ? 72 : 74;
+    uint8_t menu_y = ((selected_btn == PAUSE_BTN_MENU) ? 72 : 74) - dy;
     for (uint8_t c = 0; c < 3; c++) {
         uint8_t spr_x = 32 + (c << 3);
         uint8_t t = PAUSE_BTN_TILE_BASE + BTN_MENU_TILE_OFFSET + (c << 2);
@@ -197,7 +211,7 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
         shadow_OAM[7 + (c << 1)].x = spr_x;
         shadow_OAM[7 + (c << 1)].y = menu_y + 16;
         shadow_OAM[7 + (c << 1)].tile = t + 2;
-        shadow_OAM[7 + (c << 1)].prop = prop_misc;
+        shadow_OAM[7 + (c << 1)].prop = prop_misc2;
     }
 
     // Play button in center (8 sprites: Slots 12..19, Screen X = 64, base Y = 54)
@@ -213,11 +227,11 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
         shadow_OAM[13 + (c << 1)].x = spr_x;
         shadow_OAM[13 + (c << 1)].y = play_y + 16;
         shadow_OAM[13 + (c << 1)].tile = t + 2;
-        shadow_OAM[13 + (c << 1)].prop = prop_play;
+        shadow_OAM[13 + (c << 1)].prop = prop_play2;
     }
 
     // Restart button on right (6 sprites: Slots 20..25, Screen X = 112, base Y = 58)
-    uint8_t restart_y = (selected_btn == PAUSE_BTN_RESTART) ? 72 : 74;
+    uint8_t restart_y = ((selected_btn == PAUSE_BTN_RESTART) ? 72 : 74) - dy;
     for (uint8_t c = 0; c < 3; c++) {
         uint8_t spr_x = 120 + (c << 3);
         uint8_t t = PAUSE_BTN_TILE_BASE + BTN_RESTART_TILE_OFFSET + (c << 2);
@@ -229,7 +243,7 @@ void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
         shadow_OAM[21 + (c << 1)].x = spr_x;
         shadow_OAM[21 + (c << 1)].y = restart_y + 16;
         shadow_OAM[21 + (c << 1)].tile = t + 2;
-        shadow_OAM[21 + (c << 1)].prop = prop_misc;
+        shadow_OAM[21 + (c << 1)].prop = prop_misc2;
     }
 
     // Practice button centered below (6 sprites: Slots 27..32, Screen X = 68, base Y = 98)
