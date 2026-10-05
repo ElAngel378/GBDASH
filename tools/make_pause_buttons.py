@@ -4,7 +4,8 @@ Like the Geometry Dash buttons: white ring, green body split light (top half) / 
 a coloured icon (yellow play triangle, cyan menu list, cyan restart arrow). Each button is drawn
 as columns of two 8x16 sprites; the split of the body is the boundary between the two sprites, so
 the top sprite uses a palette with the light green and the bottom one the dark green:
-colour 1 = ring, 2 = body, 3 = icon.
+colour 1 = ring and icon (white), 2 = body, 3 = black outline of the icon (a sprite has only 3
+colours, so the icon shares the ring's colour).
 
     python tools/make_pause_buttons.py [preview.png]
 """
@@ -41,17 +42,32 @@ def inside(px, py, poly):
     return c
 
 
-def fill_poly(g, poly, colour=3):
+def fill_poly(g, poly, colour=4):
     for y in range(32):
         for x in range(len(g[0])):
             if inside(x + 0.5, y + 0.5, poly):
                 g[y][x] = colour
 
 
+def outline(g):
+    """icon pixels are drawn as colour 4: turn them white and the body pixels next to them black"""
+    h, w = len(g), len(g[0])
+    add = [(x, y) for y in range(h) for x in range(w) if g[y][x] == 2 and
+           any(0 <= y + dy < h and 0 <= x + dx < w and g[y + dy][x + dx] == 4
+               for dy in (-1, 0, 1) for dx in (-1, 0, 1))]
+    for x, y in add:
+        g[y][x] = 3
+    for y in range(h):
+        for x in range(w):
+            if g[y][x] == 4:
+                g[y][x] = 1
+
+
 def play():
     g = blank(4)
     disc(g, 16, 16, 16.0)
     fill_poly(g, [(11.0, 7.0), (11.0, 25.0), (25.5, 16.0)])
+    outline(g)
     return g
 
 
@@ -62,9 +78,10 @@ def menu():
         y = 10 + i * 5
         for dy in range(3):
             for dx in range(3):                   # dot
-                g[y + dy][6 + dx] = 3
+                g[y + dy][6 + dx] = 4
             for dx in range(8):                   # bar
-                g[y + dy][11 + dx] = 3
+                g[y + dy][11 + dx] = 4
+    outline(g)
     return g
 
 
@@ -75,12 +92,13 @@ def restart():
     for y in range(32):
         for x in range(24):
             r = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
-            if 3.3 <= r <= 6.9:
+            if 4.0 <= r <= 6.8:
                 a = math.degrees(math.atan2(y + 0.5 - cy, x + 0.5 - cx))   # 0 = right, 90 = down
                 if not (-100 <= a <= -35):                                  # gap at the top right
-                    g[y][x] = 3
+                    g[y][x] = 4
     # arrow head on the arc's end at the top, pointing clockwise (to the right)
-    fill_poly(g, [(10.5, 6.0), (10.5, 15.5), (18.5, 10.75)])
+    fill_poly(g, [(10.0, 6.0), (10.0, 15.5), (18.0, 10.75)])
+    outline(g)
     return g
 
 
@@ -119,14 +137,14 @@ def main():
         icon = {1: (255, 255, 255)}
         im = Image.new("RGB", (32 * 3 + 12, 32), (40, 50, 90))
         x0 = 0
-        for g, w, ic in ((m, 24, (30, 245, 255)), (p, 32, (255, 235, 20)), (r, 24, (30, 245, 255))):
+        for g, w, ic in ((m, 24, 0), (p, 32, 0), (r, 24, 0)):
             for y in range(32):
                 for x in range(w):
                     v = g[y][x]
                     if v == 0:
                         continue
                     body = (176, 232, 96) if y < 16 else (116, 196, 52)
-                    im.putpixel((x0 + x, y), {1: (255, 255, 255), 2: body, 3: ic}[v])
+                    im.putpixel((x0 + x, y), {1: (255, 255, 255), 2: body, 3: (0, 0, 0)}[v])
             x0 += w + 6
         im.resize((im.width * 8, im.height * 8), Image.NEAREST).save(sys.argv[1])
 
