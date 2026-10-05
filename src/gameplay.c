@@ -1288,9 +1288,9 @@ void play_level(uint8_t idx) BANKED {
             } else if (player.mode == MODE_BALL) {
                 uint8_t ball_frame = (player.anim_frame >> 1) & 1;
                 if (player.reversed) {
-                    oam_index += move_metasprite_vflip(ball_metasprites[ball_frame], 12, oam_index, sprite_x_final + 24, final_py + 16);
+                    oam_index += move_metasprite_vflip(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 24, final_py + 16);
                 } else {
-                    oam_index += move_metasprite(ball_metasprites[ball_frame], 12, oam_index, sprite_x_final + 8, final_py + 16);
+                    oam_index += move_metasprite(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else {
                 if (player.gravity_flipped) {

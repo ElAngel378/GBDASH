@@ -4,18 +4,19 @@
 #include <gbdk/metasprites.h>
 
 // Converted from GDP Ball.chr (2 animated frames, 8x16 metasprite format)
-// Total 8 tiles (128 bytes): 4 tiles per 16x16 frame
+// Total 4 tiles (64 bytes): 2 tiles per frame. The ball is symmetric under a 180 degree rotation, so
+// the right half is the left half drawn with S_FLIPX | S_FLIPY (gameplay.c draws it at tile base 8).
 
 // Metasprites for 8x16 mode
 const metasprite_t ball_metasprite0[] = {
     METASPR_ITEM(0, 0, 0, 0),
-    METASPR_ITEM(0, 8, 2, 0),
+    METASPR_ITEM(0, 8, 0, S_FLIPX | S_FLIPY),
     METASPR_TERM
 };
 
 const metasprite_t ball_metasprite1[] = {
-    METASPR_ITEM(0, 0, 4, 0),
-    METASPR_ITEM(0, 8, 6, 0),
+    METASPR_ITEM(0, 0, 2, 0),
+    METASPR_ITEM(0, 8, 2, S_FLIPX | S_FLIPY),
     METASPR_TERM
 };
 

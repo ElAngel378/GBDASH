@@ -472,38 +472,37 @@ inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
     return count;
 }
 
-// 4 columns x 2 rows (8 8x16 hardware sprites = 32x32 pixels)
+// 4 columns x 2 rows (8 8x16 hardware sprites = 32x32 pixels). Art column k's bottom pair is
+// the top pair upside down for one column (k = 0 in the entrance art, k = 3 in the CGB exit art),
+// so it is drawn with S_FLIPY and its tiles are not loaded (tools/build_sprite_tiles.py). The DMG
+// exit is the entrance mirrored (the CGB exit art only differs in colour): drawn from the
+// entrance tiles with the flip toggled, so those tiles are not loaded on DMG.
 static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oam_idx,
                                       uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t t_base = (obj == OBJ_MIRROR_PORTAL) ? (tile_base + MIRROR_PORTAL_ENTER_TILE)
-                                                : (tile_base + MIRROR_PORTAL_EXIT_TILE);
+    uint8_t t_base = tile_base + MIRROR_PORTAL_ENTER_TILE;
+    uint8_t dk = 0;                       // art column with the shared bottom pair
+    uint8_t flip = reversed;
+    if (obj != OBJ_MIRROR_PORTAL && _cpu == CGB_TYPE) {
+        t_base = tile_base + MIRROR_PORTAL_EXIT_TILE;
+        dk = 3;
+        flip = !reversed;
+    }
     uint8_t pal = S_PAL(6);   // entrance and exit share palette 6 (see gbc_palettes.c)
-    uint8_t flip = (obj == OBJ_MIRROR_PORTAL) ? reversed : (!reversed);
+    uint8_t props = flip ? (pal | S_FLIPX) : pal;
+    uint8_t x = flip ? (uint8_t)(sx + 24) : sx;
+    int8_t dx = flip ? -8 : 8;
 
-    if (!flip) {
-        // Row 0 (Top 16px)
-        *oam++ = sy;      *oam++ = sx;      *oam++ = t_base + 0;  *oam++ = pal;
-        *oam++ = sy;      *oam++ = sx + 8;  *oam++ = t_base + 2;  *oam++ = pal;
-        *oam++ = sy;      *oam++ = sx + 16; *oam++ = t_base + 4;  *oam++ = pal;
-        *oam++ = sy;      *oam++ = sx + 24; *oam++ = t_base + 6;  *oam++ = pal;
-        // Row 1 (Bottom 16px)
-        *oam++ = sy + 16; *oam++ = sx;      *oam++ = t_base + 8;  *oam++ = pal;
-        *oam++ = sy + 16; *oam++ = sx + 8;  *oam++ = t_base + 10; *oam++ = pal;
-        *oam++ = sy + 16; *oam++ = sx + 16; *oam++ = t_base + 12; *oam++ = pal;
-        *oam++ = sy + 16; *oam++ = sx + 24; *oam++ = t_base + 14; *oam++ = pal;
-    } else {
-        uint8_t props = pal | S_FLIPX;
-        // Row 0 (Top 16px, columns reversed)
-        *oam++ = sy;      *oam++ = sx + 24; *oam++ = t_base + 0;  *oam++ = props;
-        *oam++ = sy;      *oam++ = sx + 16; *oam++ = t_base + 2;  *oam++ = props;
-        *oam++ = sy;      *oam++ = sx + 8;  *oam++ = t_base + 4;  *oam++ = props;
-        *oam++ = sy;      *oam++ = sx;      *oam++ = t_base + 6;  *oam++ = props;
-        // Row 1 (Bottom 16px, columns reversed)
-        *oam++ = sy + 16; *oam++ = sx + 24; *oam++ = t_base + 8;  *oam++ = props;
-        *oam++ = sy + 16; *oam++ = sx + 16; *oam++ = t_base + 10; *oam++ = props;
-        *oam++ = sy + 16; *oam++ = sx + 8;  *oam++ = t_base + 12; *oam++ = props;
-        *oam++ = sy + 16; *oam++ = sx;      *oam++ = t_base + 14; *oam++ = props;
+    for (uint8_t k = 0; k < 4; k++) {     // row 0 (top 16px)
+        *oam++ = sy; *oam++ = x; *oam++ = t_base + (uint8_t)(k << 1); *oam++ = props;
+        x += dx;
+    }
+    x = flip ? (uint8_t)(sx + 24) : sx;
+    for (uint8_t k = 0; k < 4; k++) {     // row 1 (bottom 16px)
+        *oam++ = sy + 16; *oam++ = x;
+        if (k == dk) { *oam++ = t_base + (uint8_t)(k << 1); *oam++ = props ^ S_FLIPY; }
+        else         { *oam++ = t_base + 8 + (uint8_t)(k << 1); *oam++ = props; }
+        x += dx;
     }
     return 8;
 }

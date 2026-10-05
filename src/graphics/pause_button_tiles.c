@@ -6,6 +6,7 @@
 #include "pause_buttons.h"
 #include "death_effect.h"
 #include "ship1.h"
+#include "../sprites/sprite_blob_offsets.h"
 
 extern const unsigned char FontPusab[];
 
@@ -145,7 +146,7 @@ void init_pause_tiles(void) BANKED {
 }
 
 void restore_ship_tiles(void) BANKED {
-    set_sprite_data(SHIP_TILE_BASE, SHIP_TILE_COUNT, sprite_tiles + (SHIP_TILE_BASE * 16u));
+    set_sprite_data(SHIP_TILE_BASE, SHIP_TILE_COUNT, sprite_tiles + (SPRITE_BLOB_SHIP * 16u));
 }
 
 void load_checkpoint_tiles(void) BANKED {
@@ -153,7 +154,7 @@ void load_checkpoint_tiles(void) BANKED {
 }
 
 void restore_death_tiles(void) BANKED {
-    set_sprite_data(DEATH_TILE_BASE, DEATH_TILE_COUNT, sprite_tiles + (DEATH_TILE_BASE * 16u));
+    set_sprite_data(DEATH_TILE_BASE, DEATH_TILE_COUNT, sprite_tiles + (SPRITE_BLOB_DEATH * 16u));
 }
 
 void draw_pause_menu_sprites(uint8_t selected_btn) BANKED {
