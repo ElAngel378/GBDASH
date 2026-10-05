@@ -22,7 +22,7 @@ extern uint8_t music_ready;
 void setup_menu_font(void) BANKED;
 
 // Custom font tiles: < (39), > (40), - (41), : (42)
-static const uint8_t extra_font_tiles[4 * 16] = {
+const uint8_t extra_font_tiles[4 * 16] = {  // also used by state_level_complete.c (same bank)
     // 39: Left arrow <
     0x00,0x08, 0x08,0x1C, 0x18,0x3C, 0x38,0x7C, 0x18,0x3C, 0x08,0x1C, 0x00,0x08, 0x00,0x00,
     // 40: Right arrow cursor > (White body color 3, dark outline color 2)

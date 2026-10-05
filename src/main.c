@@ -182,6 +182,9 @@ void main(void) {
       case STATE_SETTINGS:
         current_state = update_settings_state();
         break;
+      case STATE_LEVEL_COMPLETE:
+        current_state = update_level_complete_state();
+        break;
     }
   }
 }

@@ -34,6 +34,7 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 #include "bg_parallax.h"
 #include "collision.h"
 #include "settings.h"
+#include "level_complete.h"
 
 
 #define BKG_MT_W 16
@@ -663,41 +664,26 @@ static uint8_t pause_menu(uint8_t idx) {
     return 0;
 }
 
-// draw_text() is BANKED (sp_draw's bank is switched in while it runs), so a string literal
-// that lives in this file's bank would be read from the wrong ROM bank. Draw from here.
-static void complete_text(uint8_t x, uint8_t y, const char *str) {
-    for (; *str; str++, x++) {
-        char c = *str;
-        uint8_t tile = 0;
-        if (c >= 'A' && c <= 'Z') tile = (uint8_t)((c - 'A') + 13);
-        set_bkg_tile_xy(x, y, (uint8_t)(FONT_PUSAB_START + tile));
-    }
-}
+uint8_t  lc_pending;
+uint8_t  lc_level;
+uint8_t  lc_practice;
+uint8_t  lc_coins;
+uint16_t lc_attempts;
 
-static void level_complete_screen(uint8_t idx) {
+// The level was completed (after the end animation): save it and hand the result to
+// STATE_LEVEL_COMPLETE, which shows the "LEVEL COMPLETE!" screen once play_level() returns
+static void level_complete_record(uint8_t idx) {
     if (practice_mode) {
         record_level_progress(idx, 100, 1);
     } else {
         record_level_progress(idx, 100, 0);
         record_level_coins(idx, coins_collected);
     }
-    HIDE_SPRITES;
-    move_bkg(0, 0);
-    disable_interrupts();
-    setup_menu_font();
-    enable_interrupts();
-    VBK_REG = 1;
-    fill_bkg_rect(0, 0, 32, 32, 0x00);
-    VBK_REG = 0;
-    fill_bkg_rect(0, 0, 20, 18, 0x00);
-    if (practice_mode) {
-        complete_text(2, 6, "PRACTICE COMPLETE");
-    } else {
-        complete_text(3, 6, "LEVEL COMPLETE");
-    }
-    complete_text(2, 12, "PRESS A TO EXIT");
-    waitpadup();
-    while (!(joypad() & J_A)) wait_vbl_done();
+    lc_level = idx;
+    lc_practice = practice_mode;
+    lc_coins = coins_collected;
+    lc_attempts = attempt_count;
+    lc_pending = 1;
 }
 
 // The level end object was reached: start the pull-to-the-edge animation
@@ -1036,6 +1022,7 @@ void play_level(uint8_t idx) BANKED {
     end_trigger_requested = 0;
     sp_cache_reset(&active_sp, &sp_stream_idx);
     practice_mode = 0;
+    lc_pending = 0;
     practice_clear_checkpoints();
     coins_reset();
     coins_saved = level_coins[idx];
@@ -1069,7 +1056,7 @@ void play_level(uint8_t idx) BANKED {
         }
 
         if (player.level_complete) {
-            level_complete_screen(idx);
+            level_complete_record(idx);
             break;
         }
 
@@ -1454,11 +1441,16 @@ void play_level(uint8_t idx) BANKED {
 
     bg_parallax_isr_stop();
     music_ready = 0;
-    TAC_REG = 0x00;
-    play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
-    fade_to_black(2);
-    while (is_sample_playing()) wait_vbl_done();
-    stop_sample();
+    if (lc_pending) {
+        // Level complete: the jingle keeps playing (it drives the timer) into the next state
+        fade_to_black(2);
+    } else {
+        TAC_REG = 0x00;
+        play_sample(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
+        fade_to_black(2);
+        while (is_sample_playing()) wait_vbl_done();
+        stop_sample();
+    }
 
     HIDE_SPRITES;
     move_bkg(0, 0);

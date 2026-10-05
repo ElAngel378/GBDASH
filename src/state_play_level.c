@@ -9,9 +9,16 @@ extern volatile uint8_t current_song_bank;
 extern const hUGESong_t menuloop;
 
 #include "settings.h"
+#include "level_complete.h"
 
 GameState update_play_level_state(void) {
     play_level(selected);
+
+    // Level completed: the LEVEL COMPLETE state plays on (it restores the menu music itself)
+    if (lc_pending) {
+        lc_pending = 0;
+        return STATE_LEVEL_COMPLETE;
+    }
 
     // After play_level returns (win/death/quit), return to level select
     // Restore menu music
