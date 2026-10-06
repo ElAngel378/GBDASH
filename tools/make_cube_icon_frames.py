@@ -16,6 +16,9 @@ levels/chr_data/ship_frames.png: the ship, 31 frames of 16x16 from 45 degrees no
 in 3 degree steps (same colours). The old hand-drawn ship frames at 45, 24, 0, -24, -45 degrees,
 RotSprite of the level one in between; made when missing or with --regen.
 
+levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old hand-drawn frames at
+0 and 30 degrees, RotSprite in between; made when missing or with --regen.
+
 src/graphics/cube_icon_frames.c (bank 61, nothing else in it, not even code: GDMA needs 16
 byte aligned data): per icon and frame 4 sprite tiles, left 8x16 pair then right pair (64
 bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
@@ -37,6 +40,8 @@ SHIP_PNG = ROOT / "levels" / "chr_data" / "ship_frames.png"
 SHIP_FRAMES = 31                     # 45 .. -45 degrees in 3 degree steps
 SHIP_IDX = lambda deg: (45 - deg) // 3
 HAND_SHIP = {0: 45, 1: 24, 3: 0, 5: -24, 6: -45}   # old hand-drawn frame: its angle (2, 4 were generated)
+BALL_PNG = ROOT / "levels" / "chr_data" / "ball_frames.png"
+HAND_BALL = {6: 0, 8: 4}             # sprite_tiles.png pair of an old ball frame: its frame (x 7.5 degrees)
 SCROLL_SPEED_FP = 714                # gameplay.c: x speed, 8.8 px per frame
 STEP = 7.5   # degrees per frame
 SHADE = [255, 170, 85, 0]
@@ -154,6 +159,21 @@ def default_cube():
     return [hand[k // 2] if k % 2 == 0 else gen[k] for k in range(NUM_FRAMES)]
 
 
+def ball_frames():
+    """The ball: 24 frames, 0..172.5 degrees clockwise (the game draws the other half flipped
+    both ways). Its old hand-drawn frames (left half; the right half is it turned 180 degrees)
+    at 0 and 30 degrees, RotSprite of the first one in between."""
+    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
+
+    def hand(pr):
+        L = [[idx(st.getpixel(((pr % 16) * 8 + x, (pr // 16) * 16 + y))) for x in range(8)] for y in range(16)]
+        return [L[y] + [L[15 - y][7 - x] for x in range(8)] for y in range(16)]
+    gen = rotate(hand(6), [STEP * k for k in range(NUM_FRAMES)])
+    keep = {k: hand(pr) for pr, k in HAND_BALL.items()}
+    return [keep.get(k, gen[k]) for k in range(NUM_FRAMES)]
+
+
 def main():
     n = NUM_ICONS - FIRST_ICON
     if "--regen" in sys.argv or not FRAMES.exists():
@@ -177,6 +197,15 @@ def main():
         img.save(SHIP_PNG)
         print("wrote", SHIP_PNG)
 
+    if "--regen" in sys.argv or not BALL_PNG.exists():
+        img = Image.new("L", (NUM_FRAMES * 16, 16), 255)
+        for k, f in enumerate(ball_frames()):
+            for y in range(16):
+                for x in range(16):
+                    img.putpixel((k * 16 + x, y), SHADE[f[y][x]])
+        img.save(BALL_PNG)
+        print("wrote", BALL_PNG)
+
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
     data = bytearray()
 
@@ -198,6 +227,10 @@ def main():
     ship_first = len(data) // 64
     img = Image.open(SHIP_PNG).convert("L")
     for k in range(SHIP_FRAMES):
+        add_frame(img, k * 16, 0)
+    ball_first = len(data) // 64
+    img = Image.open(BALL_PNG).convert("L")
+    for k in range(NUM_FRAMES):
         add_frame(img, k * 16, 0)
     # |vertical speed| (8.8) from which the ship tilts k steps (3k degrees, rounded): its flight
     # direction, atan(vy / x speed)
@@ -238,13 +271,16 @@ extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pai
 #define SHIP_FRAME_COUNT {SHIP_FRAMES}
 #define SHIP_FRAME_LEVEL {SHIP_FRAMES // 2}
 #define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t){ship_first} + (k)) * 64u)
+// Ball frames, after the ship: 0..172.5 degrees like a cube icon (drawn at x + 0, not x - 1)
+#define BALL_FRAME(k) (cube_icon_frames + ((uint16_t){ball_first} + (k)) * 64u)
+
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames
 #define SHIP_TILT_VY {{ {", ".join(str(v) for v in steps)} }}
 
 #endif
 """)
-    print(f"{n} icons x {NUM_FRAMES} frames + {SHIP_FRAMES} ship frames: {len(data)} bytes")
+    print(f"{n} icons x {NUM_FRAMES} frames + {SHIP_FRAMES} ship + {NUM_FRAMES} ball frames: {len(data)} bytes")
 
 
 if __name__ == "__main__":

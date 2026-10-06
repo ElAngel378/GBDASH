@@ -18,6 +18,9 @@ extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pai
 #define SHIP_FRAME_COUNT 31
 #define SHIP_FRAME_LEVEL 15
 #define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t)168 + (k)) * 64u)
+// Ball frames, after the ship: 0..172.5 degrees like a cube icon (drawn at x + 0, not x - 1)
+#define BALL_FRAME(k) (cube_icon_frames + ((uint16_t)199 + (k)) * 64u)
+
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames
 #define SHIP_TILT_VY { 19, 56, 94, 132, 171, 211, 253, 296, 341, 388, 438, 491, 548, 610, 678 }

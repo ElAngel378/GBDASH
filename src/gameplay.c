@@ -9,7 +9,6 @@
 #include "gameplay.h"
 #include "player.h"
 #include "assets.h"
-#include "ball.h"
 #include "famidash_sprites.h"
 #include "famidash_bg.h"
 #include "gbc_palettes.h"
@@ -264,8 +263,11 @@ static uint8_t practice_mode = 0;
 // air the half step in between comes from anim_timer.
 // Ship: 31 images from 45 degrees nose down to 45 up in 3 degree steps, following its flight
 // direction (ship_tilt_vy), eased.
-// Frame ids: cube step 0..47, ship PL_SHIP + image.
+// Ball: like the cube, 48 steps from 24 images, rolling all the time (anim_frame turns on the
+// ground too).
+// Frame ids: cube step 0..47, ship PL_SHIP + image, ball PL_BALL + step.
 #define PL_SHIP 64
+#define PL_BALL 128
 static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
 static uint8_t cube_shown;   // frame id of the image in it
@@ -278,8 +280,8 @@ static uint8_t ship_tilt;    // ship image shown (eased towards the flight direc
 // image (0..23) of a step: no division on the SM83
 #define CUBE_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
 #define CUBE_MIRROR() ((uint8_t)(player.gravity_flipped | (view_rev << 1)))
-// the image of a frame id (cube steps 24 apart share one)
-#define PL_KEY(id) ((id) >= PL_SHIP ? (id) : CUBE_IMG(id))
+// the image of a frame id (cube / ball steps 24 apart share one)
+#define PL_KEY(id) ((id) >= PL_BALL ? (uint8_t)(PL_BALL + CUBE_IMG((uint8_t)((id) - PL_BALL)))                     : (id) >= PL_SHIP ? (id) : CUBE_IMG(id))
 
 static uint8_t cube_step(void) {
     uint8_t s = (uint8_t)(player.anim_frame << 1);
@@ -287,12 +289,20 @@ static uint8_t cube_step(void) {
     return s;
 }
 
+static uint8_t ball_step(void) {
+    return (uint8_t)((player.anim_frame << 1) + (player.anim_timer >= 11u ? 1u : 0u));
+}
+
 static uint8_t player_frame_id(void) {
-    return (player.mode == MODE_SHIP) ? (uint8_t)(PL_SHIP + ship_tilt) : cube_step();
+    if (player.mode == MODE_SHIP) return (uint8_t)(PL_SHIP + ship_tilt);
+    if (player.mode == MODE_BALL) return (uint8_t)(PL_BALL + ball_step());
+    return cube_step();
 }
 
 static const uint8_t *player_frame_src(uint8_t id) {
-    return (id >= PL_SHIP) ? SHIP_FRAME(id - PL_SHIP) : CUBE_ICON_FRAME(selected_icon, CUBE_IMG(id));
+    if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
+    if (id >= PL_SHIP) return SHIP_FRAME(id - PL_SHIP);
+    return CUBE_ICON_FRAME(selected_icon, CUBE_IMG(id));
 }
 
 // Display off, after load_gameplay_sprite_tiles and player init
@@ -339,16 +349,18 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
     }
     uint8_t show = same ? want : cube_shown;
     uint8_t t = (uint8_t)(cube_front << 2);
-    // cube, second half turn: the image of st - 24, flipped both ways (halves swapped)
-    uint8_t flip = (show >= CUBE_ICON_FRAMES && show < PL_SHIP) ? (S_FLIPX | S_FLIPY) : 0;
+    // cube / ball, second half turn: the image of the step - 24, flipped both ways (halves swapped)
+    uint8_t turn = (show >= PL_BALL) ? (uint8_t)(show - PL_BALL) : (show >= PL_SHIP) ? 0 : show;
+    uint8_t flip = (turn >= CUBE_ICON_FRAMES) ? (S_FLIPX | S_FLIPY) : 0;
     uint8_t l = flip ? (uint8_t)(t + 2) : t, r = flip ? t : (uint8_t)(t + 2);
     // still the image from before a flip of the drawing (its copy is a frame late): undo that
     // flip, so for this frame the player looks exactly as on the last one
     uint8_t undo = (uint8_t)(cube_img_mir ^ cube_mirror);
     if (undo & 1u) flip ^= S_FLIPY;
     if (undo & 2u) { uint8_t x = l; l = r; r = x; flip ^= S_FLIPX; }
-    int8_t dy = (show >= PL_SHIP) ? -1 : 0;   // the ship is drawn a pixel higher
-    cube_ms[0].dy = dy; cube_ms[0].dx = -1; cube_ms[0].dtile = l; cube_ms[0].props = flip;
+    int8_t dy = (show >= PL_SHIP && show < PL_BALL) ? -1 : 0;   // the ship is drawn a pixel higher,
+    int8_t dx = (show >= PL_BALL) ? 0 : -1;                     // the ball a pixel further right
+    cube_ms[0].dy = dy; cube_ms[0].dx = dx; cube_ms[0].dtile = l; cube_ms[0].props = flip;
     cube_ms[1].dy = 0;  cube_ms[1].dx = 8;  cube_ms[1].dtile = r; cube_ms[1].props = flip;
     cube_ms[2].dy = (int8_t)0x80;   // METASPR_TERM
     return cube_ms;
@@ -1624,11 +1636,14 @@ void play_level(uint8_t idx) BANKED {
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else if (player.mode == MODE_BALL) {
-                uint8_t ball_frame = (player.anim_frame >> 1) & 1;
-                if (view_rev) {
-                    oam_index += move_metasprite_vflip(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 24, final_py + 16);
+                // drawn like the cube: upside down on the ceiling, so it rolls the other way there
+                const metasprite_t *ball = player_frame_metasprite((uint8_t)(PL_BALL + ball_step()));
+                if (player.gravity_flipped) {
+                    if (view_rev) oam_index += move_metasprite_hvflip(ball, 0, oam_index, sprite_x_final + 24, final_py + 32);
+                    else oam_index += move_metasprite_hflip(ball, 0, oam_index, sprite_x_final + 8, final_py + 32);
                 } else {
-                    oam_index += move_metasprite(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 8, final_py + 16);
+                    if (view_rev) oam_index += move_metasprite_vflip(ball, 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    else oam_index += move_metasprite(ball, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else {
                 const metasprite_t *cube = player_frame_metasprite(cube_step());
