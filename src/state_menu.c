@@ -1,6 +1,7 @@
 #pragma bank 29
 
 #include "states.h"
+#include "fade.h"
 #include "gameplay.h"
 #include "assets.h"
 #include "rainbow.h"
@@ -397,10 +398,13 @@ GameState update_menu_state(void) BANKED {
 #else
     HIDE_WIN;
 #endif
+    fade_capture_current();   // fade in to the palettes set above
+    fade_set_black();
     DISPLAY_ON;
 
     // VBlank handler: runs the parallax GDMA at the start of VBlank (CGB)
     bg_parallax_isr_start();
+    fade_from_black(2);
     uint8_t sky_phase = 0;
     uint8_t prev_joy = joypad();
 
@@ -453,6 +457,8 @@ GameState update_menu_state(void) BANKED {
         }
 
         if (pressed & J_SELECT) {
+            fade_capture_current();   // the rainbow palette changes: fade out from the current one
+            fade_to_black(2);
             if (dmg_sky_irq) {
                 disable_interrupts();
                 remove_LCD(menu_stat_isr);
@@ -470,6 +476,8 @@ GameState update_menu_state(void) BANKED {
         }
 
         if (pressed & (J_A | J_START)) {
+            fade_capture_current();
+            fade_to_black(2);
             if (dmg_sky_irq) {
                 disable_interrupts();
                 remove_LCD(menu_stat_isr);

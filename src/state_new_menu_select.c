@@ -680,6 +680,8 @@ GameState update_new_menu_select_state(void) BANKED {
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             return STATE_PLAY_LEVEL;
         } else if (pressed & J_B) {
+            if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
+            fade_to_black(2);
             disable_interrupts();
             remove_LCD(level_select_stat_isr);
             remove_VBL(level_select_vbl_isr);
@@ -688,8 +690,6 @@ GameState update_new_menu_select_state(void) BANKED {
             HIDE_SPRITES;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             SCX_REG = 0;
-
-            if (_cpu == CGB_TYPE) fade_set_bkg_palette(0, 8, cgb_menu_pals);
             return STATE_MENU;
         }
 

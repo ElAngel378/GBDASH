@@ -344,7 +344,10 @@ GameState update_music_test_state(void) BANKED {
 
     SHOW_BKG;
     SHOW_SPRITES;
+    fade_capture_current();   // fade in to the palettes set above
+    fade_set_black();
     DISPLAY_ON;
+    fade_from_black(2);
 
     uint8_t prev_joy = joypad();
     uint8_t hold_timer = 0;
@@ -426,6 +429,8 @@ GameState update_music_test_state(void) BANKED {
 
         // B button: Exit to main menu
         if (pressed & (J_B | J_START)) {
+            fade_capture_current();
+            fade_to_black(2);
             reset_audio_full();
 
             // Restore menu loop song if enabled

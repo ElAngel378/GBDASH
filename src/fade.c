@@ -100,6 +100,28 @@ void fade_apply_dirty_palettes(void) BANKED {
     }
 }
 
+// Takes the palettes a state set directly (set_*_palette, BGP/OBP registers) as the fade target,
+// so fade_to_black / fade_from_black work for it. CGB palette RAM only reads outside mode 3: with
+// the display on this waits for VBlank (128 reads fit in it easily).
+void fade_capture_current(void) BANKED {
+    if (_cpu == CGB_TYPE) {
+        uint8_t i;
+        if (LCDC_REG & LCDCF_ON) wait_vbl_done();
+        for (i = 0; i < 64u; i++) {
+            BCPS_REG = i;   // reads do not auto-increment
+            ((uint8_t *)shadow_bkg_palettes)[i] = BCPD_REG;
+            OCPS_REG = i;
+            ((uint8_t *)shadow_spr_palettes)[i] = OCPD_REG;
+        }
+        active_bkg_count = 8;
+        active_spr_count = 8;
+    } else {
+        shadow_bgp = BGP_REG;
+        shadow_obp0 = OBP0_REG;
+        shadow_obp1 = OBP1_REG;
+    }
+}
+
 void fade_set_black(void) BANKED {
     if (_cpu == CGB_TYPE) {
         static const palette_color_t black_pals[32] = {0};

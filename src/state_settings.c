@@ -281,7 +281,10 @@ GameState update_settings_state(void) BANKED {
     render_all_settings(current_sel, scroll_offset);
 
     SHOW_BKG;
+    fade_capture_current();   // fade in to the palettes set above
+    fade_set_black();
     DISPLAY_ON;
+    fade_from_black(2);
 
     uint8_t prev_joy = joypad();
 
@@ -369,6 +372,8 @@ GameState update_settings_state(void) BANKED {
 
         // Exit on B or START
         if (pressed & (J_B | J_START)) {
+            fade_capture_current();
+            fade_to_black(2);
             if (setting_music_enabled && !music_ready) {
                 init_music_banked(&menuloop, 1, 176);
                 current_song_bank = 1;

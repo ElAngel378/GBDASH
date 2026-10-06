@@ -266,9 +266,13 @@ static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
 static uint8_t cube_shown;   // step (0..47) of the image in it
 static uint8_t cube_req;     // step being copied to the other buffer, 0xFF: none
+static uint8_t cube_mirror;  // how the cube is drawn: bit 0 gravity_flipped (flip Y), bit 1 view_rev (flip X)
+static uint8_t cube_img_mir; // cube_mirror the step of the image shown was counted in
+static uint8_t cube_req_mir; // ... and the one being copied
 
 // image (0..23) of a step: no division on the SM83
 #define CUBE_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
+#define CUBE_MIRROR() ((uint8_t)(player.gravity_flipped | (view_rev << 1)))
 
 static uint8_t cube_step(void) {
     uint8_t s = (uint8_t)(player.anim_frame << 1);
@@ -280,6 +284,7 @@ static uint8_t cube_step(void) {
 static void cube_icon_reset(void) {
     cube_req = 0xFF;
     bg_cube_pending = 0;
+    cube_mirror = cube_img_mir = CUBE_MIRROR();
     cube_front = 0;
     cube_shown = cube_step();
     cube_tiles_load_now(CUBE_ICON_FRAME(selected_icon, CUBE_IMG(cube_shown)), BANK(cube_icon_frames), 0);
@@ -290,23 +295,32 @@ static const metasprite_t *cube_icon_metasprite(void) {
     if (cube_req != 0xFF && !bg_cube_pending) {
         cube_front ^= 1;
         cube_shown = cube_req;
+        cube_img_mir = cube_req_mir;
         cube_req = 0xFF;
     }
     uint8_t img = CUBE_IMG(st);
     uint8_t same = (img == CUBE_IMG(cube_shown));
-    if (cube_req == 0xFF && !same) {
+    if (same) cube_img_mir = cube_mirror;
+    else if (cube_req == 0xFF) {
         bg_cube_src = CUBE_ICON_FRAME(selected_icon, img);
         bg_cube_bank = BANK(cube_icon_frames);
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
         cube_req = st;
+        cube_req_mir = cube_mirror;
         bg_cube_pending = 1;
     }
     // second half turn: the image of st - 24, flipped both ways (halves swapped)
     uint8_t show = same ? st : cube_shown;
     uint8_t t = (uint8_t)(cube_front << 2);
     uint8_t flip = (show >= CUBE_ICON_FRAMES) ? (S_FLIPX | S_FLIPY) : 0;
-    cube_ms[0].dy = 0; cube_ms[0].dx = -1; cube_ms[0].dtile = flip ? (uint8_t)(t + 2) : t; cube_ms[0].props = flip;
-    cube_ms[1].dy = 0; cube_ms[1].dx = 8;  cube_ms[1].dtile = flip ? t : (uint8_t)(t + 2); cube_ms[1].props = flip;
+    uint8_t l = flip ? (uint8_t)(t + 2) : t, r = flip ? t : (uint8_t)(t + 2);
+    // still the image from before a flip of the drawing (its copy is a frame late): undo that
+    // flip, so for this frame the cube looks exactly as on the last one
+    uint8_t undo = (uint8_t)(cube_img_mir ^ cube_mirror);
+    if (undo & 1u) flip ^= S_FLIPY;
+    if (undo & 2u) { uint8_t x = l; l = r; r = x; flip ^= S_FLIPX; }
+    cube_ms[0].dy = 0; cube_ms[0].dx = -1; cube_ms[0].dtile = l; cube_ms[0].props = flip;
+    cube_ms[1].dy = 0; cube_ms[1].dx = 8;  cube_ms[1].dtile = r; cube_ms[1].props = flip;
     cube_ms[2].dy = (int8_t)0x80;   // METASPR_TERM
     return cube_ms;
 }
@@ -1372,9 +1386,11 @@ void play_level(uint8_t idx) BANKED {
         uint16_t px_curr = px_prev;
 
         if (end_anim_state == END_ANIM_INACTIVE && cam_px < max_scroll_px) {
-            bg_drift_px++;
             scroll_acc += SCROLL_SPEED_FP;
             cam_px += scroll_acc >> 8;
+            // the parallax drifts against the scrolling: not while the camera is still (level
+            // start: the player first runs to PLAYER_SCREEN_X)
+            if (view_rev || cam_px > PLAYER_SCREEN_X) bg_drift_px++;
             scroll_acc &= 0xFF;
             px_curr = cam_px >> 4;
             if (px_curr != px_prev) {
@@ -1523,6 +1539,25 @@ void play_level(uint8_t idx) BANKED {
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
+
+        // Gravity portal / blue orb / mirror portal: the cube is drawn flipped differently from
+        // now on, which would turn its angle too (a jump in the spin). Count the step so the angle
+        // on screen stays: in half steps (48 per turn), drawn flipped Y shows -s, flipped X
+        // 24 - s, both 24 + s.
+        {
+            uint8_t mir = CUBE_MIRROR();
+            if (mir != cube_mirror) {
+                static const uint8_t base[4] = { 0, 0, 24, 24 };
+                uint8_t s0 = cube_step();
+                uint8_t a = (cube_mirror == 0 || cube_mirror == 3) ? (uint8_t)(s0 + base[cube_mirror])
+                                                                   : (uint8_t)(base[cube_mirror] + 48u - s0);
+                uint8_t s1 = (mir == 0 || mir == 3) ? (uint8_t)(a + 96u - base[mir])
+                                                    : (uint8_t)(base[mir] + 96u - a);
+                while (s1 >= 48u) s1 -= 48u;
+                player.anim_frame = (uint8_t)(s1 >> 1);   // the half step bit is kept (parity)
+                cube_mirror = mir;
+            }
+        }
 
         if (end_anim_state != END_ANIM_SHAKE && player.mini) {
             // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
