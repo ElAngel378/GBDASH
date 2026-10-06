@@ -27,7 +27,19 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 #include "fade.h"
 #include "death_effect.h"
 #include "save_manager.h"
+#include "icon_catalog.h"
 #include "sp_draw.h"
+
+static void apply_custom_player_palette(void) {
+    if (_cpu == CGB_TYPE) {
+        palette_color_t custom_pal[4];
+        custom_pal[0] = RGB8(255, 255, 255);
+        custom_pal[1] = icon_palette_colors[selected_color_primary];
+        custom_pal[2] = icon_palette_colors[selected_color_secondary];
+        custom_pal[3] = RGB8(0, 0, 0);
+        fade_set_sprite_palette(0, 1, custom_pal);
+    }
+}
 #include "pause_buttons.h"
 #include "debug_mode.h"
 #include "percent_hud.h"
@@ -654,6 +666,7 @@ static uint8_t pause_menu(uint8_t idx) {
         apply_pause_box_attributes(0);
         fade_restore_pause_box_palettes();
         set_sprite_palette(0, 8, gbc_sprite_palettes);
+        apply_custom_player_palette();
         flush_ground_row();
     } else {
         BGP_REG = saved_bgp;
@@ -980,6 +993,7 @@ static void practice_respawn(uint8_t idx) {
         famidash_bg_set_now(cp->bg_palettes);
         set_bkg_palette(0, 5, shadow_bkg_palettes);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
+        apply_custom_player_palette();
     } else {
         apply_idx = target_bg_idx;
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) apply_idx = 0;
@@ -1177,6 +1191,7 @@ void play_level(uint8_t idx) BANKED {
         load_menu_ground_tiles();
         famidash_reset_bg_palettes(idx);
         fade_set_sprite_palette(0, 8, gbc_sprite_palettes);
+        apply_custom_player_palette();
     }
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);

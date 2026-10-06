@@ -11,7 +11,8 @@ typedef enum {
     STATE_PLAY_LEVEL,
     STATE_MUSIC_TEST,
     STATE_SETTINGS,
-    STATE_LEVEL_COMPLETE
+    STATE_LEVEL_COMPLETE,
+    STATE_ICON_SELECT
 } GameState;
 
 // State functions. Each returns the next state to transition to.
@@ -22,6 +23,7 @@ GameState update_play_level_state(void);
 GameState update_music_test_state(void) BANKED;
 GameState update_settings_state(void) BANKED;
 GameState update_level_complete_state(void) BANKED;
+GameState update_icon_select_state(void) BANKED;
 
 extern volatile uint8_t level_banner_scx;
 void level_select_stat_isr(void);

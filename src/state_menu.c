@@ -453,9 +453,20 @@ GameState update_menu_state(void) BANKED {
         }
 
         if (pressed & J_SELECT) {
-            menu_sel = (uint8_t)((menu_sel + 1) % 3);
-            if (menu_sel != 0) last_ground_sel = menu_sel;
-            update_menu_sprites(menu_sel);
+            if (dmg_sky_irq) {
+                disable_interrupts();
+                remove_LCD(menu_stat_isr);
+                remove_VBL(menu_vbl_isr);
+                STAT_REG &= ~STATF_LYC;
+                SCX_REG = 0;
+                set_interrupts(VBL_IFLAG | TIM_IFLAG);
+                enable_interrupts();
+            }
+            bg_parallax_isr_stop();
+            HIDE_SPRITES;
+            HIDE_WIN;
+            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
+            return STATE_ICON_SELECT;
         }
 
         if (pressed & (J_A | J_START)) {

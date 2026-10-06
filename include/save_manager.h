@@ -12,6 +12,10 @@ extern uint8_t level_progress_practice[NUM_SAVE_LEVELS];
 // Famidash secret coins: bit 0/1/2 = coin 1/2/3 collected in a completed run
 extern uint8_t level_coins[NUM_SAVE_LEVELS];
 
+extern uint8_t selected_icon;
+extern uint8_t selected_color_primary;
+extern uint8_t selected_color_secondary;
+
 void init_save_system(void) BANKED;
 void save_game_data(void) BANKED;
 void record_level_progress(uint8_t level_idx, uint8_t pct, uint8_t is_practice) BANKED;

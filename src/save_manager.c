@@ -10,7 +10,7 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 7
+#define SAVE_VERSION 8
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
@@ -20,6 +20,10 @@ BANKREF(save_manager)
 uint8_t level_progress_normal[NUM_SAVE_LEVELS] = {0};
 uint8_t level_progress_practice[NUM_SAVE_LEVELS] = {0};
 uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
+
+uint8_t selected_icon = 0;
+uint8_t selected_color_primary = 0;
+uint8_t selected_color_secondary = 1;
 
 // Version 4 layout: progress normal[N], practice[N], settings[6], coins[N], checksum
 #define V4_COINS_OFS (5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES)
@@ -33,6 +37,11 @@ uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
 // Version 7: version 6 + AUTO CP
 #define V7_AUTO_CP_OFS (5 + V6_DATA_LEN)
 #define V7_DATA_LEN  (V6_DATA_LEN + 1)
+// Version 8: version 7 + 3 customization bytes (selected_icon, selected_color_primary, selected_color_secondary)
+#define V8_ICON_OFS  (5 + V7_DATA_LEN)
+#define V8_COL1_OFS  (V8_ICON_OFS + 1)
+#define V8_COL2_OFS  (V8_ICON_OFS + 2)
+#define V8_DATA_LEN  (V7_DATA_LEN + 3)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -60,11 +69,12 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
-            uint8_t v7 = (sram[4] == 7);
-            uint8_t len = v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN));
+            uint8_t v7 = (sram[4] >= 7);
+            uint8_t v8 = (sram[4] == 8);
+            uint8_t len = v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
@@ -83,9 +93,15 @@ void init_save_system(void) BANKED {
                 setting_show_percent     = v5 ? (sram[V5_SHOW_PCT_OFS] ? 1 : 0) : 1;
                 setting_old_ship_cam     = v6 ? (sram[V6_SHIP_CAM_OFS] ? 1 : 0) : 0;
                 setting_auto_checkpoints = v7 ? (sram[V7_AUTO_CP_OFS] ? 1 : 0) : 1;
+                selected_icon            = v8 ? sram[V8_ICON_OFS] : 0;
+                selected_color_primary   = v8 ? sram[V8_COL1_OFS] : 0;
+                selected_color_secondary = v8 ? sram[V8_COL2_OFS] : 1;
+                if (selected_icon >= 7) selected_icon = 0;
+                if (selected_color_primary >= 12) selected_color_primary = 0;
+                if (selected_color_secondary >= 12) selected_color_secondary = 1;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v7) save_game_data();   // upgrade to version 7
+                if (!v8) save_game_data();   // upgrade to version 8
                 return;
             }
         } else if (sram[4] == 3) {
@@ -161,6 +177,9 @@ void init_save_system(void) BANKED {
     setting_show_percent    = 1;
     setting_old_ship_cam    = 0;
     setting_auto_checkpoints = 1;
+    selected_icon           = 0;
+    selected_color_primary  = 0;
+    selected_color_secondary = 1;
     DISABLE_RAM;
     save_game_data();
 }
@@ -194,7 +213,10 @@ void save_game_data(void) BANKED {
     sram[V5_SHOW_PCT_OFS] = setting_show_percent;
     sram[V6_SHIP_CAM_OFS] = setting_old_ship_cam;
     sram[V7_AUTO_CP_OFS] = setting_auto_checkpoints;
-    sram[5 + V7_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V7_DATA_LEN);
+    sram[V8_ICON_OFS] = selected_icon;
+    sram[V8_COL1_OFS] = selected_color_primary;
+    sram[V8_COL2_OFS] = selected_color_secondary;
+    sram[5 + V8_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V8_DATA_LEN);
     DISABLE_RAM;
 }
 

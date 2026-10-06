@@ -185,6 +185,9 @@ void main(void) {
       case STATE_LEVEL_COMPLETE:
         current_state = update_level_complete_state();
         break;
+      case STATE_ICON_SELECT:
+        current_state = update_icon_select_state();
+        break;
     }
   }
 }
