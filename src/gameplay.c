@@ -30,12 +30,14 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 #include "icon_catalog.h"
 #include "sp_draw.h"
 
+// Player colours from the icon select menu (sprite palette 0: 1 primary, 2 secondary). The
+// colour table is in bank 24: read it through the banked icon_color().
 static void apply_custom_player_palette(void) {
     if (_cpu == CGB_TYPE) {
         palette_color_t custom_pal[4];
         custom_pal[0] = RGB8(255, 255, 255);
-        custom_pal[1] = icon_palette_colors[selected_color_primary];
-        custom_pal[2] = icon_palette_colors[selected_color_secondary];
+        custom_pal[1] = icon_color(selected_color_primary);
+        custom_pal[2] = icon_color(selected_color_secondary);
         custom_pal[3] = RGB8(0, 0, 0);
         fade_set_sprite_palette(0, 1, custom_pal);
     }

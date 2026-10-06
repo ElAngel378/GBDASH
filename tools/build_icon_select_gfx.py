@@ -1,190 +1,354 @@
-"""Builds the graphics and tilemaps for the Icon Select screen from mockup image.
-Generates:
-  - include/icon_select_bg.h
-  - src/graphics/icon_select_bg.c
+"""Icon select (garage) screen, laid out like the Geometry Dash one.
+
+    python tools/build_icon_select_gfx.py
+
+Sources:
+    levels/chr_data/cube_icons.png       7 cube icons, 15x15 in 16 px cells, 4 grey shades:
+                                         black outline, dark grey primary, light grey secondary
+                                         (light grey outside the outline = transparent)
+    levels/chr_data/gamemode_icons.chr   GD icon pack (NES 2bpp): 9x9 mini gamemode icons at
+                                         y 23..31, one per 16 px column (cube, ship, ufo, robot,
+                                         wave, spider, swing, ball)
+    src/graphics/menu_select_bg.c        level select tiles reused here: back arrow, rounded box,
+                                         corner stage blocks
+
+Screen (20x18 tiles). The picture is built in DMG shades (0 white, 1 light grey = page,
+2 dark grey = boxes, 3 black) so the DMG needs no extra work; CGB colours come from the
+attribute map:
+    pal 0  greys: page, gamemode badges, icon box, colour box frame
+    pal 1  preview cube (cols 8..11, rows 1..4): secondary, page, primary, black
+    pal 2  green (back arrow, green corner blocks)   pal 3  cyan corner blocks
+    pal 4..7  colour swatches, three colours each (cols 4..15, rows 15..16)
+
+Writes include/icon_select_bg.h, src/graphics/icon_select_bg.c, include/icon_catalog.h and
+src/graphics/icon_catalog.c.
 """
+import re
+from collections import deque
 from pathlib import Path
+
 from PIL import Image
-import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
-MOCKUP = Path(r"C:/Users/soter/.gemini/antigravity/brain/5e74c28b-8bc8-4866-abd2-7e8be4ec6a0e/.user_uploaded/media_1791294618274.png")
+CUBES = ROOT / "levels" / "chr_data" / "cube_icons.png"
+GM_CHR = ROOT / "levels" / "chr_data" / "gamemode_icons.chr"
+MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 
-def quantize(val):
-    if val > 200: return 0  # White
-    if val > 140: return 1  # Light grey
-    if val > 50: return 2   # Dark grey
-    return 3               # Black
+NUM_ICONS = 7
+GM_ORDER = [0, 1, 7, 2, 4, 3, 5]   # cube, ship, ball, ufo, wave, robot, spider (pack columns)
+
+# Player colours (index 0 / 1 = the default primary / secondary of the player palette)
+COLORS = [
+    ("Cyan", (0, 255, 255), 1), ("Lime", (125, 255, 0), 1), ("Yellow", (255, 230, 0), 0),
+    ("Orange", (255, 120, 0), 1), ("Red", (255, 30, 30), 2), ("Pink", (255, 0, 200), 1),
+    ("Purple", (160, 30, 255), 2), ("Blue", (0, 110, 255), 2), ("Green", (0, 200, 0), 2),
+    ("White", (255, 255, 255), 0), ("Grey", (160, 160, 160), 1), ("Dark Grey", (90, 90, 90), 3),
+]
+
+PREVIEW_COL, PREVIEW_ROW = 8, 1                 # 4x4 tiles, filled at runtime
+PREVIEW_TILE_BASE = 0                           # tiles 0..15
+SLOT_X0, SLOT_Y0, SLOT_PITCH = 22, 70, 20       # icon grid: 2 rows x 6 slots
+BADGE_X0, BADGE_Y, BADGE_PITCH = 18, 46, 18     # gamemode badges (16x16)
+SWATCH_COL, SWATCH_ROWS = 4, (15, 16)
+
+
+def menu_select_tiles():
+    s = MENU_SELECT.read_text()
+    body = re.search(r"menu_select_bg_tiles\[\d*\]\s*=\s*\{(.*?)\};", s, re.S).group(1)
+    t = [int(x, 16) for x in re.findall(r"0x([0-9a-fA-F]+)", body)]
+
+    def tile(n):
+        return [[((t[n * 16 + 2 * y] >> (7 - x)) & 1) | (((t[n * 16 + 2 * y + 1] >> (7 - x)) & 1) << 1)
+                 for x in range(8)] for y in range(8)]
+    return tile
+
 
 def main():
-    img = Image.open(MOCKUP).convert('L')
-    arr = np.array(img)
-    qarr = np.vectorize(quantize)(arr)
+    ms_tile = menu_select_tiles()
+    S = [[1] * 160 for _ in range(144)]   # shades
+    A = [[0] * 20 for _ in range(18)]     # CGB palettes
 
-    # 1. Build Background Tiles & Map (20x18 grid)
-    tile_dict = {}
-    tile_list = []
-    tile_map = np.zeros((18, 20), dtype=int)
+    def put_tile(col, row, px, remap, pal):
+        for y in range(8):
+            for x in range(8):
+                S[row * 8 + y][col * 8 + x] = remap[px[y][x]]
+        A[row][col] = pal
 
+    # --- back arrow and corner blocks (level select art; its colour 0 is the page here)
+    deco = {0: 1, 1: 0, 2: 2, 3: 3}
+    for (c, r, t) in ((1, 1, 0x0A), (2, 1, 0x0B), (1, 2, 0x0E), (2, 2, 0x0F)):
+        put_tile(c, r, ms_tile(t), deco, 2)
+    corners = [(0, 15, 0x37, 3), (0, 16, 0x39, 2), (0, 17, 0x3B, 3), (1, 17, 0x3C, 2), (2, 17, 0x3D, 3),
+               (19, 15, 0x38, 3), (19, 16, 0x3A, 2), (19, 17, 0x40, 3), (18, 17, 0x3F, 2), (17, 17, 0x3E, 3)]
+    for c, r, t, pal in corners:
+        put_tile(c, r, ms_tile(t), deco, pal)
+
+    # --- rounded boxes (level select box: fill -> dark grey, border -> white)
+    boxmap = {0: 1, 1: 2, 2: 0, 3: 0}
+
+    def box(c0, r0, c1, r1):
+        for r in range(r0, r1 + 1):
+            for c in range(c0, c1 + 1):
+                top, bot, left, right = r == r0, r == r1, c == c0, c == c1
+                t = (0x12 if left else 0x14 if right else 0x13) if top else \
+                    (0x21 if left else 0x23 if right else 0x22) if bot else \
+                    (0x15 if left else 0x17 if right else 0x16)
+                put_tile(c, r, ms_tile(t), boxmap, 0)
+    box(2, 8, 17, 13)       # icon grid
+    box(3, 14, 16, 17)      # colour swatches
+
+    # --- line under the preview: solid in the middle, dotted towards the ends
+    for x in range(16, 144):
+        d = min(x - 16, 143 - x)
+        on = d >= 24 or (d >= 12 and x % 2 == 0) or (d < 12 and x % 4 == 0)
+        if on:
+            S[41][x] = 0
+            if d >= 24:
+                S[42][x] = 0
+
+    # --- gamemode badges: dark grey disc with a black ring and the mini icon
+    gm = GM_CHR.read_bytes()
+
+    def gm_px(x, y):
+        i = (y // 8) * 16 + x // 8
+        a, b = gm[i * 16 + y % 8], gm[i * 16 + y % 8 + 8]
+        return ((a >> (7 - x % 8)) & 1) | (((b >> (7 - x % 8)) & 1) << 1)
+
+    mini = {0: 2, 1: 0, 2: 1, 3: 3}
+    # 16 px pixel-art circle: first/last filled x per row
+    span = [(5, 10), (3, 12), (2, 13), (1, 14), (1, 14), (0, 15), (0, 15), (0, 15),
+            (0, 15), (0, 15), (0, 15), (1, 14), (1, 14), (2, 13), (3, 12), (5, 10)]
+
+    def inside(x, y):
+        return 0 <= y < 16 and span[y][0] <= x <= span[y][1]
+    for i, k in enumerate(GM_ORDER):
+        bx, by = BADGE_X0 + i * BADGE_PITCH, BADGE_Y
+        for y in range(16):
+            for x in range(16):
+                if inside(x, y):
+                    edge = any(not inside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                    S[by + y][bx + x] = 3 if edge else 2
+        for y in range(9):
+            for x in range(9):
+                v = gm_px(16 * k + x, 23 + y)
+                if v:
+                    S[by + 4 + y][bx + 4 + x] = mini[v]
+
+    # --- cube icons
+    cubes = Image.open(CUBES).convert("L")
+
+    def icon(i):
+        g = [[{255: 0, 170: 1, 85: 2, 0: 3}[cubes.getpixel((i * 16 + x, y))] for x in range(16)] for y in range(16)]
+        out = set()
+        q = deque()
+        for j in range(16):
+            for p in ((j, 0), (j, 15), (0, j), (15, j)):
+                if g[p[1]][p[0]] in (0, 1) and p not in out:
+                    out.add(p)
+                    q.append(p)
+        while q:
+            x, y = q.popleft()
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                a, b = x + dx, y + dy
+                if 0 <= a < 16 and 0 <= b < 16 and g[b][a] in (0, 1) and (a, b) not in out:
+                    out.add((a, b))
+                    q.append((a, b))
+        # roles: 'o' outside, 'k' outline, 'p' primary, 's' secondary
+        return [['o' if (x, y) in out else {3: 'k', 2: 'p'}.get(g[y][x], 's') for x in range(16)] for y in range(16)]
+
+    icons = [icon(i) for i in range(NUM_ICONS)]
+    grid = {'o': 2, 'k': 3, 'p': 1, 's': 0}
+    for slot in range(12):
+        sx, sy = SLOT_X0 + (slot % 6) * SLOT_PITCH, SLOT_Y0 + (slot // 6) * SLOT_PITCH
+        if slot < NUM_ICONS:
+            for y in range(16):
+                for x in range(16):
+                    S[sy + y][sx + x] = grid[icons[slot][y][x]]
+        else:   # empty slot: faint rounded outline
+            for y in range(1, 15):
+                for x in range(1, 15):
+                    edge = x in (1, 14) or y in (1, 14)
+                    corner = (x in (1, 14)) and (y in (1, 14))
+                    if edge and not corner:
+                        S[sy + y][sx + x] = 1
+
+    # --- preview area palette (tiles filled at runtime)
+    for r in range(PREVIEW_ROW, PREVIEW_ROW + 4):
+        for c in range(PREVIEW_COL, PREVIEW_COL + 4):
+            A[r][c] = 1
+
+    # --- colour swatches (CGB): 1 px frame in colour 0 (box fill), colour 1..3 inside
+    def swatch(k, frame):
+        return [[frame if (x in (0, 7) or y in (0, 7) or (x in (1, 6) and y in (1, 6))) else k
+                 for x in range(8)] for y in range(8)]
+    for r in SWATCH_ROWS:
+        for j in range(12):
+            put_tile(SWATCH_COL + j, r, swatch(j % 3 + 1, 0), {0: 0, 1: 1, 2: 2, 3: 3}, 4 + j // 3)
+
+    # ---- tiles
+    def enc(px):
+        out = []
+        for row in px:
+            lo = hi = 0
+            for v in row:
+                lo = (lo << 1) | (v & 1)
+                hi = (hi << 1) | (v >> 1)
+            out += [lo, hi]
+        return bytes(out)
+
+    tiles = [bytes(16)] * 16          # 0..15: preview, loaded at runtime
+    index = {}
+    mp = [[0] * 20 for _ in range(18)]
     for r in range(18):
         for c in range(20):
-            t = qarr[r*8:(r+1)*8, c*8:(c+1)*8]
-            b = bytearray()
-            for y in range(8):
-                low = 0
-                high = 0
-                for x in range(8):
-                    pix = t[y, x]
-                    low = (low << 1) | (pix & 1)
-                    high = (high << 1) | ((pix >> 1) & 1)
-                b.append(low)
-                b.append(high)
-            tb = bytes(b)
-            if tb not in tile_dict:
-                tile_dict[tb] = len(tile_list)
-                tile_list.append(tb)
-            tile_map[r, c] = tile_dict[tb]
+            if PREVIEW_ROW <= r < PREVIEW_ROW + 4 and PREVIEW_COL <= c < PREVIEW_COL + 4:
+                mp[r][c] = PREVIEW_TILE_BASE + (r - PREVIEW_ROW) * 4 + (c - PREVIEW_COL)
+                continue
+            b = enc([S[r * 8 + y][c * 8:c * 8 + 8] for y in range(8)])
+            if b not in index:
+                index[b] = len(tiles)
+                tiles.append(b)
+            mp[r][c] = index[b]
+    dmg_swatch_base = len(tiles)
+    for s in range(4):   # DMG swatches: black frame, shade inside, on the dark grey box
+        tiles.append(enc([[2 if (x in (0, 7) or y in (0, 7)) else 3 if (x in (1, 6) or y in (1, 6)) else s
+                           for x in range(8)] for y in range(8)]))
+    assert len(tiles) <= 256, len(tiles)   # 128+ live at 0x8800 (signed BG addressing), clear of sprite tiles 0..2
 
-    num_bg_tiles = len(tile_list)
-    print(f"Generated {num_bg_tiles} unique background tiles")
+    # ---- preview tiles per icon (2x, 30x30 at offset 1): secondary 0, page 1, primary 2, black 3
+    prev = {'o': 1, 'k': 3, 'p': 2, 's': 0}
+    preview_blobs = []
+    for ic in icons:
+        P = [[1] * 32 for _ in range(32)]
+        for y in range(15):
+            for x in range(15):
+                v = prev[ic[y][x]]
+                for yy in (0, 1):
+                    for xx in (0, 1):
+                        P[1 + 2 * y + yy][1 + 2 * x + xx] = v
+        blob = b""
+        for tr in range(4):
+            for tc in range(4):
+                blob += enc([P[tr * 8 + y][tc * 8:tc * 8 + 8] for y in range(8)])
+        preview_blobs.append(blob)
 
-    # 2. Build CGB Attribute Map (20x18 grid)
-    # Pal 0: General UI
-    # Pal 1: Preview box (cols 7..12, rows 2..6)
-    # Pal 2: Gamemode row (rows 8..9)
-    # Pal 3: Carousel (rows 10..12)
-    # Pal 4: Primary swatches (rows 14..15)
-    # Pal 5: Secondary swatches (rows 16..17)
-    attr_map = np.zeros((18, 20), dtype=int)
-    for r in range(18):
-        for c in range(20):
-            if 2 <= r <= 6 and 7 <= c <= 12:
-                attr_map[r, c] = 1
-            elif 8 <= r <= 9:
-                attr_map[r, c] = 2
-            elif 10 <= r <= 12:
-                attr_map[r, c] = 3
-            elif 14 <= r <= 15:
-                attr_map[r, c] = 4
-            elif 16 <= r <= 17:
-                attr_map[r, c] = 5
-            else:
-                attr_map[r, c] = 0
+    # ---- sprites: 0 bracket corner (icon and gamemode cursors, flipped for the other corners), 1 swatch frame
+    # colour 1 = cursor colour, 3 = black edge
+    bracket =["31111100", "11111300", "11333000", "11300000", "11300000", "13000000", "00000000", "00000000"]
+    frame = ["31111113", "13333331", "13000031", "13000031", "13000031", "13000031", "13333331", "31111113"]
+    spr = [enc([[int(ch) for ch in r] for r in t]) for t in (bracket, frame)]
 
-    # 3. Build Sprite Cursor Tiles
-    spr_tiles = []
-    # Tile 0: TL bracket
-    tl = bytearray(16)
-    tl_art = [0b11110000, 0b11110000, 0b11000000, 0b11000000, 0, 0, 0, 0]
-    for y in range(8):
-        tl[y*2] = tl_art[y]
-        tl[y*2 + 1] = tl_art[y]
-    spr_tiles.append(bytes(tl))
+    # ---- write
+    def carr(data, per=16):
+        lines = []
+        for i in range(0, len(data), per):
+            lines.append("    " + ", ".join(f"0x{b:02X}" for b in data[i:i + per]) + ",")
+        return "\n".join(lines)
 
-    # Tile 1: TR bracket
-    tr = bytearray(16)
-    tr_art = [0b00001111, 0b00001111, 0b00000011, 0b00000011, 0, 0, 0, 0]
-    for y in range(8):
-        tr[y*2] = tr_art[y]
-        tr[y*2 + 1] = tr_art[y]
-    spr_tiles.append(bytes(tr))
+    (ROOT / "include" / "icon_select_bg.h").write_text(f"""// Generated by tools/build_icon_select_gfx.py. Do not edit.
+#ifndef ICON_SELECT_BG_H
+#define ICON_SELECT_BG_H
 
-    # Tile 2: BL bracket
-    bl = bytearray(16)
-    bl_art = [0, 0, 0, 0, 0b11000000, 0b11000000, 0b11110000, 0b11110000]
-    for y in range(8):
-        bl[y*2] = bl_art[y]
-        bl[y*2 + 1] = bl_art[y]
-    spr_tiles.append(bytes(bl))
+#include <stdint.h>
+#include <gbdk/platform.h>
 
-    # Tile 3: BR bracket
-    br = bytearray(16)
-    br_art = [0, 0, 0, 0, 0b00000011, 0b00000011, 0b00001111, 0b00001111]
-    for y in range(8):
-        br[y*2] = br_art[y]
-        br[y*2 + 1] = br_art[y]
-    spr_tiles.append(bytes(br))
+#define ICON_SELECT_BG_TILE_COUNT {len(tiles)}
+#define ICON_SELECT_SPR_TILE_COUNT {len(spr)}
+#define ICON_SELECT_DMG_SWATCH_BASE {dmg_swatch_base}
+#define ICON_SELECT_SWATCH_COL {SWATCH_COL}
+#define ICON_SELECT_SWATCH_ROW0 {SWATCH_ROWS[0]}
+#define ICON_SELECT_SLOT_X0 {SLOT_X0}
+#define ICON_SELECT_SLOT_Y0 {SLOT_Y0}
+#define ICON_SELECT_SLOT_PITCH {SLOT_PITCH}
+#define ICON_SELECT_BADGE_X0 {BADGE_X0}
+#define ICON_SELECT_BADGE_Y {BADGE_Y}
+#define ICON_SELECT_BADGE_PITCH {BADGE_PITCH}
 
-    # Tile 4: Down-pointer arrow for Gamemode tabs (8x8)
-    arr_down = bytearray(16)
-    arr_down_art = [
-        0b00000000,
-        0b11111110,
-        0b01111100,
-        0b00111000,
-        0b00010000,
-        0b00000000,
-        0b00000000,
-        0b00000000,
-    ]
-    for y in range(8):
-        arr_down[y*2] = arr_down_art[y]
-        arr_down[y*2 + 1] = arr_down_art[y]
-    spr_tiles.append(bytes(arr_down))
+BANKREF_EXTERN(icon_select_bg)
+extern const uint8_t icon_select_bg_tiles[];
+extern const uint8_t icon_select_bg_map[];
+extern const uint8_t icon_select_bg_attrmap[];
+extern const uint8_t icon_select_spr_tiles[];
 
-    # Write include/icon_select_bg.h
-    h_bg = [
-        "#ifndef ICON_SELECT_BG_H",
-        "#define ICON_SELECT_BG_H",
-        "",
-        "#include <stdint.h>",
-        "#include <gbdk/platform.h>",
-        "",
-        f"#define ICON_SELECT_BG_TILE_COUNT {num_bg_tiles}",
-        "#define ICON_SELECT_BG_MAP_WIDTH 20",
-        "#define ICON_SELECT_BG_MAP_HEIGHT 18",
-        f"#define ICON_SELECT_SPR_TILE_COUNT {len(spr_tiles)}",
-        "",
-        "BANKREF_EXTERN(icon_select_bg)",
-        "extern const uint8_t icon_select_bg_tiles[];",
-        "extern const uint8_t icon_select_bg_map[];",
-        "extern const uint8_t icon_select_bg_attrmap[];",
-        "extern const uint8_t icon_select_spr_tiles[];",
-        "",
-        "#endif // ICON_SELECT_BG_H",
-        ""
-    ]
-    (ROOT / "include" / "icon_select_bg.h").write_text("\n".join(h_bg))
+#endif // ICON_SELECT_BG_H
+""")
+    flat = b"".join(tiles)
+    mapb = bytes(v for row in mp for v in row)
+    attb = bytes(v for row in A for v in row)
+    (ROOT / "src" / "graphics" / "icon_select_bg.c").write_text(f"""#pragma bank 24
+// Generated by tools/build_icon_select_gfx.py. Do not edit.
 
-    # Write src/graphics/icon_select_bg.c
-    c_bg = [
-        "#pragma bank 24",
-        "",
-        '#include "icon_select_bg.h"',
-        "",
-        "BANKREF(icon_select_bg)",
-        "",
-        f"const uint8_t icon_select_bg_tiles[{num_bg_tiles * 16}] = {{"
-    ]
-    for idx, tb in enumerate(tile_list):
-        hex_vals = ", ".join(f"0x{b:02X}" for b in tb)
-        c_bg.append(f"    {hex_vals}, // Tile {idx}")
-    c_bg.append("};")
-    c_bg.append("")
+#include "icon_select_bg.h"
 
-    c_bg.append(f"const uint8_t icon_select_bg_map[20 * 18] = {{")
-    for r in range(18):
-        hex_row = ", ".join(f"0x{tile_map[r, c]:02X}" for c in range(20))
-        c_bg.append(f"    {hex_row}, // Row {r}")
-    c_bg.append("};")
-    c_bg.append("")
+BANKREF(icon_select_bg)
 
-    c_bg.append(f"const uint8_t icon_select_bg_attrmap[20 * 18] = {{")
-    for r in range(18):
-        hex_row = ", ".join(f"0x{attr_map[r, c]:02X}" for c in range(20))
-        c_bg.append(f"    {hex_row}, // Row {r}")
-    c_bg.append("};")
-    c_bg.append("")
+const uint8_t icon_select_bg_tiles[{len(flat)}] = {{
+{carr(flat)}
+}};
 
-    c_bg.append(f"const uint8_t icon_select_spr_tiles[{len(spr_tiles) * 16}] = {{")
-    for idx, sb in enumerate(spr_tiles):
-        hex_vals = ", ".join(f"0x{b:02X}" for b in sb)
-        c_bg.append(f"    {hex_vals}, // Spr Tile {idx}")
-    c_bg.append("};")
-    c_bg.append("")
-    (ROOT / "src" / "graphics" / "icon_select_bg.c").write_text("\n".join(c_bg))
+const uint8_t icon_select_bg_map[20 * 18] = {{
+{carr(mapb, 20)}
+}};
 
-    print("Successfully updated icon_select_bg.h and icon_select_bg.c with attribute map")
+const uint8_t icon_select_bg_attrmap[20 * 18] = {{
+{carr(attb, 20)}
+}};
+
+const uint8_t icon_select_spr_tiles[{len(spr) * 16}] = {{
+{carr(b"".join(spr))}
+}};
+""")
+
+    (ROOT / "include" / "icon_catalog.h").write_text(f"""// Generated by tools/build_icon_select_gfx.py. Do not edit.
+#ifndef ICON_CATALOG_H
+#define ICON_CATALOG_H
+
+#include <stdint.h>
+#include <gbdk/platform.h>
+#include <gb/cgb.h>
+
+#define NUM_CUBE_ICONS {NUM_ICONS}
+#define NUM_GAMEMODE_TABS {len(GM_ORDER)}
+#define NUM_PALETTE_COLORS {len(COLORS)}
+#define PREVIEW_TILE_BASE {PREVIEW_TILE_BASE}
+#define PREVIEW_TILE_COUNT 16
+
+BANKREF_EXTERN(icon_catalog)
+// Bank 24 data: read it from bank 24 code, or use icon_color() from other banks
+extern const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS];
+extern const uint8_t icon_dmg_shades[NUM_PALETTE_COLORS];
+extern const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16];
+
+palette_color_t icon_color(uint8_t idx) BANKED;
+
+#endif // ICON_CATALOG_H
+""")
+    cols = "\n".join(f"    RGB8({r:3d}, {g:3d}, {b:3d}), // {i}: {n}" for i, (n, (r, g, b), _) in enumerate(COLORS))
+    shades = ", ".join(str(s) for _, _, s in COLORS)
+    prevs = "\n".join(f"    // {i}\n    {{\n{carr(b)}\n    }}," for i, b in enumerate(preview_blobs))
+    (ROOT / "src" / "graphics" / "icon_catalog.c").write_text(f"""#pragma bank 24
+// Generated by tools/build_icon_select_gfx.py. Do not edit.
+
+#include "icon_catalog.h"
+
+BANKREF(icon_catalog)
+
+const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS] = {{
+{cols}
+}};
+
+const uint8_t icon_dmg_shades[NUM_PALETTE_COLORS] = {{ {shades} }};
+
+const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16] = {{
+{prevs}
+}};
+
+palette_color_t icon_color(uint8_t idx) BANKED {{
+    return icon_palette_colors[idx < NUM_PALETTE_COLORS ? idx : 0];
+}}
+""")
+    print(f"{len(tiles)} bg tiles ({dmg_swatch_base} + 4 DMG swatches), {len(spr)} sprite tiles")
+
 
 if __name__ == "__main__":
     main()

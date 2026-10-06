@@ -9,263 +9,226 @@
 #include "settings.h"
 #include "sample_player.h"
 #include "sfx_data.h"
+#include "fade.h"
 
 BANKREF(state_icon_select)
+
+// Icon select (garage), laid out like the Geometry Dash one (tools/build_icon_select_gfx.py):
+// big preview of the cube, gamemode badges, a box with the icons and a box with the colour
+// swatches (primary row, secondary row). Up/Down moves between the sections (and the icon rows),
+// Left/Right changes the selection, B / Start saves and goes back.
 
 #define SECTION_GAMEMODE        0
 #define SECTION_ICON            1
 #define SECTION_COLOR_PRIMARY   2
 #define SECTION_COLOR_SECONDARY 3
 
-static const uint8_t tab_x[NUM_GAMEMODE_TABS] = { 16, 37, 58, 79, 100, 121, 141 };
-static const uint8_t icon_x[NUM_CUBE_ICONS] = { 18, 35, 52, 69, 86, 103, 120 };
+#define SPR_BRACKET 0
+#define SPR_FRAME   1
+
+#define ICONS_PER_ROW 6
+
+// OAM: 0..3 icon cursor, 4..7 gamemode cursor, 8 primary swatch, 9 secondary swatch
+#define OAM_ICON  0
+#define OAM_TAB   4
+#define OAM_COL1  8
+#define OAM_COL2  9
+
+#define BOX_GREY  RGB8( 40,  40,  40)
+#define PAGE_GREY RGB8(140, 140, 140)
 
 static uint8_t active_section = SECTION_ICON;
-static uint8_t selected_tab = 0; // 0 = Cube
+static uint8_t selected_tab = 0;   // 0 = cube (the only gamemode with icons so far)
 
 static void refresh_preview_tiles(void) {
-    uint8_t prev_b = _current_bank;
-    SWITCH_ROM(BANK(icon_catalog));
     set_bkg_data(PREVIEW_TILE_BASE, PREVIEW_TILE_COUNT, icon_preview_tiles[selected_icon]);
-    SWITCH_ROM(prev_b);
 }
 
-static void refresh_palettes(void) {
+static void preview_palette(palette_color_t *p) {
+    p[0] = icon_palette_colors[selected_color_secondary];
+    p[1] = PAGE_GREY;
+    p[2] = icon_palette_colors[selected_color_primary];
+    p[3] = RGB8(0, 0, 0);
+}
+
+static void set_palettes(void) {
     if (_cpu == CGB_TYPE) {
-        // Pal 0: General UI
-        palette_color_t ui_pal[4] = {
-            RGB8(255, 255, 255), RGB8(160, 160, 160), RGB8(70, 70, 70), RGB8(0, 0, 0)
+        palette_color_t bg[32] = {
+            RGB8(255, 255, 255), PAGE_GREY, BOX_GREY, RGB8(0, 0, 0),             // 0: greys
+            0, 0, 0, 0,                                                          // 1: preview
+            RGB8(189, 242, 71), PAGE_GREY, RGB8(67, 156, 24), RGB8(0, 0, 0),     // 2: green
+            RGB8(60, 245, 230), PAGE_GREY, RGB8(15, 110, 115), RGB8(0, 0, 0),    // 3: cyan
         };
-        set_bkg_palette(0, 1, ui_pal);
+        preview_palette(&bg[4]);
+        // 4..7: colour swatches, three per palette
+        for (uint8_t i = 0; i < NUM_PALETTE_COLORS; i++) {
+            uint8_t pal = 4 + i / 3;
+            bg[pal * 4] = BOX_GREY;
+            bg[pal * 4 + 1 + i % 3] = icon_palette_colors[i];
+        }
+        fade_set_bkg_palette(0, 8, bg);
 
-        // Pal 1: Preview box
-        palette_color_t prev_pal[4] = {
-            RGB8(255, 255, 255),
-            icon_palette_colors[selected_color_primary],
-            icon_palette_colors[selected_color_secondary],
-            RGB8(0, 0, 0)
+        // Sprite 0: cursor of the active section (yellow), 1: the others (white)
+        palette_color_t spr[8] = {
+            0, RGB8(255, 230, 0), 0, RGB8(0, 0, 0),
+            0, RGB8(255, 255, 255), 0, RGB8(0, 0, 0),
         };
-        set_bkg_palette(1, 1, prev_pal);
+        fade_set_sprite_palette(0, 2, spr);
+    }
+    // DMG: active cursor white, the others light grey (black edge on both)
+    fade_set_dmg_palettes(0xE4, 0xC0, 0xC4);
+}
 
-        // Pal 2: Gamemode badges
-        palette_color_t gm_pal[4] = {
-            RGB8(255, 255, 255), RGB8(0, 220, 255), RGB8(160, 160, 160), RGB8(0, 0, 0)
-        };
-        set_bkg_palette(2, 1, gm_pal);
-
-        // Pal 3: Carousel
-        set_bkg_palette(3, 1, ui_pal);
-
-        // Pal 4: Primary swatches
-        palette_color_t sw1_pal[4] = {
-            RGB8(255, 255, 255),
-            icon_palette_colors[selected_color_primary],
-            RGB8(70, 70, 70),
-            RGB8(0, 0, 0)
-        };
-        set_bkg_palette(4, 1, sw1_pal);
-
-        // Pal 5: Secondary swatches
-        palette_color_t sw2_pal[4] = {
-            RGB8(255, 255, 255),
-            icon_palette_colors[selected_color_secondary],
-            RGB8(70, 70, 70),
-            RGB8(0, 0, 0)
-        };
-        set_bkg_palette(5, 1, sw2_pal);
-
-        // Sprite Pal 0: Active cursor (White / Bright Yellow)
-        palette_color_t spr_act[4] = {
-            RGB8(255, 255, 255), RGB8(255, 255, 255), RGB8(255, 240, 0), RGB8(0, 0, 0)
-        };
-        set_sprite_palette(0, 1, spr_act);
-
-        // Sprite Pal 1: Inactive cursor (Gray)
-        palette_color_t spr_inact[4] = {
-            RGB8(255, 255, 255), RGB8(180, 180, 180), RGB8(100, 100, 100), RGB8(0, 0, 0)
-        };
-        set_sprite_palette(1, 1, spr_inact);
-    } else {
-        BGP_REG = 0xE4;
-        OBP0_REG = 0xE4;
-        OBP1_REG = 0xD0;
+static void refresh_preview_palette(void) {
+    if (_cpu == CGB_TYPE) {
+        palette_color_t p[4];
+        preview_palette(p);
+        fade_set_bkg_palette(1, 1, p);
     }
 }
 
+static uint8_t cursor_prop(uint8_t section) {
+    // CGB palette 0/1, DMG OBP0/OBP1
+    if (section == active_section) return 0;
+    return (_cpu == CGB_TYPE) ? 1 : S_PALETTE;
+}
+
+static void place_brackets(uint8_t oam, uint8_t x, uint8_t y, uint8_t size, uint8_t prop) {
+    // Corners of a size x size frame around (x, y): bracket tile flipped per corner
+    uint8_t x0 = (uint8_t)(x - 2 + 8), y0 = (uint8_t)(y - 2 + 16);
+    uint8_t x1 = (uint8_t)(x0 + size + 4 - 8), y1 = (uint8_t)(y0 + size + 4 - 8);
+    set_sprite_tile(oam,     SPR_BRACKET); set_sprite_prop(oam,     prop);                     move_sprite(oam,     x0, y0);
+    set_sprite_tile(oam + 1, SPR_BRACKET); set_sprite_prop(oam + 1, prop | S_FLIPX);           move_sprite(oam + 1, x1, y0);
+    set_sprite_tile(oam + 2, SPR_BRACKET); set_sprite_prop(oam + 2, prop | S_FLIPY);           move_sprite(oam + 2, x0, y1);
+    set_sprite_tile(oam + 3, SPR_BRACKET); set_sprite_prop(oam + 3, prop | S_FLIPX | S_FLIPY); move_sprite(oam + 3, x1, y1);
+}
+
 static void update_cursor_sprites(void) {
-    uint8_t prop_icon = (_cpu == CGB_TYPE && active_section == SECTION_ICON) ? 0 : 1;
-    uint8_t prop_col1 = (_cpu == CGB_TYPE && active_section == SECTION_COLOR_PRIMARY) ? 0 : 1;
-    uint8_t prop_col2 = (_cpu == CGB_TYPE && active_section == SECTION_COLOR_SECONDARY) ? 0 : 1;
+    place_brackets(OAM_ICON,
+                   (uint8_t)(ICON_SELECT_SLOT_X0 + (selected_icon % ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
+                   (uint8_t)(ICON_SELECT_SLOT_Y0 + (selected_icon / ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
+                   16, cursor_prop(SECTION_ICON));
+    place_brackets(OAM_TAB,
+                   (uint8_t)(ICON_SELECT_BADGE_X0 + selected_tab * ICON_SELECT_BADGE_PITCH),
+                   ICON_SELECT_BADGE_Y, 16, cursor_prop(SECTION_GAMEMODE));
 
-    // 1. Icon Carousel bracket cursor (Sprites 0..3)
-    uint8_t ix = icon_x[selected_icon];
-    uint8_t iy = 86;
-    set_sprite_tile(0, 0); move_sprite(0, ix + 6, iy + 14); set_sprite_prop(0, prop_icon);
-    set_sprite_tile(1, 1); move_sprite(1, ix + 15, iy + 14); set_sprite_prop(1, prop_icon);
-    set_sprite_tile(2, 2); move_sprite(2, ix + 6, iy + 23); set_sprite_prop(2, prop_icon);
-    set_sprite_tile(3, 3); move_sprite(3, ix + 15, iy + 23); set_sprite_prop(3, prop_icon);
+    set_sprite_tile(OAM_COL1, SPR_FRAME);
+    set_sprite_prop(OAM_COL1, cursor_prop(SECTION_COLOR_PRIMARY));
+    move_sprite(OAM_COL1, (uint8_t)((ICON_SELECT_SWATCH_COL + selected_color_primary) * 8 + 8),
+                (uint8_t)(ICON_SELECT_SWATCH_ROW0 * 8 + 16));
+    set_sprite_tile(OAM_COL2, SPR_FRAME);
+    set_sprite_prop(OAM_COL2, cursor_prop(SECTION_COLOR_SECONDARY));
+    move_sprite(OAM_COL2, (uint8_t)((ICON_SELECT_SWATCH_COL + selected_color_secondary) * 8 + 8),
+                (uint8_t)((ICON_SELECT_SWATCH_ROW0 + 1) * 8 + 16));
+}
 
-    // 2. Primary Color Swatch bracket cursor (Sprites 4..7)
-    uint8_t c1x = (uint8_t)(10 + selected_color_primary * 12);
-    uint8_t c1y = 114;
-    set_sprite_tile(4, 0); move_sprite(4, c1x + 6, c1y + 14); set_sprite_prop(4, prop_col1);
-    set_sprite_tile(5, 1); move_sprite(5, c1x + 11, c1y + 14); set_sprite_prop(5, prop_col1);
-    set_sprite_tile(6, 2); move_sprite(6, c1x + 6, c1y + 19); set_sprite_prop(6, prop_col1);
-    set_sprite_tile(7, 3); move_sprite(7, c1x + 11, c1y + 19); set_sprite_prop(7, prop_col1);
-
-    // 3. Secondary Color Swatch bracket cursor (Sprites 8..11)
-    uint8_t c2x = (uint8_t)(10 + selected_color_secondary * 12);
-    uint8_t c2y = 126;
-    set_sprite_tile(8, 0); move_sprite(8, c2x + 6, c2y + 14); set_sprite_prop(8, prop_col2);
-    set_sprite_tile(9, 1); move_sprite(9, c2x + 11, c2y + 14); set_sprite_prop(9, prop_col2);
-    set_sprite_tile(10, 2); move_sprite(10, c2x + 6, c2y + 19); set_sprite_prop(10, prop_col2);
-    set_sprite_tile(11, 3); move_sprite(11, c2x + 11, c2y + 19); set_sprite_prop(11, prop_col2);
-
-    // 4. Gamemode Tab down-arrow (Sprite 12)
-    uint8_t gx = tab_x[selected_tab];
-    uint8_t gy = 60;
-    set_sprite_tile(12, 4);
-    move_sprite(12, gx + 4, gy + 11);
-    set_sprite_prop(12, (_cpu == CGB_TYPE && active_section == SECTION_GAMEMODE) ? 0 : 1);
-
-    // Hide remaining sprites
-    for (uint8_t s = 13; s < 40; s++) hide_sprite(s);
+static void click(void) {
+    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
 }
 
 GameState update_icon_select_state(void) BANKED {
     DISPLAY_OFF;
-
-    // Reset scrolling & window
+    fade_set_black();
     SCX_REG = 0;
     SCY_REG = 0;
     HIDE_WIN;
+    SPRITES_8x8;
+    for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
 
-    // Load background tiles
-    uint8_t prev_b = _current_bank;
-    SWITCH_ROM(BANK(icon_select_bg));
+    if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
+    if (selected_color_primary >= NUM_PALETTE_COLORS) selected_color_primary = 0;
+    if (selected_color_secondary >= NUM_PALETTE_COLORS) selected_color_secondary = 1;
+
     set_bkg_data(0, ICON_SELECT_BG_TILE_COUNT, icon_select_bg_tiles);
     set_sprite_data(0, ICON_SELECT_SPR_TILE_COUNT, icon_select_spr_tiles);
-
-    // Load background tile map
     if (_cpu == CGB_TYPE) {
         VBK_REG = 1;
         set_bkg_tiles(0, 0, 20, 18, icon_select_bg_attrmap);
         VBK_REG = 0;
     }
     set_bkg_tiles(0, 0, 20, 18, icon_select_bg_map);
-    SWITCH_ROM(prev_b);
+    if (_cpu != CGB_TYPE) {
+        // DMG: the swatches show each colour's grey shade
+        for (uint8_t i = 0; i < NUM_PALETTE_COLORS; i++) {
+            uint8_t t = (uint8_t)(ICON_SELECT_DMG_SWATCH_BASE + icon_dmg_shades[i]);
+            set_bkg_tile_xy(ICON_SELECT_SWATCH_COL + i, ICON_SELECT_SWATCH_ROW0, t);
+            set_bkg_tile_xy(ICON_SELECT_SWATCH_COL + i, ICON_SELECT_SWATCH_ROW0 + 1, t);
+        }
+    }
 
-    // Ensure valid selections
-    if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
-    if (selected_color_primary >= NUM_PALETTE_COLORS) selected_color_primary = 0;
-    if (selected_color_secondary >= NUM_PALETTE_COLORS) selected_color_secondary = 1;
-
-    // Update live preview & palettes
     refresh_preview_tiles();
-    refresh_palettes();
     update_cursor_sprites();
+    set_palettes();
+    fade_set_black();
 
     SHOW_BKG;
     SHOW_SPRITES;
     DISPLAY_ON;
+    fade_from_black(2);
 
     uint8_t prev_joy = joypad();
-    uint8_t frame = 0;
 
     while (1) {
         wait_vbl_done();
-        frame++;
 
         uint8_t joy = joypad();
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
+        uint8_t moved = 0, recolour = 0;
 
-        // Navigation UP/DOWN between sections
         if (pressed & J_UP) {
-            if (active_section > 0) {
+            if (active_section == SECTION_ICON && selected_icon >= ICONS_PER_ROW) {
+                selected_icon -= ICONS_PER_ROW;
+                refresh_preview_tiles();
+                moved = 1;
+            } else if (active_section > SECTION_GAMEMODE) {
                 active_section--;
-                if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                update_cursor_sprites();
+                moved = 1;
             }
-        }
-        if (pressed & J_DOWN) {
-            if (active_section < SECTION_COLOR_SECONDARY) {
+        } else if (pressed & J_DOWN) {
+            if (active_section == SECTION_ICON && selected_icon + ICONS_PER_ROW < NUM_CUBE_ICONS) {
+                selected_icon += ICONS_PER_ROW;
+                refresh_preview_tiles();
+                moved = 1;
+            } else if (active_section < SECTION_COLOR_SECONDARY) {
                 active_section++;
-                if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                update_cursor_sprites();
+                moved = 1;
             }
-        }
-
-        // Navigation LEFT/RIGHT within the active section
-        if (pressed & J_LEFT) {
+        } else if (pressed & (J_LEFT | J_RIGHT)) {
+            uint8_t right = (pressed & J_RIGHT) ? 1 : 0;
             if (active_section == SECTION_GAMEMODE) {
-                if (selected_tab > 0) {
-                    selected_tab--;
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
+                if (right && selected_tab < NUM_GAMEMODE_TABS - 1) { selected_tab++; moved = 1; }
+                else if (!right && selected_tab > 0) { selected_tab--; moved = 1; }
             } else if (active_section == SECTION_ICON) {
-                if (selected_icon > 0) {
-                    selected_icon--;
-                    refresh_preview_tiles();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            } else if (active_section == SECTION_COLOR_PRIMARY) {
-                if (selected_color_primary > 0) {
-                    selected_color_primary--;
-                    refresh_palettes();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            } else if (active_section == SECTION_COLOR_SECONDARY) {
-                if (selected_color_secondary > 0) {
-                    selected_color_secondary--;
-                    refresh_palettes();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
+                if (right && selected_icon < NUM_CUBE_ICONS - 1) { selected_icon++; moved = 1; }
+                else if (!right && selected_icon > 0) { selected_icon--; moved = 1; }
+                if (moved) refresh_preview_tiles();
+            } else {
+                uint8_t *c = (active_section == SECTION_COLOR_PRIMARY) ? &selected_color_primary
+                                                                       : &selected_color_secondary;
+                if (right && *c < NUM_PALETTE_COLORS - 1) { (*c)++; moved = recolour = 1; }
+                else if (!right && *c > 0) { (*c)--; moved = recolour = 1; }
             }
-            update_cursor_sprites();
         }
 
-        if (pressed & J_RIGHT) {
-            if (active_section == SECTION_GAMEMODE) {
-                if (selected_tab < NUM_GAMEMODE_TABS - 1) {
-                    selected_tab++;
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            } else if (active_section == SECTION_ICON) {
-                if (selected_icon < NUM_CUBE_ICONS - 1) {
-                    selected_icon++;
-                    refresh_preview_tiles();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            } else if (active_section == SECTION_COLOR_PRIMARY) {
-                if (selected_color_primary < NUM_PALETTE_COLORS - 1) {
-                    selected_color_primary++;
-                    refresh_palettes();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            } else if (active_section == SECTION_COLOR_SECONDARY) {
-                if (selected_color_secondary < NUM_PALETTE_COLORS - 1) {
-                    selected_color_secondary++;
-                    refresh_palettes();
-                    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-                }
-            }
+        if (moved) {
+            if (recolour) refresh_preview_palette();
             update_cursor_sprites();
+            click();
         }
 
-        // B or START: Save customization and return to Main Menu
+        if (pressed & J_A) {
+            click();
+            save_game_data();
+        }
+
         if (pressed & (J_B | J_START)) {
             if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
             save_game_data();
+            fade_to_black(2);
             HIDE_SPRITES;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
             return STATE_MENU;
-        }
-
-        // A button: Select / confirm
-        if (pressed & J_A) {
-            if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-            save_game_data();
         }
     }
 }
