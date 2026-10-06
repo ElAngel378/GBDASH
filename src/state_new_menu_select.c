@@ -36,77 +36,30 @@ static const palette_color_t cgb_level_bg_colors[NUM_LEVEL_STYLES] = {
     RGB8(  0,   0, 255), // Test
 };
 
-static const palette_color_t diff_skin_colors[6] = {
-    RGB8(0, 190, 255),  // Easy
-    RGB8(0, 245, 0),    // Normal
-    RGB8(255, 215, 0),  // Hard
-    RGB8(255, 50, 0),   // Harder
-    RGB8(255, 75, 215), // Insane
-    RGB8(225, 30, 40)   // Demon
-};
-
 static const uint8_t level_difficulties[NUM_LEVEL_STYLES] = {
-    0, // Stereo Madness
-    0, // Back On Track
-    1, // Polargeist
-    1, // Dry Out
-    2, // Base After Base
-    2, // Cant Let Go
-    3, // Jumper
-    3, // Time Machine
-    3, // Cycles
-    4, // xStep
-    4, // Clutterfunk
-    5, // Ultimate Destruction
-    0  // Test
+    1, // Stereo Madness
+    1, // Back On Track
+    2, // Polargeist
+    2, // Dry Out
+    3, // Base After Base
+    3, // Cant Let Go
+    4, // Jumper
+    4, // Time Machine
+    4, // Cycles
+    5, // xStep
+    5, // Clutterfunk
+    6, // Ultimate Destruction
+    1  // Test
 };
 
-// Difficulty faces (16x16)
-static const uint8_t difficulty_face_tiles[6][64] = {
-    // 0: Easy
-    {
-        0x00, 0x00, 0x0f, 0x0c, 0x1f, 0x10, 0x3f, 0x20, 0x7f, 0x40, 0x7b, 0x4c, 0x7f, 0x0c, 0x7f, 0x00,
-        0x00, 0x00, 0xf0, 0x30, 0xf8, 0x08, 0xfc, 0x04, 0xfe, 0x02, 0xde, 0x32, 0xfe, 0x30, 0xfe, 0x00,
-        0x7f, 0x00, 0x7f, 0x1f, 0x70, 0x5f, 0x7f, 0x4f, 0x3f, 0x27, 0x1f, 0x10, 0x0f, 0x0c, 0x00, 0x00,
-        0xfe, 0x00, 0xfe, 0xf8, 0x0e, 0xfa, 0xfe, 0xf2, 0xfc, 0xe4, 0xf8, 0x08, 0xf0, 0x30, 0x00, 0x00,
-    },
-    // 1: Normal
-    {
-        0x00, 0x00, 0x0f, 0x0c, 0x1f, 0x10, 0x3f, 0x20, 0x7f, 0x40, 0x7b, 0x4c, 0x7f, 0x0c, 0x7f, 0x00,
-        0x00, 0x00, 0xf0, 0x30, 0xf8, 0x08, 0xfc, 0x04, 0xfe, 0x02, 0xde, 0x32, 0xfe, 0x30, 0xfe, 0x00,
-        0x7f, 0x00, 0x7f, 0x10, 0x7f, 0x48, 0x7f, 0x47, 0x3f, 0x20, 0x1f, 0x10, 0x0f, 0x0c, 0x00, 0x00,
-        0xfe, 0x00, 0xfe, 0x08, 0xfe, 0x12, 0xfe, 0xe2, 0xfc, 0x04, 0xf8, 0x08, 0xf0, 0x30, 0x00, 0x00,
-    },
-    // 2: Hard
-    {
-        0x00, 0x00, 0x0f, 0x0c, 0x1f, 0x10, 0x3f, 0x2c, 0x7f, 0x42, 0x7b, 0x4c, 0x7f, 0x0c, 0x7f, 0x00,
-        0x00, 0x00, 0xf0, 0x30, 0xf8, 0x08, 0xfc, 0x34, 0xfe, 0x42, 0xde, 0x32, 0xfe, 0x30, 0xfe, 0x00,
-        0x7f, 0x00, 0x7f, 0x00, 0x7f, 0x43, 0x7f, 0x40, 0x3f, 0x20, 0x1f, 0x10, 0x0f, 0x0c, 0x00, 0x00,
-        0xfe, 0x00, 0xfe, 0x00, 0xfe, 0xc2, 0xfe, 0x02, 0xfc, 0x04, 0xf8, 0x08, 0xf0, 0x30, 0x00, 0x00,
-    },
-    // 3: Harder
-    {
-        0x00, 0x00, 0x0f, 0x0c, 0x1f, 0x10, 0x3f, 0x30, 0x7f, 0x4c, 0x7f, 0x42, 0x77, 0x0c, 0x7f, 0x0c,
-        0x00, 0x00, 0xf0, 0x30, 0xf8, 0x08, 0xfc, 0x0c, 0xfe, 0x32, 0xfe, 0x42, 0xee, 0x30, 0xfe, 0x30,
-        0x7f, 0x00, 0x7f, 0x00, 0x7f, 0x43, 0x7f, 0x44, 0x3f, 0x28, 0x1f, 0x10, 0x0f, 0x0c, 0x00, 0x00,
-        0xfe, 0x00, 0xfe, 0x00, 0xfe, 0xc2, 0xfe, 0x22, 0xfc, 0x14, 0xf8, 0x08, 0xf0, 0x30, 0x00, 0x00,
-    },
-    // 4: Insane
-    {
-        0x00, 0x00, 0x0f, 0x0c, 0x1f, 0x10, 0x3f, 0x28, 0x7f, 0x44, 0x77, 0x4e, 0x7f, 0x0c, 0x7f, 0x00,
-        0x00, 0x00, 0xf0, 0x30, 0xf8, 0x08, 0xfc, 0x14, 0xfe, 0x22, 0xee, 0x72, 0xfe, 0x30, 0xfe, 0x00,
-        0x7f, 0x03, 0x7f, 0x07, 0x7f, 0x4f, 0x7f, 0x4f, 0x3c, 0x27, 0x1f, 0x10, 0x0f, 0x0c, 0x00, 0x00,
-        0xfe, 0xc0, 0xfe, 0xe0, 0xfe, 0xf2, 0xfe, 0xf2, 0x3c, 0xe4, 0xf8, 0x08, 0xf0, 0x30, 0x00, 0x00,
-    },
-    // 5: Demon
-    {
-        0x83, 0x83, 0xcf, 0xcc, 0xbf, 0xb0, 0xbf, 0xe0, 0x5f, 0x70, 0x4f, 0x6c, 0xc3, 0xf6, 0xff, 0xbc,
-        0xc1, 0xc1, 0xf3, 0x33, 0xfd, 0x0d, 0xfd, 0x07, 0xfa, 0x0e, 0xf2, 0x36, 0xc3, 0x6f, 0xff, 0x3d,
-        0xff, 0x98, 0xe7, 0xef, 0x60, 0x7f, 0x60, 0x6a, 0x3f, 0x3f, 0x3f, 0x30, 0x0f, 0x0c, 0x03, 0x03,
-        0xff, 0x79, 0x87, 0xaf, 0x06, 0xfe, 0x06, 0x56, 0xfc, 0xfc, 0xfc, 0x0c, 0xf0, 0x30, 0xc0, 0xc0,
-    },
-};
+// Difficulty faces (16x16, drawn as 4 sprites): Auto, Easy, Normal, Hard, Harder, Insane, Demon,
+// Insane Demon, NA, Easy Demon
+#include "graphics/difficulty_faces.h"
 
+#define FACE_SPR_TILE   8     // sprite tiles 8..11 (TL, TR, BL, BR)
+#define FACE_SPR_OAM    12    // OAM slots 12..15
+#define FACE_SPR_X      28    // 4 px left of the old background tiles (column 4)
+#define FACE_SPR_Y      48    // row 6
 static inline palette_color_t get_box_tint(palette_color_t c) {
     uint8_t r = (uint8_t)(((c & 0x1F) * 7) / 31);
     uint8_t g = (uint8_t)((((c >> 5) & 0x1F) * 7) / 31);
@@ -138,24 +91,22 @@ static palette_color_t cgb_menu_pals[32] = {
     0, 0,                  RGB8(180, 215, 255), RGB8(255, 255, 255),  // Pal 1: Center Box
     0, RGB8(84, 216, 0),   RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 2: Normal Bar
     0, RGB8(0, 168, 252),  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 3: Practice Bar
-    0, 0,                  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 4: Diff Face
+    0, 0,                  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 4: unused (face is sprites)
     0, RGB8(189, 242, 71), RGB8(67, 156, 24),  RGB8(0, 0, 0),        // Pal 5: Green Blocks
     0, RGB8(0, 0, 0),      RGB8(180, 215, 255), RGB8(255, 255, 255),  // Pal 6: Headers & BG
     0, RGB8(5, 210, 253),  RGB8(255, 255, 255), RGB8(0, 0, 0),        // Pal 7: Info Button
 };
 
 static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
+    (void)level_idx;
     if (_cpu == CGB_TYPE) {
         palette_color_t box_bg = get_box_tint(bg_col);
-        uint8_t diff = level_difficulties[level_idx % NUM_LEVEL_STYLES];
-
         cgb_menu_pals[0]  = bg_col;
         cgb_menu_pals[4]  = bg_col;
         cgb_menu_pals[5]  = box_bg;
         cgb_menu_pals[8]  = box_bg;
         cgb_menu_pals[12] = box_bg;
         cgb_menu_pals[16] = box_bg;
-        cgb_menu_pals[17] = diff_skin_colors[diff];
         cgb_menu_pals[20] = bg_col;
         cgb_menu_pals[24] = bg_col;
         cgb_menu_pals[28] = bg_col;
@@ -198,9 +149,6 @@ static void setup_cgb_attributes(void) {
 
         // Center Box
         fill_bkg_rect(3, 4, 14, 6, 1);
-
-        // Difficulty Face
-        fill_bkg_rect(4, 6, 2, 2, 4);
 
         // Normal Mode header & bar
         fill_bkg_rect(3, 11, 14, 1, 6);
@@ -268,6 +216,13 @@ static const uint8_t cap_sprite_tiles[64] = {
 };
 
 static void update_cap_sprite_positions(uint8_t scx) {
+    // Difficulty face (scrolls with the level banner)
+    uint8_t fx = (uint8_t)((uint8_t)(FACE_SPR_X - scx) + 8);
+    move_sprite(FACE_SPR_OAM,     fx,                 FACE_SPR_Y + 16);
+    move_sprite(FACE_SPR_OAM + 1, (uint8_t)(fx + 8),  FACE_SPR_Y + 16);
+    move_sprite(FACE_SPR_OAM + 2, fx,                 FACE_SPR_Y + 24);
+    move_sprite(FACE_SPR_OAM + 3, (uint8_t)(fx + 8),  FACE_SPR_Y + 24);
+
     uint8_t lx = (uint8_t)((uint8_t)(24 - scx) + 8);
     uint8_t rx = (uint8_t)((uint8_t)(128 - scx) + 8);
     move_sprite(8, lx, 112);
@@ -299,7 +254,14 @@ static void setup_arrow_sprites(void) {
     move_sprite(10, 32, 128); set_sprite_tile(10, 4); set_sprite_prop(10, 2 | S_PALETTE);
     move_sprite(11, 136, 128); set_sprite_tile(11, 6); set_sprite_prop(11, 2 | S_PALETTE);
 
-    for (uint8_t s = 12; s < 40; s++) hide_sprite(s);
+    // Difficulty face: tiles TL, TR, BL, BR; CGB palettes 3 (top row) / 4 (bottom row)
+    for (uint8_t i = 0; i < 4; i++) {
+        set_sprite_tile(FACE_SPR_OAM + i, FACE_SPR_TILE + i);
+        set_sprite_prop(FACE_SPR_OAM + i, (_cpu == CGB_TYPE) ? (uint8_t)((3 + (i >> 1)) | S_PALETTE) : 0);
+    }
+    update_cap_sprite_positions(0);
+
+    for (uint8_t s = 16; s < 40; s++) hide_sprite(s);
 
     if (_cpu == CGB_TYPE) {
         palette_color_t obj_pals[12];
@@ -326,7 +288,7 @@ static void setup_arrow_sprites(void) {
         set_sprite_palette(0, 3, obj_pals);
         fade_set_sprite_palette(0, 3, obj_pals);
     } else {
-        OBP0_REG = 0xC0;
+        OBP0_REG = 0xE0;
         OBP1_REG = 0xC4;
     }
     SHOW_SPRITES;
@@ -484,29 +446,17 @@ static void draw_selected_level(void) {
     update_level_progress_bars(selected);
     draw_level_coins(selected);
 
-    // Update difficulty face tiles in VRAM only if difficulty changed
+    // Update difficulty face sprite tiles/palettes only if difficulty changed
     uint8_t diff = level_difficulties[selected % NUM_LEVEL_STYLES];
     if (diff != last_rendered_diff) {
         if (_cpu == CGB_TYPE) {
-            set_bkg_data(24, 2, &difficulty_face_tiles[diff][0]);
-            set_bkg_data(27, 2, &difficulty_face_tiles[diff][32]);
+            set_sprite_data(FACE_SPR_TILE, 4, difficulty_face_cgb_tiles[diff]);
+            // fade_set_sprite_palette is banked: pass RAM, not this bank's ROM table
+            palette_color_t face_pals[8];
+            for (uint8_t i = 0; i < 8; i++) face_pals[i] = difficulty_face_pals[diff][i];
+            fade_set_sprite_palette(3, 2, face_pals);
         } else {
-            // DMG 2BPP bitplane remap for difficulty face
-            uint8_t buf[32];
-            for (uint8_t i = 0; i < 16; i++) {
-                uint8_t b0 = difficulty_face_tiles[diff][2 * i];
-                uint8_t b1 = difficulty_face_tiles[diff][2 * i + 1];
-                buf[2 * i] = (uint8_t)(~(b0 ^ b1));
-                buf[2 * i + 1] = b0;
-            }
-            set_bkg_data(24, 2, buf);
-            for (uint8_t i = 0; i < 16; i++) {
-                uint8_t b0 = difficulty_face_tiles[diff][32 + 2 * i];
-                uint8_t b1 = difficulty_face_tiles[diff][32 + 2 * i + 1];
-                buf[2 * i] = (uint8_t)(~(b0 ^ b1));
-                buf[2 * i + 1] = b0;
-            }
-            set_bkg_data(27, 2, buf);
+            set_sprite_data(FACE_SPR_TILE, 4, difficulty_face_dmg_tiles[diff]);
         }
         last_rendered_diff = diff;
     }
@@ -581,6 +531,9 @@ GameState update_new_menu_select_state(void) BANKED {
     set_bkg_data(COIN_ICON_TILE, 2, coin_icon_tiles);
     set_bkg_tiles(0, 0, 20, 18, menu_select_bg_map);
 
+    // The difficulty face is drawn with sprites: blank its background tiles (box interior)
+    fill_bkg_rect(4, 6, 2, 2, 0x16);
+
     // Clear arrow background tiles (rendered via sprites)
     for (uint8_t r = 7; r <= 10; r++) {
         set_bkg_tile_xy(1, r, 0);
@@ -600,7 +553,7 @@ GameState update_new_menu_select_state(void) BANKED {
         fade_set_bkg_palette(0, 8, cgb_menu_pals);
     }
     // OBP1 = progress bar caps: colour 1 = bar fill (light grey), colour 2 = bar interior (white)
-    fade_set_dmg_palettes(0xE4, 0xC0, 0xC4);
+    fade_set_dmg_palettes(0xE4, 0xE0, 0xC4);
     BGP_REG = 0xE4;
 
     last_rendered_norm = 0xFF;
