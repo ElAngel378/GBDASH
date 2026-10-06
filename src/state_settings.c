@@ -247,7 +247,10 @@ static void render_all_settings(uint8_t current_sel, uint8_t scroll_offset) {
 }
 
 GameState update_settings_state(void) BANKED {
-    DISPLAY_OFF;
+    // Load behind the black screen the last state faded to, display on (a display switched off
+    // shows white): the palettes are only stored until fade_from_black
+    fade_set_black();
+    fade_hold = 1;
     HIDE_SPRITES;
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
     HIDE_WIN;
@@ -268,7 +271,9 @@ GameState update_settings_state(void) BANKED {
     set_bkg_data((uint8_t)(FONT_PUSAB_START + 39), 4, extra_font_tiles);
 
     if (_cpu == CGB_TYPE) {
-        set_bkg_palette(0, 8, settings_bg_palettes);
+        palette_color_t pals[32];   // fade_set_bkg_palette is banked: a RAM copy
+        for (uint8_t i = 0; i < 32; i++) pals[i] = settings_bg_palettes[i];
+        fade_set_bkg_palette(0, 8, pals);
         set_bkg_attributes(0, 0, SETTINGS_BG_WIDTH, SETTINGS_BG_HEIGHT, settings_bg_attributes);
     }
 
@@ -281,8 +286,6 @@ GameState update_settings_state(void) BANKED {
     render_all_settings(current_sel, scroll_offset);
 
     SHOW_BKG;
-    fade_capture_current();   // fade in to the palettes set above
-    fade_set_black();
     DISPLAY_ON;
     fade_from_black(2);
 

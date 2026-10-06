@@ -111,7 +111,7 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         cgb_menu_pals[24] = bg_col;
         cgb_menu_pals[28] = bg_col;
 
-        set_bkg_palette(0, 8, cgb_menu_pals);
+        fade_set_bkg_palette(0, 8, cgb_menu_pals);
 
         palette_color_t cap_pals[8];
         // Normal Bar Cap Palette
@@ -124,7 +124,7 @@ static void apply_cgb_palettes(palette_color_t bg_col, uint8_t level_idx) {
         cap_pals[5] = RGB8(0, 168, 252);
         cap_pals[6] = box_bg;
         cap_pals[7] = RGB8(0, 0, 0);
-        set_sprite_palette(1, 2, cap_pals);
+        fade_set_sprite_palette(1, 2, cap_pals);
     }
 }
 
@@ -285,12 +285,8 @@ static void setup_arrow_sprites(void) {
         obj_pals[10] = box_bg;
         obj_pals[11] = RGB8(0, 0, 0);
 
-        set_sprite_palette(0, 3, obj_pals);
         fade_set_sprite_palette(0, 3, obj_pals);
-    } else {
-        OBP0_REG = 0xE0;
-        OBP1_REG = 0xC4;
-    }
+    }   // DMG: OBP0 / OBP1 set with the BGP (fade_set_dmg_palettes)
     SHOW_SPRITES;
 }
 
@@ -510,8 +506,10 @@ static const uint8_t scx_table_left[SPRING_ANIM_FRAMES] = {
 
 GameState update_new_menu_select_state(void) BANKED {
     init_save_system();
+    // Load behind the black screen the last state faded to, display on (a display switched off
+    // shows white): the palettes are only stored until fade_from_black
     fade_set_black();
-    DISPLAY_OFF;
+    fade_hold = 1;
 
     SCX_REG = 0;
     SCY_REG = 0;
@@ -554,7 +552,6 @@ GameState update_new_menu_select_state(void) BANKED {
     }
     // OBP1 = progress bar caps: colour 1 = bar fill (light grey), colour 2 = bar interior (white)
     fade_set_dmg_palettes(0xE4, 0xE0, 0xC4);
-    BGP_REG = 0xE4;
 
     last_rendered_norm = 0xFF;
     last_rendered_prac = 0xFF;
@@ -572,7 +569,6 @@ GameState update_new_menu_select_state(void) BANKED {
     draw_selected_level();
 
     SHOW_BKG;
-    fade_set_black();
     DISPLAY_ON;
     fade_from_black(2);
 

@@ -265,7 +265,10 @@ static void play_current_sfx(uint8_t sfx_idx, uint8_t music_on) {
 }
 
 GameState update_music_test_state(void) BANKED {
-    DISPLAY_OFF;
+    // Load behind the black screen the last state faded to, display on (a display switched off
+    // shows white): the palettes are only stored until fade_from_black
+    fade_set_black();
+    fade_hold = 1;
     HIDE_SPRITES;
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
     HIDE_WIN;
@@ -299,7 +302,9 @@ GameState update_music_test_state(void) BANKED {
             // Pal 3: Title Header (Dark BG, Forest Green, Vibrant Mint Green, Pure White)
             RGB8(15, 20, 35), RGB8(20, 150, 70), RGB8(60, 245, 120), RGB8(255, 255, 255)
         };
-        set_bkg_palette(0, 4, music_test_pals);
+        palette_color_t pals[16];   // fade_set_* are banked: RAM copies
+        for (uint8_t i = 0; i < 16; i++) pals[i] = music_test_pals[i];
+        fade_set_bkg_palette(0, 4, pals);
 
         static const palette_color_t cursor_pal[4] = {
             RGB8(255, 255, 255), // 0: trans
@@ -307,7 +312,8 @@ GameState update_music_test_state(void) BANKED {
             RGB8(255, 255, 255), // 2: white
             RGB8(0, 0, 0)        // 3: black
         };
-        set_sprite_palette(0, 1, cursor_pal);
+        for (uint8_t i = 0; i < 4; i++) pals[i] = cursor_pal[i];
+        fade_set_sprite_palette(0, 1, pals);
 
         VBK_REG = 1;
         fill_bkg_rect(0, 0, 32, 32, 0); // Default to Pal 0 (Cyan / White)
@@ -315,9 +321,7 @@ GameState update_music_test_state(void) BANKED {
         VBK_REG = 0;
     }
 
-    fade_set_dmg_palettes(0x2F, 0xE4, 0xE4);
-    BGP_REG = 0xE4;
-    OBP0_REG = 0xD2;
+    fade_set_dmg_palettes(0xE4, 0xD2, 0xE4);
 
     // Static UI
     draw_fixed_text(3, 1, "MUSIC AND SFX", 14);
@@ -344,8 +348,6 @@ GameState update_music_test_state(void) BANKED {
 
     SHOW_BKG;
     SHOW_SPRITES;
-    fade_capture_current();   // fade in to the palettes set above
-    fade_set_black();
     DISPLAY_ON;
     fade_from_black(2);
 

@@ -4,6 +4,7 @@
 #include <gb/cgb.h>
 #include <stdint.h>
 #include "rainbow.h"
+#include "fade.h"
 
 const uint16_t rainbow_palettes[128][4] = {
     { 0x001F, 0x001B, 0x000F, 0x0007 },
@@ -148,14 +149,16 @@ void apply_rainbow_palette(uint8_t color_index) BANKED {
     const uint16_t *rb = rainbow_palettes[color_index & 127];
     palette_color_t sky = rb[0];
 
-    set_bkg_palette(0, 1, rb);
-
-    palette_color_t logo_pal[4];
+    // Palettes 0 (rainbow) and 1 (logo). Through the fade module (a RAM copy: it is banked) so
+    // the menu fades in to them.
+    palette_color_t pals[8];
+    for (uint8_t i = 0; i < 4; i++) pals[i] = rb[i];
+    palette_color_t *logo_pal = &pals[4];
     logo_pal[0] = sky;                  // Dynamic Sky background
     logo_pal[1] = RGB8(185, 250, 70);   // Top: Bright Lime Yellow-Green
     logo_pal[2] = RGB8(60, 175, 40);    // Bottom: Medium Grass Green
     logo_pal[3] = RGB8(0, 0, 0);        // Black Outline
-    set_bkg_palette(1, 1, logo_pal);
+    fade_set_bkg_palette(0, 2, pals);
 
     // Palette 3: parallax sky blocks, same shades as the gameplay background
     // (sky, outline, body, shadow). Palette 4: ground (white line, 3 shades).
@@ -168,5 +171,5 @@ void apply_rainbow_palette(uint8_t color_index) BANKED {
     bg_pals[5] = shade(sky, 12);
     bg_pals[6] = shade(sky, 6);
     bg_pals[7] = shade(sky, 3);
-    set_bkg_palette(3, 2, bg_pals);
+    fade_set_bkg_palette(3, 2, bg_pals);
 }

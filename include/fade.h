@@ -21,6 +21,9 @@ void fade_restore_pause_box_palettes(void) BANKED;
 
 extern palette_color_t shadow_bkg_palettes[32];
 extern uint8_t fade_palettes_dirty;
+// 1: fade_set_* only store the palettes (a menu loading behind a black screen); fade_from_black
+// shows them and clears it
+extern uint8_t fade_hold;
 void fade_apply_dirty_palettes(void) BANKED;
 
 inline static uint8_t dim_dmg_byte(uint8_t pal, uint8_t step) {

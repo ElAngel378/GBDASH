@@ -223,12 +223,13 @@ static void menu_load_playbutton_gfx(void) __nonbanked {
 }
 
 GameState update_menu_state(void) BANKED {
-    DISPLAY_OFF;
+    // Load behind the black screen the last state faded to, display on (a display switched off
+    // shows white): the palettes are only stored until fade_from_black
+    fade_set_black();
+    fade_hold = 1;
 
     // Restore standard palettes
-    BGP_REG = 0xE4;
-    OBP0_REG = 0xE4;
-    OBP1_REG = 0xD2;
+    fade_set_dmg_palettes(0xE4, 0xE4, 0xD2);
 
     static uint16_t frame_counter = 0;
 
@@ -324,11 +325,16 @@ GameState update_menu_state(void) BANKED {
             RGB8(255, 255, 255),
             RGB8(0, 0, 0)
         };
-        set_sprite_palette(0, 1, play_button_palette);
-        set_sprite_palette(1, 1, play_button_yellow_palette);
-        set_sprite_palette(2, 1, play_button_blue_palette);
-        set_sprite_palette(3, 1, music_btn_palette);
-        set_sprite_palette(4, 1, cursor_palette);
+        // fade_set_sprite_palette is banked: RAM copies of this bank's tables
+        palette_color_t spr[20];
+        for (uint8_t i = 0; i < 4; i++) {
+            spr[i] = play_button_palette[i];
+            spr[4 + i] = play_button_yellow_palette[i];
+            spr[8 + i] = play_button_blue_palette[i];
+            spr[12 + i] = music_btn_palette[i];
+            spr[16 + i] = cursor_palette[i];
+        }
+        fade_set_sprite_palette(0, 5, spr);
     }
 
     // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
@@ -375,7 +381,10 @@ GameState update_menu_state(void) BANKED {
     SCX_REG = 0;
     SCY_REG = 0;
 
-    if (_cpu == CGB_TYPE && setting_show_bg_enabled) init_bg_parallax();
+    if (_cpu == CGB_TYPE && setting_show_bg_enabled) {
+        wait_vbl_done();   // the display is on: the parallax GDMA has to run in VBlank
+        init_bg_parallax();
+    }
 
     uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
     if (dmg_sky_irq) {
@@ -398,9 +407,7 @@ GameState update_menu_state(void) BANKED {
 #else
     HIDE_WIN;
 #endif
-    fade_capture_current();   // fade in to the palettes set above
-    fade_set_black();
-    DISPLAY_ON;
+    DISPLAY_ON;   // (only off at boot)
 
     // VBlank handler: runs the parallax GDMA at the start of VBlank (CGB)
     bg_parallax_isr_start();

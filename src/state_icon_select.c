@@ -127,8 +127,10 @@ static void click(void) {
 }
 
 GameState update_icon_select_state(void) BANKED {
-    DISPLAY_OFF;
+    // Load behind the black screen the last state faded to, display on (a display switched off
+    // shows white): the palettes are only stored until fade_from_black
     fade_set_black();
+    fade_hold = 1;
     SCX_REG = 0;
     SCY_REG = 0;
     HIDE_WIN;
@@ -159,7 +161,6 @@ GameState update_icon_select_state(void) BANKED {
     refresh_preview_tiles();
     update_cursor_sprites();
     set_palettes();
-    fade_set_black();
 
     SHOW_BKG;
     SHOW_SPRITES;

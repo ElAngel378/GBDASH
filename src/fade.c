@@ -8,6 +8,10 @@ static uint8_t active_bkg_count = 0;
 static uint8_t active_spr_count = 0;
 
 uint8_t fade_palettes_dirty = 0;
+// Set while a menu loads with the display on and the screen black: fade_set_* only store the
+// palettes (fade_from_black shows them), so nothing shows before the fade in. fade_from_black
+// clears it.
+uint8_t fade_hold = 0;
 
 static uint8_t shadow_bgp = 0xE4;
 static uint8_t shadow_obp0 = 0xE4;
@@ -39,7 +43,7 @@ void fade_set_bkg_palette(uint8_t first, uint8_t count, const palette_color_t *d
         if (first + count > active_bkg_count) {
             active_bkg_count = first + count;
         }
-        set_bkg_palette(first, count, data);
+        if (!fade_hold) set_bkg_palette(first, count, data);
     }
 }
 
@@ -73,7 +77,7 @@ void fade_set_sprite_palette(uint8_t first, uint8_t count, const palette_color_t
         if (first + count > active_spr_count) {
             active_spr_count = first + count;
         }
-        set_sprite_palette(first, count, data);
+        if (!fade_hold) set_sprite_palette(first, count, data);
     }
 }
 
@@ -81,6 +85,7 @@ void fade_set_dmg_palettes(uint8_t bgp, uint8_t obp0, uint8_t obp1) BANKED {
     shadow_bgp = bgp;
     shadow_obp0 = obp0;
     shadow_obp1 = obp1;
+    if (fade_hold) return;
     BGP_REG = bgp;
     OBP0_REG = obp0;
     OBP1_REG = obp1;
@@ -253,4 +258,5 @@ void fade_from_black(uint8_t delay_frames) BANKED {
             if (step == 0) break;
         }
     }
+    fade_hold = 0;
 }
