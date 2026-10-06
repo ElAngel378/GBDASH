@@ -5,8 +5,8 @@
 #include <gb/gb.h>
 #include <stdint.h>
 
-#define CUBE_ICON_FIRST 1     // icons below are the original cube
-#define CUBE_ICON_FRAMES 12   // 0..165 degrees; 180..345 = flipped both ways
+#define CUBE_ICON_FIRST 0
+#define CUBE_ICON_FRAMES 24   // 0..172.5 degrees in 7.5 degree steps; 180..352.5 = flipped both ways
 
 BANKREF_EXTERN(cube_icon_frames)
 extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pair, right pair (64 bytes)

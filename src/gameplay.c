@@ -9,7 +9,6 @@
 #include "gameplay.h"
 #include "player.h"
 #include "assets.h"
-#include "icon1.h"
 #include "ship1.h"
 #include "ball.h"
 #include "famidash_sprites.h"
@@ -258,43 +257,52 @@ Player * volatile gpplayer = &player;   // tools: the bot reads the whole player
 #endif
 static uint8_t practice_mode = 0;
 
-// Custom cube icons (icon select 1..6): their 24 rotation frames (12 images, the rest drawn
-// flipped both ways) stay in ROM (tools/make_cube_icon_frames.py). The VBlank handler copies the
-// one needed into sprite tiles 0..3 or 4..7, the original cube's tiles: double buffered, the frame
-// shown switches once the copy is done.
+// Cube icons (icon select 0..6, 0 = the original cube): 48 rotation steps of 7.5 degrees, 24
+// images in ROM (tools/make_cube_icon_frames.py), the other half drawn flipped both ways. The
+// physics turn the cube in 24 steps (anim_frame); in the air the half step in between comes from
+// anim_timer. Only the image shown is in VRAM: the VBlank handler copies it into sprite tiles
+// 0..3 or 4..7, double buffered (the frame shown switches once the copy is done).
 static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
-static uint8_t cube_shown;   // anim_frame of the image in it
-static uint8_t cube_req;     // anim_frame being copied to the other buffer, 0xFF: none
+static uint8_t cube_shown;   // step (0..47) of the image in it
+static uint8_t cube_req;     // step being copied to the other buffer, 0xFF: none
+
+// image (0..23) of a step: no division on the SM83
+#define CUBE_IMG(st) ((uint8_t)((st) >= CUBE_ICON_FRAMES ? (st) - CUBE_ICON_FRAMES : (st)))
+
+static uint8_t cube_step(void) {
+    uint8_t s = (uint8_t)(player.anim_frame << 1);
+    if (!player.on_ground && player.anim_timer >= 11u) s++;   // halfway to the next step
+    return s;
+}
 
 // Display off, after load_gameplay_sprite_tiles and player init
 static void cube_icon_reset(void) {
     cube_req = 0xFF;
     bg_cube_pending = 0;
-    if (selected_icon < CUBE_ICON_FIRST) return;
     cube_front = 0;
-    cube_shown = player.anim_frame;
-    cube_tiles_load_now(CUBE_ICON_FRAME(selected_icon, cube_shown % CUBE_ICON_FRAMES), BANK(cube_icon_frames), 0);
+    cube_shown = cube_step();
+    cube_tiles_load_now(CUBE_ICON_FRAME(selected_icon, CUBE_IMG(cube_shown)), BANK(cube_icon_frames), 0);
 }
 
 static const metasprite_t *cube_icon_metasprite(void) {
-    uint8_t af = player.anim_frame;
+    uint8_t st = cube_step();
     if (cube_req != 0xFF && !bg_cube_pending) {
         cube_front ^= 1;
         cube_shown = cube_req;
         cube_req = 0xFF;
     }
-    uint8_t img = (uint8_t)(af % CUBE_ICON_FRAMES);
-    uint8_t same = (img == (uint8_t)(cube_shown % CUBE_ICON_FRAMES));
+    uint8_t img = CUBE_IMG(st);
+    uint8_t same = (img == CUBE_IMG(cube_shown));
     if (cube_req == 0xFF && !same) {
         bg_cube_src = CUBE_ICON_FRAME(selected_icon, img);
         bg_cube_bank = BANK(cube_icon_frames);
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
-        cube_req = af;
+        cube_req = st;
         bg_cube_pending = 1;
     }
-    // 180..345 degrees: the image of af - 12, flipped both ways (halves swapped)
-    uint8_t show = same ? af : cube_shown;
+    // second half turn: the image of st - 24, flipped both ways (halves swapped)
+    uint8_t show = same ? st : cube_shown;
     uint8_t t = (uint8_t)(cube_front << 2);
     uint8_t flip = (show >= CUBE_ICON_FRAMES) ? (S_FLIPX | S_FLIPY) : 0;
     cube_ms[0].dy = 0; cube_ms[0].dx = -1; cube_ms[0].dtile = flip ? (uint8_t)(t + 2) : t; cube_ms[0].props = flip;
@@ -1564,8 +1572,7 @@ void play_level(uint8_t idx) BANKED {
                     oam_index += move_metasprite(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else {
-                const metasprite_t *cube = (selected_icon >= CUBE_ICON_FIRST)
-                    ? cube_icon_metasprite() : icon1_metasprites[player.anim_frame];
+                const metasprite_t *cube = cube_icon_metasprite();
                 if (player.gravity_flipped) {
                     if (view_rev) oam_index += move_metasprite_hvflip(cube, 0, oam_index, sprite_x_final + 24, final_py + 32);
                     else oam_index += move_metasprite_hflip(cube, 0, oam_index, sprite_x_final + 8, final_py + 32);

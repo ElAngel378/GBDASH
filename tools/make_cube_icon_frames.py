@@ -1,19 +1,20 @@
-"""In-game rotation frames of the custom cube icons (icon select icons 1..6; icon 0 is the
-original cube, drawn from sprite_tiles.png as before).
+"""In-game rotation frames of the cube icons (icon select icons 0..6).
 
     python tools/make_cube_icon_frames.py            # frames PNG -> C (creates the PNG if missing)
-    python tools/make_cube_icon_frames.py --regen    # (re)make the frames PNG from cube_icons.png
+    python tools/make_cube_icon_frames.py --regen    # (re)make the frames PNG
 
-levels/chr_data/cube_icon_frames.png: one 16 px row per icon (1..6), 12 frames of 16x16:
-0, 15, ... 165 degrees clockwise (the game draws 180..345 as these flipped both ways). Grey
-level = sprite colour: white transparent, light grey 1 (secondary colour), dark grey 2 (primary
-colour), black 3. The icon is 14x14 like the original cube (the 15x15 menu icon without its
-middle row and column), at (1, 1). The frames are made with RotSprite (Scale2x three times,
-rotate, sample), so they can be touched up by hand in the PNG: --regen overwrites it.
+levels/chr_data/cube_icon_frames.png: one 16 px row per icon, 24 frames of 16x16: 0, 7.5, ...
+172.5 degrees clockwise (the game draws 180..352.5 as these flipped both ways). Grey level =
+sprite colour: white transparent, light grey 1 (secondary colour), dark grey 2 (primary
+colour), black 3. Icon 0 is the original cube: its hand-drawn 15 degree frames from
+sprite_tiles.png, RotSprite frames in between. Icons 1..6 come from cube_icons.png, 14x14 like
+the original cube (the 15x15 menu icon without its middle row and column), at (1, 1), all
+frames RotSprite (Scale2x three times, rotate, sample). They can be touched up by hand in the
+PNG: --regen overwrites it.
 
 src/graphics/cube_icon_frames.c (bank 61, nothing else in it, not even code: GDMA needs 16
-byte aligned data): per icon and frame 4 sprite tiles, left 8x16 pair then right pair (64 bytes). The
-gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
+byte aligned data): per icon and frame 4 sprite tiles, left 8x16 pair then right pair (64
+bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
 """
 import math
 import sys
@@ -27,7 +28,8 @@ CUBES = ROOT / "levels" / "chr_data" / "cube_icons.png"
 FRAMES = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
 OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"
 OUT_H = ROOT / "include" / "cube_icon_frames.h"
-FIRST_ICON, NUM_ICONS, NUM_FRAMES = 1, 7, 12
+FIRST_ICON, NUM_ICONS, NUM_FRAMES = 0, 7, 24
+STEP = 7.5   # degrees per frame
 SHADE = [255, 170, 85, 0]
 
 
@@ -81,7 +83,7 @@ def rotations(ic):
     big = scale2x(scale2x(scale2x(canvas)))   # 128x128
     frames = []
     for k in range(NUM_FRAMES):
-        a = math.radians(15 * k)
+        a = math.radians(STEP * k)
         ca, sa = math.cos(a), math.sin(a)
         f = [[0] * 16 for _ in range(16)]
         for y in range(16):
@@ -96,13 +98,36 @@ def rotations(ic):
     return frames
 
 
+def default_cube():
+    """Icon 0, the original cube: its hand-drawn 15 degree frames from sprite_tiles.png (the
+    metasprites of src/graphics/icon1.c composed into 16x16), RotSprite in between."""
+    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
+
+    def pair(n, fx, fy):   # 8x16 image of tile pair n
+        return [[idx(st.getpixel((n * 8 + (7 - x if fx else x), 15 - y if fy else y))) for x in range(8)]
+                for y in range(16)]
+    # frames 0..5 of a quarter turn: (left pair, flip y), (right pair = same image, flips)
+    quarter = [(0, 0, 0, 1, 0), (1, 0, 1, 1, 1), (2, 0, 2, 1, 1), (3, 0, 3, 1, 0), (2, 1, 2, 1, 0), (1, 1, 1, 1, 0)]
+    hand = []
+    for li, lfy, ri, rfx, rfy in quarter:
+        L, R = pair(li, 0, lfy), pair(ri, rfx, rfy)
+        hand.append([L[y] + R[y] for y in range(16)])
+    # the original cube looks the same turned 90 degrees: 90..165 = 0..75
+    hand = hand + hand
+    ic = [row[1:15] for row in hand[0][1:15]]
+    gen = rotations(ic)
+    return [hand[k // 2] if k % 2 == 0 else gen[k] for k in range(NUM_FRAMES)]
+
+
 def main():
     n = NUM_ICONS - FIRST_ICON
     if "--regen" in sys.argv or not FRAMES.exists():
         cubes = Image.open(CUBES).convert("L")
         img = Image.new("L", (NUM_FRAMES * 16, n * 16), 255)
         for r, i in enumerate(range(FIRST_ICON, NUM_ICONS)):
-            for k, f in enumerate(rotations(icon14(cubes, i))):
+            frames = default_cube() if i == 0 else rotations(icon14(cubes, i))
+            for k, f in enumerate(frames):
                 for y in range(16):
                     for x in range(16):
                         img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])
@@ -145,8 +170,8 @@ const uint8_t cube_icon_frames[{len(data)}] = {{
 #include <gb/gb.h>
 #include <stdint.h>
 
-#define CUBE_ICON_FIRST {FIRST_ICON}     // icons below are the original cube
-#define CUBE_ICON_FRAMES {NUM_FRAMES}   // 0..165 degrees; 180..345 = flipped both ways
+#define CUBE_ICON_FIRST {FIRST_ICON}
+#define CUBE_ICON_FRAMES {NUM_FRAMES}   // 0..172.5 degrees in 7.5 degree steps; 180..352.5 = flipped both ways
 
 BANKREF_EXTERN(cube_icon_frames)
 extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pair, right pair (64 bytes)
