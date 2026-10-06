@@ -250,6 +250,20 @@ static const uint8_t bg_pals[] = {
     0x3F  // 3: Inverse (W:B, LG:B, DG:B, B:W)
 };
 
+// DMG background theme (bg_pals index) a level starts with: the same mapping as the colour triggers
+// in process_sprite_logic, applied to the level's starting background colour (NES colour id) so
+// the first stretch before the first trigger already has the right shades.
+static uint8_t dmg_start_bg_idx(void) {
+    if (_cpu == CGB_TYPE) return 0;
+    uint8_t c = l->bg_color;
+    return (c < 16) ? ((c == 15) ? 3 : 2) : ((c < 32) ? 1 : 0);
+}
+
+// The theme actually shown: "gradient" off keeps the inverse themes (1, 2) on the normal one
+static uint8_t dmg_shown_bg_idx(uint8_t idx) {
+    return (reduce_flash && (idx == 1 || idx == 2)) ? 0 : idx;
+}
+
 // Sprite palette on a black DMG background (bg_pals[3]): shades 1 and 2 as normal, black -> white
 #define DMG_OBP_ON_BLACK 0x24
 // OBP1 (blue orbs, pads and gravity-down portals): OBP0 with shades 1 and 2 swapped. On the dark
@@ -313,7 +327,7 @@ static void reload_level_state(uint8_t idx) {
     col_job_step = COL_JOB_STEPS;
     row0_job_pos = 16;
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
-    target_bg_idx = 0;
+    target_bg_idx = dmg_start_bg_idx();
     pause_suppress_jump = 0;
     end_anim_state = END_ANIM_INACTIVE;
     end_anim_frame = 0;
@@ -331,7 +345,7 @@ static void reload_level_state(uint8_t idx) {
     previous_oam_index = MAX_HARDWARE_SPRITES;
     cached_collision_col = 0xFFFF;
     move_bkg(0, (uint8_t)cam_py);
-    BGP_REG = bg_pals[0];
+    BGP_REG = bg_pals[dmg_shown_bg_idx(target_bg_idx)];
     if (_cpu == CGB_TYPE) {
         famidash_reset_bg_palettes(idx);
     }
@@ -422,7 +436,7 @@ static void practice_remove_checkpoint(void) {
         }
         practice_checkpoints[0].scroll_acc = 0;
         practice_checkpoints[0].bg_drift_px = 0;
-        practice_checkpoints[0].target_bg_idx = 0;
+        practice_checkpoints[0].target_bg_idx = dmg_start_bg_idx();
         practice_checkpoints[0].world_x = 0;
         practice_checkpoints[0].world_y = practice_checkpoints[0].cam_py;
         player_init(&practice_checkpoints[0].player, 0, 240);
@@ -1134,7 +1148,8 @@ void play_level(uint8_t idx) BANKED {
     col_job_issued = row0_job_issued = 0; bg_cj_pending = bg_rj_pending = 0;
     max_scroll_px = ((level_map_w - VIEW_MT_W) << 4);
 
-    target_bg_idx = 0;
+    reduce_flash = setting_dmg_gradient ? 0 : 1;
+    target_bg_idx = dmg_start_bg_idx();
     player_init(&player, 0, 240);
     player.y_base = Y_BASE_MAX;
 
@@ -1166,7 +1181,11 @@ void play_level(uint8_t idx) BANKED {
     move_bkg(0, (uint8_t)cam_py);
     fill_scroll_bg(level_map, level_map_w, level_map_bank, 0);
 
-    fade_set_dmg_palettes(bg_pals[0], bg_pals[0], dmg_obp1(0, bg_pals[0]));
+    {
+        uint8_t si = dmg_shown_bg_idx(target_bg_idx);
+        uint8_t sobp0 = (si == 3) ? DMG_OBP_ON_BLACK : bg_pals[si];
+        fade_set_dmg_palettes(bg_pals[si], sobp0, dmg_obp1(si, sobp0));
+    }
     fade_set_black();
 
     SPRITES_8x16;
