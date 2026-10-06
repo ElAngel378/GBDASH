@@ -6,8 +6,8 @@
 BANKREF(icon_catalog)
 
 const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS] = {
-    RGB8(  0, 255, 255), // 0: Cyan
-    RGB8(125, 255,   0), // 1: Lime
+    RGB8(125, 255,   0), // 0: Lime
+    RGB8(  0, 255, 255), // 1: Cyan
     RGB8(255, 230,   0), // 2: Yellow
     RGB8(255, 120,   0), // 3: Orange
     RGB8(255,  30,  30), // 4: Red

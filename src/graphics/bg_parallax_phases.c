@@ -25,6 +25,10 @@ const uint8_t *bg_saw_src;
 uint16_t bg_saw_dst;
 volatile uint8_t bg_saw_dmg_n;
 uint8_t * const *bg_saw_dmg_dsts;
+volatile uint8_t bg_cube_pending;
+uint8_t bg_cube_bank;
+const uint8_t *bg_cube_src;
+uint8_t *bg_cube_dst;
 volatile uint8_t bg_scroll_pending;
 volatile uint8_t bg_dmg_pal_pending;
 uint8_t bg_dmg_bgp, bg_dmg_obp0, bg_dmg_obp1;
@@ -213,6 +217,35 @@ static void saw_dmg_copy(void) __naked {
     __endasm;
 }
 
+// Custom cube icon frame: 64 bytes from bg_cube_src to bg_cube_dst (~3.4 lines on DMG)
+static void cube_dmg_copy(void) __naked {
+    __asm
+        ld      hl, #_bg_cube_src
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      hl, #_bg_cube_dst
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        .rept 64
+        ld      a, (de)
+        inc     de
+        ld      (hl+), a
+        .endm
+        ret
+    __endasm;
+}
+
+// Display off / VRAM-safe: 4 sprite tiles from ROM bank `bank` to sprite tiles first_tile..
+// (home bank code, so it can switch to the data's bank)
+void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
+    uint8_t prev_b = _current_bank;
+    SWITCH_ROM(bank);
+    set_sprite_data(first_tile, 4, src);
+    SWITCH_ROM(prev_b);
+}
+
 // VBlank interrupt handler: latches scroll, runs the requested parallax GDMA and
 // the requested map uploads, in that order.
 #ifdef DEBUG_PROFILE
@@ -286,6 +319,24 @@ void bg_parallax_vbl_isr(void) {
             }
             bg_rj_pending = 0;
         }
+    }
+    // Custom cube icon frame (4 sprite tiles, double buffered by gameplay): CGB GDMA, DMG copy
+    ly = LY_REG;
+    if (bg_cube_pending && ly >= 144u && ly <= 149u) {
+        uint8_t prev_b = _current_bank;
+        SWITCH_ROM(bg_cube_bank);
+        if (bg_gdma_isr_on) {
+            VBK_REG = 0;
+            HDMA1_REG = (uint8_t)((uint16_t)bg_cube_src >> 8);
+            HDMA2_REG = (uint8_t)((uint16_t)bg_cube_src & 0xF0);
+            HDMA3_REG = (uint8_t)(((uint16_t)bg_cube_dst >> 8) & 0x1F);
+            HDMA4_REG = (uint8_t)((uint16_t)bg_cube_dst & 0xF0);
+            HDMA5_REG = 3;   // 4 blocks of 16 bytes
+        } else {
+            cube_dmg_copy();
+        }
+        SWITCH_ROM(prev_b);
+        bg_cube_pending = 0;
     }
     // Parallax GDMA (CGB, ~3.5 lines), after the map uploads: first, it often left the row job
     // too little of VBlank, and in a fast climb the rows fell behind (stale rows on screen). A

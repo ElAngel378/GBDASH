@@ -55,6 +55,13 @@ extern uint16_t bg_saw_dst;
 #define BG_SAW_DMG_MAX 6
 extern volatile uint8_t bg_saw_dmg_n;
 extern uint8_t * const *bg_saw_dmg_dsts;
+// Custom cube icon frame: 64 bytes (4 sprite tiles) from bg_cube_src (ROM bank bg_cube_bank, 16 byte
+// aligned) to bg_cube_dst (VRAM bank 0 sprite tiles), done when bg_cube_pending is back to 0
+extern volatile uint8_t bg_cube_pending;
+extern uint8_t bg_cube_bank;
+extern const uint8_t *bg_cube_src;
+extern uint8_t *bg_cube_dst;
+void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile);
 extern volatile uint8_t bg_scroll_pending;
 // CGB seamless mirror portal: LCDCF_BG9800 / LCDCF_BG9C00 to switch to with the next scroll
 // latch (0xFF: none). The VBlank handler streams to the map LCDC shows.

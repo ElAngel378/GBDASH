@@ -37,9 +37,9 @@ MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 NUM_ICONS = 7
 GM_ORDER = [0, 1, 7, 2, 4, 3, 5]   # cube, ship, ball, ufo, wave, robot, spider (pack columns)
 
-# Player colours (index 0 / 1 = the default primary / secondary of the player palette)
+# Player colours (index 0 / 1 = the default primary (outer fill) / secondary of the GD cube)
 COLORS = [
-    ("Cyan", (0, 255, 255), 1), ("Lime", (125, 255, 0), 1), ("Yellow", (255, 230, 0), 0),
+    ("Lime", (125, 255, 0), 1), ("Cyan", (0, 255, 255), 1), ("Yellow", (255, 230, 0), 0),
     ("Orange", (255, 120, 0), 1), ("Red", (255, 30, 30), 2), ("Pink", (255, 0, 200), 1),
     ("Purple", (160, 30, 255), 2), ("Blue", (0, 110, 255), 2), ("Green", (0, 200, 0), 2),
     ("White", (255, 255, 255), 0), ("Grey", (160, 160, 160), 1), ("Dark Grey", (90, 90, 90), 3),

@@ -30,14 +30,14 @@ BANKREF_EXTERN(chr_gb)   // base level tile sheet (src/graphics/tileset.c)
 #include "icon_catalog.h"
 #include "sp_draw.h"
 
-// Player colours from the icon select menu (sprite palette 0: 1 primary, 2 secondary). The
-// colour table is in bank 24: read it through the banked icon_color().
+// Player colours from the icon select menu (sprite palette 0: 2 primary = the outer fill,
+// 1 secondary). The colour table is in bank 24: read it through the banked icon_color().
 static void apply_custom_player_palette(void) {
     if (_cpu == CGB_TYPE) {
         palette_color_t custom_pal[4];
         custom_pal[0] = RGB8(255, 255, 255);
-        custom_pal[1] = icon_color(selected_color_primary);
-        custom_pal[2] = icon_color(selected_color_secondary);
+        custom_pal[1] = icon_color(selected_color_secondary);
+        custom_pal[2] = icon_color(selected_color_primary);
         custom_pal[3] = RGB8(0, 0, 0);
         fade_set_sprite_palette(0, 1, custom_pal);
     }
@@ -46,6 +46,7 @@ static void apply_custom_player_palette(void) {
 #include "debug_mode.h"
 #include "percent_hud.h"
 #include "bg_parallax.h"
+#include "cube_icon_frames.h"
 #include "collision.h"
 #include "settings.h"
 #include "level_complete.h"
@@ -257,6 +258,51 @@ Player * volatile gpplayer = &player;   // tools: the bot reads the whole player
 #endif
 static uint8_t practice_mode = 0;
 
+// Custom cube icons (icon select 1..6): their 24 rotation frames (12 images, the rest drawn
+// flipped both ways) stay in ROM (tools/make_cube_icon_frames.py). The VBlank handler copies the
+// one needed into sprite tiles 0..3 or 4..7, the original cube's tiles: double buffered, the frame
+// shown switches once the copy is done.
+static metasprite_t cube_ms[3];
+static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
+static uint8_t cube_shown;   // anim_frame of the image in it
+static uint8_t cube_req;     // anim_frame being copied to the other buffer, 0xFF: none
+
+// Display off, after load_gameplay_sprite_tiles and player init
+static void cube_icon_reset(void) {
+    cube_req = 0xFF;
+    bg_cube_pending = 0;
+    if (selected_icon < CUBE_ICON_FIRST) return;
+    cube_front = 0;
+    cube_shown = player.anim_frame;
+    cube_tiles_load_now(CUBE_ICON_FRAME(selected_icon, cube_shown % CUBE_ICON_FRAMES), BANK(cube_icon_frames), 0);
+}
+
+static const metasprite_t *cube_icon_metasprite(void) {
+    uint8_t af = player.anim_frame;
+    if (cube_req != 0xFF && !bg_cube_pending) {
+        cube_front ^= 1;
+        cube_shown = cube_req;
+        cube_req = 0xFF;
+    }
+    uint8_t img = (uint8_t)(af % CUBE_ICON_FRAMES);
+    uint8_t same = (img == (uint8_t)(cube_shown % CUBE_ICON_FRAMES));
+    if (cube_req == 0xFF && !same) {
+        bg_cube_src = CUBE_ICON_FRAME(selected_icon, img);
+        bg_cube_bank = BANK(cube_icon_frames);
+        bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
+        cube_req = af;
+        bg_cube_pending = 1;
+    }
+    // 180..345 degrees: the image of af - 12, flipped both ways (halves swapped)
+    uint8_t show = same ? af : cube_shown;
+    uint8_t t = (uint8_t)(cube_front << 2);
+    uint8_t flip = (show >= CUBE_ICON_FRAMES) ? (S_FLIPX | S_FLIPY) : 0;
+    cube_ms[0].dy = 0; cube_ms[0].dx = -1; cube_ms[0].dtile = flip ? (uint8_t)(t + 2) : t; cube_ms[0].props = flip;
+    cube_ms[1].dy = 0; cube_ms[1].dx = 8;  cube_ms[1].dtile = flip ? t : (uint8_t)(t + 2); cube_ms[1].props = flip;
+    cube_ms[2].dy = (int8_t)0x80;   // METASPR_TERM
+    return cube_ms;
+}
+
 static const uint8_t bg_pals[] = {
     0xE4, // 0: Normal (W:W, LG:LG, DG:DG, B:B)
     0x39, // 1: Inverse (W:LG, LG:DG, DG:B, B:W)
@@ -349,6 +395,7 @@ static void reload_level_state(uint8_t idx) {
     end_trigger_requested = 0;
     player_init(&player, 0, 240);
     player.y_base = Y_BASE_MAX;
+    cube_icon_reset();
     sp_cache_reset(&active_sp, &sp_stream_idx);
     coins_reset();
     coins_saved = level_coins[idx];
@@ -1005,6 +1052,7 @@ static void practice_respawn(uint8_t idx) {
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
+    cube_icon_reset();
     load_checkpoint_tiles();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
@@ -1183,6 +1231,7 @@ void play_level(uint8_t idx) BANKED {
         set_bkg_data(12, 1, blank_bg_tile);
     }
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));   // sprite_tiles.png
+    cube_icon_reset();
     debug_load_hud_tiles();
     percent_hud_load_tiles();
     bg_drift_px = 0;
@@ -1515,12 +1564,14 @@ void play_level(uint8_t idx) BANKED {
                     oam_index += move_metasprite(ball_metasprites[ball_frame], 8, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else {
+                const metasprite_t *cube = (selected_icon >= CUBE_ICON_FIRST)
+                    ? cube_icon_metasprite() : icon1_metasprites[player.anim_frame];
                 if (player.gravity_flipped) {
-                    if (view_rev) oam_index += move_metasprite_hvflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 32);
-                    else oam_index += move_metasprite_hflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 32);
+                    if (view_rev) oam_index += move_metasprite_hvflip(cube, 0, oam_index, sprite_x_final + 24, final_py + 32);
+                    else oam_index += move_metasprite_hflip(cube, 0, oam_index, sprite_x_final + 8, final_py + 32);
                 } else {
-                    if (view_rev) oam_index += move_metasprite_vflip(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 24, final_py + 16);
-                    else oam_index += move_metasprite(icon1_metasprites[player.anim_frame], 0, oam_index, sprite_x_final + 8, final_py + 16);
+                    if (view_rev) oam_index += move_metasprite_vflip(cube, 0, oam_index, sprite_x_final + 24, final_py + 16);
+                    else oam_index += move_metasprite(cube, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             }
         }
