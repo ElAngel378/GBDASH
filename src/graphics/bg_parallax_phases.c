@@ -251,6 +251,24 @@ void cube_tiles_load_now(const uint8_t *src, uint8_t bank, uint8_t first_tile) {
 #ifdef DEBUG_PROFILE
 extern volatile uint8_t gpmark;
 #endif
+#ifdef DEBUG_PROFILE
+// tools: VBlank uploads put off to the next VBlank for lack of time
+volatile uint16_t gp_gdma_late, gp_rj_late;
+#endif
+
+// Parallax GDMA (CGB, ~3.4 lines) if it can still finish inside VBlank, else it stays pending and
+// is retried on the next VBlank (the sky stands still for a frame)
+static void parallax_try(void) {
+    if (!bg_gdma_pending) return;
+    uint8_t ly = LY_REG;
+    if (ly >= 144u && ly <= 149u) {
+        bg_gdma_pending = 0;
+        parallax_gdma(bg_gdma_phase);
+    }
+#ifdef DEBUG_PROFILE
+    else gp_gdma_late++;
+#endif
+}
 void bg_parallax_vbl_isr(void) {
 #ifdef DEBUG_PROFILE
     uint8_t prof_prev = gpmark;
@@ -258,6 +276,7 @@ void bg_parallax_vbl_isr(void) {
 #endif
     bg_vbl_seen = 1;
     bg_vbl_frames++;
+
     // Latch this frame's scroll first thing, so it can never land in the
     // visible frame however late the main thread wakes up.
     if (bg_scroll_pending) {
@@ -304,6 +323,10 @@ void bg_parallax_vbl_isr(void) {
                 copy_rows2();
             }
             bg_cj_pending = 0;
+            // A column and a row in one VBlank leave no time for the parallax after them (the sky
+            // froze for a frame whenever a row was streamed while climbing): the parallax first,
+            // the row usually still fits after it
+            parallax_try();
         }
         ly = LY_REG;
         // never before a column slice still pending: built for the band before it moved, it
@@ -319,6 +342,9 @@ void bg_parallax_vbl_isr(void) {
             }
             bg_rj_pending = 0;
         }
+#ifdef DEBUG_PROFILE
+        else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
+#endif
     }
     // Custom cube icon frame (4 sprite tiles, double buffered by gameplay): CGB GDMA, DMG copy
     ly = LY_REG;
@@ -338,19 +364,10 @@ void bg_parallax_vbl_isr(void) {
         SWITCH_ROM(prev_b);
         bg_cube_pending = 0;
     }
-    // Parallax GDMA (CGB, ~3.5 lines), after the map uploads: first, it often left the row job
-    // too little of VBlank, and in a fast climb the rows fell behind (stale rows on screen). A
-    // late one is retried on the next VBlank (the sky drifts a frame later).
-    ly = LY_REG;
-    if (bg_gdma_pending) {
-        // Started outside the first lines of VBlank: the transfer would run into the visible
-        // frame, so keep the request and retry on the next VBlank.
-        if (ly >= 144u && ly <= 149u) {
-            bg_gdma_pending = 0;
-            parallax_gdma(bg_gdma_phase);
-            ly = LY_REG;
-        }
-    }
+    // Parallax GDMA after the map uploads (unless a column took the time, see above): first, it
+    // often left the row job too little of VBlank, and in a fast climb the rows fell behind
+    // (stale rows on screen)
+    parallax_try();
     // Saw animation chunk (~0.5k dots), last: the map streaming above matters more
     ly = LY_REG;
     if (bg_saw_pending && ly >= 144u && ly <= 151u) {
