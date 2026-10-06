@@ -235,7 +235,7 @@ const SpDef baseafterbase_sp[] = {
     {0xFFFF, 0, 0}
 };
 
-// Extracted 33 gameplay-critical objects for DMG mode
+// Extracted 34 gameplay-critical objects for DMG mode
 const SpDef baseafterbase_sp_dmg[] = {
     {1264, 400, 146},
     {1296, 400, 147},
@@ -265,6 +265,7 @@ const SpDef baseafterbase_sp_dmg[] = {
     {9330, 352, 27},
     {9584, 384, 0},
     {9728, 384, 152},
+    {9760, 384, 169},
     {9848, 408, 9},
     {11808, 448, 8},
     {11968, 416, 150},

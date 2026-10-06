@@ -239,8 +239,8 @@ def extract_portals(tmx_filepath, output_c_filepath, file_base_name, bank=None, 
             f.write("};\n\n")
 
             # Filtered DMG objects (pads, orbs, portals, level end, bg color triggers)
-            # Excludes visual decorations (38-99) and ground color triggers (192-239)
-            dmg_data = [p for p in portal_data if p[2] < 38 or (100 <= p[2] < 160)]
+            # Excludes visual decorations (38-99) and ground color triggers (192-239); bg color triggers 128-175 (the light ones, 160-175, switch back to the normal theme)
+            dmg_data = [p for p in portal_data if p[2] < 38 or (100 <= p[2] < 176)]
             f.write(f"// Extracted {len(dmg_data)} gameplay-critical objects for DMG mode\n")
             f.write(f"const SpDef {c_var_name}_sp_dmg[] = {{\n")
             for x, y, obj in dmg_data:
