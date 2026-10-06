@@ -12,6 +12,10 @@ the original cube (the 15x15 menu icon without its middle row and column), at (1
 frames RotSprite (Scale2x three times, rotate, sample). They can be touched up by hand in the
 PNG: --regen overwrites it.
 
+levels/chr_data/ship_frames.png: the ship, 31 frames of 16x16 from 45 degrees nose down to 45 up
+in 3 degree steps (same colours). The old hand-drawn ship frames at 45, 24, 0, -24, -45 degrees,
+RotSprite of the level one in between; made when missing or with --regen.
+
 src/graphics/cube_icon_frames.c (bank 61, nothing else in it, not even code: GDMA needs 16
 byte aligned data): per icon and frame 4 sprite tiles, left 8x16 pair then right pair (64
 bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
@@ -29,6 +33,11 @@ FRAMES = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
 OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"
 OUT_H = ROOT / "include" / "cube_icon_frames.h"
 FIRST_ICON, NUM_ICONS, NUM_FRAMES = 0, 7, 24
+SHIP_PNG = ROOT / "levels" / "chr_data" / "ship_frames.png"
+SHIP_FRAMES = 31                     # 45 .. -45 degrees in 3 degree steps
+SHIP_IDX = lambda deg: (45 - deg) // 3
+HAND_SHIP = {0: 45, 1: 24, 3: 0, 5: -24, 6: -45}   # old hand-drawn frame: its angle (2, 4 were generated)
+SCROLL_SPEED_FP = 714                # gameplay.c: x speed, 8.8 px per frame
 STEP = 7.5   # degrees per frame
 SHADE = [255, 170, 85, 0]
 
@@ -75,27 +84,52 @@ def scale2x(g):
     return o
 
 
-def rotations(ic):
-    canvas = [[0] * 16 for _ in range(16)]
-    for y in range(14):
-        for x in range(14):
-            canvas[1 + y][1 + x] = ic[y][x]
+def rotate(canvas, angles, cx=8.0, cy=8.0):
+    """RotSprite: a 16x16 canvas turned clockwise by each angle (degrees) around (cx, cy)."""
     big = scale2x(scale2x(scale2x(canvas)))   # 128x128
     frames = []
-    for k in range(NUM_FRAMES):
-        a = math.radians(STEP * k)
+    for deg in angles:
+        a = math.radians(deg)
         ca, sa = math.cos(a), math.sin(a)
         f = [[0] * 16 for _ in range(16)]
         for y in range(16):
             for x in range(16):
                 # clockwise on screen: sample the source rotated back
-                px, py = x + 0.5 - 8, y + 0.5 - 8
-                sx, sy = px * ca + py * sa + 8, -px * sa + py * ca + 8
+                px, py = x + 0.5 - cx, y + 0.5 - cy
+                sx, sy = px * ca + py * sa + cx, -px * sa + py * ca + cy
                 bx, by = int(math.floor(sx * 8)), int(math.floor(sy * 8))
                 if 0 <= bx < 128 and 0 <= by < 128:
                     f[y][x] = big[by][bx]
         frames.append(f)
     return frames
+
+
+def rotations(ic):
+    canvas = [[0] * 16 for _ in range(16)]
+    for y in range(14):
+        for x in range(14):
+            canvas[1 + y][1 + x] = ic[y][x]
+    return rotate(canvas, [STEP * k for k in range(NUM_FRAMES)])
+
+
+def ship_frames():
+    """The ship: frame k is tilted 45 - 3k degrees clockwise (0: nose steep down, 15: level, 30:
+    steep up). The hand-drawn frames of sprite_tiles.png (pairs 18.. of tiles 36..63) at their
+    angles, RotSprite of the level one in between."""
+    st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
+    idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
+
+    def hand(f):   # old ship frame f (0 steep down .. 3 level .. 6 steep up), 16x16
+        g = [[0] * 16 for _ in range(16)]
+        for half in (0, 1):
+            pr = 18 + 2 * f + half
+            for y in range(16):
+                for x in range(8):
+                    g[y][half * 8 + x] = idx(st.getpixel(((pr % 16) * 8 + x, (pr // 16) * 16 + y)))
+        return g
+    gen = rotate(hand(3), [45 - 3 * k for k in range(SHIP_FRAMES)], 8.0, 8.5)
+    keep = {SHIP_IDX(a): hand(f) for f, a in HAND_SHIP.items()}
+    return [keep.get(k, gen[k]) for k in range(SHIP_FRAMES)]
 
 
 def default_cube():
@@ -134,24 +168,45 @@ def main():
         img.save(FRAMES)
         print("wrote", FRAMES)
 
-    img = Image.open(FRAMES).convert("L")
+    if "--regen" in sys.argv or not SHIP_PNG.exists():
+        img = Image.new("L", (SHIP_FRAMES * 16, 16), 255)
+        for k, f in enumerate(ship_frames()):
+            for y in range(16):
+                for x in range(16):
+                    img.putpixel((k * 16 + x, y), SHADE[f[y][x]])
+        img.save(SHIP_PNG)
+        print("wrote", SHIP_PNG)
+
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
     data = bytearray()
+
+    def add_frame(img, x0, y0):   # left 8x16 pair, right pair
+        nonlocal data
+        for half in (0, 8):
+            for ty in (0, 8):
+                for y in range(8):
+                    lo = hi = 0
+                    for x in range(8):
+                        v = idx(img.getpixel((x0 + half + x, y0 + ty + y)))
+                        lo = (lo << 1) | (v & 1)
+                        hi = (hi << 1) | (v >> 1)
+                    data += bytes([lo, hi])
+    img = Image.open(FRAMES).convert("L")
     for r in range(n):
         for k in range(NUM_FRAMES):
-            for half in (0, 8):          # left pair, right pair
-                for ty in (0, 8):        # top tile, bottom tile
-                    for y in range(8):
-                        lo = hi = 0
-                        for x in range(8):
-                            v = idx(img.getpixel((k * 16 + half + x, r * 16 + ty + y)))
-                            lo = (lo << 1) | (v & 1)
-                            hi = (hi << 1) | (v >> 1)
-                        data += bytes([lo, hi])
+            add_frame(img, k * 16, r * 16)
+    ship_first = len(data) // 64
+    img = Image.open(SHIP_PNG).convert("L")
+    for k in range(SHIP_FRAMES):
+        add_frame(img, k * 16, 0)
+    # |vertical speed| (8.8) from which the ship tilts k steps (3k degrees, rounded): its flight
+    # direction, atan(vy / x speed)
+    steps = [round(SCROLL_SPEED_FP * math.tan(math.radians(3 * k - 1.5))) for k in range(1, 16)]
 
     lines = ",\n".join("    " + ", ".join(f"0x{b:02X}" for b in data[i:i + 16]) for i in range(0, len(data), 16))
     OUT_C.write_text(f"""#pragma bank 61
-// Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png. Do not edit.
+// Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png and
+// ship_frames.png. Do not edit.
 // The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
 
 #include <gb/gb.h>
@@ -179,9 +234,17 @@ extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pai
 // Address of an icon's frame in cube_icon_frames
 #define CUBE_ICON_FRAME(icon, frame)     (cube_icon_frames + ((uint16_t)((icon) - CUBE_ICON_FIRST) * CUBE_ICON_FRAMES + (frame)) * 64u)
 
+// Ship frames, after the cube ones: frame k tilted 45 - 3k degrees (0 nose steep down, level, 30 up)
+#define SHIP_FRAME_COUNT {SHIP_FRAMES}
+#define SHIP_FRAME_LEVEL {SHIP_FRAMES // 2}
+#define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t){ship_first} + (k)) * 64u)
+// |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
+// initializer, not an array: anything defined here would also land in bank 61 ahead of the frames
+#define SHIP_TILT_VY {{ {", ".join(str(v) for v in steps)} }}
+
 #endif
 """)
-    print(f"{n} icons x {NUM_FRAMES} frames: {len(data)} bytes")
+    print(f"{n} icons x {NUM_FRAMES} frames + {SHIP_FRAMES} ship frames: {len(data)} bytes")
 
 
 if __name__ == "__main__":
