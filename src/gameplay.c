@@ -118,14 +118,16 @@ static uint8_t bg_drift_px = 0;
 // Camera y. Cube: dead zone, the camera snaps to keep the player within screen rows
 // CAM_Y_TOP_ZONE .. CAM_Y_BOTTOM_ZONE. Ship: the corridor is CAM_SHIP_H (10 blocks) around the
 // ship portal, on the block grid, and on the ground when it would reach below it. The screen
-// (9 blocks) slides through it with the ship: corridor top + (ship y - corridor top) / 9, so the
-// top block is on screen with the ship at the top and the bottom one with it at the bottom.
+// (9 blocks) slides through it with the ship, CAM_SHIP_MARGIN past both ends: with the ship at the
+// top the screen starts that far above the corridor (a bit of the ceiling shows), at the bottom it
+// ends that far below it.
 // SHIP CAM: OLD in the settings gives the ship the cube camera instead.
 // Ball: centred on the ball portal. Both ease there (1/4 of the distance per frame,
 // 1..CAM_Y_MAX_STEP px) and never leave the player off screen.
 #define CAM_Y_TOP_ZONE 20      // cube: dead zone (screen rows the player may move in)
 #define CAM_Y_BOTTOM_ZONE 100
 #define CAM_SHIP_H 160u
+#define CAM_SHIP_MARGIN 8u     // ship: px of the level shown above / below the corridor
 #define CAM_Y_MAX_STEP 8      // the VRAM band streams one map row (16px) per 2 frames
 #define CAM_VIEW_H 144u
 uint16_t cam_portal_y;
@@ -1224,7 +1226,9 @@ static void update_camera_y(void) {
         if (top + CAM_SHIP_H > ground) top = ground - CAM_SHIP_H;
         uint16_t d = (wy > top) ? (wy - top) : 0;   // 0 .. 144: the ship at the top .. bottom
         if (d > CAM_VIEW_H) d = CAM_VIEW_H;
-        t = top + (uint8_t)((uint8_t)d / (uint8_t)9);
+        // top - margin .. top + 16 + margin: 32 px of sliding over 144 (d * 2 / 9)
+        t = top + (uint8_t)((uint16_t)(d << 1) / 9u);
+        t = (t > CAM_SHIP_MARGIN) ? (t - CAM_SHIP_MARGIN) : 0;
     } else {
         t = (cam_portal_y > CAM_VIEW_H / 2u - 24u) ? (cam_portal_y - (CAM_VIEW_H / 2u - 24u)) : 0;
     }

@@ -7,8 +7,6 @@
 #include "icon_catalog.h"
 #include "save_manager.h"
 #include "settings.h"
-#include "sample_player.h"
-#include "sfx_data.h"
 #include "fade.h"
 
 BANKREF(state_icon_select)
@@ -122,10 +120,6 @@ static void update_cursor_sprites(void) {
                 (uint8_t)((ICON_SELECT_SWATCH_ROW0 + 1) * 8 + 16));
 }
 
-static void click(void) {
-    if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, play_sound_data, PLAY_SOUND_LEN);
-}
-
 GameState update_icon_select_state(void) BANKED {
     // Load behind the black screen the last state faded to, display on (a display switched off
     // shows white): the palettes are only stored until fade_from_black
@@ -215,16 +209,11 @@ GameState update_icon_select_state(void) BANKED {
         if (moved) {
             if (recolour) refresh_preview_palette();
             update_cursor_sprites();
-            click();
         }
 
-        if (pressed & J_A) {
-            click();
-            save_game_data();
-        }
+        if (pressed & J_A) save_game_data();
 
         if (pressed & (J_B | J_START)) {
-            if (setting_sfx_enabled) play_sample_with_music(BANK_SFX_DATA, quit_sound_data, QUIT_SOUND_LEN);
             save_game_data();
             fade_to_black(2);
             HIDE_SPRITES;

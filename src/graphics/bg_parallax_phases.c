@@ -300,6 +300,20 @@ void bg_parallax_vbl_isr(void) {
     uint8_t ly = LY_REG;
     // The interrupted code may be in the middle of a VRAM bank-1 write.
     uint8_t vbk = VBK_REG;
+    // CGB: the player frame first (64 byte GDMA, ~1/4 line): after the map uploads it was often put
+    // off for several frames in a row and the cube's spin stalled. DMG: after them, below.
+    if (bg_cube_pending && bg_gdma_isr_on) {
+        uint8_t prev_b = _current_bank;
+        SWITCH_ROM(bg_cube_bank);
+        VBK_REG = 0;
+        HDMA1_REG = (uint8_t)((uint16_t)bg_cube_src >> 8);
+        HDMA2_REG = (uint8_t)((uint16_t)bg_cube_src & 0xF0);
+        HDMA3_REG = (uint8_t)(((uint16_t)bg_cube_dst >> 8) & 0x1F);
+        HDMA4_REG = (uint8_t)((uint16_t)bg_cube_dst & 0xF0);
+        HDMA5_REG = 3;   // 4 blocks of 16 bytes
+        SWITCH_ROM(prev_b);
+        bg_cube_pending = 0;
+    }
     if (bg_pal_request && ly >= 144u && ly <= 150u) {
         bg_pal_request = 0;
         upload_palette();
@@ -346,21 +360,12 @@ void bg_parallax_vbl_isr(void) {
         else if (bg_rj_pending && !bg_cj_pending) gp_rj_late++;
 #endif
     }
-    // Custom cube icon frame (4 sprite tiles, double buffered by gameplay): CGB GDMA, DMG copy
+    // DMG player frame (4 sprite tiles, double buffered by gameplay; ~3.4 lines): if it still fits
     ly = LY_REG;
     if (bg_cube_pending && ly >= 144u && ly <= 149u) {
         uint8_t prev_b = _current_bank;
         SWITCH_ROM(bg_cube_bank);
-        if (bg_gdma_isr_on) {
-            VBK_REG = 0;
-            HDMA1_REG = (uint8_t)((uint16_t)bg_cube_src >> 8);
-            HDMA2_REG = (uint8_t)((uint16_t)bg_cube_src & 0xF0);
-            HDMA3_REG = (uint8_t)(((uint16_t)bg_cube_dst >> 8) & 0x1F);
-            HDMA4_REG = (uint8_t)((uint16_t)bg_cube_dst & 0xF0);
-            HDMA5_REG = 3;   // 4 blocks of 16 bytes
-        } else {
-            cube_dmg_copy();
-        }
+        cube_dmg_copy();
         SWITCH_ROM(prev_b);
         bg_cube_pending = 0;
     }
