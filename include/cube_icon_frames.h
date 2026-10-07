@@ -5,21 +5,32 @@
 #include <gb/gb.h>
 #include <stdint.h>
 
-#define CUBE_ICON_FIRST 0
 #define CUBE_ICON_FRAMES 24   // 0..172.5 degrees in 7.5 degree steps; 180..352.5 = flipped both ways
 
 BANKREF_EXTERN(cube_icon_frames)
-extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pair, right pair (64 bytes)
+extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right pair (64 bytes)
 
-// Address of an icon's frame in cube_icon_frames
-#define CUBE_ICON_FRAME(icon, frame)     (cube_icon_frames + ((uint16_t)((icon) - CUBE_ICON_FIRST) * CUBE_ICON_FRAMES + (frame)) * 64u)
+// Icon 0 (the original cube): frame 0..23 in cube_icon_frames
+#define CUBE_ICON0_FRAME(frame) (cube_icon_frames + (uint16_t)(frame) * 64u)
+
+// Icons 1..25 (Famidash): 24 frames like icon 0, 10 icons per bank
+#define CUBE_FD_COUNT 25
+#define CUBE_FD_FRAMES 24
+#define CUBE_FD_PER_BANK 10
+BANKREF_EXTERN(cube_fd_frames_0)
+extern const uint8_t cube_fd_frames_0[];
+BANKREF_EXTERN(cube_fd_frames_1)
+extern const uint8_t cube_fd_frames_1[];
+BANKREF_EXTERN(cube_fd_frames_2)
+extern const uint8_t cube_fd_frames_2[];
+
 
 // Ship frames, after the cube ones: frame k tilted 45 - 3k degrees (0 nose steep down, level, 30 up)
 #define SHIP_FRAME_COUNT 31
 #define SHIP_FRAME_LEVEL 15
-#define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t)168 + (k)) * 64u)
+#define SHIP_FRAME(k) (cube_icon_frames + ((uint16_t)24 + (k)) * 64u)
 // Ball frames, after the ship: 0..172.5 degrees like a cube icon (drawn at x + 0, not x - 1)
-#define BALL_FRAME(k) (cube_icon_frames + ((uint16_t)199 + (k)) * 64u)
+#define BALL_FRAME(k) (cube_icon_frames + ((uint16_t)55 + (k)) * 64u)
 
 // |vel_y| (8.8) from which the ship tilts one more step: the frame for its flight direction. An
 // initializer, not an array: anything defined here would also land in bank 61 ahead of the frames

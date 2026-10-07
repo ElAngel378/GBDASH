@@ -6,7 +6,9 @@
 #include <gbdk/platform.h>
 #include <gb/cgb.h>
 
-#define NUM_CUBE_ICONS 7
+#define NUM_CUBE_ICONS 26
+#define ICONS_PER_PAGE 12
+#define NUM_ICON_PAGES 3
 #define NUM_GAMEMODE_TABS 7
 #define NUM_PALETTE_COLORS 12
 #define PREVIEW_TILE_BASE 0
@@ -16,8 +18,12 @@ BANKREF_EXTERN(icon_catalog)
 // Bank 24 data: read it from bank 24 code, or use icon_color() from other banks
 extern const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS];
 extern const uint8_t icon_dmg_shades[NUM_PALETTE_COLORS];
-extern const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16];
 
 palette_color_t icon_color(uint8_t idx) BANKED;
+
+// src/graphics/icon_pages.c (bank 64): load an icon's preview tiles (its colours 0..3
+// drawn as c0..c3: secondary, page, primary, black) / a page of the icon box
+void icon_preview_load(uint8_t icon, uint8_t c0, uint8_t c1, uint8_t c2, uint8_t c3) BANKED;
+void icon_page_load(uint8_t page) BANKED;
 
 #endif // ICON_CATALOG_H

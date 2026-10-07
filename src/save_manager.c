@@ -10,12 +10,13 @@ BANKREF(save_manager)
 #define SAVE_MAGIC_1 'D'
 #define SAVE_MAGIC_2 'S'
 #define SAVE_MAGIC_3 'H'
-#define SAVE_VERSION 8
+#define SAVE_VERSION 9
 // Level count of the version 3 layout (progress arrays were 11 entries long)
 #define V3_NUM_SAVE_LEVELS 11
 #define NUM_SETTINGS_BYTES 6
 
 #include "settings.h"
+#include "icon_catalog.h"
 
 uint8_t level_progress_normal[NUM_SAVE_LEVELS] = {0};
 uint8_t level_progress_practice[NUM_SAVE_LEVELS] = {0};
@@ -24,6 +25,8 @@ uint8_t level_coins[NUM_SAVE_LEVELS] = {0};
 uint8_t selected_icon = 0;
 uint8_t selected_color_primary = 0;
 uint8_t selected_color_secondary = 1;
+uint8_t selected_dmg_primary = 2;     // DMG shades (0 white .. 3 black): the original cube's
+uint8_t selected_dmg_secondary = 1;
 
 // Version 4 layout: progress normal[N], practice[N], settings[6], coins[N], checksum
 #define V4_COINS_OFS (5 + NUM_SAVE_LEVELS * 2 + NUM_SETTINGS_BYTES)
@@ -42,6 +45,11 @@ uint8_t selected_color_secondary = 1;
 #define V8_COL1_OFS  (V8_ICON_OFS + 1)
 #define V8_COL2_OFS  (V8_ICON_OFS + 2)
 #define V8_DATA_LEN  (V7_DATA_LEN + 3)
+// Version 9: version 8 + 2 bytes: DMG primary / secondary shade. Icon numbers changed (Famidash
+// icons): a version 8 icon is reset to the original cube.
+#define V9_DMG1_OFS  (5 + V8_DATA_LEN)
+#define V9_DMG2_OFS  (V9_DMG1_OFS + 1)
+#define V9_DATA_LEN  (V8_DATA_LEN + 2)
 
 uint8_t setting_music_enabled   = 1;
 uint8_t setting_sfx_enabled     = 1;
@@ -69,12 +77,13 @@ void init_save_system(void) BANKED {
     if (sram[0] == SAVE_MAGIC_0 && sram[1] == SAVE_MAGIC_1 &&
         sram[2] == SAVE_MAGIC_2 && sram[3] == SAVE_MAGIC_3) {
 
-        if (sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
+        if (sram[4] == 9 || sram[4] == 8 || sram[4] == 7 || sram[4] == 6 || sram[4] == 5 || sram[4] == 4) {
             uint8_t v5 = (sram[4] >= 5);
             uint8_t v6 = (sram[4] >= 6);
             uint8_t v7 = (sram[4] >= 7);
-            uint8_t v8 = (sram[4] == 8);
-            uint8_t len = v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
+            uint8_t v8 = (sram[4] >= 8);
+            uint8_t v9 = (sram[4] == 9);
+            uint8_t len = v9 ? V9_DATA_LEN : v8 ? V8_DATA_LEN : (v7 ? V7_DATA_LEN : (v6 ? V6_DATA_LEN : (v5 ? V5_DATA_LEN : V4_DATA_LEN)));
             uint8_t chk = calc_checksum((const uint8_t *)&sram[5], len);
             if (sram[5 + len] == chk) {
                 for (uint8_t i = 0; i < NUM_SAVE_LEVELS; i++) {
@@ -93,15 +102,19 @@ void init_save_system(void) BANKED {
                 setting_show_percent     = v5 ? (sram[V5_SHOW_PCT_OFS] ? 1 : 0) : 1;
                 setting_old_ship_cam     = v6 ? (sram[V6_SHIP_CAM_OFS] ? 1 : 0) : 0;
                 setting_auto_checkpoints = v7 ? (sram[V7_AUTO_CP_OFS] ? 1 : 0) : 1;
-                selected_icon            = v8 ? sram[V8_ICON_OFS] : 0;
+                selected_icon            = v9 ? sram[V8_ICON_OFS] : 0;
                 selected_color_primary   = v8 ? sram[V8_COL1_OFS] : 0;
                 selected_color_secondary = v8 ? sram[V8_COL2_OFS] : 1;
-                if (selected_icon >= 7) selected_icon = 0;
+                selected_dmg_primary     = v9 ? sram[V9_DMG1_OFS] : 2;
+                selected_dmg_secondary   = v9 ? sram[V9_DMG2_OFS] : 1;
+                if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
+                if (selected_dmg_primary > 3) selected_dmg_primary = 2;
+                if (selected_dmg_secondary > 3) selected_dmg_secondary = 1;
                 if (selected_color_primary >= 12) selected_color_primary = 0;
                 if (selected_color_secondary >= 12) selected_color_secondary = 1;
                 if (!setting_show_bg_enabled) setting_parallax_enabled = 0;
                 DISABLE_RAM;
-                if (!v8) save_game_data();   // upgrade to version 8
+                if (!v9) save_game_data();   // upgrade to version 9
                 return;
             }
         } else if (sram[4] == 3) {
@@ -180,6 +193,8 @@ void init_save_system(void) BANKED {
     selected_icon           = 0;
     selected_color_primary  = 0;
     selected_color_secondary = 1;
+    selected_dmg_primary    = 2;
+    selected_dmg_secondary  = 1;
     DISABLE_RAM;
     save_game_data();
 }
@@ -216,7 +231,9 @@ void save_game_data(void) BANKED {
     sram[V8_ICON_OFS] = selected_icon;
     sram[V8_COL1_OFS] = selected_color_primary;
     sram[V8_COL2_OFS] = selected_color_secondary;
-    sram[5 + V8_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V8_DATA_LEN);
+    sram[V9_DMG1_OFS] = selected_dmg_primary;
+    sram[V9_DMG2_OFS] = selected_dmg_secondary;
+    sram[5 + V9_DATA_LEN] = calc_checksum((const uint8_t *)&sram[5], V9_DATA_LEN);
     DISABLE_RAM;
 }
 

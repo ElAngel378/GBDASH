@@ -1,16 +1,23 @@
-"""In-game rotation frames of the cube icons (icon select icons 0..6).
+"""In-game rotation frames of the cube icons (icon select icons 0..25).
 
     python tools/make_cube_icon_frames.py            # frames PNG -> C (creates the PNG if missing)
     python tools/make_cube_icon_frames.py --regen    # (re)make the frames PNG
 
-levels/chr_data/cube_icon_frames.png: one 16 px row per icon, 24 frames of 16x16: 0, 7.5, ...
+levels/chr_data/cube_icon_frames.png: icon 0, the original cube, 24 frames of 16x16: 0, 7.5, ...
 172.5 degrees clockwise (the game draws 180..352.5 as these flipped both ways). Grey level =
 sprite colour: white transparent, light grey 1 (secondary colour), dark grey 2 (primary
-colour), black 3. Icon 0 is the original cube: its hand-drawn 15 degree frames from
-sprite_tiles.png, RotSprite frames in between. Icons 1..6 come from cube_icons.png, 14x14 like
-the original cube (the 15x15 menu icon without its middle row and column), at (1, 1), all
-frames RotSprite (Scale2x three times, rotate, sample). They can be touched up by hand in the
-PNG: --regen overwrites it.
+colour), black 3. Its hand-drawn 15 degree frames from sprite_tiles.png; in between, the frame
+before turned 7.5 degrees (RotSprite) with its outline cleaned up (between). Can be touched up by
+hand: --regen overwrites it.
+
+levels/chr_data/fd_cube_frames.png: icons 1..25, the Famidash cubes (famidash-main next to this
+repo: GRAPHICS/Icons/bankicon01..0E.chr - not 00, its default cube -, the 10 contest winners,
+starfox.chr), one 16 px row each, 24 frames of 16x16 like icon 0: 0, 7.5, ... 172.5 degrees
+clockwise. The 15 degree ones: 0..75 are Famidash's hand-drawn quarter turn, 90..165 the same
+turned 90 degrees (exact, pixel for pixel), or the quarter again for an icon that looks the same
+turned or spins in 3D (see fd_frames). The ones in between like icon 0's, or the frame before
+again for the icons drawn spinning in 3D (FD_3D). 14x14 at
+(1, 1) like the original cube. Made when missing or with --regen (needs famidash-main then).
 
 levels/chr_data/ship_frames.png: the ship, 31 frames of 16x16 from 45 degrees nose down to 45 up
 in 3 degree steps (same colours). The old hand-drawn ship frames at 45, 24, 0, -24, -45 degrees,
@@ -19,9 +26,11 @@ RotSprite of the level one in between; made when missing or with --regen.
 levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old hand-drawn frames at
 0 and 30 degrees, RotSprite in between; made when missing or with --regen.
 
-src/graphics/cube_icon_frames.c (bank 61, nothing else in it, not even code: GDMA needs 16
-byte aligned data): per icon and frame 4 sprite tiles, left 8x16 pair then right pair (64
-bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
+src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball) and cube_fd_frames_0.c /
+cube_fd_frames_1.c / cube_fd_frames_2.c (banks 62 / 63 / 66: 10 + 10 + 5 Famidash icons), nothing
+else in their banks, not even
+code (GDMA needs 16 byte aligned data): per frame 4 sprite tiles, left 8x16 pair then right pair
+(64 bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
 """
 import math
 import sys
@@ -31,11 +40,19 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-CUBES = ROOT / "levels" / "chr_data" / "cube_icons.png"
 FRAMES = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
+FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
+FD_ROOT = ROOT.parent / "famidash-main"
+FD_CHR = [f"GRAPHICS/Icons/bankicon{i:02X}.chr" for i in range(1, 15)] + \
+         [f"fan icon collection/CONTEST WINNERS/contest{i:X}.chr" for i in range(1, 11)] + \
+         ["fan icon collection/starfox.chr"]
+FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR), 24, 10, (62, 63, 66)
+# drawn spinning in 3D, not in the picture's plane: no turned frames in between
+FD_3D = {"contest1.chr", "contest5.chr", "contest8.chr"}
 OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"
+OUT_FD_C = ROOT / "src" / "graphics" / "cube_fd_frames_{}.c"
 OUT_H = ROOT / "include" / "cube_icon_frames.h"
-FIRST_ICON, NUM_ICONS, NUM_FRAMES = 0, 7, 24
+NUM_FRAMES = 24
 SHIP_PNG = ROOT / "levels" / "chr_data" / "ship_frames.png"
 SHIP_FRAMES = 31                     # 45 .. -45 degrees in 3 degree steps
 SHIP_IDX = lambda deg: (45 - deg) // 3
@@ -45,28 +62,6 @@ HAND_BALL = {6: 0, 8: 4}             # sprite_tiles.png pair of an old ball fram
 SCROLL_SPEED_FP = 714                # gameplay.c: x speed, 8.8 px per frame
 STEP = 7.5   # degrees per frame
 SHADE = [255, 170, 85, 0]
-
-
-def icon14(cubes, i):
-    """Menu icon i (15x15 greys) -> 14x14 sprite colours (0 outside, 1 secondary, 2 primary, 3 outline)."""
-    g = [[{255: 0, 170: 1, 85: 2, 0: 3}[cubes.getpixel((i * 16 + x, y))] for x in range(15)] for y in range(15)]
-    out, q = set(), deque()
-    for j in range(15):
-        for p in ((j, 0), (j, 14), (0, j), (14, j)):
-            if g[p[1]][p[0]] in (0, 1) and p not in out:
-                out.add(p)
-                q.append(p)
-    while q:
-        x, y = q.popleft()
-        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            a, b = x + dx, y + dy
-            if 0 <= a < 15 and 0 <= b < 15 and g[b][a] in (0, 1) and (a, b) not in out:
-                out.add((a, b))
-                q.append((a, b))
-    # menu greys: 3 outline, 2 primary (outer fill), 1 secondary -> sprite 3, 2, 1
-    full = [[0 if (x, y) in out else {3: 3, 2: 2}.get(g[y][x], 1) for x in range(15)] for y in range(15)]
-    rows = [r for k, r in enumerate(full) if k != 7]
-    return [[v for k, v in enumerate(r) if k != 7] for r in rows]
 
 
 def scale2x(g):
@@ -109,12 +104,28 @@ def rotate(canvas, angles, cx=8.0, cy=8.0):
     return frames
 
 
-def rotations(ic):
-    canvas = [[0] * 16 for _ in range(16)]
-    for y in range(14):
-        for x in range(14):
-            canvas[1 + y][1 + x] = ic[y][x]
-    return rotate(canvas, [STEP * k for k in range(NUM_FRAMES)])
+def clean_outline(f):
+    """A turned frame tidied up: lone pixels sticking out of the silhouette removed and its edge
+    redrawn as a 1 px outline (colour 3)."""
+    g = [row[:] for row in f]
+    near = ((1, 0), (-1, 0), (0, 1), (0, -1))
+    inside = lambda x, y: 0 <= x < 16 and 0 <= y < 16 and g[y][x] != 0
+    for _ in range(2):
+        for y in range(16):
+            for x in range(16):
+                if g[y][x] and sum(inside(x + dx, y + dy) for dx, dy in near) <= 1:
+                    g[y][x] = 0
+    out = [row[:] for row in g]
+    for y in range(16):
+        for x in range(16):
+            if g[y][x] and not all(inside(x + dx, y + dy) for dx, dy in near):
+                out[y][x] = 3
+    return out
+
+
+def between(f):
+    """The frame 7.5 degrees after a hand-drawn one: it turned (RotSprite), outline cleaned."""
+    return clean_outline(rotate(f, [STEP])[0])
 
 
 def ship_frames():
@@ -139,7 +150,8 @@ def ship_frames():
 
 def default_cube():
     """Icon 0, the original cube: its hand-drawn 15 degree frames from sprite_tiles.png (the
-    metasprites of src/graphics/icon1.c composed into 16x16), RotSprite in between."""
+    metasprites of src/graphics/icon1.c composed into 16x16), each followed by itself turned 7.5
+    degrees (between)."""
     st = Image.open(ROOT / "levels" / "chr_data" / "sprite_tiles.png").convert("L")
     idx = lambda v: min(range(4), key=lambda i: abs(v - SHADE[i]))
 
@@ -154,9 +166,10 @@ def default_cube():
         hand.append([L[y] + R[y] for y in range(16)])
     # the original cube looks the same turned 90 degrees: 90..165 = 0..75
     hand = hand + hand
-    ic = [row[1:15] for row in hand[0][1:15]]
-    gen = rotations(ic)
-    return [hand[k // 2] if k % 2 == 0 else gen[k] for k in range(NUM_FRAMES)]
+    out = []
+    for f in hand:
+        out += [f, between(f)]
+    return out
 
 
 def ball_frames():
@@ -174,19 +187,54 @@ def ball_frames():
     return [keep.get(k, gen[k]) for k in range(NUM_FRAMES)]
 
 
+def fd_frames(path):
+    """A Famidash icon bank (NES CHR, 8x16 sprites): cube frames 0..5 (0..75 degrees) are tile
+    quads 0..5 (left pair, right pair); 90..165 degrees = them turned 90 degrees clockwise; each
+    followed by itself turned 7.5 degrees (between).
+    Famidash colours: 1 outline (black), 2 colour 1 (primary), 3 colour 2 (secondary)."""
+    d = path.read_bytes()
+    col = {0: 0, 1: 3, 2: 2, 3: 1}
+
+    def frame(k):
+        g = [[0] * 16 for _ in range(16)]
+        for h in range(2):
+            for v in range(2):
+                t = 4 * k + 2 * h + v
+                for y in range(8):
+                    for x in range(8):
+                        c = ((d[t * 16 + y] >> (7 - x)) & 1) | (((d[t * 16 + 8 + y] >> (7 - x)) & 1) << 1)
+                        g[v * 8 + y][h * 8 + x] = col[c]
+        return g
+    q = [frame(k) for k in range(6)]
+    turn = lambda f: [[f[15 - x][y] for x in range(16)] for y in range(16)]
+    # an icon that looks the same turned 90 degrees, or one not drawn turning in the picture's
+    # plane (its 90 degree frame is not its first turned: a 3D spin): the quarter turn repeats
+    hand = q + q if (turn(q[0]) == q[0] or frame(6) != turn(q[0])) else q + [turn(f) for f in q]
+    out = []
+    for f in hand:
+        out += [f, f if path.name in FD_3D else between(f)]
+    return out
+
+
 def main():
-    n = NUM_ICONS - FIRST_ICON
     if "--regen" in sys.argv or not FRAMES.exists():
-        cubes = Image.open(CUBES).convert("L")
-        img = Image.new("L", (NUM_FRAMES * 16, n * 16), 255)
-        for r, i in enumerate(range(FIRST_ICON, NUM_ICONS)):
-            frames = default_cube() if i == 0 else rotations(icon14(cubes, i))
-            for k, f in enumerate(frames):
+        img = Image.new("L", (NUM_FRAMES * 16, 16), 255)
+        for k, f in enumerate(default_cube()):
+            for y in range(16):
+                for x in range(16):
+                    img.putpixel((k * 16 + x, y), SHADE[f[y][x]])
+        img.save(FRAMES)
+        print("wrote", FRAMES)
+
+    if "--regen" in sys.argv or not FD_PNG.exists():
+        img = Image.new("L", (FD_FRAMES * 16, FD_COUNT * 16), 255)
+        for r, name in enumerate(FD_CHR):
+            for k, f in enumerate(fd_frames(FD_ROOT / name)):
                 for y in range(16):
                     for x in range(16):
                         img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])
-        img.save(FRAMES)
-        print("wrote", FRAMES)
+        img.save(FD_PNG)
+        print("wrote", FD_PNG)
 
     if "--regen" in sys.argv or not SHIP_PNG.exists():
         img = Image.new("L", (SHIP_FRAMES * 16, 16), 255)
@@ -221,9 +269,8 @@ def main():
                         hi = (hi << 1) | (v >> 1)
                     data += bytes([lo, hi])
     img = Image.open(FRAMES).convert("L")
-    for r in range(n):
-        for k in range(NUM_FRAMES):
-            add_frame(img, k * 16, r * 16)
+    for k in range(NUM_FRAMES):
+        add_frame(img, k * 16, 0)
     ship_first = len(data) // 64
     img = Image.open(SHIP_PNG).convert("L")
     for k in range(SHIP_FRAMES):
@@ -236,10 +283,35 @@ def main():
     # direction, atan(vy / x speed)
     steps = [round(SCROLL_SPEED_FP * math.tan(math.radians(3 * k - 1.5))) for k in range(1, 16)]
 
-    lines = ",\n".join("    " + ", ".join(f"0x{b:02X}" for b in data[i:i + 16]) for i in range(0, len(data), 16))
+    def carr(b):
+        return ",\n".join("    " + ", ".join(f"0x{v:02X}" for v in b[i:i + 16]) for i in range(0, len(b), 16))
+    main_len = len(data)
+    lines = carr(data)
+
+    fd_img = Image.open(FD_PNG).convert("L")
+    fd_banks = (FD_COUNT + FD_PER_BANK - 1) // FD_PER_BANK
+    for b in range(fd_banks):
+        data = bytearray()
+        for r in range(b * FD_PER_BANK, min(FD_COUNT, (b + 1) * FD_PER_BANK)):
+            for k in range(FD_FRAMES):
+                add_frame(fd_img, k * 16, r * 16)
+        Path(str(OUT_FD_C).format(b)).write_text(f"""#pragma bank {FD_BANKS[b]}
+// Generated by tools/make_cube_icon_frames.py from levels/chr_data/fd_cube_frames.png. Do not edit.
+// The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
+
+#include <gb/gb.h>
+#include "cube_icon_frames.h"
+
+BANKREF(cube_fd_frames_{b})
+
+const uint8_t cube_fd_frames_{b}[{len(data)}] = {{
+{carr(data)}
+}};
+""")
+
     OUT_C.write_text(f"""#pragma bank 61
-// Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png and
-// ship_frames.png. Do not edit.
+// Generated by tools/make_cube_icon_frames.py from levels/chr_data/cube_icon_frames.png,
+// ship_frames.png and ball_frames.png. Do not edit.
 // The only thing in its bank (no code either), so 16 byte aligned: GDMA source.
 
 #include <gb/gb.h>
@@ -247,7 +319,7 @@ def main():
 
 BANKREF(cube_icon_frames)
 
-const uint8_t cube_icon_frames[{len(data)}] = {{
+const uint8_t cube_icon_frames[{main_len}] = {{
 {lines}
 }};
 """)
@@ -258,14 +330,19 @@ const uint8_t cube_icon_frames[{len(data)}] = {{
 #include <gb/gb.h>
 #include <stdint.h>
 
-#define CUBE_ICON_FIRST {FIRST_ICON}
 #define CUBE_ICON_FRAMES {NUM_FRAMES}   // 0..172.5 degrees in 7.5 degree steps; 180..352.5 = flipped both ways
 
 BANKREF_EXTERN(cube_icon_frames)
-extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pair, right pair (64 bytes)
+extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right pair (64 bytes)
 
-// Address of an icon's frame in cube_icon_frames
-#define CUBE_ICON_FRAME(icon, frame)     (cube_icon_frames + ((uint16_t)((icon) - CUBE_ICON_FIRST) * CUBE_ICON_FRAMES + (frame)) * 64u)
+// Icon 0 (the original cube): frame 0..23 in cube_icon_frames
+#define CUBE_ICON0_FRAME(frame) (cube_icon_frames + (uint16_t)(frame) * 64u)
+
+// Icons 1..{FD_COUNT} (Famidash): {FD_FRAMES} frames like icon 0, {FD_PER_BANK} icons per bank
+#define CUBE_FD_COUNT {FD_COUNT}
+#define CUBE_FD_FRAMES {FD_FRAMES}
+#define CUBE_FD_PER_BANK {FD_PER_BANK}
+""" + "".join(f"BANKREF_EXTERN(cube_fd_frames_{b})\nextern const uint8_t cube_fd_frames_{b}[];\n" for b in range(fd_banks)) + f"""
 
 // Ship frames, after the cube ones: frame k tilted 45 - 3k degrees (0 nose steep down, level, 30 up)
 #define SHIP_FRAME_COUNT {SHIP_FRAMES}
@@ -280,7 +357,8 @@ extern const uint8_t cube_icon_frames[];   // per icon, per frame: left 8x16 pai
 
 #endif
 """)
-    print(f"{n} icons x {NUM_FRAMES} frames + {SHIP_FRAMES} ship + {NUM_FRAMES} ball frames: {len(data)} bytes")
+    print(f"icon 0 x {NUM_FRAMES} + {SHIP_FRAMES} ship + {NUM_FRAMES} ball frames: {main_len} bytes, "
+          f"{FD_COUNT} Famidash icons x {FD_FRAMES} frames in {fd_banks} banks")
 
 
 if __name__ == "__main__":

@@ -339,6 +339,7 @@ uint8_t get_map_tile(uint16_t col, uint8_t row, const uint8_t *map, uint8_t map_
 
 
 #include "hUGEDriver.h"
+#include "music_beats.h"
 
 extern uint8_t music_ready;
 extern uint8_t current_song_bank;
@@ -361,6 +362,8 @@ void init_music_banked(const hUGESong_t * song, uint8_t bank, uint8_t divider) {
     NR51_REG = 0xFF;
     NR50_REG = 0x77;
     hUGE_init(song);
+    music_ticks = 0;
+    music_beats_start(song);
     if (setting_music_enabled) {
         hUGE_mute_channel(HT_CH1, HT_CH_PLAY);
         hUGE_mute_channel(HT_CH2, HT_CH_PLAY);

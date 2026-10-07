@@ -13,8 +13,11 @@ BANKREF(state_icon_select)
 
 // Icon select (garage), laid out like the Geometry Dash one (tools/build_icon_select_gfx.py):
 // big preview of the cube, gamemode badges, a box with the icons and a box with the colour
-// swatches (primary row, secondary row). Up/Down moves between the sections (and the icon rows),
-// Left/Right changes the selection, B / Start saves and goes back.
+// swatches (primary row, secondary row). Select switches the cursor between the icon box and the
+// colour box; Up/Down moves between the rows of the box, Left/Right changes the selection (icons:
+// past the end of a row, the next / previous page of 12). B / Start saves and goes back. The
+// gamemode badges are not selectable yet (only the cube has icons). DMG: the colour rows are the 4 shades (selected_dmg_*), the
+// preview shows the cube in them.
 
 #define SECTION_GAMEMODE        0
 #define SECTION_ICON            1
@@ -36,10 +39,33 @@ BANKREF(state_icon_select)
 #define PAGE_GREY RGB8(140, 140, 140)
 
 static uint8_t active_section = SECTION_ICON;
+static uint8_t color_section = SECTION_COLOR_PRIMARY;   // the colour box row Select goes back to
 static uint8_t selected_tab = 0;   // 0 = cube (the only gamemode with icons so far)
+static uint8_t shown_page;
 
+static uint8_t icon_page(uint8_t icon) {
+    uint8_t p = 0;
+    while (icon >= ICONS_PER_PAGE) { icon -= ICONS_PER_PAGE; p++; }
+    return p;
+}
+
+// Preview of the selected icon, and its page in the icon box when that changed
 static void refresh_preview_tiles(void) {
-    set_bkg_data(PREVIEW_TILE_BASE, PREVIEW_TILE_COUNT, icon_preview_tiles[selected_icon]);
+    uint8_t page = icon_page(selected_icon);
+    if (page != shown_page) {
+        shown_page = page;
+        icon_page_load(page);
+    }
+    // preview colours 0 secondary, 1 page, 2 primary, 3 black; DMG: as the shades chosen
+    if (_cpu == CGB_TYPE) icon_preview_load(selected_icon, 0, 1, 2, 3);
+    else icon_preview_load(selected_icon, selected_dmg_secondary, 1, selected_dmg_primary, 3);
+}
+
+// Colour cursor column of a row: CGB the colour, DMG the shade
+static uint8_t swatch_col(uint8_t primary) {
+    if (_cpu == CGB_TYPE)
+        return (uint8_t)(ICON_SELECT_SWATCH_COL + (primary ? selected_color_primary : selected_color_secondary));
+    return (uint8_t)(ICON_SELECT_DMG_SWATCH_COL + (primary ? selected_dmg_primary : selected_dmg_secondary));
 }
 
 static void preview_palette(palette_color_t *p) {
@@ -82,6 +108,8 @@ static void refresh_preview_palette(void) {
         palette_color_t p[4];
         preview_palette(p);
         fade_set_bkg_palette(1, 1, p);
+    } else {
+        refresh_preview_tiles();   // DMG: the shades are in the tiles
     }
 }
 
@@ -102,9 +130,10 @@ static void place_brackets(uint8_t oam, uint8_t x, uint8_t y, uint8_t size, uint
 }
 
 static void update_cursor_sprites(void) {
+    uint8_t slot = (uint8_t)(selected_icon - shown_page * ICONS_PER_PAGE);
     place_brackets(OAM_ICON,
-                   (uint8_t)(ICON_SELECT_SLOT_X0 + (selected_icon % ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
-                   (uint8_t)(ICON_SELECT_SLOT_Y0 + (selected_icon / ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
+                   (uint8_t)(ICON_SELECT_SLOT_X0 + (slot % ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
+                   (uint8_t)(ICON_SELECT_SLOT_Y0 + (slot / ICONS_PER_ROW) * ICON_SELECT_SLOT_PITCH),
                    16, cursor_prop(SECTION_ICON));
     place_brackets(OAM_TAB,
                    (uint8_t)(ICON_SELECT_BADGE_X0 + selected_tab * ICON_SELECT_BADGE_PITCH),
@@ -112,11 +141,11 @@ static void update_cursor_sprites(void) {
 
     set_sprite_tile(OAM_COL1, SPR_FRAME);
     set_sprite_prop(OAM_COL1, cursor_prop(SECTION_COLOR_PRIMARY));
-    move_sprite(OAM_COL1, (uint8_t)((ICON_SELECT_SWATCH_COL + selected_color_primary) * 8 + 8),
+    move_sprite(OAM_COL1, (uint8_t)(swatch_col(1) * 8 + 8),
                 (uint8_t)(ICON_SELECT_SWATCH_ROW0 * 8 + 16));
     set_sprite_tile(OAM_COL2, SPR_FRAME);
     set_sprite_prop(OAM_COL2, cursor_prop(SECTION_COLOR_SECONDARY));
-    move_sprite(OAM_COL2, (uint8_t)((ICON_SELECT_SWATCH_COL + selected_color_secondary) * 8 + 8),
+    move_sprite(OAM_COL2, (uint8_t)(swatch_col(0) * 8 + 8),
                 (uint8_t)((ICON_SELECT_SWATCH_ROW0 + 1) * 8 + 16));
 }
 
@@ -132,6 +161,7 @@ GameState update_icon_select_state(void) BANKED {
     for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
 
     if (selected_icon >= NUM_CUBE_ICONS) selected_icon = 0;
+    if (active_section == SECTION_GAMEMODE) active_section = SECTION_ICON;
     if (selected_color_primary >= NUM_PALETTE_COLORS) selected_color_primary = 0;
     if (selected_color_secondary >= NUM_PALETTE_COLORS) selected_color_secondary = 1;
 
@@ -144,14 +174,17 @@ GameState update_icon_select_state(void) BANKED {
     }
     set_bkg_tiles(0, 0, 20, 18, icon_select_bg_map);
     if (_cpu != CGB_TYPE) {
-        // DMG: the swatches show each colour's grey shade
+        // DMG: only the 4 shades it can show (white .. black), in the middle of the box
         for (uint8_t i = 0; i < NUM_PALETTE_COLORS; i++) {
-            uint8_t t = (uint8_t)(ICON_SELECT_DMG_SWATCH_BASE + icon_dmg_shades[i]);
-            set_bkg_tile_xy(ICON_SELECT_SWATCH_COL + i, ICON_SELECT_SWATCH_ROW0, t);
-            set_bkg_tile_xy(ICON_SELECT_SWATCH_COL + i, ICON_SELECT_SWATCH_ROW0 + 1, t);
+            uint8_t col = (uint8_t)(ICON_SELECT_SWATCH_COL + i);
+            uint8_t sh = (uint8_t)(col - ICON_SELECT_DMG_SWATCH_COL);
+            uint8_t t = (sh < 4) ? (uint8_t)(ICON_SELECT_DMG_SWATCH_BASE + sh) : ICON_SELECT_DMG_BOX_TILE;
+            set_bkg_tile_xy(col, ICON_SELECT_SWATCH_ROW0, t);
+            set_bkg_tile_xy(col, ICON_SELECT_SWATCH_ROW0 + 1, t);
         }
     }
 
+    shown_page = 0xFF;
     refresh_preview_tiles();
     update_cursor_sprites();
     set_palettes();
@@ -171,22 +204,32 @@ GameState update_icon_select_state(void) BANKED {
         prev_joy = joy;
         uint8_t moved = 0, recolour = 0;
 
-        if (pressed & J_UP) {
-            if (active_section == SECTION_ICON && selected_icon >= ICONS_PER_ROW) {
-                selected_icon -= ICONS_PER_ROW;
-                refresh_preview_tiles();
-                moved = 1;
-            } else if (active_section > SECTION_GAMEMODE) {
-                active_section--;
+        // the selected icon's row on its page: 0 top, 1 bottom
+        uint8_t icon_row = (uint8_t)(selected_icon - shown_page * ICONS_PER_PAGE) >= ICONS_PER_ROW;
+        if (pressed & J_SELECT) {
+            if (active_section == SECTION_ICON) active_section = color_section;
+            else { color_section = active_section; active_section = SECTION_ICON; }
+            moved = 1;
+        } else if (pressed & J_UP) {
+            if (active_section == SECTION_ICON) {
+                if (icon_row) {
+                    selected_icon -= ICONS_PER_ROW;
+                    refresh_preview_tiles();
+                    moved = 1;
+                }
+            } else if (active_section == SECTION_COLOR_SECONDARY) {
+                active_section = SECTION_COLOR_PRIMARY;
                 moved = 1;
             }
         } else if (pressed & J_DOWN) {
-            if (active_section == SECTION_ICON && selected_icon + ICONS_PER_ROW < NUM_CUBE_ICONS) {
-                selected_icon += ICONS_PER_ROW;
-                refresh_preview_tiles();
-                moved = 1;
-            } else if (active_section < SECTION_COLOR_SECONDARY) {
-                active_section++;
+            if (active_section == SECTION_ICON) {
+                if (!icon_row && selected_icon + ICONS_PER_ROW < NUM_CUBE_ICONS) {
+                    selected_icon += ICONS_PER_ROW;
+                    refresh_preview_tiles();
+                    moved = 1;
+                }
+            } else if (active_section == SECTION_COLOR_PRIMARY) {
+                active_section = SECTION_COLOR_SECONDARY;
                 moved = 1;
             }
         } else if (pressed & (J_LEFT | J_RIGHT)) {
@@ -199,10 +242,22 @@ GameState update_icon_select_state(void) BANKED {
                 else if (!right && selected_icon > 0) { selected_icon--; moved = 1; }
                 if (moved) refresh_preview_tiles();
             } else {
-                uint8_t *c = (active_section == SECTION_COLOR_PRIMARY) ? &selected_color_primary
-                                                                       : &selected_color_secondary;
-                if (right && *c < NUM_PALETTE_COLORS - 1) { (*c)++; moved = recolour = 1; }
-                else if (!right && *c > 0) { (*c)--; moved = recolour = 1; }
+                // CGB: the colour, DMG: the shade (plain values: SDCC got the pointer version wrong)
+                uint8_t prim = (active_section == SECTION_COLOR_PRIMARY);
+                uint8_t cgb = (_cpu == CGB_TYPE);
+                uint8_t v = cgb ? (prim ? selected_color_primary : selected_color_secondary)
+                                : (prim ? selected_dmg_primary : selected_dmg_secondary);
+                uint8_t last = cgb ? (uint8_t)(NUM_PALETTE_COLORS - 1) : 3;
+                if (pressed & J_RIGHT) {
+                    if (v < last) { v++; moved = 1; }
+                } else if (v) {
+                    v--; moved = 1;
+                }
+                if (moved) {
+                    recolour = 1;
+                    if (cgb) { if (prim) selected_color_primary = v; else selected_color_secondary = v; }
+                    else { if (prim) selected_dmg_primary = v; else selected_dmg_secondary = v; }
+                }
             }
         }
 

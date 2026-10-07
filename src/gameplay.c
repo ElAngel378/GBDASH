@@ -37,6 +37,7 @@ static void apply_custom_player_palette(void) {
         custom_pal[2] = icon_color(selected_color_primary);
         custom_pal[3] = RGB8(0, 0, 0);
         fade_set_sprite_palette(0, 1, custom_pal);
+        famidash_set_bg_accent(custom_pal[2]);   // the background decorations too
     }
 }
 #include "pause_buttons.h"
@@ -260,9 +261,10 @@ static uint8_t practice_mode = 0;
 // Player frames streamed from ROM (tools/make_cube_icon_frames.py): only the image shown is in
 // VRAM, the VBlank handler copies it into sprite tiles 0..3 or 4..7, double buffered (the frame
 // shown switches once the copy is done). The cube and the ship share the buffers.
-// Cube (icon select 0..6, 0 = the original cube): 48 rotation steps of 7.5 degrees, 24 images, the
-// other half drawn flipped both ways. The physics turn the cube in 24 steps (anim_frame); in the
-// air the half step in between comes from anim_timer.
+// Cube (icon select 0..25, 0 = the original cube): 48 rotation steps of 7.5 degrees, 24 images,
+// the other half drawn flipped both ways (the Famidash icons 1..25 too). The
+// physics turn the cube in 24 steps (anim_frame); the half step in between comes from anim_timer.
+// DMG: the player has its own sprite palette, OBP1 (dmg_player_obp).
 // Ship: 31 images from 45 degrees nose down to 45 up in 3 degree steps, following its flight
 // direction (ship_tilt_vy), eased.
 // Ball: like the cube, 48 steps from 24 images, rolling all the time (anim_frame turns on the
@@ -274,7 +276,8 @@ static metasprite_t cube_ms[3];
 static uint8_t cube_front;   // buffer shown: tiles 0..3 / 4..7
 static uint8_t cube_shown;   // frame id of the image in it
 static uint8_t cube_req;     // frame id being copied to the other buffer, 0xFF: none
-static uint8_t cube_mirror;  // how the player is drawn: bit 0 gravity_flipped (flip Y), bit 1 view_rev (flip X)
+static uint8_t cube_mirror;  // bit 0 gravity_flipped, bit 1 view_rev: the ship is drawn flipped Y / X,
+                             // the cube and the ball spin the other way with one of them (cube_turn)
 static uint8_t cube_img_mir; // cube_mirror the frame shown was chosen in
 static uint8_t cube_req_mir; // ... and the one being copied
 static uint8_t ship_tilt;    // ship image shown (eased towards the flight direction)
@@ -287,7 +290,7 @@ static uint8_t ship_tilt;    // ship image shown (eased towards the flight direc
 
 static uint8_t cube_step(void) {
     uint8_t s = (uint8_t)(player.anim_frame << 1);
-    if (!player.on_ground && player.anim_timer >= 11u) s++;   // halfway to the next step
+    if (player.anim_timer >= 11u) s++;   // halfway to the next step (in the air, or settling)
     return s;
 }
 
@@ -295,16 +298,35 @@ static uint8_t ball_step(void) {
     return (uint8_t)((player.anim_frame << 1) + (player.anim_timer >= 11u ? 1u : 0u));
 }
 
-static uint8_t player_frame_id(void) {
-    if (player.mode == MODE_SHIP) return (uint8_t)(PL_SHIP + ship_tilt);
-    if (player.mode == MODE_BALL) return (uint8_t)(PL_BALL + ball_step());
-    return cube_step();
+// The cube and the ball are never drawn mirrored (an icon that is not symmetric would turn into
+// its mirror image): their angle on screen, in half steps clockwise, is the step, or minus the
+// step on the ceiling or in mirror mode (one of them: they spin anticlockwise there).
+static uint8_t cube_turn(uint8_t s) {
+    return (cube_mirror == 1u || cube_mirror == 2u) ? (uint8_t)(s ? 48u - s : 0) : s;
 }
 
+static uint8_t player_frame_id(void) {
+    if (player.mode == MODE_SHIP) return (uint8_t)(PL_SHIP + ship_tilt);
+    if (player.mode == MODE_BALL) return (uint8_t)(PL_BALL + cube_turn(ball_step()));
+    return cube_turn(cube_step());
+}
+
+// Icons 1..25 (Famidash, tools/make_cube_icon_frames.py): 24 frames like icon 0, 10 icons a bank
 static const uint8_t *player_frame_src(uint8_t id) {
     if (id >= PL_BALL) return BALL_FRAME(CUBE_IMG((uint8_t)(id - PL_BALL)));
     if (id >= PL_SHIP) return SHIP_FRAME(id - PL_SHIP);
-    return CUBE_ICON_FRAME(selected_icon, CUBE_IMG(id));
+    if (selected_icon == 0) return CUBE_ICON0_FRAME(CUBE_IMG(id));
+    uint8_t j = (uint8_t)(selected_icon - 1u);
+    const uint8_t *base = cube_fd_frames_0;
+    if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_1; }
+    if (j >= CUBE_FD_PER_BANK) { j -= CUBE_FD_PER_BANK; base = cube_fd_frames_2; }
+    return base + ((uint16_t)j * CUBE_FD_FRAMES + CUBE_IMG(id)) * 64u;
+}
+
+static uint8_t player_frame_bank(uint8_t id) {
+    if (id >= PL_SHIP || selected_icon == 0) return BANK(cube_icon_frames);
+    if (selected_icon <= CUBE_FD_PER_BANK) return BANK(cube_fd_frames_0);
+    return (selected_icon <= 2 * CUBE_FD_PER_BANK) ? BANK(cube_fd_frames_1) : BANK(cube_fd_frames_2);
 }
 
 // Display off, after load_gameplay_sprite_tiles and player init
@@ -315,7 +337,7 @@ static void cube_icon_reset(void) {
     cube_front = 0;
     ship_tilt = SHIP_FRAME_LEVEL;
     cube_shown = player_frame_id();
-    cube_tiles_load_now(player_frame_src(cube_shown), BANK(cube_icon_frames), 0);
+    cube_tiles_load_now(player_frame_src(cube_shown), player_frame_bank(cube_shown), 0);
 }
 
 // Ship: ease the tilt towards the flight direction, at most 2 images (6 degrees) a frame
@@ -343,7 +365,7 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
     if (same) cube_img_mir = cube_mirror;
     else if (cube_req == 0xFF) {
         bg_cube_src = player_frame_src(want);
-        bg_cube_bank = BANK(cube_icon_frames);
+        bg_cube_bank = player_frame_bank(want);
         bg_cube_dst = (uint8_t *)(0x8000u + ((uint16_t)(cube_front ^ 1u) << 6));
         cube_req = want;
         cube_req_mir = cube_mirror;
@@ -357,11 +379,12 @@ static const metasprite_t *player_frame_metasprite(uint8_t want) {
     uint8_t l = flip ? (uint8_t)(t + 2) : t, r = flip ? t : (uint8_t)(t + 2);
     // still the image from before a flip of the drawing (its copy is a frame late): undo that
     // flip, so for this frame the player looks exactly as on the last one
-    uint8_t undo = (uint8_t)(cube_img_mir ^ cube_mirror);
+    uint8_t undo = (show >= PL_SHIP && show < PL_BALL) ? (uint8_t)(cube_img_mir ^ cube_mirror) : 0;
     if (undo & 1u) flip ^= S_FLIPY;
     if (undo & 2u) { uint8_t x = l; l = r; r = x; flip ^= S_FLIPX; }
     int8_t dy = (show >= PL_SHIP && show < PL_BALL) ? -1 : 0;   // the ship is drawn a pixel higher,
     int8_t dx = (show >= PL_BALL) ? 0 : -1;                     // the ball a pixel further right
+    flip |= S_PALETTE;   // DMG: OBP1, the player's palette (CGB: ignored)
     cube_ms[0].dy = dy; cube_ms[0].dx = dx; cube_ms[0].dtile = l; cube_ms[0].props = flip;
     cube_ms[1].dy = 0;  cube_ms[1].dx = 8;  cube_ms[1].dtile = r; cube_ms[1].props = flip;
     cube_ms[2].dy = (int8_t)0x80;   // METASPR_TERM
@@ -391,10 +414,13 @@ static uint8_t dmg_shown_bg_idx(uint8_t idx) {
 
 // Sprite palette on a black DMG background (bg_pals[3]): shades 1 and 2 as normal, black -> white
 #define DMG_OBP_ON_BLACK 0x24
-// OBP1 (blue orbs, pads and gravity-down portals): OBP0 with shades 1 and 2 swapped. On the dark
-// grey background (idx 2) OBP0 maps both to black, so OBP1 keeps shade 1 for the other look.
-#define DMG_OBP1_ON_DARK 0x34
-#define dmg_obp1(idx, p) ((uint8_t)((idx) == 2 ? DMG_OBP1_ON_DARK :     (((p) & 0xC3) | (((p) & 0x0C) << 2) | (((p) & 0x30) >> 2))))
+// OBP1: the player (cube, ship, ball, mini), in the shades chosen in the icon select menu on every
+// theme: colour 1 secondary, 2 primary, 3 outline. The outline is black, or white on the dark grey
+// and black themes (2, 3), so the cube always stands out from the sky, also on a real DMG screen.
+static uint8_t dmg_player_obp(uint8_t idx) {
+    uint8_t outline = (idx >= 2) ? 0 : 3;
+    return (uint8_t)((outline << 6) | (selected_dmg_primary << 4) | (selected_dmg_secondary << 2));
+}
 
 // Shared blank tile for SHOW BG off (solid areas instead of BG art).
 // Lives in this bank (10), NOT in HOME/bank 0 which is 98% full.
@@ -1113,7 +1139,7 @@ static void practice_respawn(uint8_t idx) {
         if (reduce_flash && (apply_idx == 1 || apply_idx == 2)) apply_idx = 0;
         BGP_REG = bg_pals[apply_idx];
         OBP0_REG = (apply_idx == 3) ? DMG_OBP_ON_BLACK : BGP_REG;
-        OBP1_REG = dmg_obp1(apply_idx, OBP0_REG);
+        OBP1_REG = dmg_player_obp(apply_idx);
     }
 
     load_gameplay_sprite_tiles(LEVEL_DECO_CLOUD(idx));
@@ -1203,6 +1229,11 @@ static void update_camera_y(void) {
         }
         if (cam_py > wy) cam_py = wy;
         if (cam_py + (CAM_VIEW_H - 16u) < wy) cam_py = wy - (CAM_VIEW_H - 16u);
+        // the level's bounds last: a mini cube on the floor is 5 px lower than a cube, and the
+        // rule above pushed the camera 5 px past the floor every time it landed (it bounced,
+        // and the rows below the level showed)
+        if (cam_py < level_top_px) cam_py = level_top_px;
+        if (cam_py > cam_py_max) cam_py = cam_py_max;
         return;
     }
 
@@ -1317,7 +1348,7 @@ void play_level(uint8_t idx) BANKED {
     {
         uint8_t si = dmg_shown_bg_idx(target_bg_idx);
         uint8_t sobp0 = (si == 3) ? DMG_OBP_ON_BLACK : bg_pals[si];
-        fade_set_dmg_palettes(bg_pals[si], sobp0, dmg_obp1(si, sobp0));
+        fade_set_dmg_palettes(bg_pals[si], sobp0, dmg_player_obp(si));
     }
     fade_set_black();
 
@@ -1585,20 +1616,15 @@ void play_level(uint8_t idx) BANKED {
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
 
-        // Gravity portal / blue orb / mirror portal: the cube is drawn flipped differently from
-        // now on, which would turn its angle too (a jump in the spin). Count the step so the angle
-        // on screen stays: in half steps (48 per turn), drawn flipped Y shows -s, flipped X
-        // 24 - s, both 24 + s.
+        // Gravity portal / blue orb / mirror portal: the cube spins the other way from now on
+        // (cube_turn). Count the step so the picture on screen stays exactly as it is: the step
+        // becomes minus the step when the spin direction changes (half steps, 48 per turn).
         {
             uint8_t mir = CUBE_MIRROR();
             if (mir != cube_mirror) {
-                static const uint8_t base[4] = { 0, 0, 24, 24 };
                 uint8_t s0 = cube_step();
-                uint8_t a = (cube_mirror == 0 || cube_mirror == 3) ? (uint8_t)(s0 + base[cube_mirror])
-                                                                   : (uint8_t)(base[cube_mirror] + 48u - s0);
-                uint8_t s1 = (mir == 0 || mir == 3) ? (uint8_t)(a + 96u - base[mir])
-                                                    : (uint8_t)(base[mir] + 96u - a);
-                while (s1 >= 48u) s1 -= 48u;
+                uint8_t rev0 = (cube_mirror == 1u || cube_mirror == 2u), rev1 = (mir == 1u || mir == 2u);
+                uint8_t s1 = (rev0 != rev1 && s0) ? (uint8_t)(48u - s0) : s0;
                 player.anim_frame = (uint8_t)(s1 >> 1);   // the half step bit is kept (parity)
                 // the ship's tilt is counted toward the rest surface: drawn flipped upside down
                 // from now on, the same tilt on screen is the mirrored one
@@ -1611,7 +1637,7 @@ void play_level(uint8_t idx) BANKED {
             // Mini size: one 8x16 sprite, image in its top half, drawn at box top - 1
             // like Famidash (x .. x+7, y+3 .. y+10). Cube: 3 rotation images + mirror.
             static const uint8_t mini_cube_img[6] = { 0, 1, 1, 2, 1, 0 };
-            uint8_t tile, prop = 0;
+            uint8_t tile, prop = S_PALETTE;   // DMG: OBP1, the player's palette
             if (player.mode == MODE_SHIP) tile = MINI_PLAYER_TILE_BASE + 6;
             else if (player.mode == MODE_BALL) tile = MINI_PLAYER_TILE_BASE + 8;
             else {
@@ -1640,24 +1666,14 @@ void play_level(uint8_t idx) BANKED {
                     else oam_index += move_metasprite(ship_ms, 0, oam_index, sprite_x_final + 8, final_py + 16);
                 }
             } else if (player.mode == MODE_BALL) {
-                // drawn like the cube: upside down on the ceiling, so it rolls the other way there
-                const metasprite_t *ball = player_frame_metasprite((uint8_t)(PL_BALL + ball_step()));
-                if (player.gravity_flipped) {
-                    if (view_rev) oam_index += move_metasprite_hvflip(ball, 0, oam_index, sprite_x_final + 24, final_py + 32);
-                    else oam_index += move_metasprite_hflip(ball, 0, oam_index, sprite_x_final + 8, final_py + 32);
-                } else {
-                    if (view_rev) oam_index += move_metasprite_vflip(ball, 0, oam_index, sprite_x_final + 24, final_py + 16);
-                    else oam_index += move_metasprite(ball, 0, oam_index, sprite_x_final + 8, final_py + 16);
-                }
+                // like the cube: never mirrored, it rolls the other way on the ceiling
+                const metasprite_t *ball = player_frame_metasprite(player_frame_id());
+                oam_index += move_metasprite(ball, 0, oam_index, sprite_x_final + 8, final_py + 16);
             } else {
-                const metasprite_t *cube = player_frame_metasprite(cube_step());
-                if (player.gravity_flipped) {
-                    if (view_rev) oam_index += move_metasprite_hvflip(cube, 0, oam_index, sprite_x_final + 24, final_py + 32);
-                    else oam_index += move_metasprite_hflip(cube, 0, oam_index, sprite_x_final + 8, final_py + 32);
-                } else {
-                    if (view_rev) oam_index += move_metasprite_vflip(cube, 0, oam_index, sprite_x_final + 24, final_py + 16);
-                    else oam_index += move_metasprite(cube, 0, oam_index, sprite_x_final + 8, final_py + 16);
-                }
+                // never mirrored (cube_turn); in mirror mode 2 px further right, where the mirrored
+                // drawing had it (the image's 1 px left offset mirrored)
+                const metasprite_t *cube = player_frame_metasprite(player_frame_id());
+                oam_index += move_metasprite(cube, 0, oam_index, (uint8_t)(sprite_x_final + (view_rev ? 10 : 8)), final_py + 16);
             }
         }
 
@@ -1781,10 +1797,9 @@ void play_level(uint8_t idx) BANKED {
 
         // DMG: OBP0 follows the background palette, except on a black background (idx 3, every
         // shade -> black) where the player and objects keep their shades and only their black
-        // outline turns white, so they stay visible. OBP1 (blue orbs/pads, gravity-down portals)
-        // is OBP0 with shades 1 and 2 swapped (dmg_obp1).
+        // outline turns white, so they stay visible. OBP1: the player (dmg_player_obp).
         final_obp0 = (_cpu != CGB_TYPE && apply_idx == 3) ? DMG_OBP_ON_BLACK : final_bgp;
-        final_obp1 = dmg_obp1(apply_idx, final_obp0);
+        final_obp1 = dmg_player_obp(apply_idx);
 
         uint8_t final_scx = (uint8_t)((int16_t)scroll_px + cur_shake_x);
         uint8_t final_scy = (uint8_t)((int16_t)cam_py + cur_shake_y);

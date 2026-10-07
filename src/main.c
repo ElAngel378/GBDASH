@@ -10,6 +10,7 @@
 extern const hUGESong_t menuloop;
 
 uint8_t music_ready = 0;
+volatile uint16_t music_ticks;   // hUGE_dosound calls since init_music_banked (music_beats.c)
 uint8_t redraw = 1;
 uint8_t selected = 0;
 volatile uint8_t current_song_bank = 0;
@@ -66,6 +67,7 @@ static inline void step_music(void) {
   }
   SWITCH_ROM(current_song_bank);
   hUGE_dosound();
+  music_ticks++;
   SWITCH_ROM(prev_bank);
   if (nest) {
     disable_interrupts();

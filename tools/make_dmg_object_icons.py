@@ -61,13 +61,13 @@ PAD_YELLOW = [   # jump pad: solid light triangle (narrow top, wide bottom) on a
     "33333333",
     "........",
 ]
-PAD_BLUE = [     # gravity pad: dark hourglass (wide top and bottom): a different
-    "33333333",  # silhouette from the yellow triangle even with LCD ghosting
-    ".322223.",
-    "..3223..",
+PAD_BLUE = [     # gravity pad: hourglass (wide top and bottom): a different silhouette
+    "33333333",  # from the yellow triangle even with LCD ghosting
+    ".311113.",
+    "..3113..",
     "...33...",
-    "..3223..",
-    ".322223.",
+    "..3113..",
+    ".311113.",
     "33333333",
     "........",
 ]

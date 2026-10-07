@@ -13,6 +13,7 @@
 
 #define DEBUG_MODE
 #include "famidash_metatiles.h"
+#include "music_beats.h"
 
 // The object cache is always gameplay.c's active_sp: address it directly. Through the
 // SpCache* parameter SDCC reloads the pointer from the stack for every cache->x[i]
@@ -441,6 +442,29 @@ static uint8_t draw_oam_horizontal_portal(uint8_t obj, uint8_t tile_base, uint8_
     return 6;
 }
 
+// Pulsing rods (Famidash "lights": a dotted pole with a ball on top), like GD's pulse rods: their
+// ball tops (D_C9 / D_CB / D_CD) swell to 7 px on the music's hits and shrink back to 3 px
+// (tools/make_music_beats.py, tools/build_sprite_tiles.py ROD_PULSE). All rods share one size.
+#define ROD_PULSE_STRONG 12     // frames: 4 at 7 px, 4 at 5 px, then 3 px
+#define ROD_PULSE_WEAK   10     // 2 at 7 px, 4 at 5 px
+#define ROD_PULSE_5PX    4      // above: 5 px, above ROD_PULSE_5PX + 4: 7 px
+#define ROD_TILE_7PX (FAMIDASH_SPRITE_TILE_BASE)
+#define ROD_TILE_5PX (222 - D_C9)
+#define ROD_TILE_3PX (228 - D_C9)
+static uint8_t rod_pulse;
+static uint8_t rod_tile = (uint8_t)ROD_TILE_3PX;   // + D_C9 / D_CB / D_CD: the ball tops shown
+
+static void rod_pulse_update(void) {
+    uint8_t hit = music_beats_poll();
+    if (hit == MUSIC_HIT_STRONG) rod_pulse = ROD_PULSE_STRONG;
+    else if (hit && rod_pulse < ROD_PULSE_WEAK) rod_pulse = ROD_PULSE_WEAK;
+    else if (rod_pulse) rod_pulse--;
+    rod_tile = (rod_pulse > ROD_PULSE_5PX + 4) ? ROD_TILE_7PX : (rod_pulse > ROD_PULSE_5PX) ? ROD_TILE_5PX : ROD_TILE_3PX;
+}
+
+// tile of a deco sprite: a rod's ball top in the size shown
+#define DECO_TILE(t, tile_base) ((uint8_t)((uint8_t)((t) - D_C9) <= (uint8_t)(D_CD - D_C9) ? rod_tile + (t) : (tile_base) + (t)))
+
 inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
                              uint8_t oam_idx, uint8_t sx, uint8_t sy,
                              uint8_t reversed) {
@@ -452,20 +476,20 @@ inline static uint8_t draw_oam_deco(const FamidashDeco *deco, uint8_t tile_base,
     const uint8_t *dp = deco->props;
 
     if (!reversed) {
-        *oam++ = sy + dy[0]; *oam++ = sx + dx[0]; *oam++ = dt[0] + tile_base; *oam++ = dp[0];
+        *oam++ = sy + dy[0]; *oam++ = sx + dx[0]; *oam++ = DECO_TILE(dt[0], tile_base); *oam++ = dp[0];
         if (count > 1) {
-            *oam++ = sy + dy[1]; *oam++ = sx + dx[1]; *oam++ = dt[1] + tile_base; *oam++ = dp[1];
+            *oam++ = sy + dy[1]; *oam++ = sx + dx[1]; *oam++ = DECO_TILE(dt[1], tile_base); *oam++ = dp[1];
             if (count > 2) {
-                *oam++ = sy + dy[2]; *oam++ = sx + dx[2]; *oam++ = dt[2] + tile_base; *oam++ = dp[2];
+                *oam++ = sy + dy[2]; *oam++ = sx + dx[2]; *oam++ = DECO_TILE(dt[2], tile_base); *oam++ = dp[2];
             }
         }
     } else {
         uint8_t rx = sx + deco->width - 8;
-        *oam++ = sy + dy[0]; *oam++ = rx - dx[0]; *oam++ = dt[0] + tile_base; *oam++ = dp[0] ^ S_FLIPX;
+        *oam++ = sy + dy[0]; *oam++ = rx - dx[0]; *oam++ = DECO_TILE(dt[0], tile_base); *oam++ = dp[0] ^ S_FLIPX;
         if (count > 1) {
-            *oam++ = sy + dy[1]; *oam++ = rx - dx[1]; *oam++ = dt[1] + tile_base; *oam++ = dp[1] ^ S_FLIPX;
+            *oam++ = sy + dy[1]; *oam++ = rx - dx[1]; *oam++ = DECO_TILE(dt[1], tile_base); *oam++ = dp[1] ^ S_FLIPX;
             if (count > 2) {
-                *oam++ = sy + dy[2]; *oam++ = rx - dx[2]; *oam++ = dt[2] + tile_base; *oam++ = dp[2] ^ S_FLIPX;
+                *oam++ = sy + dy[2]; *oam++ = rx - dx[2]; *oam++ = DECO_TILE(dt[2], tile_base); *oam++ = dp[2] ^ S_FLIPX;
             }
         }
     }
@@ -854,8 +878,8 @@ static const uint8_t dmg_badge_tile[6] = { 202, 204, 206, 240, 242, 244 };
 // Per object id below 38. Orbs / pads: icon, its sprite y offset from the object's sprite
 // position (orbs: 16x16 at it, drawn by dmg_object_loop as 2 sprites; pads at the bottom of
 // their cell, ceiling pads at the top - a flipped 8x16 sprite shows its top tile at the
-// bottom) and attributes (pads only). Blue pads use OBP1 (gameplay.c: OBP0 with shades 1 and 2
-// swapped); the blue orb has its own arrow. Portals: badge and its attributes.
+// bottom) and attributes (pads only). OBP1 is the player's: everything here uses OBP0, the
+// blue pad its own hourglass, the blue orb its own arrow. Portals: badge and its attributes.
 #define NI 0xFF
 const uint8_t dmg_icon[38] = {
     NI, NI, NI, NI, NI,   DMG_ICON_ORB_BLUE, DMG_ICON_ORB_PINK, NI,   NI, NI,
@@ -868,7 +892,7 @@ const int8_t dmg_icon_y[38] = {
     0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 8
 };
 const uint8_t dmg_icon_prop[38] = {
-    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, S_PALETTE, S_PALETTE | S_FLIPY, 0,
+    0, 0, 0, 0, 0,   0, 0, 0,   0, 0,   0, 0, S_FLIPY, 0, S_FLIPY, 0,
     0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 static const uint8_t dmg_badge[38] = {
@@ -1287,6 +1311,7 @@ uint8_t draw_sprites(
         return draw_sprites_dmg(cam_px, cam_py, reversed, oam_start);
     }
 
+    rod_pulse_update();
     uint16_t lim_ahead = cam_px + 176u;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         if (!cache->active[i]) break;

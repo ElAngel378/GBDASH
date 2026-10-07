@@ -9,7 +9,7 @@
 #define SPR_CGB_DECO_CLOUD 4
 
 // condition, VRAM bank, first tile, count, first tile in sprite_tiles.bin (lo, hi)
-#define SPRITE_LOAD_COUNT 15
+#define SPRITE_LOAD_COUNT 16
 static const uint8_t sprite_loads[SPRITE_LOAD_COUNT][6] = {
     { 0, 0, 0, 8, 0, 0 },
     { 0, 0, 8, 2, 8, 0 },
@@ -26,6 +26,7 @@ static const uint8_t sprite_loads[SPRITE_LOAD_COUNT][6] = {
     { 1, 0, 224, 14, 148, 0 },
     { 3, 1, 160, 40, 162, 0 },
     { 4, 1, 160, 40, 202, 0 },
+    { 1, 1, 222, 12, 242, 0 },
 };
 
 #endif

@@ -3,9 +3,11 @@
     python tools/build_icon_select_gfx.py
 
 Sources:
-    levels/chr_data/cube_icons.png       7 cube icons, 15x15 in 16 px cells, 4 grey shades:
-                                         black outline, dark grey primary, light grey secondary
-                                         (light grey outside the outline = transparent)
+    levels/chr_data/cube_icon_frames.png the cube icons as in the game (frame 0, 0 degrees, 14x14
+    levels/chr_data/fd_cube_frames.png   at (1, 1) in 16x16): icon 0 the original cube, 1..25
+                                         the Famidash ones (tools/make_cube_icon_frames.py).
+                                         White transparent, light grey secondary, dark grey
+                                         primary, black outline
     levels/chr_data/gamemode_icons.chr   GD icon pack (NES 2bpp): 9x9 mini gamemode icons at
                                          y 23..31, one per 16 px column (cube, ship, ufo, robot,
                                          wave, spider, swing, ball)
@@ -19,10 +21,13 @@ attribute map:
     pal 1  preview cube (cols 8..11, rows 1..4): secondary, page, primary, black
     pal 2  green (back arrow, green corner blocks)   pal 3  cyan corner blocks
     pal 4..7  colour swatches, three colours each (cols 4..15, rows 15..16)
+The icon box (cols 2..17, rows 8..13) shows a page of 12 icons: its tiles are per page
+(PAGE_TILE_BASE.., loaded at runtime), with a dot per page under the icons.
 
-Writes include/icon_select_bg.h, src/graphics/icon_select_bg.c, include/icon_catalog.h and
-src/graphics/icon_catalog.c.
+Writes include/icon_select_bg.h, src/graphics/icon_select_bg.c, include/icon_catalog.h,
+src/graphics/icon_catalog.c and src/graphics/icon_pages.c (page and preview tiles, own bank).
 """
+import os
 import re
 from collections import deque
 from pathlib import Path
@@ -30,11 +35,17 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-CUBES = ROOT / "levels" / "chr_data" / "cube_icons.png"
+ICON0_PNG = ROOT / "levels" / "chr_data" / "cube_icon_frames.png"
+FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
 GM_CHR = ROOT / "levels" / "chr_data" / "gamemode_icons.chr"
 MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 
-NUM_ICONS = 7
+NUM_ICONS = 26
+ICONS_PER_PAGE = 12
+NUM_PAGES = (NUM_ICONS + ICONS_PER_PAGE - 1) // ICONS_PER_PAGE
+GRID_C0, GRID_R0, GRID_W, GRID_H = 2, 8, 16, 6   # the icon box: per page tiles
+PAGE_TILE_BASE = 16
+PAGES_BANK = 64
 GM_ORDER = [0, 1, 7, 2, 4, 3, 5]   # cube, ship, ball, ufo, wave, robot, spider (pack columns)
 
 # Player colours (index 0 / 1 = the default primary (outer fill) / secondary of the GD cube)
@@ -47,7 +58,8 @@ COLORS = [
 
 PREVIEW_COL, PREVIEW_ROW = 8, 1                 # 4x4 tiles, filled at runtime
 PREVIEW_TILE_BASE = 0                           # tiles 0..15
-SLOT_X0, SLOT_Y0, SLOT_PITCH = 22, 70, 20       # icon grid: 2 rows x 6 slots
+SLOT_X0, SLOT_Y0, SLOT_PITCH = 22, 69, 20       # icon grid: 2 rows x 6 slots
+DOTS_Y = 106                                    # page dots under the icons
 BADGE_X0, BADGE_Y, BADGE_PITCH = 18, 46, 18     # gamemode badges (16x16)
 SWATCH_COL, SWATCH_ROWS = 4, (15, 16)
 
@@ -134,43 +146,38 @@ def main():
                 if v:
                     S[by + 4 + y][bx + 4 + x] = mini[v]
 
-    # --- cube icons
-    cubes = Image.open(CUBES).convert("L")
+    # --- cube icons: frame 0 of the game's, roles 'o' outside (transparent), 'k' outline,
+    # 'p' primary, 's' secondary
+    role = {255: 'o', 170: 's', 85: 'p', 0: 'k'}
+    icon0, fd = Image.open(ICON0_PNG).convert("L"), Image.open(FD_PNG).convert("L")
 
     def icon(i):
-        g = [[{255: 0, 170: 1, 85: 2, 0: 3}[cubes.getpixel((i * 16 + x, y))] for x in range(16)] for y in range(16)]
-        out = set()
-        q = deque()
-        for j in range(16):
-            for p in ((j, 0), (j, 15), (0, j), (15, j)):
-                if g[p[1]][p[0]] in (0, 1) and p not in out:
-                    out.add(p)
-                    q.append(p)
-        while q:
-            x, y = q.popleft()
-            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                a, b = x + dx, y + dy
-                if 0 <= a < 16 and 0 <= b < 16 and g[b][a] in (0, 1) and (a, b) not in out:
-                    out.add((a, b))
-                    q.append((a, b))
-        # roles: 'o' outside, 'k' outline, 'p' primary, 's' secondary
-        return [['o' if (x, y) in out else {3: 'k', 2: 'p'}.get(g[y][x], 's') for x in range(16)] for y in range(16)]
-
+        img, y0 = (icon0, 0) if i == 0 else (fd, (i - 1) * 16)
+        return [[role[img.getpixel((x, y0 + y))] for x in range(16)] for y in range(16)]
     icons = [icon(i) for i in range(NUM_ICONS)]
     grid = {'o': 2, 'k': 3, 'p': 1, 's': 0}
-    for slot in range(12):
-        sx, sy = SLOT_X0 + (slot % 6) * SLOT_PITCH, SLOT_Y0 + (slot // 6) * SLOT_PITCH
-        if slot < NUM_ICONS:
-            for y in range(16):
-                for x in range(16):
-                    S[sy + y][sx + x] = grid[icons[slot][y][x]]
-        else:   # empty slot: faint rounded outline
-            for y in range(1, 15):
-                for x in range(1, 15):
-                    edge = x in (1, 14) or y in (1, 14)
-                    corner = (x in (1, 14)) and (y in (1, 14))
-                    if edge and not corner:
-                        S[sy + y][sx + x] = 1
+
+    def draw_page(P, page):
+        for slot in range(ICONS_PER_PAGE):
+            sx, sy = SLOT_X0 + (slot % 6) * SLOT_PITCH, SLOT_Y0 + (slot // 6) * SLOT_PITCH
+            i = page * ICONS_PER_PAGE + slot
+            if i < NUM_ICONS:
+                for y in range(16):
+                    for x in range(16):
+                        P[sy + y][sx + x] = grid[icons[i][y][x]]
+            else:   # empty slot: faint rounded outline
+                for y in range(1, 15):
+                    for x in range(1, 15):
+                        edge = x in (1, 14) or y in (1, 14)
+                        corner = (x in (1, 14)) and (y in (1, 14))
+                        if edge and not corner:
+                            P[sy + y][sx + x] = 1
+        # page dots: 2x2, white for this page, light grey for the others
+        dx0 = 80 - (NUM_PAGES * 6 - 4) // 2
+        for k in range(NUM_PAGES):
+            for y in range(2):
+                for x in range(2):
+                    P[DOTS_Y + y][dx0 + k * 6 + x] = 0 if k == page else 1
 
     # --- preview area palette (tiles filled at runtime)
     for r in range(PREVIEW_ROW, PREVIEW_ROW + 4):
@@ -196,13 +203,27 @@ def main():
             out += [lo, hi]
         return bytes(out)
 
-    tiles = [bytes(16)] * 16          # 0..15: preview, loaded at runtime
+    tiles = [bytes(16)] * (PAGE_TILE_BASE + GRID_W * GRID_H)   # preview, icon box page: loaded at runtime
     index = {}
     mp = [[0] * 20 for _ in range(18)]
+    page_blobs = []
+    for page in range(NUM_PAGES):
+        P = [row[:] for row in S]
+        draw_page(P, page)
+        if os.environ.get("ICON_SELECT_DUMP"):   # debug: the screen with this page
+            im = Image.new("L", (160, 144))
+            im.putdata([[255, 170, 85, 0][v] for row in P for v in row])
+            im.resize((480, 432), Image.NEAREST).save(Path(os.environ["ICON_SELECT_DUMP"]) / f"page{page}.png")
+        page_blobs.append(b"".join(enc([P[r * 8 + y][c * 8:c * 8 + 8] for y in range(8)])
+                                   for r in range(GRID_R0, GRID_R0 + GRID_H)
+                                   for c in range(GRID_C0, GRID_C0 + GRID_W)))
     for r in range(18):
         for c in range(20):
             if PREVIEW_ROW <= r < PREVIEW_ROW + 4 and PREVIEW_COL <= c < PREVIEW_COL + 4:
                 mp[r][c] = PREVIEW_TILE_BASE + (r - PREVIEW_ROW) * 4 + (c - PREVIEW_COL)
+                continue
+            if GRID_R0 <= r < GRID_R0 + GRID_H and GRID_C0 <= c < GRID_C0 + GRID_W:
+                mp[r][c] = PAGE_TILE_BASE + (r - GRID_R0) * GRID_W + (c - GRID_C0)
                 continue
             b = enc([S[r * 8 + y][c * 8:c * 8 + 8] for y in range(8)])
             if b not in index:
@@ -213,19 +234,20 @@ def main():
     for s in range(4):   # DMG swatches: black frame, shade inside, on the dark grey box
         tiles.append(enc([[2 if (x in (0, 7) or y in (0, 7)) else 3 if (x in (1, 6) or y in (1, 6)) else s
                            for x in range(8)] for y in range(8)]))
+    tiles.append(enc([[2] * 8 for _ in range(8)]))   # DMG: the box where the other swatches are
     assert len(tiles) <= 256, len(tiles)   # 128+ live at 0x8800 (signed BG addressing), clear of sprite tiles 0..2
 
-    # ---- preview tiles per icon (2x, 30x30 at offset 1): secondary 0, page 1, primary 2, black 3
+    # ---- preview tiles per icon (2x, 32x32): secondary 0, page 1, primary 2, black 3
     prev = {'o': 1, 'k': 3, 'p': 2, 's': 0}
     preview_blobs = []
     for ic in icons:
         P = [[1] * 32 for _ in range(32)]
-        for y in range(15):
-            for x in range(15):
+        for y in range(16):
+            for x in range(16):
                 v = prev[ic[y][x]]
                 for yy in (0, 1):
                     for xx in (0, 1):
-                        P[1 + 2 * y + yy][1 + 2 * x + xx] = v
+                        P[2 * y + yy][2 * x + xx] = v
         blob = b""
         for tr in range(4):
             for tc in range(4):
@@ -255,7 +277,9 @@ def main():
 #define ICON_SELECT_BG_TILE_COUNT {len(tiles)}
 #define ICON_SELECT_SPR_TILE_COUNT {len(spr)}
 #define ICON_SELECT_DMG_SWATCH_BASE {dmg_swatch_base}
+#define ICON_SELECT_DMG_BOX_TILE {dmg_swatch_base + 4}
 #define ICON_SELECT_SWATCH_COL {SWATCH_COL}
+#define ICON_SELECT_DMG_SWATCH_COL {SWATCH_COL + 4}   // DMG: the 4 shades, white .. black
 #define ICON_SELECT_SWATCH_ROW0 {SWATCH_ROWS[0]}
 #define ICON_SELECT_SLOT_X0 {SLOT_X0}
 #define ICON_SELECT_SLOT_Y0 {SLOT_Y0}
@@ -263,6 +287,8 @@ def main():
 #define ICON_SELECT_BADGE_X0 {BADGE_X0}
 #define ICON_SELECT_BADGE_Y {BADGE_Y}
 #define ICON_SELECT_BADGE_PITCH {BADGE_PITCH}
+#define ICON_SELECT_PAGE_TILE_BASE {PAGE_TILE_BASE}
+#define ICON_SELECT_PAGE_TILE_COUNT {GRID_W * GRID_H}
 
 BANKREF_EXTERN(icon_select_bg)
 extern const uint8_t icon_select_bg_tiles[];
@@ -308,6 +334,8 @@ const uint8_t icon_select_spr_tiles[{len(spr) * 16}] = {{
 #include <gb/cgb.h>
 
 #define NUM_CUBE_ICONS {NUM_ICONS}
+#define ICONS_PER_PAGE {ICONS_PER_PAGE}
+#define NUM_ICON_PAGES {NUM_PAGES}
 #define NUM_GAMEMODE_TABS {len(GM_ORDER)}
 #define NUM_PALETTE_COLORS {len(COLORS)}
 #define PREVIEW_TILE_BASE {PREVIEW_TILE_BASE}
@@ -317,9 +345,13 @@ BANKREF_EXTERN(icon_catalog)
 // Bank 24 data: read it from bank 24 code, or use icon_color() from other banks
 extern const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS];
 extern const uint8_t icon_dmg_shades[NUM_PALETTE_COLORS];
-extern const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16];
 
 palette_color_t icon_color(uint8_t idx) BANKED;
+
+// src/graphics/icon_pages.c (bank {PAGES_BANK}): load an icon's preview tiles (its colours 0..3
+// drawn as c0..c3: secondary, page, primary, black) / a page of the icon box
+void icon_preview_load(uint8_t icon, uint8_t c0, uint8_t c1, uint8_t c2, uint8_t c3) BANKED;
+void icon_page_load(uint8_t page) BANKED;
 
 #endif // ICON_CATALOG_H
 """)
@@ -339,15 +371,52 @@ const palette_color_t icon_palette_colors[NUM_PALETTE_COLORS] = {{
 
 const uint8_t icon_dmg_shades[NUM_PALETTE_COLORS] = {{ {shades} }};
 
-const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16] = {{
-{prevs}
-}};
-
 palette_color_t icon_color(uint8_t idx) BANKED {{
     return icon_palette_colors[idx < NUM_PALETTE_COLORS ? idx : 0];
 }}
 """)
-    print(f"{len(tiles)} bg tiles ({dmg_swatch_base} + 4 DMG swatches), {len(spr)} sprite tiles")
+    pages = "\n".join(f"    // {i}\n    {{\n{carr(b)}\n    }}," for i, b in enumerate(page_blobs))
+    (ROOT / "src" / "graphics" / "icon_pages.c").write_text(f"""#pragma bank {PAGES_BANK}
+// Generated by tools/build_icon_select_gfx.py. Do not edit.
+
+#include <gb/gb.h>
+#include "icon_catalog.h"
+#include "icon_select_bg.h"
+
+static const uint8_t icon_preview_tiles[NUM_CUBE_ICONS][PREVIEW_TILE_COUNT * 16] = {{
+{prevs}
+}};
+
+static const uint8_t icon_page_tiles[NUM_ICON_PAGES][ICON_SELECT_PAGE_TILE_COUNT * 16] = {{
+{pages}
+}};
+
+void icon_preview_load(uint8_t icon, uint8_t c0, uint8_t c1, uint8_t c2, uint8_t c3) BANKED {{
+    static uint8_t buf[PREVIEW_TILE_COUNT * 16];
+    const uint8_t *src = icon_preview_tiles[icon];
+    for (uint16_t i = 0; i < PREVIEW_TILE_COUNT * 16u; i += 2) {{
+        uint8_t lo = src[i], hi = src[i + 1];
+        uint8_t m[4];
+        m[0] = (uint8_t)~(lo | hi); m[1] = (uint8_t)(lo & ~hi); m[2] = (uint8_t)(hi & ~lo); m[3] = (uint8_t)(lo & hi);
+        uint8_t nlo = 0, nhi = 0;
+        if (c0 & 1) nlo |= m[0];
+        if (c0 & 2) nhi |= m[0];
+        if (c1 & 1) nlo |= m[1];
+        if (c1 & 2) nhi |= m[1];
+        if (c2 & 1) nlo |= m[2];
+        if (c2 & 2) nhi |= m[2];
+        if (c3 & 1) nlo |= m[3];
+        if (c3 & 2) nhi |= m[3];
+        buf[i] = nlo; buf[i + 1] = nhi;
+    }}
+    set_bkg_data(PREVIEW_TILE_BASE, PREVIEW_TILE_COUNT, buf);
+}}
+
+void icon_page_load(uint8_t page) BANKED {{
+    set_bkg_data(ICON_SELECT_PAGE_TILE_BASE, ICON_SELECT_PAGE_TILE_COUNT, icon_page_tiles[page]);
+}}
+""")
+    print(f"{len(tiles)} bg tiles ({dmg_swatch_base} + 4 DMG swatches + box), {len(spr)} sprite tiles")
 
 
 if __name__ == "__main__":

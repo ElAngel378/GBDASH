@@ -15,6 +15,8 @@ extern uint8_t level_coins[NUM_SAVE_LEVELS];
 extern uint8_t selected_icon;
 extern uint8_t selected_color_primary;
 extern uint8_t selected_color_secondary;
+extern uint8_t selected_dmg_primary;     // DMG shades of the player (0 white .. 3 black)
+extern uint8_t selected_dmg_secondary;
 
 void init_save_system(void) BANKED;
 void save_game_data(void) BANKED;

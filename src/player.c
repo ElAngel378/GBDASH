@@ -413,27 +413,17 @@ uint8_t player_update(
 
     // Animation Update
     if (p->on_ground && p->mode != MODE_BALL) {
-        // Landed mid-spin: settle onto the NEAREST square side.
-        // A quarter turn is 6 frames (90 deg), so the midpoint of the
-        // quarter is 45 deg. Past the midpoint -> finish the spin
-        // forwards; before the midpoint -> roll backwards instead.
-        uint8_t q = mod6_table[p->anim_frame];
+        // Landed mid-spin: settle onto the NEAREST square side, in half steps (7.5 deg, 12 a
+        // quarter turn; the half step is anim_timer >= 11, as drawn in the air), 2 a frame.
+        // Past 45 deg -> finish the spin forwards; before it -> roll backwards instead.
+        uint8_t s = (uint8_t)((p->anim_frame << 1) + (p->anim_timer >= 11u ? 1u : 0u));
+        uint8_t q = (uint8_t)((mod6_table[p->anim_frame] << 1) + (s & 1u));
         if (q != 0) {
-            p->anim_timer += 20; // double speed while settling
-            if (p->anim_timer >= 21) {
-                p->anim_timer -= 21;
-                if (q >= 3) {
-                    // Forward: complete the rotation to the next square
-                    p->anim_frame++;
-                    if (p->anim_frame >= 24) {
-                        p->anim_frame = 0;
-                        p->anim_timer = 0;
-                    }
-                } else {
-                    // Backward: un-roll to the previous square
-                    p->anim_frame--;
-                }
-            }
+            if (q >= 6) s += (q == 11) ? 1 : 2;
+            else s -= (q == 1) ? 1 : 2;
+            if (s >= 48) s -= 48;
+            p->anim_frame = (uint8_t)(s >> 1);
+            p->anim_timer = (s & 1u) ? 11 : 0;
         } else {
             p->anim_timer = 0;
         }

@@ -5,17 +5,21 @@
 #include <stdint.h>
 #include <gbdk/platform.h>
 
-#define ICON_SELECT_BG_TILE_COUNT 151
+#define ICON_SELECT_BG_TILE_COUNT 188
 #define ICON_SELECT_SPR_TILE_COUNT 2
-#define ICON_SELECT_DMG_SWATCH_BASE 147
+#define ICON_SELECT_DMG_SWATCH_BASE 183
+#define ICON_SELECT_DMG_BOX_TILE 187
 #define ICON_SELECT_SWATCH_COL 4
+#define ICON_SELECT_DMG_SWATCH_COL 8   // DMG: the 4 shades, white .. black
 #define ICON_SELECT_SWATCH_ROW0 15
 #define ICON_SELECT_SLOT_X0 22
-#define ICON_SELECT_SLOT_Y0 70
+#define ICON_SELECT_SLOT_Y0 69
 #define ICON_SELECT_SLOT_PITCH 20
 #define ICON_SELECT_BADGE_X0 18
 #define ICON_SELECT_BADGE_Y 46
 #define ICON_SELECT_BADGE_PITCH 18
+#define ICON_SELECT_PAGE_TILE_BASE 16
+#define ICON_SELECT_PAGE_TILE_COUNT 96
 
 BANKREF_EXTERN(icon_select_bg)
 extern const uint8_t icon_select_bg_tiles[];

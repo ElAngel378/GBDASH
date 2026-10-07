@@ -48,7 +48,9 @@ extern const metasprite_t famidash_pink_orb[];
 extern const metasprite_t famidash_pink_pad[];
 extern const metasprite_t * const famidash_sprite_table[38];
 
-#define DP (S_PAL(1) | S_BANK)
+// Decorations: the player's palette 0 (colour 2 = the cube's colour 1, like Famidash draws them
+// in its player palette), their colour 1 loaded as 3 (black there): tools/build_sprite_tiles.py
+#define DP (S_PAL(0) | S_BANK)
 /* Decoration tile pairs in VRAM Bank 1 (CGB only) */
 #define D_CF 0
 #define D_C9 2

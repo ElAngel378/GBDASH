@@ -18,7 +18,7 @@
 static const uint16_t vibrant_palette_default[20] = {
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB(31, 31, 31), // palette 0
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 1,  9, 24), RGB(31, 31, 31), // palette 1
-    RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 9, 25,  4), // palette 2: bg spikes accent (lime, matches cube)
+    RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 9, 25,  4), // palette 2: bg decoration accent (the cube's colour 1, famidash_set_bg_accent)
     RGB( 1,  9, 24), RGB( 0,  4, 14), RGB( 0,  0,  0), RGB( 0,  0,  0), // palette 3
     RGB(31, 31, 31), RGB( 9, 25,  4), RGB( 5, 14,  0), RGB( 1,  7,  0)  // palette 4: ground (white line, ground, grid1, grid2)
 };
@@ -142,6 +142,17 @@ void famidash_bg_set_now(const palette_color_t *pal) BANKED {
     fade_restart = 0;
 }
 static palette_color_t current_sky_color = RGB( 1,  9, 24);
+// Colour 3 of palette 2 (the background decorations, BG spikes): the cube's colour 1, like
+// Famidash's player colour in its background palette
+static palette_color_t bg_accent = RGB(15, 31, 0);
+
+void famidash_set_bg_accent(palette_color_t c) BANKED {
+    bg_accent = c;
+    famidash_bg_target[11] = c;
+    famidash_bg_palettes[11] = c;
+    shadow_bkg_palettes[11] = c;
+    famidash_bkg_palettes_dirty = 1;
+}
 static palette_color_t current_g_color = RGB( 9, 25,  4);
 
 uint8_t famidash_bkg_palettes_dirty = 0;
@@ -169,7 +180,7 @@ void famidash_apply_bg_trigger(uint8_t color_id) BANKED {
     famidash_bg_target[8] = shades->color;
     famidash_bg_target[9] = shades->darker;
     famidash_bg_target[10] = RGB(0, 0, 0);
-    famidash_bg_target[11] = RGB(15, 31, 0);
+    famidash_bg_target[11] = bg_accent;
 
     // Palette 3: Parallax BG
     famidash_bg_target[12] = shades->color;
