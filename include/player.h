@@ -55,8 +55,6 @@
 #define MINI_SHIP_GRAVITY      39   // SHIP_GRAVITY mini 554.84 (39)
 #define MINI_SHIP_GRAVITY_AFTER_HOLD 59 // 832.26 (59)
 #define MINI_SHIP_GRAVITY_HOLD_FALL  62 // 866.93 (62)
-#define MINI_SHIP_MAX_VEL_UP   1035 // SHIP_MAX_FALLSPEED(_HOLD) mini / normal = 1.176
-#define MINI_SHIP_MAX_VEL_DOWN 1294
 
 // Player collision box (offsets from world_x / world_y). Normal: 16x16.
 // Mini: Famidash CUBE_WIDTH/HEIGHT mini = 8x7, vertically centred ((16-7)/2 = 4).

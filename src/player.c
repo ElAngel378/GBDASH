@@ -154,8 +154,38 @@ static inline uint8_t inline_col_at(const uint8_t* col_ptr, int16_t y, uint8_t x
     return col_at_partial(col, py8 & 0x0F, xin);
 }
 
+// Mini size spikes, as in Famidash (bg_coll_spikes): a spike only kills inside a small core of
+// its metatile, not the whole 16x16 like the normal size check below. The mini box is 8px wide,
+// so the whole-tile rule killed it ~18px around a spike instead of Famidash's ~7px.
+// xin, inner y: probe position inside the metatile. Ranges are inclusive.
+static uint8_t mini_spike_at(const uint8_t *col_ptr, int16_t y, uint8_t xin) {
+    if ((uint16_t)y & 0xFF00) return 0;
+    uint8_t py8 = (uint8_t)y;
+    uint8_t col = famidash_metatile_collision[col_ptr[py8 >> 4]];
+    uint8_t iy = py8 & 0x0F;
+    switch (col) {
+        case COL_DEATH:              // full spikes: x 4..8, y 4..11
+            return (uint8_t)(xin - 4u) <= 4u && (uint8_t)(iy - 4u) <= 7u;
+        case COL_DEATH_TOP:          // Famidash COL_DEATH_TOP: x 5..7, y < 6
+        case COL_DEATH_BOTTOM_HALF:
+            return (uint8_t)(xin - 5u) <= 2u && iy < 6u;
+        case COL_DEATH_BOTTOM:       // Famidash COL_DEATH_BOTTOM: x 5..7, y > 10
+        case COL_DEATH_TOP_HALF:
+            return (uint8_t)(xin - 5u) <= 2u && iy > 10u;
+        case COL_DEATH_LEFT:         // x < 6, y 6..8
+            return xin < 6u && (uint8_t)(iy - 6u) <= 2u;
+        case COL_DEATH_RIGHT:        // x >= 10, y 6..8
+            return xin >= 10u && (uint8_t)(iy - 6u) <= 2u;
+    }
+    // half spikes / spike blocks: their deadly quadrants
+    if ((uint8_t)(col - COL_QUAD_BASE) < COL_QUAD_COUNT)
+        return col_at_partial(col, iy, xin) == COL_DEATH;
+    return 0;
+}
+
 // off: x offset of the probe point inside the player box
 #define COL_AT(off, y) inline_col_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
+#define MINI_SPIKE(off, y) mini_spike_at(GET_COL_FAST(off), (int16_t)(y), (uint8_t)(wx + (off)) & 15u)
 
 uint8_t player_update(
         Player* p,
@@ -220,8 +250,9 @@ uint8_t player_update(
     // Famidash clamps ship velocity AFTER position integration
     // (common_gravity_routine then clamp in ship_movement)
     if (p->mode == MODE_SHIP) {
-        int16_t vup = mini ? MINI_SHIP_MAX_VEL_UP : SHIP_MAX_VEL_UP;
-        int16_t vdown = mini ? MINI_SHIP_MAX_VEL_DOWN : SHIP_MAX_VEL_DOWN;
+        // Famidash hard-codes these for both sizes (its mini SHIP_MAX_FALLSPEED is unused)
+        int16_t vup = SHIP_MAX_VEL_UP;
+        int16_t vdown = SHIP_MAX_VEL_DOWN;
         if (p->gravity_flipped) {
             if (p->vel_y.w < -vup) p->vel_y.w = -vup;
             if (p->vel_y.w > vdown) p->vel_y.w = vdown;
@@ -255,7 +286,10 @@ uint8_t player_update(
     uint8_t box_r   = mini ? MINI_BOX_RIGHT : PLAYER_SIZE;
     uint8_t box_top = mini ? MINI_BOX_TOP : 0;
     uint8_t box_bot = mini ? MINI_BOX_BOTTOM : 16;
-    uint8_t pen_max = mini ? 3 : 6;   // max penetration still treated as landing on a front edge
+    // Max penetration still treated as landing on a front edge. Mini falls as fast as the normal
+    // size (6px a frame), so it gets the same 6, and no centre test (its centre is only 4px
+    // above its feet): Famidash lands it on any of the 3 floor points, however deep.
+    uint8_t pen_max = 6;
 
 #define GET_COL_FAST(off) ((off) < threshold ? c0 : c1)
 
@@ -282,7 +316,7 @@ uint8_t player_update(
             if ((foot_y & 15) >= 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, foot_y - 8))) {
                 block_top_y += 8;
             }
-            if (hit_front_only && ((uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) >= block_top_y || (uint8_t)(foot_y - block_top_y) > pen_max)) {
+            if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) >= block_top_y) || (uint8_t)(foot_y - block_top_y) > pen_max)) {
                 // Front edge struck wall side
             } else if (!p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_BOTTOM) {
@@ -321,7 +355,7 @@ uint8_t player_update(
             if ((head_y & 15) < 8 && hit_col == COL_ALL && !IS_SOLID(COL_AT(hit_off, head_y + 8))) {
                 block_bottom_y -= 8;
             }
-            if (hit_front_only && ((uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) <= block_bottom_y || (uint8_t)(block_bottom_y - head_y) > pen_max)) {
+            if (hit_front_only && ((!mini && (uint8_t)(py + box_top + ((box_bot - box_top) >> 1)) <= block_bottom_y) || (uint8_t)(block_bottom_y - head_y) > pen_max)) {
                 // Front edge struck ceiling side
             } else if (p->gravity_flipped || p->mode == MODE_SHIP) {
                 if (hit_col == COL_TOP) {
@@ -349,12 +383,20 @@ uint8_t player_update(
         return 1;
     }
 
-    // Hazard collision: 4 points around the box centre
-    {
-        uint8_t hx0 = mini ? 3 : PLAYER_HBOX;
-        uint8_t hx1 = mini ? 5 : (PLAYER_SIZE - PLAYER_HBOX);
-        uint8_t hy0 = mini ? 7 : PLAYER_HBOX;
-        uint8_t hy1 = mini ? 8 : (PLAYER_SIZE - PLAYER_HBOX);
+    if (mini) {
+        // Famidash's mini spike points: bg_coll_floor_spikes (x+3 / x+5 at the box top + 0 and
+        // bottom - 2), bg_coll_death (centre x+3, y+7) and the front side point (x+8)
+        if (MINI_SPIKE(3, py + 4) || MINI_SPIKE(5, py + 4) ||
+            MINI_SPIKE(3, py + 9) || MINI_SPIKE(5, py + 9) ||
+            MINI_SPIKE(3, py + 7) || MINI_SPIKE(MINI_BOX_RIGHT, py + front_y)) {
+            p->dead = 1; return 1;
+        }
+    } else {
+        // Hazard collision: 4 points around the box centre
+        uint8_t hx0 = PLAYER_HBOX;
+        uint8_t hx1 = PLAYER_SIZE - PLAYER_HBOX;
+        uint8_t hy0 = PLAYER_HBOX;
+        uint8_t hy1 = PLAYER_SIZE - PLAYER_HBOX;
         uint8_t hz = COL_AT(hx0, py + hy0);
         if (IS_HAZARD(hz) && hazard_kills(p, hz, hx0)) { p->dead = 1; return 1; }
         hz = COL_AT(hx1, py + hy0);
