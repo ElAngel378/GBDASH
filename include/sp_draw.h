@@ -11,8 +11,10 @@
 uint8_t draw_sprites(SpCache *cache, uint16_t cam_px, uint16_t cam_py,
                      uint8_t reversed, uint8_t oam_start) BANKED;
 
-// CGB: draws the front column of the portals on screen, before the player (see sp_draw.c)
-uint8_t draw_portal_fronts(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) BANKED;
+// CGB: OAM slots reserved before the player for the front column of the portal it is in, which
+// draw_sprites fills (or hides) and clears (see sp_draw.c). 0: none.
+#define PORTAL_FRONT_SLOTS 3
+extern uint8_t sp_front_slot;
 
 void process_sprite_logic(SpCache *cache, uint16_t cam_px,
                           Player *p, uint8_t joy, uint8_t *target_bg_idx) BANKED;

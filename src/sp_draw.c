@@ -1,6 +1,7 @@
 #pragma bank 13
 
 #include <gb/gb.h>
+#include <string.h>
 #include <gbdk/font.h>
 
 #include "sp_draw.h"
@@ -362,7 +363,8 @@ static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t
 // pair f + 1 mirrored on the right (a b, b c, c d, d a), so the dots drift. a, b: the
 // metasprite's tiles (VRAM bank 0); c, d: VRAM bank 1 from anim_x (tools/build_sprite_tiles.py)
 #define ANIM_FRAME_TICKS 5
-static uint8_t obj_anim_ctr;   // 0 .. 4 * ANIM_FRAME_TICKS - 1, one step per frame (draw_sprites)
+static uint8_t obj_anim_tick;  // 0 .. ANIM_FRAME_TICKS - 1, one step per frame (draw_sprites)
+static uint8_t obj_anim_f;     // the frame, 0 .. 3
 
 static uint8_t draw_oam_anim2(const metasprite_t* meta, uint8_t anim_x, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
@@ -371,7 +373,7 @@ static uint8_t draw_oam_anim2(const metasprite_t* meta, uint8_t anim_x, uint8_t 
     t[1] = meta[1].dtile + FAMIDASH_SPRITE_TILE_BASE; b[1] = 0;
     t[2] = anim_x;      b[2] = S_BANK;
     t[3] = anim_x + 2;  b[3] = S_BANK;
-    uint8_t f = obj_anim_ctr / ANIM_FRAME_TICKS;
+    uint8_t f = obj_anim_f;
     uint8_t g = (uint8_t)(f + 1u) & 3u;
     uint8_t flip = reversed ? S_FLIPX : 0;
     *oam++ = sy; *oam++ = reversed ? (uint8_t)(sx + 8) : sx;
@@ -402,37 +404,37 @@ static uint8_t obj_anim_tiles(uint8_t obj) {
 // the player goes through the ring instead of over it.
 #define COLS_ALL 0xFF
 
+#define PUT_SPR(x, m) { *oam++ = y; *oam++ = (x); *oam++ = (m)->dtile + tile_base; *oam++ = (m)->props ^ flip; }
+
 static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed, uint8_t cols) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t n = 0;
+    uint8_t *oam0 = oam;
     uint8_t flip = reversed ? S_FLIPX : 0;
-    for (uint8_t row = 0; row < 3; row++) {
-        uint8_t y = sy + (uint8_t)(row << 4);
-        for (uint8_t c = 0; c < 2; c++, meta++) {
-            if (!(cols & (uint8_t)(1u << c))) continue;
-            *oam++ = y; *oam++ = reversed ? (uint8_t)(sx + 8 - (c << 3)) : (uint8_t)(sx + (c << 3));
-            *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ flip;
-            n++;
-        }
+    uint8_t x0 = reversed ? (uint8_t)(sx + 8) : sx;
+    uint8_t x1 = reversed ? sx : (uint8_t)(sx + 8);
+    uint8_t y = sy;
+    for (uint8_t row = 0; row < 3; row++, meta += 2, y += 16) {
+        if (cols & 1) PUT_SPR(x0, meta);
+        if (cols & 2) PUT_SPR(x1, meta + 1);
     }
-    return n;
+    return (uint8_t)((uint8_t)(oam - oam0) >> 2);
 }
 
 // 3x3 metasprite (cube/ship portals)
 static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed, uint8_t cols) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-    uint8_t n = 0;
+    uint8_t *oam0 = oam;
     uint8_t flip = reversed ? S_FLIPX : 0;
-    for (uint8_t row = 0; row < 3; row++) {
-        uint8_t y = sy + (uint8_t)(row << 4);
-        for (uint8_t c = 0; c < 3; c++, meta++) {
-            if (!(cols & (uint8_t)(1u << c))) continue;
-            *oam++ = y; *oam++ = reversed ? (uint8_t)(sx + 16 - (c << 3)) : (uint8_t)(sx + (c << 3));
-            *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ flip;
-            n++;
-        }
+    uint8_t x0 = reversed ? (uint8_t)(sx + 16) : sx;
+    uint8_t x1 = (uint8_t)(sx + 8);
+    uint8_t x2 = reversed ? sx : (uint8_t)(sx + 16);
+    uint8_t y = sy;
+    for (uint8_t row = 0; row < 3; row++, meta += 3, y += 16) {
+        if (cols & 1) PUT_SPR(x0, meta);
+        if (cols & 2) PUT_SPR(x1, meta + 1);
+        if (cols & 4) PUT_SPR(x2, meta + 2);
     }
-    return n;
+    return (uint8_t)((uint8_t)(oam - oam0) >> 2);
 }
 
 // Horizontal gravity portal (48px wide ring)
@@ -1330,69 +1332,373 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
     return oam_start;
 }
 
-// Screen position of cache object i (sp_screen_x / y): 0 when it is off screen
-static uint8_t sp_screen_x, sp_screen_y;
-static uint8_t sp_on_screen(uint8_t i, uint16_t cam_px, uint16_t cam_py, uint8_t reversed) {
-    uint8_t dist_x = (uint8_t)cache->px[i] - (uint8_t)cam_px;
-    if (!reversed) {
-        if (dist_x > 136 && dist_x < 224) return 0;
-        sp_screen_x = dist_x + PLAYER_SCREEN_X + 8;
-    } else {
-        if (dist_x > 136 && dist_x < 208) return 0;
-        sp_screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
-    }
-    // 16-bit test: in a tall level an object 256px away would wrap onto the screen.
-    // d = object y - camera y + 48, on screen (incl. 48px above) when d <= 192.
-    uint16_t d = cache->py[i] - cam_py + 48u;
-    if (d > 192u) return 0;
-    sp_screen_y = (uint8_t)d - 32u;
-    return 1;
-}
-
-// CGB: the portals whose front column draw_portal_fronts drew this frame (cache indices)
-#define MAX_PORTAL_FRONTS 4
-static uint8_t front_idx[MAX_PORTAL_FRONTS];
-static uint8_t front_n;
+// CGB: OAM slots reserved before the player (gameplay.c) for the front column of the portal the
+// player is in: drawn there, that column is over the player and the rest of the portal (drawn
+// after the player) under it, so the player goes through the ring. 0: none this frame.
+uint8_t sp_front_slot;
 
 // The column with the ring's far arc: art column 1, the mini / growth portal's column at +8
 static uint8_t portal_front_cols(uint8_t obj) {
     return (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) ? 4 : 2;
 }
 
-// Columns draw_sprites draws for portal i: the ones not already drawn in front of the player
-static uint8_t portal_cols(uint8_t i, uint8_t obj) {
-    for (uint8_t k = 0; k < front_n; k++)
-        if (front_idx[k] == i) return (uint8_t)~portal_front_cols(obj);
-    return COLS_ALL;
-}
+// ---- CGB objects: the loop, in asm like the DMG one (in C the decorations and pads were 2 to 4
+// scanlines each, and the dense parts of Clutterfunk dropped frames). Decorations (from
+// famidash_deco_table) and the animated pads / orbs are drawn here; portals, coins and the rest go
+// to dmgd_slow for draw_sprites. Uses the dmgd_* inputs (draw_sprites_dmg's) and:
+static uint8_t cgb_deco_n;               // decorations drawn this frame (at most CGB_DECO_MAX)
+#define CGB_DECO_MAX 12
+static uint8_t cgbf_sy;                  // screen y of the object
+static uint8_t cgbf_w;                   // decoration width - 8 (its mirrored x)
+// Pads / orbs: animation kind (1 pad, 2 orb, 3 pink orb, 4 pink pad; 0: not animated) and, per
+// kind, this frame's left tile, its bank bit, right tile, its bank bit (draw_sprites)
+static const uint8_t cgb_anim_kind[38] = {
+    0, 0, 0, 0, 0, 2, 3, 0, 0, 0, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4
+};
+static uint8_t cgb_anim_fr[4 * 4];
+static uint8_t cgb_anim_frames[4][4 * 4];
+static uint8_t cgb_anim_ready;
 
-// CGB, before the player is drawn: the front column of each portal on screen, so the player
-// passes behind the ring's far arc and in front of the rest of the portal (sprites earlier in
-// OAM are drawn on top on CGB; on DMG the one further left is, whatever the order)
-uint8_t draw_portal_fronts(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) BANKED {
-    front_n = 0;
-    if (_cpu != CGB_TYPE) return oam_start;
-    uint16_t lim_ahead = cam_px + 176u;
-    for (uint8_t i = 0; i < MAX_ACTIVE_SP_OBJECTS && front_n < MAX_PORTAL_FRONTS; i++) {
-        if (!cache->active[i]) break;
-        if (cache->px[i] > lim_ahead) break;
-        uint8_t obj = cache->obj[i];
-        uint8_t cols = portal_front_cols(obj);
-        if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
-            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
-            oam_start += draw_oam_mini_portal(obj, oam_start, sp_screen_x, sp_screen_y, reversed, cols);
-        } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
-            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
-            oam_start += draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_start,
-                                      sp_screen_x, sp_screen_y, reversed, cols);
-        } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
-            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
-            oam_start += draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_start,
-                                      sp_screen_x, sp_screen_y, reversed, cols);
-        } else continue;
-        front_idx[front_n++] = i;
-    }
-    return oam_start;
+static void cgb_object_loop(void) __naked {
+    __asm
+        xor     a
+        ld      (_dmgd_slow_n), a
+        ld      b, a                    ; b = cache index
+00001$:
+        ld      a, b
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        ret     NC
+        ld      a, (_dmgd_oam)
+        cp      a, #(MAX_HARDWARE_SPRITES - 2)
+        ret     NC
+        ; active[b]
+        ld      hl, #(_active_sp + 80)
+        ld      a, l
+        add     a, b
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        or      a, a
+        ret     Z
+        ; de = px[b]; past the screen: done (sorted by x)
+        ld      a, b
+        add     a, a
+        add     a, #<(_active_sp + 16)
+        ld      l, a
+        ld      a, #>(_active_sp + 16)
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      e, a
+        ld      d, (hl)
+        ld      a, (_dmgd_lim)
+        sub     a, e
+        ld      a, (_dmgd_lim + 1)
+        sbc     a, d
+        ret     C
+        ; c = dist_x = (uint8_t)px - camlo
+        ld      a, (_dmgd_camlo)
+        ld      c, a
+        ld      a, e
+        sub     a, c
+        ld      c, a
+        ; obj = obj[b]: colour triggers (128..) and the level end are not drawn
+        ld      hl, #_active_sp
+        ld      a, l
+        add     a, b
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        ld      (_dmgd_obj), a
+        cp      a, #128
+        jp      NC, 00009$
+        cp      a, #OBJ_LEVEL_END
+        jp      Z, 00009$
+        ; off screen when 137 <= dist_x < rej
+        ld      a, (_dmgd_rej)
+        sub     a, #137
+        ld      d, a
+        ld      a, c
+        sub     a, #137
+        cp      a, d
+        jp      C, 00009$
+        ; screen x: normal dist_x + PLAYER_SCREEN_X + 8, mirror MIRROR_PLAYER_SCREEN_X + 8 - dist_x
+        ld      a, (_dmgd_rev)
+        or      a, a
+        jp      NZ, 00003$
+        ld      a, c
+        add     a, #(PLAYER_SCREEN_X + 8)
+        jp      00004$
+00003$:
+        ld      a, #(MIRROR_PLAYER_SCREEN_X + 8)
+        sub     a, c
+00004$:
+        ld      (_dmgd_sx), a
+        ; d = py[b] + ybias; on screen (48px margin) when <= 192
+        ld      a, b
+        add     a, a
+        add     a, #<(_active_sp + 48)
+        ld      l, a
+        ld      a, #>(_active_sp + 48)
+        adc     a, #0
+        ld      h, a
+        ld      a, (_dmgd_ybias)
+        add     a, (hl)
+        ld      e, a
+        inc     hl
+        ld      a, (_dmgd_ybias + 1)
+        adc     a, (hl)
+        jp      NZ, 00009$
+        ld      a, #192
+        cp      a, e
+        jp      C, 00009$
+        ld      a, e
+        sub     a, #32
+        ld      (_cgbf_sy), a
+        ld      e, a                    ; e = screen y (for the slow list)
+        ; which kind of object
+        ld      a, (_dmgd_obj)
+        cp      a, #38
+        jp      C, 00020$               ; below 38: animated pad / orb, or slow
+        cp      a, #FAMIDASH_DECO_TABLE_SIZE
+        jp      NC, 00005$              ; slow (mirror portals...)
+        ; decoration: hl = famidash_deco_table[obj] (0: not drawn)
+        add     a, a
+        add     a, #<_famidash_deco_table
+        ld      l, a
+        ld      a, #>_famidash_deco_table
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        or      a, h
+        jp      Z, 00009$
+        ld      a, (_cgb_deco_n)
+        cp      a, #CGB_DECO_MAX
+        jp      NC, 00009$
+        inc     a
+        ld      (_cgb_deco_n), a
+        push    bc
+        ld      a, (hl+)                ; count
+        ld      b, a
+        ld      a, (_dmgd_oam)
+        add     a, b
+        cp      a, #(MAX_HARDWARE_SPRITES + 1)
+        jr      C, 00030$
+        pop     bc
+        ret                             ; OAM full
+00030$:
+        ld      c, a                    ; the next free entry after it
+        ld      a, (_dmgd_oam)
+        add     a, a
+        add     a, a
+        ld      e, a
+        ld      d, #>_shadow_OAM        ; de = &shadow_OAM[dmgd_oam] (256 byte aligned)
+        ld      a, c
+        ld      (_dmgd_oam), a
+        ld      a, (hl+)                ; width
+        sub     a, #8
+        ld      (_cgbf_w), a
+        ; hl = x[0]; x[k] + 3 = y[k], + 6 = tile[k], + 9 = props[k]
+00031$:
+        ld      c, (hl)                 ; c = x[k]
+        inc     hl
+        inc     hl
+        inc     hl
+        ld      a, (_cgbf_sy)
+        add     a, (hl)                 ; y
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_rev)
+        or      a, a
+        jr      NZ, 00032$
+        ld      a, (_dmgd_sx)
+        add     a, c
+        jr      00033$
+00032$:
+        ld      a, (_cgbf_w)
+        sub     a, c
+        ld      c, a
+        ld      a, (_dmgd_sx)
+        add     a, c
+00033$:
+        ld      (de), a                 ; x
+        inc     e
+        inc     hl
+        inc     hl
+        inc     hl
+        ld      a, (hl)                 ; tile: a rod ball top is shown in the pulse size
+        ld      c, a
+        sub     a, #D_C9
+        cp      a, #(D_CD - D_C9 + 1)
+        ld      a, (_rod_tile)
+        jr      C, 00034$
+        ld      a, #FAMIDASH_SPRITE_TILE_BASE
+00034$:
+        add     a, c
+        ld      (de), a
+        inc     e
+        inc     hl
+        inc     hl
+        inc     hl
+        ld      a, (_dmgd_rev)
+        or      a, a
+        ld      a, (hl)                 ; props
+        jr      Z, 00035$
+        xor     a, #0x20                ; S_FLIPX
+00035$:
+        ld      (de), a
+        inc     e
+        ; back to x[k + 1]
+        ld      a, l
+        sub     a, #8
+        ld      l, a
+        ld      a, h
+        sbc     a, #0
+        ld      h, a
+        dec     b
+        jr      NZ, 00031$
+        pop     bc
+        jp      00009$
+00020$:
+        ; pad / orb: kind
+        ld      hl, #_cgb_anim_kind
+        add     a, l
+        ld      l, a
+        ld      a, h
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl)
+        or      a, a
+        jp      Z, 00005$
+        push    bc
+        dec     a
+        add     a, a
+        add     a, a
+        add     a, #<_cgb_anim_fr
+        ld      c, a
+        ld      a, #>_cgb_anim_fr
+        adc     a, #0
+        ld      b, a                    ; bc = this frame's tiles of the kind
+        ld      a, (_dmgd_oam)
+        cp      a, #(MAX_HARDWARE_SPRITES - 1)
+        jr      C, 00021$
+        pop     bc
+        ret                             ; OAM full
+00021$:
+        add     a, a
+        add     a, a
+        ld      e, a
+        ld      d, #>_shadow_OAM
+        ld      a, (_dmgd_oam)
+        add     a, #2
+        ld      (_dmgd_oam), a
+        ; hl = famidash_sprite_table[obj]: props at + 3 (left) and + 7 (right)
+        ld      a, (_dmgd_obj)
+        add     a, a
+        add     a, #<_famidash_sprite_table
+        ld      l, a
+        ld      a, #>_famidash_sprite_table
+        adc     a, #0
+        ld      h, a
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        inc     hl
+        inc     hl
+        inc     hl
+        ; left sprite: x sx (mirror: sx + 8)
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_rev)
+        or      a, a
+        ld      a, (_dmgd_sx)
+        jr      Z, 00022$
+        add     a, #8
+00022$:
+        ld      (de), a
+        inc     e
+        ld      a, (bc)                 ; tile
+        inc     bc
+        ld      (de), a
+        inc     e
+        ld      a, (bc)                 ; bank bit
+        inc     bc
+        or      a, (hl)                 ; | props
+        call    00040$                  ; ^ S_FLIPX in mirror mode
+        ld      (de), a
+        inc     e
+        inc     hl
+        inc     hl
+        inc     hl
+        inc     hl
+        ; right sprite: x sx + 8 (mirror: sx)
+        ld      a, (_cgbf_sy)
+        ld      (de), a
+        inc     e
+        ld      a, (_dmgd_rev)
+        or      a, a
+        ld      a, (_dmgd_sx)
+        jr      NZ, 00023$
+        add     a, #8
+00023$:
+        ld      (de), a
+        inc     e
+        ld      a, (bc)
+        inc     bc
+        ld      (de), a
+        inc     e
+        ld      a, (bc)
+        or      a, (hl)
+        call    00040$
+        ld      (de), a
+        pop     bc
+        jp      00009$
+00040$:
+        ; a ^= S_FLIPX in mirror mode (keeps hl, bc, de)
+        push    af
+        ld      a, (_dmgd_rev)
+        or      a, a
+        jr      Z, 00041$
+        pop     af
+        xor     a, #0x20
+        ret
+00041$:
+        pop     af
+        ret
+00005$:
+        ; anything else: to the list for C (object, screen x, screen y, cache index)
+        ld      a, (_dmgd_slow_n)
+        cp      a, #MAX_ACTIVE_SP_OBJECTS
+        jp      NC, 00009$
+        inc     a
+        ld      (_dmgd_slow_n), a
+        dec     a
+        add     a, a
+        add     a, a
+        add     a, #<_dmgd_slow
+        ld      l, a
+        ld      a, #>_dmgd_slow
+        adc     a, #0
+        ld      h, a
+        ld      a, (_dmgd_obj)
+        ld      (hl+), a
+        ld      a, (_dmgd_sx)
+        ld      (hl+), a
+        ld      a, (_cgbf_sy)
+        ld      (hl+), a
+        ld      (hl), b
+00009$:
+        inc     b
+        jp      00001$
+    __endasm;
 }
 
 uint8_t draw_sprites(
@@ -1401,38 +1707,86 @@ uint8_t draw_sprites(
 ) BANKED {
     uint8_t i;
     uint8_t screen_x, screen_y;
-    uint8_t deco_drawn = 0;
-    // Limit active decorations (4 on DMG, 12 on CGB) to keep 60 FPS
-    uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
 
     if (++coin_frame_ctr >= 6 * COIN_FRAME_TICKS) coin_frame_ctr = 0;
     oam_start = draw_coin_anims(cam_px, cam_py, reversed, oam_start);
 
     // DMG: one icon sprite per object (skipped when the cache has nothing DMG draws)
     if (_cpu != CGB_TYPE) {
+        sp_front_slot = 0;
         if (!sp_has_drawn) return oam_start;
         return draw_sprites_dmg(cam_px, cam_py, reversed, oam_start);
     }
 
     rod_pulse_update();
-    if (++obj_anim_ctr >= 4 * ANIM_FRAME_TICKS) obj_anim_ctr = 0;
-    uint16_t lim_ahead = cam_px + 176u;
-    for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
-        if (!cache->active[i]) break;
+    if (!cgb_anim_ready) {
+        // the pad / orb tiles of the 4 animation frames per kind (pad, orb, pink orb, pink pad),
+        // see draw_oam_anim2: computed once, copied to cgb_anim_fr when the frame changes
+        static const uint8_t rep_obj[4] = { OBJ_PAD_YELLOW, OBJ_ORB_YELLOW, OBJ_ORB_PINK, OBJ_PAD_PINK };
+        for (uint8_t f = 0; f < 4; f++) {
+            uint8_t g = (uint8_t)(f + 1u) & 3u;
+            uint8_t *fr = cgb_anim_frames[f];
+            for (uint8_t k = 0; k < 4; k++) {
+                const metasprite_t *meta = famidash_sprite_table[rep_obj[k]];
+                uint8_t ax = obj_anim_tiles(rep_obj[k]);
+                uint8_t t[4];
+                t[0] = meta[0].dtile + FAMIDASH_SPRITE_TILE_BASE;
+                t[1] = meta[1].dtile + FAMIDASH_SPRITE_TILE_BASE;
+                t[2] = ax;
+                t[3] = ax + 2;
+                *fr++ = t[f]; *fr++ = (f >= 2) ? S_BANK : 0;
+                *fr++ = t[g]; *fr++ = (g >= 2) ? S_BANK : 0;
+            }
+        }
+        cgb_anim_ready = 1;
+        memcpy(cgb_anim_fr, cgb_anim_frames[obj_anim_f], sizeof(cgb_anim_fr));
+    }
+    if (++obj_anim_tick >= ANIM_FRAME_TICKS) {
+        obj_anim_tick = 0;
+        obj_anim_f = (uint8_t)(obj_anim_f + 1u) & 3u;
+        memcpy(cgb_anim_fr, cgb_anim_frames[obj_anim_f], sizeof(cgb_anim_fr));
+    }
+    dmgd_lim = cam_px + 176u;
+    dmgd_ybias = 48u - cam_py;
+    dmgd_camlo = (uint8_t)cam_px;
+    dmgd_rev = reversed;
+    dmgd_rej = reversed ? 208 : 224;
+    dmgd_oam = oam_start;
+    cgb_deco_n = 0;
+    cgb_object_loop();
+    oam_start = dmgd_oam;
 
+    uint8_t front_free = (sp_front_slot != 0);
+    uint8_t front_n = 0;
+    const uint8_t *e = dmgd_slow;
+    for (uint8_t n = dmgd_slow_n; n; n--, e += 4) {
+        uint8_t obj = e[0];
+        screen_x = e[1];
+        screen_y = e[2];
+        i = e[3];
         uint16_t obj_x = cache->px[i];
-        if (obj_x > lim_ahead) break;
 
-        uint8_t obj = cache->obj[i];
-        if (obj == OBJ_LEVEL_END || obj >= 128) continue;
-
-        if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
-        screen_x = sp_screen_x;
-        screen_y = sp_screen_y;
+        // the portal the player is in (t_px: process_sprite_logic): front column in the slots
+        // reserved before the player
+        uint8_t cols = COLS_ALL;
+        if (front_free && (obj <= OBJ_BALL_PORTAL || obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP ||
+                           obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
+            && obj_x <= t_px + 16u && obj_x + 32u >= t_px) {
+            cols = portal_front_cols(obj);
+            front_free = 0;
+            uint8_t fs = sp_front_slot;
+            if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
+                front_n = draw_oam_mini_portal(obj, fs, screen_x, screen_y, reversed, cols);
+            else if (obj <= OBJ_BALL_PORTAL)
+                front_n = draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, fs, screen_x, screen_y, reversed, cols);
+            else
+                front_n = draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, fs, screen_x, screen_y, reversed, cols);
+            cols = (uint8_t)~cols;
+        }
 
         if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
             if (oam_start > MAX_HARDWARE_SPRITES - 7) break;
-            oam_start += draw_oam_mini_portal(obj, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
+            oam_start += draw_oam_mini_portal(obj, oam_start, screen_x, screen_y, reversed, cols);
             continue;
         }
 
@@ -1449,20 +1803,7 @@ uint8_t draw_sprites(
             continue;
         }
 
-        if (obj >= 38) {
-            if (deco_drawn >= deco_max) continue;
-
-            if (_cpu == CGB_TYPE && obj < FAMIDASH_DECO_TABLE_SIZE) {
-                const FamidashDeco *deco = famidash_deco_table[obj];
-                if (deco) {
-                    if (oam_start > MAX_HARDWARE_SPRITES - deco->count) break;
-                    deco_drawn++;
-                    oam_start += draw_oam_deco(deco, FAMIDASH_SPRITE_TILE_BASE,
-                                               oam_start, screen_x, screen_y, reversed);
-                }
-            }
-            continue;
-        }
+        if (obj >= 38) continue;   // decorations: cgb_object_loop
 
         if (oam_start > MAX_HARDWARE_SPRITES - 9) break;
         const metasprite_t *sprite = famidash_sprite_table[obj];
@@ -1471,16 +1812,18 @@ uint8_t draw_sprites(
         if (obj >= 16 && obj <= 19) {
             oam_start += draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
-            oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
+            oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, cols);
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
-            oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
+            oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, cols);
         } else {
-            uint8_t ax = obj_anim_tiles(obj);
-            if (ax) oam_start += draw_oam_anim2(sprite, ax, oam_start, screen_x, screen_y, reversed);
-            else oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         }
     }
-    front_n = 0;
+    // reserved slots not used this frame: hidden
+    if (sp_front_slot) {
+        for (uint8_t k = front_n; k < PORTAL_FRONT_SLOTS; k++) shadow_OAM[sp_front_slot + k].y = 0;
+        sp_front_slot = 0;
+    }
     return oam_start;
 }
 

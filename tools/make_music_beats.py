@@ -3,9 +3,10 @@ music).
 
     python tools/make_music_beats.py
 
-Plays every song of src/music/*.c through on paper (hUGE: Fxx speed, Dxx pattern break to row
-xx - 1 of the next order, Bxx jump to order xx, the song ends after its last order or loops when
-it gets back to a row it already played) and lists its hits in driver ticks (hUGE_dosound calls,
+Plays every song of src/music/*.c through on paper like hUGEDriver does (Fxx speed, Dxx
+pattern break to row xx - 1 of the next order (D00: none), Bxx jump to order xx - 1 (B00: the
+next order), after the last order back to order 0, where the game stops the level songs: main.c
+step_music; the timeline loops when the song gets back to a row it already played) and lists its hits in driver ticks (hUGE_dosound calls,
 counted by step_music in main.c) on the noise channel (drums): a strong hit on a beat (every 4th
 row of a pattern) or with the song's kick (its lowest drum note in common use), a weak one
 otherwise (hi-hats and the like).
@@ -22,6 +23,7 @@ OUT_C = MUSIC / "music_beats.c"
 OUT_H = ROOT / "include" / "music_beats.h"
 BANK = 65
 STRONG, WEAK, FILL, END, LOOP = 2, 1, 0, 0xFE, 0xFF
+LOOPING_SONGS = {"practice"}   # not stopped at their end (main.c step_music: banks 1 and 212)
 
 
 NOTES = ["C_", "Cs", "D_", "Ds", "E_", "F_", "Fs", "G_", "Gs", "A_", "As", "B_"]
@@ -51,9 +53,10 @@ def parse(path):
     return name, tempo, pats, orders
 
 
-def timeline(tempo, pats, orders):
+def timeline(tempo, pats, orders, stops_at_end=True):
     """[(tick, strength)] of the hits, the tick the song loops back at and the tick it loops to
-    (None: it ends)."""
+    (None: it ends). stops_at_end: the game stops the song when it wraps from its last order to
+    order 0 (main.c step_music: every song but the menu and practice ones)."""
     n_orders = len(orders[0])
     drums = {}
     for p in orders[3]:
@@ -65,29 +68,41 @@ def timeline(tempo, pats, orders):
     seen = {}
     hits = []
     o, r, t, speed = 0, 0, 0, tempo
-    while o < n_orders:
+    while True:
         if (o, r) in seen:
             return hits, t, seen[(o, r)]
         seen[(o, r)] = t
         cells = [pats[orders[ch][o]][r] for ch in range(4)]
-        nxt = None
+        # hUGEDriver (fx_pos_jump, fx_pattern_break, tick_time): row_break and next_order are
+        # stored + 1 (0 = none). Bxx: next_order = xx (B00: none), row_break 1 if still 0.
+        # Dxx: row_break = xx (D00: none). At the end of the row: row_break - 1 is the row,
+        # next_order - 1 the order (none: the next one); after the last order: order 0.
+        row_break, next_order = 0, 0
         for _, e in cells:
             kind, param = e >> 8, e & 0xFF
             if kind == 0xF and param:
                 speed = param
             elif kind == 0xB:
-                nxt = (param, 0)
+                if not row_break:
+                    row_break = 1
+                next_order = param
             elif kind == 0xD:
-                nxt = (o + 1, max(param - 1, 0))
+                row_break = param
         drum = cells[3][0]
         if drum is not None:
             hits.append((t, STRONG if (r % 4 == 0 or drum == kick) else WEAK))
         t += speed
-        if nxt is None:
+        prev_o = o
+        if row_break:
+            r = row_break - 1
+            o = next_order - 1 if next_order else (o + 1) % n_orders
+        else:
             r += 1
-            nxt = (o + 1, 0) if r >= len(pats[orders[0][o]]) else (o, r)
-        o, r = nxt
-    return hits, t, None
+            if r >= len(pats[orders[0][o]]):
+                o, r = (o + 1) % n_orders, 0
+        # main.c step_music stops a level song when it goes from its last order to order 0
+        if stops_at_end and prev_o == n_orders - 1 and o == 0:
+            return hits, t, None
 
 
 def encode(hits, end_t, loop_t):
@@ -130,7 +145,7 @@ def main():
             songs.append(p)
     arrays, entries = [], []
     for name, tempo, pats, orders in songs:
-        hits, end_t, loop_t = timeline(tempo, pats, orders)
+        hits, end_t, loop_t = timeline(tempo, pats, orders, name not in LOOPING_SONGS)
         data, loop_i = encode(hits, end_t, loop_t)
         strong = sum(1 for _, c in hits if c == STRONG)
         print(f"{name}: {len(hits)} hits ({strong} strong), {end_t} ticks"

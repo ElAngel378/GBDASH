@@ -53,7 +53,7 @@ uint16_t attempt_count;
 static uint8_t att_glyph[ATT_MAX_CHARS];   // 0xFF: space
 static uint8_t att_n;
 static uint8_t att_on;
-static uint16_t att_x0;      // camera x at which the text is at its start position
+static uint16_t att_s0;      // screen scroll (SCX, 16 bit) at which the text is at its start position
 static uint16_t att_y0;      // camera y at the attempt start
 static uint8_t att_sx0;      // OAM x of the first character at att_x0
 
@@ -72,11 +72,13 @@ void attempt_text_load_tiles(void) BANKED {
     if (_cpu == CGB_TYPE) VBK_REG = 0;
 }
 
-// An attempt starts at the beginning of the level (camera cam_x, cam_y): count it and show
-// "ATTEMPT N" there. from_start = 0 (practice checkpoint): counted, the text stays at the start.
-void attempt_text_start(uint8_t from_start, uint16_t cam_x, uint16_t cam_y) BANKED {
+// An attempt starts (level start or practice checkpoint; screen scroll scroll_x, camera cam_y):
+// count it and show "ATTEMPT N" there. show = 0: counted, no text (DMG ship: the glyphs use its
+// tiles). The text moves with the screen scroll, not the camera: at the level start the player
+// runs to PLAYER_SCREEN_X before the screen scrolls.
+void attempt_text_start(uint8_t show, uint16_t scroll_x, uint16_t cam_y) BANKED {
     if (attempt_count < 9999u) attempt_count++;
-    if (!from_start) return;
+    if (!show) { attempt_text_hide(); return; }
     uint8_t n = 0;
     for (; n < 7; n++) att_glyph[n] = att_word[n];
     att_glyph[n++] = 0xFF;
@@ -86,7 +88,7 @@ void attempt_text_start(uint8_t from_start, uint16_t cam_x, uint16_t cam_y) BANK
     while (nd) att_glyph[n++] = (uint8_t)(ATT_DIGIT0 + d[--nd]);
     att_n = n;
     att_sx0 = (uint8_t)(96 + 8 - ((n * GLYPH_W) >> 1));   // centred a bit right of the screen centre
-    att_x0 = cam_x;
+    att_s0 = scroll_x;
     att_y0 = cam_y;
     att_on = 1;
     if (_cpu != CGB_TYPE) attempt_text_load_tiles();   // (CGB: loaded with the other HUD tiles)
@@ -97,15 +99,15 @@ void attempt_text_hide(void) BANKED {
     att_on = 0;
 }
 
-// Draws the text (if still on screen) from OAM slot oam; returns the next free slot
-uint8_t attempt_text_draw(uint8_t oam, uint16_t cam_x, uint16_t cam_y) BANKED {
+// Draws the text (if still on screen; screen scroll scroll_x) from OAM slot oam; returns the
+// next free slot
+uint8_t attempt_text_draw(uint8_t oam, uint16_t scroll_x, uint16_t cam_y) BANKED {
     if (!att_on) return oam;
-    uint16_t dx = cam_x - att_x0;
-    if (dx >= (uint16_t)(att_sx0 + att_n * GLYPH_W)) { att_on = 0; if (_cpu != CGB_TYPE) restore_ship_tiles(); return oam; }   // scrolled away
+    int16_t sx = (int16_t)att_sx0 - (int16_t)(scroll_x - att_s0);
+    if (sx + (int16_t)(att_n * GLYPH_W) <= 0 || sx >= 168) { attempt_text_hide(); return oam; }   // scrolled away
     int16_t sy = (int16_t)(ATT_SCREEN_Y + 16) - (int16_t)(cam_y - att_y0);
     if (sy <= 0 || sy >= 160) return oam;
     uint8_t prop = (_cpu == CGB_TYPE) ? (7 | S_BANK) : 0;
-    int16_t sx = (int16_t)att_sx0 - (int16_t)dx;
     for (uint8_t i = 0; i < att_n && oam < MAX_HARDWARE_SPRITES; i++, sx += GLYPH_W) {
         uint8_t g = att_glyph[i];
         if (g == 0xFF || sx <= 0 || sx >= 168) continue;

@@ -491,7 +491,7 @@ static void reload_level_state(uint8_t idx) {
     coins_reset();
     coins_saved = level_coins[idx];
     percent_hud_reset(max_scroll_px);
-    attempt_text_start(1, cam_px, cam_py);
+    attempt_text_start(1, 0, cam_py);
     sp_cache_col = 0xFFFF;
     sp_fill_pending = 0;
     previous_oam_index = MAX_HARDWARE_SPRITES;
@@ -1157,7 +1157,7 @@ static void practice_respawn(uint8_t idx) {
 
     percent_hud_reset(max_scroll_px);
     percent_hud_update(cam_px);
-    attempt_text_start(cam_px == 0, cam_px, cam_py);
+    attempt_text_start(_cpu == CGB_TYPE || player.mode != MODE_SHIP, scroll_px, cam_py);
 
     SHOW_BKG;
     SHOW_SPRITES;
@@ -1396,7 +1396,7 @@ void play_level(uint8_t idx) BANKED {
     coins_saved = level_coins[idx];
     percent_hud_reset(max_scroll_px);
     attempt_count = 0;
-    attempt_text_start(1, cam_px, cam_py);
+    attempt_text_start(1, 0, cam_py);
     bg_parallax_isr_start();
     while (1) {
         PROF_MARK(1);   // input, scrolling, object cache
@@ -1615,11 +1615,13 @@ void play_level(uint8_t idx) BANKED {
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
-        // CGB: the portals' front columns go before the player in OAM (drawn over it), the rest
-        // of the portals after it, so the player passes through the rings. Not while the level
-        // end shakes the level sprites (those are drawn with the shake offset).
-        if (end_anim_state != END_ANIM_SHAKE)
-            oam_index = draw_portal_fronts(cam_px, cam_py, view_rev, oam_index);
+        // CGB: slots before the player in OAM (drawn over it) for the front column of the portal
+        // it is in, which draw_sprites fills, so the player passes through the ring. Not while
+        // the level end shakes the level sprites (those are drawn with the shake offset).
+        if (_cpu == CGB_TYPE && end_anim_state != END_ANIM_SHAKE) {
+            sp_front_slot = oam_index;
+            oam_index += PORTAL_FRONT_SLOTS;
+        }
 
         // Gravity portal / blue orb / mirror portal: the cube spins the other way from now on
         // (cube_turn). Count the step so the picture on screen stays exactly as it is: the step
@@ -1709,7 +1711,9 @@ void play_level(uint8_t idx) BANKED {
         if (practice_mode) {
             oam_index = practice_draw_checkpoints(oam_index, cam_px, cam_py, view_rev);
         }
-        oam_index = attempt_text_draw(oam_index, cam_px, cam_py);
+        // DMG: the text's glyphs are in the ship's tiles (a ship portal while it is shown)
+        if (_cpu != CGB_TYPE && player.mode == MODE_SHIP) attempt_text_hide();
+        oam_index = attempt_text_draw(oam_index, scroll_px, cam_py);
         if (oam_index < previous_oam_index) {
             uint8_t *oam_ptr = (uint8_t *)&shadow_OAM[oam_index];
             while (oam_index < previous_oam_index) {
