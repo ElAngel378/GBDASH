@@ -1615,6 +1615,11 @@ void play_level(uint8_t idx) BANKED {
         // Player sprite
         percent_hud_update(cam_px);
         uint8_t oam_index = PERCENT_HUD_OAM;   // slots 0..3: % display
+        // CGB: the portals' front columns go before the player in OAM (drawn over it), the rest
+        // of the portals after it, so the player passes through the rings. Not while the level
+        // end shakes the level sprites (those are drawn with the shake offset).
+        if (end_anim_state != END_ANIM_SHAKE)
+            oam_index = draw_portal_fronts(cam_px, cam_py, view_rev, oam_index);
 
         // Gravity portal / blue orb / mirror portal: the cube spins the other way from now on
         // (cube_turn). Count the step so the picture on screen stays exactly as it is: the step
@@ -1649,11 +1654,11 @@ void play_level(uint8_t idx) BANKED {
             if (player.gravity_flipped) { prop ^= S_FLIPY; oy -= 8; }
             uint8_t ox = (uint8_t)(sprite_x_final + 8);
             if (view_rev) { prop ^= S_FLIPX; ox += 8; }
-            shadow_OAM[PERCENT_HUD_OAM].y = oy;
-            shadow_OAM[PERCENT_HUD_OAM].x = ox;
-            shadow_OAM[PERCENT_HUD_OAM].tile = tile;
-            shadow_OAM[PERCENT_HUD_OAM].prop = prop;
-            oam_index = PERCENT_HUD_OAM + 1;
+            shadow_OAM[oam_index].y = oy;
+            shadow_OAM[oam_index].x = ox;
+            shadow_OAM[oam_index].tile = tile;
+            shadow_OAM[oam_index].prop = prop;
+            oam_index++;
         } else if (end_anim_state != END_ANIM_SHAKE) {
             if (player.mode == MODE_SHIP) {
                 ship_tilt_update();

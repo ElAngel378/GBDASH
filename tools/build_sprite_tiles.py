@@ -57,6 +57,7 @@ LOADS = [  # condition, VRAM bank, first tile, count, source section, first tile
     (CGB_DECO, 1, 160, 40, "BANK1", 160),  # level decorations
     (CGB_DECO_CLOUD, 1, 160, 40, "DECO_CLOUD", 0),
     (CGB, 1, 222, 12, "ROD_PULSE", 0),     # rod balls between beats (both deco sets draw the same rods)
+    (CGB, 1, 234, 16, "BANK1", 234),       # pad / orb animation frames 2, 3 (Famidash $FB $FD, $9D $9F, $BD $BF, $5D $5F)
     # coins: levels/chr_data/coin.chr (tools/make_coin_tiles.py), loaded by famidash_sprite_tiles.c
 ]
 

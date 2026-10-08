@@ -357,58 +357,82 @@ static uint8_t draw_oam_2x1(const metasprite_t* meta, uint8_t tile_base, uint8_t
     return 2;
 }
 
-// 2x3 metasprite (gravity portals)
-static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
-    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+// Pads and orbs (CGB), animated like Famidash's (YELLOW_PAD_SPRITES, YELLOW_ORB_SPRITES...):
+// 4 frames of 5 video frames over 4 tile pairs a, b, c, d; frame f shows pair f on the left and
+// pair f + 1 mirrored on the right (a b, b c, c d, d a), so the dots drift. a, b: the
+// metasprite's tiles (VRAM bank 0); c, d: VRAM bank 1 from anim_x (tools/build_sprite_tiles.py)
+#define ANIM_FRAME_TICKS 5
+static uint8_t obj_anim_ctr;   // 0 .. 4 * ANIM_FRAME_TICKS - 1, one step per frame (draw_sprites)
 
-    if (!reversed) {
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
-    } else {
-        *oam++ = sy;    *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx + 8; *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+static uint8_t draw_oam_anim2(const metasprite_t* meta, uint8_t anim_x, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t t[4], b[4];
+    t[0] = meta[0].dtile + FAMIDASH_SPRITE_TILE_BASE; b[0] = 0;
+    t[1] = meta[1].dtile + FAMIDASH_SPRITE_TILE_BASE; b[1] = 0;
+    t[2] = anim_x;      b[2] = S_BANK;
+    t[3] = anim_x + 2;  b[3] = S_BANK;
+    uint8_t f = obj_anim_ctr / ANIM_FRAME_TICKS;
+    uint8_t g = (uint8_t)(f + 1u) & 3u;
+    uint8_t flip = reversed ? S_FLIPX : 0;
+    *oam++ = sy; *oam++ = reversed ? (uint8_t)(sx + 8) : sx;
+    *oam++ = t[f]; *oam++ = (meta[0].props | b[f]) ^ flip;
+    *oam++ = sy; *oam++ = reversed ? sx : (uint8_t)(sx + 8);
+    *oam++ = t[g]; *oam++ = (meta[1].props | b[g]) ^ flip;
+    return 2;
+}
+
+// First VRAM bank 1 tile of the object's animation frames 2, 3; 0: not animated
+static uint8_t obj_anim_tiles(uint8_t obj) {
+    switch (obj) {
+        case OBJ_PAD_YELLOW: case OBJ_PAD_YELLOW_UP: case OBJ_PAD_BLUE: case OBJ_PAD_BLUE_UP:
+            return 234;   // Famidash $FB $FD
+        case OBJ_ORB_YELLOW: case OBJ_ORB_BLUE:
+            return 238;   // $9D $9F
+        case OBJ_ORB_PINK:
+            return 242;   // $BD $BF
+        case OBJ_PAD_PINK:
+            return 246;   // $5D $5F
     }
-    return 6;
+    return 0;
+}
+
+// 2x3 metasprite (gravity portals)
+// Portal columns (bit c = art column c) for draw_oam_2x3 / 3x3 / mini_portal. CGB: the column
+// with the ring's far arc is drawn before the player (draw_portal_fronts), the rest after it, so
+// the player goes through the ring instead of over it.
+#define COLS_ALL 0xFF
+
+static uint8_t draw_oam_2x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed, uint8_t cols) {
+    uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
+    uint8_t n = 0;
+    uint8_t flip = reversed ? S_FLIPX : 0;
+    for (uint8_t row = 0; row < 3; row++) {
+        uint8_t y = sy + (uint8_t)(row << 4);
+        for (uint8_t c = 0; c < 2; c++, meta++) {
+            if (!(cols & (uint8_t)(1u << c))) continue;
+            *oam++ = y; *oam++ = reversed ? (uint8_t)(sx + 8 - (c << 3)) : (uint8_t)(sx + (c << 3));
+            *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ flip;
+            n++;
+        }
+    }
+    return n;
 }
 
 // 3x3 metasprite (cube/ship portals)
-static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+static uint8_t draw_oam_3x3(const metasprite_t* meta, uint8_t tile_base, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed, uint8_t cols) {
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
-
-    if (!reversed) {
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props; meta++;
-        *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props;
-    } else {
-        *oam++ = sy;    *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy;    *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-
-        *oam++ = sy+16; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+16; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-
-        *oam++ = sy+32; *oam++ = sx+16;  *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx+8;   *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX; meta++;
-        *oam++ = sy+32; *oam++ = sx;     *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ S_FLIPX;
+    uint8_t n = 0;
+    uint8_t flip = reversed ? S_FLIPX : 0;
+    for (uint8_t row = 0; row < 3; row++) {
+        uint8_t y = sy + (uint8_t)(row << 4);
+        for (uint8_t c = 0; c < 3; c++, meta++) {
+            if (!(cols & (uint8_t)(1u << c))) continue;
+            *oam++ = y; *oam++ = reversed ? (uint8_t)(sx + 16 - (c << 3)) : (uint8_t)(sx + (c << 3));
+            *oam++ = meta->dtile + tile_base; *oam++ = meta->props ^ flip;
+            n++;
+        }
     }
-    return 9;
+    return n;
 }
 
 // Horizontal gravity portal (48px wide ring)
@@ -531,16 +555,26 @@ static uint8_t draw_oam_mirror_portal(uint8_t obj, uint8_t tile_base, uint8_t oa
     return 8;
 }
 
-// Player box of the current process_sprite_logic() call, for touch_object()
-static uint16_t t_py, t_bottom;
+// Player box of the current process_sprite_logic() call, for touch_object(): Famidash's
+// (sprite_collide): x + 1 .. x + 1 + width (15, mini 8), centred vertically (mini 7 tall at +4)
+static uint16_t t_px, t_front, t_py, t_bottom;
+
+// Famidash check_collision against the object's box (sprite_x/y_offset, sprite_widths/heights):
+// x + xo .. x + xo + w, y + yo .. y + yo + h, edges included
+static uint8_t touch_box(uint16_t ox, uint16_t oy, uint8_t xo, uint8_t w, int8_t yo, uint8_t h) {
+    uint16_t l = ox + xo;
+    uint16_t t = oy + (int16_t)yo;
+    return l <= t_front && t_px <= l + w && t <= t_bottom && t_py <= t + h;
+}
 
 // Player overlaps the object horizontally: portals, pads, orbs. act = its activated flag.
 // (Separate from process_sprite_logic: SDCC compiles one huge function very slowly.)
-static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, uint8_t *act) {
+static void touch_object(Player* p, uint8_t obj, uint16_t obj_x, uint16_t obj_y, uint8_t joy, uint8_t *act) {
     switch (obj) {
         case OBJ_MINI_PORTAL:
         case OBJ_GROW_PORTAL:
-            if (t_py <= obj_y + 49 && t_bottom >= (obj_y - 1)) {
+            // Famidash: 8px right of the object, 16 x 52
+            if (touch_box(obj_x, obj_y, 8, 16, -2, 52)) {
                 if (!*act) {
                     p->mini = (obj == OBJ_MINI_PORTAL);
                     *act = 1;
@@ -551,13 +585,15 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
         case OBJ_CUBE_PORTAL:
         case OBJ_SHIP_PORTAL:
         case OBJ_BALL_PORTAL:
-            // FamiDash mode portal: height 52px (obj_y - 2 to obj_y + 50)
-            if (t_py <= obj_y + 49 && t_bottom >= (obj_y - 1)) {
+            // Famidash mode portal: 16 x 52 (obj_y - 2 to obj_y + 50)
+            if (touch_box(obj_x, obj_y, 0, 16, -2, 52)) {
                 if (!*act) {
-                    if (obj == OBJ_CUBE_PORTAL) p->mode = MODE_CUBE;
-                    else if (obj == OBJ_SHIP_PORTAL) p->mode = MODE_SHIP;
-                    else p->mode = MODE_BALL;
-                    p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity on portal entry
+                    uint8_t mode = (obj == OBJ_CUBE_PORTAL) ? MODE_CUBE :
+                                   (obj == OBJ_SHIP_PORTAL) ? MODE_SHIP : MODE_BALL;
+                    // Famidash: the ship and ball portals halve the speed when the mode changes,
+                    // the cube portal keeps it
+                    if (mode != MODE_CUBE && mode != p->mode) p->vel_y.w /= 2;
+                    p->mode = mode;
                     cam_portal_y = obj_y;
                     *act = 1;
                 }
@@ -566,13 +602,13 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
 
         case OBJ_GRAVITY_DOWN:
         case OBJ_GRAVITY_UP:
-            // FamiDash gravity portal: height 40px (obj_y + 4 to obj_y + 44)
-            if (t_py <= obj_y + 43 && t_bottom >= (obj_y + 5)) {
+            // Famidash gravity portal: 14 x 40 at +1, +4
+            if (touch_box(obj_x, obj_y, 1, 14, 4, 40)) {
                 if (!*act) {
                     uint8_t target_flipped = (obj == OBJ_GRAVITY_UP);
                     if (p->gravity_flipped != target_flipped) {
                         p->gravity_flipped = target_flipped;
-                        p->vel_y.w = (p->vel_y.w >> 1) + (p->vel_y.w >> 3);
+                        p->vel_y.w /= 2;   // Famidash spcl_gvity_portal_common
                     }
                     *act = 1;
                 }
@@ -585,11 +621,10 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
         case OBJ_PAD_YELLOW_UP:
         case OBJ_PAD_BLUE_UP:
         {
+            // Famidash: 15 x 3, at +5 on the floor (+ the 8 of its floor pad offset, which the
+            // level export leaves out, see tools/tmx2sprites.py), at +0 on the ceiling
             uint8_t is_ceiling = (obj == OBJ_PAD_YELLOW_UP || obj == OBJ_PAD_BLUE_UP);
-            uint16_t pad_top = is_ceiling ? obj_y : (obj_y + 13);
-            uint16_t pad_bot = is_ceiling ? (obj_y + 3) : (obj_y + 16);
-
-            if (t_py <= pad_bot && t_bottom >= pad_top) {
+            if (touch_box(obj_x, obj_y, 0, 15, is_ceiling ? 0 : 13, 3)) {
                 if (!*act) {
                     *act = 1;
                     if (obj == OBJ_PAD_BLUE) {
@@ -623,7 +658,8 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
         case OBJ_ORB_BLUE:
         {
             if (joy & J_A) {
-                if ((!(p->last_joy & J_A) || p->orb_buffered) && t_py <= obj_y + 16 && t_bottom >= obj_y) {
+                // Famidash: 16 x 18 at -1
+                if ((!(p->last_joy & J_A) || p->orb_buffered) && touch_box(obj_x, obj_y, 0, 16, -1, 18)) {
                     if (!*act) {
                         *act = 1;
                         p->orb_buffered = 0; // Clear buffer after hit
@@ -648,7 +684,7 @@ static void touch_object(Player* p, uint8_t obj, uint16_t obj_y, uint8_t joy, ui
 
         case OBJ_MIRROR_PORTAL:
         case OBJ_MIRROR_EXIT:
-            if (t_py <= obj_y + 45 && t_bottom >= (obj_y - 1)) {
+            if (touch_box(obj_x, obj_y, 0, 15, -1, 46)) {
                 if (!*act) {
                     p->reversed = (obj == OBJ_MIRROR_PORTAL) ? 1 : 0;
                     *act = 1;
@@ -670,8 +706,10 @@ void process_sprite_logic(
     uint16_t p_front = px + (p->mini ? MINI_BOX_RIGHT : 15u);
     uint16_t p_bottom = py + (p->mini ? (MINI_BOX_BOTTOM - 1) : PLAYER_SIZE);
     if (p->mini) py += MINI_BOX_TOP;
+    t_px = px + 1u;
+    t_front = p_front + 1u;
     t_py = py;
-    t_bottom = p_bottom;
+    t_bottom = p->mini ? (uint16_t)(py + 7u) : p_bottom;
     // Loop limits, computed once (SDCC recomputes 16-bit sums on every pass otherwise)
     uint16_t lim_ahead = cam_px + 176u;
     uint16_t lim_lead = px + BG_TRIGGER_LEAD_PX;
@@ -761,21 +799,18 @@ void process_sprite_logic(
         if (dy > 50 || dy < -20) continue;
 
         if (obj >= 16 && obj <= 19) {
-            // 48-pixel (3 tile) wide horizontal gravity portal
-            if (obj_x <= p_front && px <= obj_x + 48u) {
-                if (py <= obj_y + 14u && p_bottom >= obj_y) {
-                    if (!cache->activated[i]) {
-                        uint8_t target_flipped = (obj >= 18);
-                        if (p->gravity_flipped != target_flipped) {
-                            p->gravity_flipped = target_flipped;
-                            p->vel_y.w = (p->vel_y.w >> 1); // Halve velocity
-                        }
-                        cache->activated[i] = 1;
-                    }
+            // horizontal gravity portal (48px wide art): Famidash box 40 x 14 at +4, +1
+            if (touch_box(obj_x, obj_y, 4, 40, 1, 14)) {
+                uint8_t target_flipped = (obj >= 18);
+                if (p->gravity_flipped != target_flipped) {
+                    p->gravity_flipped = target_flipped;
+                    p->vel_y.w /= 2;   // Famidash spcl_gvity_portal_common
                 }
+                cache->activated[i] = 1;
             }
-        } else if (obj_x <= p_front && px <= obj_x + 15) {
-            touch_object(p, obj, obj_y, joy, &cache->activated[i]);
+        } else if (obj_x <= t_front && px <= obj_x + 24u) {
+            // (the mini / growth portal box is 8px right of the object: touch_object checks x)
+            touch_object(p, obj, obj_x, obj_y, joy, &cache->activated[i]);
         } else if (obj_x > p_front + 16) {
             break;
         }
@@ -783,7 +818,7 @@ void process_sprite_logic(
 }
 
 // Mini / growth portal (Famidash Mini_Portal / Growth_Portal: 7 8x16 sprites)
-static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed) {
+static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, uint8_t sy, uint8_t reversed, uint8_t cols) {
     static const int8_t mx[7] = { 0, 8, -8, 0, 8, 0, 8 };
     static const uint8_t my[7] = { 0, 0, 16, 16, 16, 32, 32 };
     static const uint8_t mt[7] = { MINI_PORTAL_TILE_A, MINI_PORTAL_TILE_B, MINI_PORTAL_TILE_B + 2,
@@ -792,8 +827,11 @@ static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
     uint8_t *oam = (uint8_t *)&shadow_OAM[oam_idx];
     uint8_t grow = (obj == OBJ_GROW_PORTAL);
     uint8_t pal = grow ? S_PAL(1) : S_PAL(4);
+    uint8_t n = 0;
     for (uint8_t k = 0; k < 7; k++) {
         int8_t x = mx[k];
+        if (!(cols & (uint8_t)(1u << ((uint8_t)(x + 8) >> 3)))) continue;   // columns -8, 0, 8
+        n++;
         if (grow) x += 8;                     // growth portal art starts 8px further right
         if (reversed) x = (int8_t)((grow ? 16 : 0) - x);  // mirror inside the portal box
         *oam++ = sy + my[k];
@@ -801,7 +839,7 @@ static uint8_t draw_oam_mini_portal(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
         *oam++ = mt[k];
         *oam++ = pal | (k >= 5 ? S_FLIPY : 0) | (reversed ? S_FLIPX : 0);
     }
-    return 7;
+    return n;
 }
 
 // Coin (tools/make_coin_tiles.py): 6 spin frames, 5 video frames each, 2 sprites (frame 3,
@@ -974,12 +1012,12 @@ static uint8_t dmg_draw_portal_slow(uint8_t obj, uint8_t oam_idx, uint8_t sx, ui
     *oam = dmg_badge_prop[obj] | (reversed ? S_FLIPX : 0);
     oam_idx++;
     if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL)
-        return 1 + draw_oam_mini_portal(obj, oam_idx, sx, sy, reversed);
+        return 1 + draw_oam_mini_portal(obj, oam_idx, sx, sy, reversed, COLS_ALL);
     if (horiz)
         return 1 + draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
     if (obj >= OBJ_GRAVITY_DOWN)
-        return 1 + draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
-    return 1 + draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed);
+        return 1 + draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed, COLS_ALL);
+    return 1 + draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_idx, sx, sy, reversed, COLS_ALL);
 }
 
 // Uses shadow_OAM as scratch: call while the level is loading (it is redrawn every frame).
@@ -1292,12 +1330,77 @@ static uint8_t draw_sprites_dmg(uint16_t cam_px, uint16_t cam_py, uint8_t revers
     return oam_start;
 }
 
+// Screen position of cache object i (sp_screen_x / y): 0 when it is off screen
+static uint8_t sp_screen_x, sp_screen_y;
+static uint8_t sp_on_screen(uint8_t i, uint16_t cam_px, uint16_t cam_py, uint8_t reversed) {
+    uint8_t dist_x = (uint8_t)cache->px[i] - (uint8_t)cam_px;
+    if (!reversed) {
+        if (dist_x > 136 && dist_x < 224) return 0;
+        sp_screen_x = dist_x + PLAYER_SCREEN_X + 8;
+    } else {
+        if (dist_x > 136 && dist_x < 208) return 0;
+        sp_screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
+    }
+    // 16-bit test: in a tall level an object 256px away would wrap onto the screen.
+    // d = object y - camera y + 48, on screen (incl. 48px above) when d <= 192.
+    uint16_t d = cache->py[i] - cam_py + 48u;
+    if (d > 192u) return 0;
+    sp_screen_y = (uint8_t)d - 32u;
+    return 1;
+}
+
+// CGB: the portals whose front column draw_portal_fronts drew this frame (cache indices)
+#define MAX_PORTAL_FRONTS 4
+static uint8_t front_idx[MAX_PORTAL_FRONTS];
+static uint8_t front_n;
+
+// The column with the ring's far arc: art column 1, the mini / growth portal's column at +8
+static uint8_t portal_front_cols(uint8_t obj) {
+    return (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) ? 4 : 2;
+}
+
+// Columns draw_sprites draws for portal i: the ones not already drawn in front of the player
+static uint8_t portal_cols(uint8_t i, uint8_t obj) {
+    for (uint8_t k = 0; k < front_n; k++)
+        if (front_idx[k] == i) return (uint8_t)~portal_front_cols(obj);
+    return COLS_ALL;
+}
+
+// CGB, before the player is drawn: the front column of each portal on screen, so the player
+// passes behind the ring's far arc and in front of the rest of the portal (sprites earlier in
+// OAM are drawn on top on CGB; on DMG the one further left is, whatever the order)
+uint8_t draw_portal_fronts(uint16_t cam_px, uint16_t cam_py, uint8_t reversed, uint8_t oam_start) BANKED {
+    front_n = 0;
+    if (_cpu != CGB_TYPE) return oam_start;
+    uint16_t lim_ahead = cam_px + 176u;
+    for (uint8_t i = 0; i < MAX_ACTIVE_SP_OBJECTS && front_n < MAX_PORTAL_FRONTS; i++) {
+        if (!cache->active[i]) break;
+        if (cache->px[i] > lim_ahead) break;
+        uint8_t obj = cache->obj[i];
+        uint8_t cols = portal_front_cols(obj);
+        if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
+            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
+            oam_start += draw_oam_mini_portal(obj, oam_start, sp_screen_x, sp_screen_y, reversed, cols);
+        } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
+            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
+            oam_start += draw_oam_3x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_start,
+                                      sp_screen_x, sp_screen_y, reversed, cols);
+        } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
+            if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
+            oam_start += draw_oam_2x3(famidash_sprite_table[obj], FAMIDASH_SPRITE_TILE_BASE, oam_start,
+                                      sp_screen_x, sp_screen_y, reversed, cols);
+        } else continue;
+        front_idx[front_n++] = i;
+    }
+    return oam_start;
+}
+
 uint8_t draw_sprites(
         SpCache *cache_arg, uint16_t cam_px, uint16_t cam_py,
         uint8_t reversed, uint8_t oam_start
 ) BANKED {
     uint8_t i;
-    uint8_t dist_x, screen_x, screen_y;
+    uint8_t screen_x, screen_y;
     uint8_t deco_drawn = 0;
     // Limit active decorations (4 on DMG, 12 on CGB) to keep 60 FPS
     uint8_t deco_max = (_cpu == CGB_TYPE) ? 12 : 4;
@@ -1312,6 +1415,7 @@ uint8_t draw_sprites(
     }
 
     rod_pulse_update();
+    if (++obj_anim_ctr >= 4 * ANIM_FRAME_TICKS) obj_anim_ctr = 0;
     uint16_t lim_ahead = cam_px + 176u;
     for (i = 0; i < MAX_ACTIVE_SP_OBJECTS && oam_start < MAX_HARDWARE_SPRITES - 2; i++) {
         if (!cache->active[i]) break;
@@ -1322,25 +1426,13 @@ uint8_t draw_sprites(
         uint8_t obj = cache->obj[i];
         if (obj == OBJ_LEVEL_END || obj >= 128) continue;
 
-        dist_x = (uint8_t)obj_x - (uint8_t)cam_px;
-
-        if (!reversed) {
-            if (dist_x > 136 && dist_x < 224) continue;
-            screen_x = dist_x + PLAYER_SCREEN_X + 8;
-        } else {
-            if (dist_x > 136 && dist_x < 208) continue;
-            screen_x = MIRROR_PLAYER_SCREEN_X - dist_x + 8;
-        }
-
-        // 16-bit test: in a tall level an object 256px away would wrap onto the screen.
-        // d = object y - camera y + 48, on screen (incl. 48px above) when d <= 192.
-        uint16_t d = cache->py[i] - cam_py + 48u;
-        if (d > 192u) continue;
-        screen_y = (uint8_t)d - 32u;
+        if (!sp_on_screen(i, cam_px, cam_py, reversed)) continue;
+        screen_x = sp_screen_x;
+        screen_y = sp_screen_y;
 
         if (obj == OBJ_MINI_PORTAL || obj == OBJ_GROW_PORTAL) {
             if (oam_start > MAX_HARDWARE_SPRITES - 7) break;
-            oam_start += draw_oam_mini_portal(obj, oam_start, screen_x, screen_y, reversed);
+            oam_start += draw_oam_mini_portal(obj, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
             continue;
         }
 
@@ -1379,13 +1471,16 @@ uint8_t draw_sprites(
         if (obj >= 16 && obj <= 19) {
             oam_start += draw_oam_horizontal_portal(obj, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         } else if (obj == OBJ_CUBE_PORTAL || obj == OBJ_SHIP_PORTAL || obj == OBJ_BALL_PORTAL) {
-            oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            oam_start += draw_oam_3x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
         } else if (obj == OBJ_GRAVITY_DOWN || obj == OBJ_GRAVITY_UP) {
-            oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            oam_start += draw_oam_2x3(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed, portal_cols(i, obj));
         } else {
-            oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
+            uint8_t ax = obj_anim_tiles(obj);
+            if (ax) oam_start += draw_oam_anim2(sprite, ax, oam_start, screen_x, screen_y, reversed);
+            else oam_start += draw_oam_2x1(sprite, FAMIDASH_SPRITE_TILE_BASE, oam_start, screen_x, screen_y, reversed);
         }
     }
+    front_n = 0;
     return oam_start;
 }
 
