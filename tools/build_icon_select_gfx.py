@@ -4,7 +4,7 @@
 
 Sources:
     levels/chr_data/cube_icon_frames.png the cube icons as in the game (frame 0, 0 degrees, 14x14
-    levels/chr_data/fd_cube_frames.png   at (1, 1) in 16x16): icon 0 the original cube, 1..25
+    levels/chr_data/fd_cube_frames.png   at (1, 1) in 16x16): icon 0 the original cube, 1..26
                                          the Famidash ones (tools/make_cube_icon_frames.py).
                                          White transparent, light grey secondary, dark grey
                                          primary, black outline
@@ -40,7 +40,7 @@ FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
 GM_CHR = ROOT / "levels" / "chr_data" / "gamemode_icons.chr"
 MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 
-NUM_ICONS = 26
+NUM_ICONS = 27
 ICONS_PER_PAGE = 12
 NUM_PAGES = (NUM_ICONS + ICONS_PER_PAGE - 1) // ICONS_PER_PAGE
 GRID_C0, GRID_R0, GRID_W, GRID_H = 2, 8, 16, 6   # the icon box: per page tiles

@@ -10,10 +10,10 @@ colour), black 3. Its hand-drawn 15 degree frames from sprite_tiles.png; in betw
 before turned 7.5 degrees (RotSprite) with its outline cleaned up (between). Can be touched up by
 hand: --regen overwrites it.
 
-levels/chr_data/fd_cube_frames.png: icons 1..25, the Famidash cubes (famidash-main next to this
+levels/chr_data/fd_cube_frames.png: icons 1..26, the Famidash cubes (famidash-main next to this
 repo: GRAPHICS/Icons/bankicon01..0E.chr - not 00, its default cube -, the 10 contest winners,
-starfox.chr), one 16 px row each, 24 frames of 16x16 like icon 0: 0, 7.5, ... 172.5 degrees
-clockwise. The 15 degree ones: 0..75 are Famidash's hand-drawn quarter turn, 90..165 the same
+starfox.chr, cat.chr), one 16 px row each, 24 frames of 16x16 like icon 0: 0, 7.5, ... 172.5
+degrees clockwise (cat.chr: an 8 KB sheet with 22.5 degree frames, see fd_sheet_frames). The 15 degree ones: 0..75 are Famidash's hand-drawn quarter turn, 90..165 the same
 turned 90 degrees (exact, pixel for pixel), or the quarter again for an icon that looks the same
 turned or spins in 3D (see fd_frames). The ones in between like icon 0's, or the frame before
 again for the icons drawn spinning in 3D (FD_3D). 14x14 at
@@ -27,7 +27,7 @@ levels/chr_data/ball_frames.png: the ball, 24 frames like a cube icon. Its old h
 0 and 30 degrees, RotSprite in between; made when missing or with --regen.
 
 src/graphics/cube_icon_frames.c (bank 61: icon 0, ship, ball) and cube_fd_frames_0.c /
-cube_fd_frames_1.c / cube_fd_frames_2.c (banks 62 / 63 / 66: 10 + 10 + 5 Famidash icons), nothing
+cube_fd_frames_1.c / cube_fd_frames_2.c (banks 62 / 63 / 66: 10 + 10 + 6 Famidash icons), nothing
 else in their banks, not even
 code (GDMA needs 16 byte aligned data): per frame 4 sprite tiles, left 8x16 pair then right pair
 (64 bytes). The gameplay VBlank handler copies the frame shown into sprite tiles 0..3 / 4..7.
@@ -45,7 +45,7 @@ FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
 FD_ROOT = ROOT.parent / "famidash-main"
 FD_CHR = [f"GRAPHICS/Icons/bankicon{i:02X}.chr" for i in range(1, 15)] + \
          [f"fan icon collection/CONTEST WINNERS/contest{i:X}.chr" for i in range(1, 11)] + \
-         ["fan icon collection/starfox.chr"]
+         ["fan icon collection/starfox.chr", "fan icon collection/cat.chr"]
 FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR), 24, 10, (62, 63, 66)
 # drawn spinning in 3D, not in the picture's plane: no turned frames in between
 FD_3D = {"contest1.chr", "contest5.chr", "contest8.chr"}
@@ -194,6 +194,8 @@ def fd_frames(path):
     Famidash colours: 1 outline (black), 2 colour 1 (primary), 3 colour 2 (secondary)."""
     d = path.read_bytes()
     col = {0: 0, 1: 3, 2: 2, 3: 1}
+    if len(d) == 8192:
+        return fd_sheet_frames(d, col)
 
     def frame(k):
         g = [[0] * 16 for _ in range(16)]
@@ -216,6 +218,45 @@ def fd_frames(path):
     return out
 
 
+def fd_sheet_frames(d, col):
+    """An 8 KB pattern sheet (8x8 tiles in order, 16 a row: cat.chr) with a cube's hand-drawn
+    frames at 0, 22.5, 45, 67.5 and 90 degrees: 2x2 tile blocks, tiles 80 + 2f, 81 + 2f over
+    96 + 2f, 97 + 2f. The frames in between: the nearest hand-drawn one turned (RotSprite,
+    outline cleaned); 90..172.5 degrees = 0..82.5 turned 90 degrees."""
+    def frame(f):
+        g = [[0] * 16 for _ in range(16)]
+        for v, base in ((0, 80), (1, 96)):
+            for h in range(2):
+                t = base + 2 * f + h
+                for y in range(8):
+                    for x in range(8):
+                        c = ((d[t * 16 + y] >> (7 - x)) & 1) | (((d[t * 16 + 8 + y] >> (7 - x)) & 1) << 1)
+                        g[v * 8 + y][h * 8 + x] = col[c]
+        return g
+    def fill_inside(g):
+        # colour 0 inside the outline (the face, between the legs) is the sheet's white: colour 2
+        # (secondary, sprite colour 1); only the colour 0 reached from the edges is transparent
+        out = set()
+        todo = deque((x, y) for y in range(16) for x in range(16)
+                     if (x in (0, 15) or y in (0, 15)) and g[y][x] == 0)
+        while todo:
+            x, y = todo.popleft()
+            if (x, y) in out or not (0 <= x < 16 and 0 <= y < 16) or g[y][x] != 0:
+                continue
+            out.add((x, y))
+            todo.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+        return [[1 if g[y][x] == 0 and (x, y) not in out else g[y][x] for x in range(16)] for y in range(16)]
+    hand = [fill_inside(frame(f)) for f in range(5)]
+    quarter = []
+    for k in range(NUM_FRAMES // 2):
+        deg = k * STEP
+        h = int(deg / 22.5 + 0.5)
+        diff = deg - h * 22.5
+        quarter.append(hand[h] if diff == 0 else clean_outline(rotate(hand[h], [diff])[0]))
+    turn = lambda f: [[f[15 - x][y] for x in range(16)] for y in range(16)]
+    return quarter + [turn(f) for f in quarter]
+
+
 def main():
     if "--regen" in sys.argv or not FRAMES.exists():
         img = Image.new("L", (NUM_FRAMES * 16, 16), 255)
@@ -226,10 +267,17 @@ def main():
         img.save(FRAMES)
         print("wrote", FRAMES)
 
-    if "--regen" in sys.argv or not FD_PNG.exists():
+    # made when missing or with --regen; icons added to FD_CHR since: their rows are appended
+    # (the rows already there may have been touched up by hand)
+    old = None if "--regen" in sys.argv or not FD_PNG.exists() else Image.open(FD_PNG).convert("L")
+    if old is None or old.height < FD_COUNT * 16:
         img = Image.new("L", (FD_FRAMES * 16, FD_COUNT * 16), 255)
-        for r, name in enumerate(FD_CHR):
-            for k, f in enumerate(fd_frames(FD_ROOT / name)):
+        first = 0
+        if old is not None:
+            img.paste(old, (0, 0))
+            first = old.height // 16
+        for r in range(first, FD_COUNT):
+            for k, f in enumerate(fd_frames(FD_ROOT / FD_CHR[r])):
                 for y in range(16):
                     for x in range(16):
                         img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])

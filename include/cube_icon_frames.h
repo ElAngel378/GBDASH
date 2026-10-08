@@ -13,8 +13,8 @@ extern const uint8_t cube_icon_frames[];   // per frame: left 8x16 pair, right p
 // Icon 0 (the original cube): frame 0..23 in cube_icon_frames
 #define CUBE_ICON0_FRAME(frame) (cube_icon_frames + (uint16_t)(frame) * 64u)
 
-// Icons 1..25 (Famidash): 24 frames like icon 0, 10 icons per bank
-#define CUBE_FD_COUNT 25
+// Icons 1..26 (Famidash): 24 frames like icon 0, 10 icons per bank
+#define CUBE_FD_COUNT 26
 #define CUBE_FD_FRAMES 24
 #define CUBE_FD_PER_BANK 10
 BANKREF_EXTERN(cube_fd_frames_0)

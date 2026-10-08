@@ -6,7 +6,7 @@
 #include <gbdk/platform.h>
 #include <gb/cgb.h>
 
-#define NUM_CUBE_ICONS 26
+#define NUM_CUBE_ICONS 27
 #define ICONS_PER_PAGE 12
 #define NUM_ICON_PAGES 3
 #define NUM_GAMEMODE_TABS 7
