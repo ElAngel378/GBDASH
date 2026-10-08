@@ -35,11 +35,14 @@ static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends 
 #define SAW_STEP_FRAMES        2    // idle frames between finishing one animation frame and starting the next
 #define SAW_CHUNK_TILES        13   // CGB tiles per VBlank (SAW_ANIM_TILES / 4)
 #define DMG_SAW_TILES_PER_FRAME BG_SAW_DMG_MAX
+// frames per animation frame when every upload is on time: its VBlank uploads, then the idle ones
+#define SAW_PERIOD_CGB ((SAW_ANIM_TILES + SAW_CHUNK_TILES - 1) / SAW_CHUNK_TILES + SAW_STEP_FRAMES)
+#define SAW_PERIOD_DMG ((SAW_ANIM_TILES + DMG_SAW_TILES_PER_FRAME - 1) / DMG_SAW_TILES_PER_FRAME + SAW_STEP_FRAMES)
 uint8_t saw_on;                      // this level has saws (player.c: saw collision)
 static uint8_t saw_reversed;
 static uint8_t saw_frame;            // frame being / last uploaded
 static uint8_t saw_pos;              // next tile of that frame; == SAW_ANIM_TILES: idle
-static uint8_t saw_timer;
+static uint8_t saw_timer;            // frames since saw_frame started uploading (saw_anim_request)
 static uint8_t saw_issued;           // CGB: chunk handed to the VBlank handler, not yet done
 static uint8_t *saw_dmg_dst[SAW_ANIM_TILES];   // DMG: VRAM address of each saw tile (0: not loaded)
 
@@ -56,13 +59,18 @@ static void saw_anim_reset(void) {
 void saw_anim_request(void) BANKED {
     if (!saw_on) return;
     uint8_t cgb = bg_gdma_isr_on;
+    if (saw_timer < 255) saw_timer++;   // every frame, also while a chunk is pending (below)
     if (saw_issued) {
         if (cgb ? bg_saw_pending : bg_saw_dmg_n) return;
         saw_issued = 0;
         saw_pos += cgb ? SAW_CHUNK_TILES : DMG_SAW_TILES_PER_FRAME;
     }
+    // saw_timer: frames since the frame being shown started uploading. A frame lasts SAW_PERIOD
+    // frames from its start (its uploads, then idle): uploads put off by the VBlank handler eat
+    // into the idle frames instead of adding to them (they used to: the saws slowed right down in
+    // busy parts). No frame is skipped: with 3 frames, skipping one looks like spinning backwards.
     if (saw_pos >= SAW_ANIM_TILES) {
-        if (++saw_timer < SAW_STEP_FRAMES) return;
+        if (saw_timer < (cgb ? SAW_PERIOD_CGB : SAW_PERIOD_DMG)) return;
         saw_timer = 0;
         saw_frame = (uint8_t)((saw_frame + 1) % SAW_ANIM_FRAMES);
         saw_pos = 0;
