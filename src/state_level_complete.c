@@ -52,7 +52,7 @@ static uint8_t skip;        // A pressed during the animation: the rest runs wit
 static uint8_t prev_joy;
 
 static uint8_t map_x0, map_y0;                          // BG map cell at the top left of the screen
-static uint8_t text_slot[LEVEL_COMPLETE_TEXT_UNIQUE];   // VRAM slots of the text's tiles
+static uint8_t text_slot[PRACTICE_COMPLETE_TEXT_UNIQUE]; // VRAM slots of the text's tiles
 static uint8_t border_slot[10];                         // ... of the box border tiles
 static uint8_t font_slot[44];                           // ... of the font glyphs (0xFF: not loaded)
 
@@ -125,10 +125,10 @@ static void need_glyphs(const char *s) {
     }
 }
 
-// Cell of the text block's tile i: LEVEL (rows 0..1) is shifted to the middle
+// Cell of the text block's tile i: LEVEL or PRACTICE (rows 0..1) is shifted to the middle
 static uint8_t text_cell_x(uint8_t i) {
     uint8_t c = (uint8_t)(i & (LEVEL_COMPLETE_TEXT_COLS - 1));
-    return (uint8_t)(TEXT_X + c + ((i < 2 * LEVEL_COMPLETE_TEXT_COLS) ? LEVEL_X_SHIFT : 0));
+    return (uint8_t)(TEXT_X + c + ((i < 2 * LEVEL_COMPLETE_TEXT_COLS) ? (lc_practice ? PRACTICE_X_SHIFT : LEVEL_X_SHIFT) : 0));
 }
 static uint8_t text_cell_y(uint8_t i) {
     return (uint8_t)(TEXT_Y + (i >> 4));
@@ -138,9 +138,10 @@ static uint8_t text_cell_y(uint8_t i) {
 static uint8_t text_covers(uint8_t x, uint8_t y) {
     if (y < TEXT_Y || y >= TEXT_Y + LEVEL_COMPLETE_TEXT_ROWS) return 0;
     uint8_t r = (uint8_t)(y - TEXT_Y);
-    int8_t c = (int8_t)x - TEXT_X - (r < 2 ? LEVEL_X_SHIFT : 0);
+    int8_t c = (int8_t)x - TEXT_X - (r < 2 ? (lc_practice ? PRACTICE_X_SHIFT : LEVEL_X_SHIFT) : 0);
     if (c < 0 || c >= LEVEL_COMPLETE_TEXT_COLS) return 0;
-    return level_complete_text_map[(uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c)] != 0xFF;
+    const uint8_t *map = lc_practice ? practice_complete_text_map : level_complete_text_map;
+    return map[(uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c)] != 0xFF;
 }
 
 // Picks VRAM slots no visible cell outside the text and the box shows, and loads the tiles there.
@@ -168,7 +169,9 @@ static uint8_t tiles_load(void) {
     for (i = 0; i < 44; i++) font_slot[i] = 0xFF;
     need_glyphs("ATTEMPTS COINS RETRY MENU PRACTICE RUN");
     need_glyphs("0123456789/>");
-    uint8_t need = (uint8_t)(LEVEL_COMPLETE_TEXT_UNIQUE + 10);
+    uint8_t text_unique = lc_practice ? PRACTICE_COMPLETE_TEXT_UNIQUE : LEVEL_COMPLETE_TEXT_UNIQUE;
+    const uint8_t *text_tiles = lc_practice ? practice_complete_text_tiles : level_complete_text_tiles;
+    uint8_t need = (uint8_t)(text_unique + 10);
     for (i = 0; i < 44; i++) if (font_slot[i] == 0) need++;
     uint8_t free_n = 0;
     for (i = 0; i < 128; i++) if (!used[i]) free_n++;
@@ -177,11 +180,11 @@ static uint8_t tiles_load(void) {
     if (free_n < need) return 0;
 
     i = 0;
-    for (n = 0; n < LEVEL_COMPLETE_TEXT_UNIQUE; n++) {
+    for (n = 0; n < text_unique; n++) {
         while (used[i]) i++;
         text_slot[n] = i;
         used[i] = 1;
-        load_tile(i, level_complete_text_tiles + (uint16_t)n * 16u, 1);
+        load_tile(i, text_tiles + (uint16_t)n * 16u, 1);
     }
     for (n = 0; n < 10; n++) {
         while (used[i]) i++;
@@ -199,11 +202,12 @@ static uint8_t tiles_load(void) {
     return 1;
 }
 
-// One column of the text: LEVEL (c 0..9, rows 0..1) or COMPLETE! (c 0..15, rows 2..3)
+// One column of the text: LEVEL / PRACTICE (rows 0..1) or COMPLETE! (rows 2..3)
 static void text_column(uint8_t row0, uint8_t c) {
+    const uint8_t *map = lc_practice ? practice_complete_text_map : level_complete_text_map;
     for (uint8_t r = row0; r < (uint8_t)(row0 + 2); r++) {
         uint8_t i = (uint8_t)(r * LEVEL_COMPLETE_TEXT_COLS + c);
-        uint8_t u = level_complete_text_map[i];
+        uint8_t u = map[i];
         if (u != 0xFF) put(text_cell_x(i), text_cell_y(i), text_slot[u], PAL_TEXT);
     }
 }
@@ -343,9 +347,15 @@ GameState update_level_complete_state(void) BANKED {
         wait_frames(4);
         // both lines grow from the middle outwards, a column on each side per step
         for (c = 0; c < LEVEL_COMPLETE_TEXT_COLS / 2; c++) {
-            if (c < LEVEL_COLS / 2) {
-                text_column(0, (uint8_t)(LEVEL_COLS / 2 - 1 - c));
-                text_column(0, (uint8_t)(LEVEL_COLS / 2 + c));
+            if (lc_practice) {
+                // PRACTICE is 15 columns (0..14), expanding from center col 7
+                text_column(0, (uint8_t)(7 - c));
+                if (c > 0) text_column(0, (uint8_t)(7 + c));
+            } else {
+                if (c < LEVEL_COLS / 2) {
+                    text_column(0, (uint8_t)(LEVEL_COLS / 2 - 1 - c));
+                    text_column(0, (uint8_t)(LEVEL_COLS / 2 + c));
+                }
             }
             text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 - 1 - c));
             text_column(2, (uint8_t)(LEVEL_COMPLETE_TEXT_COLS / 2 + c));

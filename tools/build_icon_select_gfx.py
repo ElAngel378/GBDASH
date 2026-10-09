@@ -40,7 +40,7 @@ FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
 GM_CHR = ROOT / "levels" / "chr_data" / "gamemode_icons.chr"
 MENU_SELECT = ROOT / "src" / "graphics" / "menu_select_bg.c"
 
-NUM_ICONS = 27
+NUM_ICONS = 29
 ICONS_PER_PAGE = 12
 NUM_PAGES = (NUM_ICONS + ICONS_PER_PAGE - 1) // ICONS_PER_PAGE
 GRID_C0, GRID_R0, GRID_W, GRID_H = 2, 8, 16, 6   # the icon box: per page tiles

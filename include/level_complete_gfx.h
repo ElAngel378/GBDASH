@@ -7,8 +7,13 @@
 #define LEVEL_COMPLETE_TEXT_COLS 16
 #define LEVEL_COMPLETE_TEXT_ROWS 4
 #define LEVEL_COMPLETE_TEXT_UNIQUE 44
+#define PRACTICE_COMPLETE_TEXT_UNIQUE 60
+#define PRACTICE_COLS 15
+#define PRACTICE_X_SHIFT 1
 
 extern const uint8_t level_complete_text_tiles[LEVEL_COMPLETE_TEXT_UNIQUE * 16];
 extern const uint8_t level_complete_text_map[LEVEL_COMPLETE_TEXT_COLS * LEVEL_COMPLETE_TEXT_ROWS];
+extern const uint8_t practice_complete_text_tiles[PRACTICE_COMPLETE_TEXT_UNIQUE * 16];
+extern const uint8_t practice_complete_text_map[LEVEL_COMPLETE_TEXT_COLS * LEVEL_COMPLETE_TEXT_ROWS];
 
 #endif

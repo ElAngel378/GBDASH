@@ -45,8 +45,13 @@ FD_PNG = ROOT / "levels" / "chr_data" / "fd_cube_frames.png"
 FD_ROOT = ROOT.parent / "famidash-main"
 FD_CHR = [f"GRAPHICS/Icons/bankicon{i:02X}.chr" for i in range(1, 15)] + \
          [f"fan icon collection/CONTEST WINNERS/contest{i:X}.chr" for i in range(1, 11)] + \
-         ["fan icon collection/starfox.chr", "fan icon collection/cat.chr"]
-FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR), 24, 10, (62, 63, 66)
+         ["fan icon collection/starfox.chr"]
+CUSTOM_ICONS = [
+    (ROOT / "levels" / "chr_data" / "improved_cat_icon.chr", [0, 1, 16, 17]),
+    (ROOT / "levels" / "chr_data" / "pbaxx.chr", [0, 1, 16, 17]),
+    (ROOT / "levels" / "chr_data" / "tiny_coins_cube_3.chr", [32, 33, 48, 49]),
+]
+FD_COUNT, FD_FRAMES, FD_PER_BANK, FD_BANKS = len(FD_CHR) + len(CUSTOM_ICONS), 24, 10, (62, 63, 66)
 # drawn spinning in 3D, not in the picture's plane: no turned frames in between
 FD_3D = {"contest1.chr", "contest5.chr", "contest8.chr"}
 OUT_C = ROOT / "src" / "graphics" / "cube_icon_frames.c"
@@ -257,6 +262,38 @@ def fd_sheet_frames(d, col):
     return quarter + [turn(f) for f in quarter]
 
 
+def decode_tile_nes(b, col):
+    pixels = []
+    for y in range(8):
+        low, high = b[y], b[8 + y]
+        row = []
+        for x in range(8):
+            bit = 7 - x
+            c = (((high >> bit) & 1) << 1) | ((low >> bit) & 1)
+            row.append(col[c])
+        pixels.append(row)
+    return pixels
+
+
+def custom_frames(path, tiles):
+    d = path.read_bytes()
+    col = {0: 0, 1: 3, 2: 1, 3: 2}
+    t = [decode_tile_nes(d[i * 16:(i + 1) * 16], col) for i in tiles]
+    grid = [[0] * 16 for _ in range(16)]
+    for y in range(8):
+        for x in range(8):
+            grid[y][x] = t[0][y][x]
+            grid[y][8 + x] = t[1][y][x]
+            grid[8 + y][x] = t[2][y][x]
+            grid[8 + y][8 + x] = t[3][y][x]
+    quarter = [grid]
+    for k in range(1, NUM_FRAMES // 2):
+        deg = k * STEP
+        quarter.append(clean_outline(rotate(grid, [deg])[0]))
+    turn = lambda f: [[f[15 - x][y] for x in range(16)] for y in range(16)]
+    return quarter + [turn(f) for f in quarter]
+
+
 def main():
     if "--regen" in sys.argv or not FRAMES.exists():
         img = Image.new("L", (NUM_FRAMES * 16, 16), 255)
@@ -267,7 +304,7 @@ def main():
         img.save(FRAMES)
         print("wrote", FRAMES)
 
-    # made when missing or with --regen; icons added to FD_CHR since: their rows are appended
+    # made when missing or with --regen; icons added to FD_CHR / CUSTOM_ICONS since: their rows are appended
     # (the rows already there may have been touched up by hand)
     old = None if "--regen" in sys.argv or not FD_PNG.exists() else Image.open(FD_PNG).convert("L")
     if old is None or old.height < FD_COUNT * 16:
@@ -276,13 +313,30 @@ def main():
         if old is not None:
             img.paste(old, (0, 0))
             first = old.height // 16
-        for r in range(first, FD_COUNT):
+        for r in range(first, len(FD_CHR)):
             for k, f in enumerate(fd_frames(FD_ROOT / FD_CHR[r])):
                 for y in range(16):
                     for x in range(16):
                         img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])
+        for i, (path, tiles) in enumerate(CUSTOM_ICONS):
+            r = len(FD_CHR) + i
+            if r >= first:
+                for k, f in enumerate(custom_frames(path, tiles)):
+                    for y in range(16):
+                        for x in range(16):
+                            img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])
         img.save(FD_PNG)
         print("wrote", FD_PNG)
+    else:
+        img = old
+        for i, (path, tiles) in enumerate(CUSTOM_ICONS):
+            r = len(FD_CHR) + i
+            for k, f in enumerate(custom_frames(path, tiles)):
+                for y in range(16):
+                    for x in range(16):
+                        img.putpixel((k * 16 + x, r * 16 + y), SHADE[f[y][x]])
+        img.save(FD_PNG)
+        print("updated custom icons in", FD_PNG)
 
     if "--regen" in sys.argv or not SHIP_PNG.exists():
         img = Image.new("L", (SHIP_FRAMES * 16, 16), 255)
