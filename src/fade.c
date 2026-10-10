@@ -2,6 +2,54 @@
 
 #include "fade.h"
 
+// CGB palette RAM ignores writes (and reads 0xFF) while the LCD draws a line (mode 3). GBDK's
+// set_bkg_palette / set_sprite_palette write without checking: called late in a frame they
+// dropped bytes, leaving half-written colours (a red patch on the title menu while it faded). All
+// palette writes here go through pal_write instead: a byte at a time, only in modes 0 and 1
+// (HBlank / VBlank; mode 2 follows mode 0, so a write that starts in mode 0 is done before mode 3),
+// interrupts off for the check and the write.
+static const palette_color_t *pw_src;
+static uint8_t pw_bytes;      // 8 per palette, 1..64
+static uint8_t pw_port;       // 0x68: BG (BCPS, data at 0x69), 0x6A: OBJ (OCPS, data at 0x6B)
+static uint8_t pw_first;      // first byte index
+static void pal_write_asm(void) __naked {
+    __asm
+        ld      a, (_pw_port)
+        ld      c, a
+        ld      a, (_pw_first)
+        or      a, #0x80                ; auto increment
+        ldh     (c), a
+        inc     c                       ; data port
+        ld      hl, #_pw_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a
+        ld      a, (_pw_bytes)
+        ld      b, a
+    1$:
+        di
+        ldh     a, (_STAT_REG + 0)
+        and     a, #2                   ; mode 2 or 3: wait
+        jr      Z, 2$
+        ei
+        jr      1$
+    2$:
+        ld      a, (hl+)
+        ldh     (c), a
+        ei
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+static void pal_write(uint8_t port, uint8_t first, uint8_t count, const palette_color_t *data) {
+    if (!count) return;
+    pw_port = port; pw_first = (uint8_t)(first << 3); pw_bytes = (uint8_t)(count << 3); pw_src = data;
+    pal_write_asm();
+}
+#define set_bkg_palette(first, count, data) pal_write(0x68, (first), (count), (data))
+#define set_sprite_palette(first, count, data) pal_write(0x6A, (first), (count), (data))
+
 palette_color_t shadow_bkg_palettes[32];
 static palette_color_t shadow_spr_palettes[32];
 static uint8_t active_bkg_count = 0;
@@ -106,17 +154,22 @@ void fade_apply_dirty_palettes(void) BANKED {
 }
 
 // Takes the palettes a state set directly (set_*_palette, BGP/OBP registers) as the fade target,
-// so fade_to_black / fade_from_black work for it. CGB palette RAM only reads outside mode 3: with
-// the display on this waits for VBlank (128 reads fit in it easily).
+// so fade_to_black / fade_from_black work for it. CGB palette RAM only reads outside mode 3: each
+// read waits for mode 0 / 1 (the 128 reads used to start at VBlank and ran past it, reading 0xFF).
 void fade_capture_current(void) BANKED {
     if (_cpu == CGB_TYPE) {
         uint8_t i;
-        if (LCDC_REG & LCDCF_ON) wait_vbl_done();
         for (i = 0; i < 64u; i++) {
+            disable_interrupts();
+            while (STAT_REG & 2u) { enable_interrupts(); disable_interrupts(); }
             BCPS_REG = i;   // reads do not auto-increment
             ((uint8_t *)shadow_bkg_palettes)[i] = BCPD_REG;
+            enable_interrupts();
+            disable_interrupts();
+            while (STAT_REG & 2u) { enable_interrupts(); disable_interrupts(); }
             OCPS_REG = i;
             ((uint8_t *)shadow_spr_palettes)[i] = OCPD_REG;
+            enable_interrupts();
         }
         active_bkg_count = 8;
         active_spr_count = 8;
@@ -151,26 +204,22 @@ static inline uint16_t dim_color(uint16_t c, uint8_t step) {
     return (uint16_t)r | ((uint16_t)g << 5) | ((uint16_t)b << 10);
 }
 
-static void apply_cgb_fade_step(uint8_t step) {
-    palette_color_t temp_bkg[32];
-    palette_color_t temp_spr[32];
+// A fade step: the dimmed palettes are worked out first (that takes a good part of a frame), then
+// written from the next VBlank, so that the whole screen changes at once.
+static palette_color_t step_bkg[32];
+static palette_color_t step_spr[32];
+
+static void compute_cgb_fade_step(uint8_t step) {
     uint8_t i;
     uint8_t bkg_colors = active_bkg_count << 2;
     uint8_t spr_colors = active_spr_count << 2;
+    for (i = 0; i < bkg_colors; i++) step_bkg[i] = dim_color(shadow_bkg_palettes[i], step);
+    for (i = 0; i < spr_colors; i++) step_spr[i] = dim_color(shadow_spr_palettes[i], step);
+}
 
-    for (i = 0; i < bkg_colors; i++) {
-        temp_bkg[i] = dim_color(shadow_bkg_palettes[i], step);
-    }
-    for (i = 0; i < spr_colors; i++) {
-        temp_spr[i] = dim_color(shadow_spr_palettes[i], step);
-    }
-
-    if (active_bkg_count > 0) {
-        set_bkg_palette(0, active_bkg_count, temp_bkg);
-    }
-    if (active_spr_count > 0) {
-        set_sprite_palette(0, active_spr_count, temp_spr);
-    }
+static void write_cgb_fade_step(void) {
+    if (active_bkg_count > 0) set_bkg_palette(0, active_bkg_count, step_bkg);
+    if (active_spr_count > 0) set_sprite_palette(0, active_spr_count, step_spr);
 }
 
 void fade_apply_pause_tint(void) BANKED {
@@ -223,8 +272,9 @@ void fade_to_black(uint8_t delay_frames) BANKED {
 
     if (_cpu == CGB_TYPE) {
         for (step = 3; step >= 0; step--) {
+            compute_cgb_fade_step((uint8_t)step);
             wait_vbl_done();
-            apply_cgb_fade_step((uint8_t)step);
+            write_cgb_fade_step();
             for (f = 1; f < delay_frames; f++) wait_vbl_done();
         }
     } else {
@@ -244,8 +294,9 @@ void fade_from_black(uint8_t delay_frames) BANKED {
 
     if (_cpu == CGB_TYPE) {
         for (step = 1; step <= 4; step++) {
+            compute_cgb_fade_step(step);
             wait_vbl_done();
-            apply_cgb_fade_step(step);
+            write_cgb_fade_step();
             for (f = 1; f < delay_frames; f++) wait_vbl_done();
         }
     } else {
