@@ -26,6 +26,7 @@ static const uint8_t (*mt_tab_rev)[4] = metatiles_rev;
 static uint8_t mt_ram[2][FAMIDASH_NUM_METATILES][4];
 static uint8_t mt_xlat[256];
 static uint8_t mt_ram_level = 0xFF;   // level mt_ram was built for (it depends on the level only)
+static uint8_t gnd_tab_key = 0xFF;    // strip column | reversed << 3 the ground looks in mt_ram are for
 
 // ---- Saw animation: the saw tiles are rewritten through 3 frames (rotated anticlockwise).
 // CGB: the VBlank handler GDMAs SAW_CHUNK_TILES tiles of the next frame per VBlank (the saw
@@ -250,7 +251,9 @@ void apply_level_bg_tiles(uint8_t level, uint8_t reversed) BANKED {
     n_moves = *r;
     ov = r + 1 + (n_moves << 1);
     n_over = *ov++;
-    if (!n_moves && !n_over) return;
+    // (CGB always uses the RAM table: build_mt_rows writes the ground look tiles into it)
+    if (!n_moves && !n_over && !cgb) return;
+    gnd_tab_key = 0xFF;
 
     // Moved sheet tiles (DMG: out of the coin sprite tiles) -> per-level metatile table. The
     // table only depends on the level, so a mirror portal or a respawn only moves the tiles again.
@@ -318,6 +321,48 @@ static void put_saw(uint8_t si, uint8_t reversed, uint8_t r0, uint8_t r1, uint8_
 uint8_t mt_band;
 static const uint8_t ground_top[8] = { 48, 49, 49, 49, 49, 49, 49, 50 };
 static const uint8_t ground_bot[8] = { 51, 52, 52, 52, 52, 52, 52, 53 };
+// CGB: Famidash's ground metatiles (the ceiling mass, its bottom edge, raised floors) are drawn with
+// the ground strip's tiles, like the floor (the ceiling upside down, as in GD), lined up with it.
+// gnd_look_tab[metatile]: 0 not one, else 1 + its index in gnd_mt below. Collision is unchanged.
+// Columns (build_mt_rows): the 4 tiles depend on the strip column only, so they are written into
+// the level's RAM metatile table for each column and the hand-written loop draws them like any
+// metatile (a C pass over the rows cost up to 5% of a frame per slice). Rows (build_row_slots): C.
+static uint8_t gnd_look_tab[256];
+static uint8_t gnd_look_init;
+#define GND_FILL 0          // GROUND_BOTTOM, BG6: the ground below its top edge
+#define GND_EDGE_BOTTOM 1   // GROUND_EDGE_BOTTOM, BG5: the ceiling's edge, the top edge upside down
+#define GND_EDGE_TOP 2      // GROUND_EDGE_TOP, GROUND_TOP: a raised floor's top edge
+static void gnd_look_setup(void) {
+    gnd_look_tab[2] = gnd_look_tab[6] = 1 + GND_FILL;
+    gnd_look_tab[1] = gnd_look_tab[5] = 1 + GND_EDGE_BOTTOM;
+    gnd_look_tab[136] = gnd_look_tab[137] = 1 + GND_EDGE_TOP;
+    gnd_look_init = 1;
+}
+// gnd_col_tiles[tl_x / 2][look]: the 4 tiles (ground_top / ground_bot) as a metatile table entry
+#define GND4(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
+#define GND_COL(t0, t1, b0, b1) { GND4(b0, b1, b0, b1), GND4(b0, b1, t0, t1), GND4(t0, t1, b0, b1) }
+static const uint32_t gnd_col_tiles[4][3] = {
+    GND_COL(48, 49, 51, 52), GND_COL(49, 49, 52, 52), GND_COL(49, 49, 52, 52), GND_COL(49, 50, 52, 53)
+};
+// The 4 tiles of each look at strip column tl_x (0, 2, 4, 6), then their 4 attributes
+static uint8_t gnd_mt[3][8];
+static uint8_t gnd_mt_x = 0xFF;
+static void gnd_mt_setup(uint8_t tl_x) {
+    if (tl_x == gnd_mt_x) return;
+    gnd_mt_x = tl_x;
+    uint8_t tr_x = tl_x + 1u;
+    uint8_t *m = gnd_mt[GND_FILL];
+    m[0] = m[2] = ground_bot[tl_x]; m[1] = m[3] = ground_bot[tr_x];
+    m[4] = m[5] = m[6] = m[7] = 0x0C;                      // bank 1, palette 4
+    m = gnd_mt[GND_EDGE_BOTTOM];
+    m[0] = ground_bot[tl_x]; m[1] = ground_bot[tr_x];
+    m[2] = ground_top[tl_x]; m[3] = ground_top[tr_x];
+    m[4] = m[5] = m[6] = m[7] = 0x4C;                      // + Y flip
+    m = gnd_mt[GND_EDGE_TOP];
+    m[0] = ground_top[tl_x]; m[1] = ground_top[tr_x];
+    m[2] = ground_bot[tl_x]; m[3] = ground_bot[tr_x];
+    m[4] = m[5] = m[6] = m[7] = 0x0C;
+}
 // CGB parallax tile row of map row m: (m % 3) * 16 (rows of the parallax pattern repeat every 3)
 static const uint8_t row_ty0[48] = {
     0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0, 16, 32, 0,
@@ -346,8 +391,9 @@ static const uint8_t *bm_r0p;       // row_r0 of the first row
 static uint8_t bm_n;                // rows
 static uint8_t bm_pal, bm_r0cur;
 static uint8_t bm_off[4];           // parallax tile = row base + bm_off[tile of the metatile]
-static uint8_t bm_info[256];        // per metatile: palette | 0x80 if it is drawn as a saw (C fix-up)
-static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws) bm_info was built for
+static uint8_t bm_info[256];        // per metatile: attributes | 0x80 if it is drawn as a saw (C fix-up); 0x10 (a bit
+                                    // CGB ignores): never X flipped (ground looks)
+static uint8_t bm_info_key = 0xFF;  // (mt_saws, mt_big_saws, ground looks) bm_info was built for
 static uint8_t bm_saw;              // the asm saw a saw metatile
 static uint8_t bm_flip;             // 0x20 (X flip) in CGB flip mirror mode, else 0
 static uint8_t row_r0[16];          // first parallax tile of each VRAM metatile row (for mt_band)
@@ -402,8 +448,11 @@ static void build_rows_cgb_asm(void) __naked {
         ld      hl, #_bm_saw
         ld      (hl), #1
     5$:
+        bit     4, a
+        jr      NZ, 6$
         ld      hl, #_bm_flip
         or      a, (hl)
+    6$:
         ld      (_bm_pal), a
         pop     af
         ld      l, a
@@ -567,15 +616,30 @@ static void build_mt_rows(uint16_t map_col, const uint8_t *ids, uint8_t *out, ui
         row_r0_band = mt_band;
     }
     bm_r0p = row_r0 + r_start;
-    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws);
+    if (!gnd_look_init) gnd_look_setup();
+    // ground looks only with the RAM table (their tiles are written into it below)
+    uint8_t gnd_on = (&mt_tab[0][0] == &mt_ram[0][0][0]);
+    uint8_t key = (uint8_t)((mt_saws << 1) | mt_big_saws | (gnd_on << 2));
     if (key != bm_info_key) {
         uint8_t n = 0;
         do {
             uint8_t info = famidash_metatile_palettes[n];
             if (saw_mt_index[n] && mt_saws && (n != SAW_CENTER_MT || mt_big_saws)) info |= 0x80;
+            // like the ground strip: bank 1, palette 4, never X flipped (+ Y flip on the ceiling)
+            if (gnd_on && gnd_look_tab[n]) info = (gnd_look_tab[n] == 1 + GND_EDGE_BOTTOM) ? 0x5C : 0x1C;
             bm_info[n] = info;
         } while (++n);
         bm_info_key = key;
+    }
+    // the ground look metatiles' tiles for this strip column (see gnd_look_tab)
+    uint8_t gkey = (uint8_t)(tl_x | (reversed << 3));
+    if (gkey != gnd_tab_key && gnd_on) {
+        const uint32_t *g = gnd_col_tiles[tl_x >> 1];
+        uint32_t *t = (uint32_t *)mt_ram[reversed ? 1 : 0];
+        t[2] = t[6] = g[GND_FILL];
+        t[1] = t[5] = g[GND_EDGE_BOTTOM];
+        t[136] = t[137] = g[GND_EDGE_TOP];
+        gnd_tab_key = gkey;
     }
     bm_saw = 0;
     build_rows_cgb_asm();
@@ -841,7 +905,12 @@ static void build_row_slots(uint8_t first, uint8_t n, uint8_t row, uint16_t load
             }
         }
         uint8_t si = saw_mt_index[mt_id];
-        if (si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws)) {
+        uint8_t look = (&mt_tab[0][0] == &mt_ram[0][0][0]) ? gnd_look_tab[mt_id] : 0;
+        if (look) {
+            gnd_mt_setup(tl_x);
+            const uint8_t *m = gnd_mt[look - 1u];
+            memcpy(tiles, m, 4); memcpy(attrs, m + 4, 4);
+        } else if (si && mt_saws && (mt_id != SAW_CENTER_MT || mt_big_saws)) {
             saw_dst = tiles; saw_dst_attr = attrs;
             put_saw(si, reversed, r0, (uint8_t)(r0 + 8u), tl_x, tr_x);
         }
