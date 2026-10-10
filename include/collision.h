@@ -131,6 +131,7 @@ void request_row_slots(uint8_t first, uint8_t row, uint16_t loaded_r, const uint
 void flush_row_slots(uint8_t first, uint8_t count, uint8_t row, uint16_t loaded_r, const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;
 // CGB: rewrites the ground row if the band shows it (after the pause box changed its attributes)
 void flush_ground_row(void) BANKED;
+void ground_below_fill(uint8_t scy) BANKED;   // the row under the ground (level end shake), CGB
 extern uint8_t mt_band;
 
 void fill_scroll_bg(const uint8_t* map, uint16_t map_w, uint8_t map_bank, uint8_t reversed) BANKED;

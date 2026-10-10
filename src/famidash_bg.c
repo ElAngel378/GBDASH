@@ -232,7 +232,9 @@ void famidash_reset_bg_palettes(uint8_t idx) BANKED {
     famidash_apply_g_trigger(g_col);
     famidash_bg_set_now(famidash_bg_target);   // the level's colours from the start, no fade
     if (_cpu == CGB_TYPE) {
-        set_bkg_palette(0, 5, famidash_bg_palettes);
+        // through the fade module: it fades what it knows (it only dimmed the sprites leaving a
+        // level, and the level popped in at full brightness after the fade in)
+        fade_set_bkg_palette(0, 5, famidash_bg_palettes);
     }
     famidash_bkg_palettes_dirty = 0;
 }

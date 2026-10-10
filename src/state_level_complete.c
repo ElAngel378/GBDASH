@@ -21,6 +21,7 @@
 #include "fade.h"
 #include "collision.h"
 #include "settings.h"
+#include "famidash_bg.h"
 
 BANKREF(state_level_complete)
 
@@ -334,10 +335,15 @@ GameState update_level_complete_state(void) BANKED {
         pal[1] = RGB8(20, 48, 6);                      // outline
         pal[2] = RGB8(176, 226, 64);                   // light fill
         pal[3] = RGB8(104, 178, 28);                   // shaded fill
-        set_bkg_palette(PAL_TEXT, 1, pal);
+        // All through the fade module (RAM copies: it is banked), so that leaving fades the
+        // whole screen: set directly, the fade only dimmed the sprites. The level's palettes
+        // too, as they are now (a colour trigger fade may have been running).
+        fade_set_bkg_palette(0, 5, famidash_bg_palettes);
+        fade_set_bkg_palette(PAL_TEXT, 1, pal);
         // the settings board's palettes 1 (border) and 2 (board + text)
-        set_bkg_palette(PAL_BORDER, 1, settings_bg_palettes + 1 * 4);
-        set_bkg_palette(PAL_BOARD, 1, settings_bg_palettes + 2 * 4);
+        palette_color_t board[8];
+        for (y = 0; y < 8; y++) board[y] = settings_bg_palettes[4 + y];
+        fade_set_bkg_palette(PAL_BORDER, 2, board);   // PAL_BOARD = PAL_BORDER + 1
     }
     // the level's object sprites would be drawn over the text and the box
     for (c = 4; c < 40; c++) shadow_OAM[c].y = 0;

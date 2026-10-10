@@ -890,6 +890,21 @@ void flush_ground_row(void) BANKED {
     VBK_REG = 0;
 }
 
+// The map row under the 2 ground rows (CGB): below the level, normally never seen, but the level
+// end shake moves the view down up to 2 px and it showed the sky there. Filled with the ground's
+// lower tiles when that row starts right below the view (scy: the view's top, unshaken), i.e. the
+// ground is at the bottom of the screen; otherwise the row may be on screen (the map is a ring).
+void ground_below_fill(uint8_t scy) BANKED {
+    if (_cpu != CGB_TYPE) return;
+    uint8_t y = (uint8_t)(((GROUND_ROW + 1u) & 15u) << 1);
+    if ((uint8_t)((uint8_t)(y << 3) - (uint8_t)(scy + 144u)) >= 8u) return;
+    VBK_REG = 0;
+    for (uint8_t k = 0; k < 4; k++) set_bkg_tiles((uint8_t)(k << 3), y, 8, 1, ground_bot);
+    VBK_REG = 1;
+    fill_bkg_rect(0, y, 32, 1, 0x0C);
+    VBK_REG = 0;
+}
+
 // ---- CGB seamless mirror portal (gameplay.c): the mirrored picture is built in the BG map that
 // is not shown, a column / map row at a time while the game runs, then LCDC switches maps. That
 // map is not displayed, but VRAM is still locked while the PPU draws (mode 3), so the writes go

@@ -1351,6 +1351,9 @@ void play_level(uint8_t idx) BANKED {
         fade_set_dmg_palettes(bg_pals[si], sobp0, dmg_player_obp(si));
     }
     fade_set_black();
+    // nothing left in OAM from the previous screen (the level complete's "100%" faded in with
+    // the next attempt): the loop draws this level's sprites
+    for (uint8_t i = 0; i < 40; i++) shadow_OAM[i].y = 0;
 
     SPRITES_8x16;
     SHOW_BKG;
@@ -1602,6 +1605,8 @@ void play_level(uint8_t idx) BANKED {
             if (end_anim_frame >= LEVEL_END_PULL_FRAMES) {
                 end_anim_state = END_ANIM_SHAKE;
                 end_shake_timer = LEVEL_END_SHAKE_FRAMES;
+                // the shake moves the view down up to 2 px: ground below the ground rows too
+                ground_below_fill((uint8_t)cam_py);
                 play_sample_with_music(BANK_LEVEL_COMPLETE_SFX, level_complete_sfx_data, LEVEL_COMPLETE_SFX_LEN);
             }
         } else {
