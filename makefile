@@ -52,6 +52,8 @@ $(TEMPDIR)/state_icon_select.o $(TEMPDIR)/save_manager.o $(TEMPDIR)/gameplay.o $
 # the metatile and collision tables (a stale object kept the old square saw hitboxes in the ROM)
 $(TEMPDIR)/famidash_metatiles.o: include/famidash_metatiles_dmg.c include/famidash_metatiles.h include/collision.h
 $(TEMPDIR)/menu_bg.o: levels/chr_data/menu_ground_tiles.bin levels/chr_data/menu_ground_map.bin
+# title menu big buttons (tools/gen_title_buttons.py): tile / palette counts in the header
+$(TEMPDIR)/state_menu.o $(TEMPDIR)/title_buttons.o: include/title_buttons.h
 # level maps (INCBIN): any changed map rebuilds the small level wrappers
 $(TEMPDIR)/level_%.o: $(wildcard levels/level_data/*.bin)
 

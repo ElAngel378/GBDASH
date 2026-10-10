@@ -8,66 +8,80 @@
 #include "logo.h"
 #include "bg_parallax.h"
 #include "settings.h"
+#include "title_buttons.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
 
-// The menu background is static: it is never scrolled and uses no scanline (LYC/HBlank)
-// interrupt. Like in gameplay, the sky is the parallax block pattern, animated by the
-// VBlank handler (CGB), and the ground strip scrolls by rewriting its map rows.
+// CGB: the menu background is never scrolled. Like in gameplay, the sky is the parallax block
+// pattern, animated by the VBlank handler, and the ground strip scrolls by rewriting its map
+// rows. DMG: the sky scrolls with SCX between two scanline interrupts.
+//
+// Big buttons (Famidash's icon / play / wrench row), see tools/gen_title_buttons.py: three of
+// them side by side need more than 10 sprites on a line.
+// CGB: each is a BG "core" (cells fully inside the button, static tiles in VRAM bank 1) plus 8x8
+//      sprites for the rest, where the moving sky shows through. The top of the screen uses 8x8
+//      sprites, the ground buttons 8x16 (switched by a scanline interrupt at MENU_OBJ16_LINE).
+// DMG: PLAY is the old 8x16 sprites; the side buttons are BG tiles blended with the sky for each
+//      of the 64 SCX values (tables in ROM), copied in as the sky scrolls (double buffered).
 
 // Set to 1 to easily re-enable the version label in the bottom-right corner
 #define SHOW_MENU_VERSION_LABEL 0
 
+// Menu selections
+#define SEL_PLAY     0
+#define SEL_MUSIC    1
+#define SEL_SETTINGS 2
+#define SEL_ICON     3
+#define SEL_WRENCH   4
+
+#define MENU_OBJ16_LINE 100   // CGB: 8x8 sprites above (big buttons), 8x16 below (ground buttons)
+
+static uint8_t tb_cgb_place(uint8_t slot) __nonbanked;
+
 static void update_menu_sprites(uint8_t sel) {
     // Music button (16x16) on left of ground bar (Screen X = 56..72, OAM X = 64)
     uint8_t mx = 64;
-    uint8_t my = (sel == 1) ? 138 : 140; // Screen Y = 122 (selected) / 124 (unselected)
+    uint8_t my = (sel == SEL_MUSIC) ? 138 : 140; // Screen Y = 122 (selected) / 124 (unselected)
     uint8_t prop_m = (_cpu == CGB_TYPE) ? 3 : 0;
     set_sprite_tile(0, 22); move_sprite(0, mx, my);      set_sprite_prop(0, prop_m);
     set_sprite_tile(1, 24); move_sprite(1, mx + 8, my);  set_sprite_prop(1, prop_m);
 
     // Settings cog button (16x16) on right of ground bar (Screen X = 88..104, OAM X = 96)
     uint8_t sx = 96;
-    uint8_t sy = (sel == 2) ? 138 : 140;
+    uint8_t sy = (sel == SEL_SETTINGS) ? 138 : 140;
     set_sprite_tile(2, 28); move_sprite(2, sx, sy);      set_sprite_prop(2, prop_m);
     set_sprite_tile(3, 30); move_sprite(3, sx + 8, sy);  set_sprite_prop(3, prop_m);
 
-    // Play button sprites (OAM 4..11) - centered at Screen X = 64..96 (OAM X = 72)
-    uint8_t bx = 72;
-    uint8_t by = (sel == 0) ? 66 : 68; // Screen Y = 50 (selected) / 52 (unselected)
-    set_sprite_tile(4, 0);   move_sprite(4, bx, by);           set_sprite_prop(4, 0);
-    set_sprite_tile(5, 2);   move_sprite(5, bx, by + 16);      set_sprite_prop(5, 0);
-    set_sprite_tile(6, 4);   move_sprite(6, bx + 8, by);       set_sprite_prop(6, 0);
-    set_sprite_tile(7, 6);   move_sprite(7, bx + 8, by + 16);  set_sprite_prop(7, 0);
-    set_sprite_tile(8, 8);   move_sprite(8, bx + 16, by);      set_sprite_prop(8, 0);
-    set_sprite_tile(9, 10);  move_sprite(9, bx + 16, by + 16); set_sprite_prop(9, 0);
-    set_sprite_tile(10, 12); move_sprite(10, bx + 24, by);     set_sprite_prop(10, 0);
-    set_sprite_tile(11, 14); move_sprite(11, bx + 24, by + 16); set_sprite_prop(11, 0);
-
+    uint8_t slot;
     if (_cpu == CGB_TYPE) {
-        set_sprite_tile(12, 16); move_sprite(12, bx + 12, by + 8);  set_sprite_prop(12, 1);
-        set_sprite_tile(13, 18); move_sprite(13, bx + 4, by + 4);   set_sprite_prop(13, 2);
-        set_sprite_tile(14, 18); move_sprite(14, bx + 21, by + 4);  set_sprite_prop(14, 2);
-        set_sprite_tile(15, 20); move_sprite(15, bx + 4, by + 16);  set_sprite_prop(15, 2);
-        set_sprite_tile(16, 20); move_sprite(16, bx + 21, by + 16); set_sprite_prop(16, 2);
+        slot = tb_cgb_place(4);
     } else {
-        for (uint8_t s = 12; s < 17; s++) hide_sprite(s);
+        // Play button sprites (OAM 4..11) - centered at Screen X = 64..96 (OAM X = 72)
+        uint8_t bx = 72;
+        uint8_t by = 68;   // Screen Y = 52 (the big buttons do not move when selected)
+        for (uint8_t c = 0; c < 4; c++) {
+            set_sprite_tile(4 + 2 * c, 4 * c);     move_sprite(4 + 2 * c, bx + 8 * c, by);      set_sprite_prop(4 + 2 * c, 0);
+            set_sprite_tile(5 + 2 * c, 4 * c + 2); move_sprite(5 + 2 * c, bx + 8 * c, by + 16); set_sprite_prop(5 + 2 * c, 0);
+        }
+        slot = 12;
     }
 
-    // Select arrow cursor (Slot 17, tile 26)
-    // Positioned ON TOP of the selected button, pointing DOWN!
+    // Select arrow cursor (tile 26) on top of the selected button, pointing down. Last in OAM:
+    // on a line with too many sprites, the one dropped is the cursor, where it has no pixels.
     uint8_t prop_c = (_cpu == CGB_TYPE) ? 4 : 0;
-    if (sel == 0) {
-        move_sprite(17, bx + 12, by - 9);
-    } else if (sel == 1) {
-        move_sprite(17, mx + 4, my - 9);
-    } else {
-        move_sprite(17, sx + 4, sy - 9);
+    uint8_t cx, cy = TB_CURSOR_Y + 16;
+    switch (sel) {
+        case SEL_PLAY:   cx = TB_PLAY_CURSOR_X + 8; break;
+        case SEL_ICON:   cx = TB_ICON_CURSOR_X + 8; break;
+        case SEL_WRENCH: cx = (uint8_t)(TB_WRENCH_CURSOR_X + 8); break;
+        case SEL_MUSIC:  cx = mx + 4; cy = my - 9; break;
+        default:         cx = sx + 4; cy = sy - 9; break;
     }
-    set_sprite_tile(17, 26);
-    set_sprite_prop(17, prop_c);
+    set_sprite_tile(slot, 26);
+    set_sprite_prop(slot, prop_c);
+    move_sprite(slot, cx, cy);
 
-    for (uint8_t s = 18; s < 40; s++) hide_sprite(s);
+    for (uint8_t s = slot + 1; s < 40; s++) hide_sprite(s);
 }
 
 // This file lives in a switchable ROM bank, so everything that switches ROM
@@ -222,6 +236,174 @@ static void menu_load_playbutton_gfx(void) __nonbanked {
     SWITCH_ROM(prev_bank);
 }
 
+// ---------------------------------------------------------------- big buttons (generated data)
+// Sky tile row offset of map row ty (draw_sky's pattern: 3 tile pairs, 16 tiles apart). A table:
+// the __nonbanked functions below switch ROM banks and cannot call into this one.
+static uint8_t sky_ty0_ram[18];
+#define sky_ty0(ty) (sky_ty0_ram[(ty)])
+static void sky_ty0_init(void) {
+    for (uint8_t ty = 0; ty < 18; ty++)
+        sky_ty0_ram[ty] = (uint8_t)((((ty >> 1) % 3) << 4) + ((ty & 1) << 3));
+}
+
+// CGB: place the rim sprites of the three big buttons from OAM slot `slot`, returns the next free slot
+static uint8_t tb_cgb_place(uint8_t slot) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(title_buttons));
+    for (uint8_t b = 0; b < 3; b++) {
+        const uint8_t *e = tb_groups[b].spr;
+        for (uint8_t i = tb_groups[b].nspr; i; i--, e += 4, slot++) {
+            shadow_OAM[slot].y = e[0];
+            shadow_OAM[slot].x = e[1];
+            shadow_OAM[slot].tile = e[2];
+            shadow_OAM[slot].prop = e[3];
+        }
+    }
+    SWITCH_ROM(prev_bank);
+    return slot;
+}
+
+// CGB: the BG core cells of the big buttons (tile in VRAM bank 0's map, attribute in bank 1's)
+static void tb_cgb_cores(void) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(title_buttons));
+    for (uint8_t b = 0; b < 3; b++) {
+        const uint8_t *e = tb_groups[b].core;
+        for (uint8_t i = tb_groups[b].ncore; i; i--, e += 4) {
+            VBK_REG = 1; set_bkg_tile_xy(e[0], e[1], e[3]);
+            VBK_REG = 0; set_bkg_tile_xy(e[0], e[1], e[2]);
+        }
+    }
+    SWITCH_ROM(prev_bank);
+}
+
+static palette_color_t tb_obj_pals_ram[TB_OBJ_PAL_COUNT * 4];
+static palette_color_t tb_core_pals_ram[TB_CORE_PAL_COUNT * 4];
+
+static void tb_cgb_load_gfx(void) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    SWITCH_ROM(BANK(title_buttons));
+    set_sprite_data(TB_OBJ_TILE_BASE, TB_OBJ_TILE_COUNT, tb_obj_tiles);
+    VBK_REG = 1;
+    set_bkg_data(TB_CORE_TILE_BASE, TB_CORE_TILE_COUNT, tb_core_tiles);
+    VBK_REG = 0;
+    for (uint8_t i = 0; i < TB_OBJ_PAL_COUNT * 4; i++) tb_obj_pals_ram[i] = tb_obj_palettes[i];
+    for (uint8_t i = 0; i < TB_CORE_PAL_COUNT * 4; i++) tb_core_pals_ram[i] = tb_core_palettes[i];
+    SWITCH_ROM(prev_bank);
+}
+
+// CGB: 8x8 sprites for the big buttons, 8x16 from MENU_OBJ16_LINE (ground buttons)
+static void menu_cgb_stat_isr(void) __nonbanked { LCDC_REG |= LCDCF_OBJ16; }
+static void menu_cgb_vbl_isr(void) __nonbanked { LCDC_REG &= ~LCDCF_OBJ16; }
+
+// DMG side buttons: TB_DMG_TILES tiles per side, 2 buffers (the one not shown is filled with the
+// next scroll position while the sky waits its 2 frames)
+static const uint8_t *tb_dmg_src[4];   // [side * 2 + half]: SCX 0..31, 32..63
+static uint8_t tb_dmg_bank[4];
+static uint8_t tb_dmg_left_ram[2], tb_dmg_row0_ram[2];
+static uint8_t dmg_buf;            // buffer shown
+static uint8_t dmg_scx;            // SCX the shown tiles are for
+static uint8_t dmg_prep;           // sides of scroll position dmg_scx + 1 copied into the other buffer
+static uint8_t dmg_c0[2];          // first map column shown per side (0xFF: none)
+
+static void tb_dmg_init(void) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    tb_dmg_src[0] = tb_dmg_icon_0;   tb_dmg_bank[0] = BANK(tb_dmg_icon_0);
+    tb_dmg_src[1] = tb_dmg_icon_1;   tb_dmg_bank[1] = BANK(tb_dmg_icon_1);
+    tb_dmg_src[2] = tb_dmg_wrench_0; tb_dmg_bank[2] = BANK(tb_dmg_wrench_0);
+    tb_dmg_src[3] = tb_dmg_wrench_1; tb_dmg_bank[3] = BANK(tb_dmg_wrench_1);
+    SWITCH_ROM(BANK(title_buttons));
+    for (uint8_t i = 0; i < 2; i++) { tb_dmg_left_ram[i] = tb_dmg_left[i]; tb_dmg_row0_ram[i] = tb_dmg_row0[i]; }
+    SWITCH_ROM(prev_bank);
+    dmg_buf = 1;
+    dmg_c0[0] = dmg_c0[1] = 0xFF;
+}
+
+// The tiles of one side (0 icon, 1 wrench) for scroll position scx into buffer buf
+static void tb_dmg_copy(uint8_t side, uint8_t scx, uint8_t buf) __nonbanked {
+    uint8_t prev_bank = _current_bank;
+    const uint8_t *src;
+    if (setting_show_bg_enabled) {
+        uint8_t k = (uint8_t)(side * 2 + (scx >> 5));
+        SWITCH_ROM(tb_dmg_bank[k]);
+        src = tb_dmg_src[k] + (uint16_t)(scx & 31) * (TB_DMG_TILES * 16);
+    } else {
+        SWITCH_ROM(BANK(title_buttons));
+        src = tb_dmg_plain + (uint16_t)side * (TB_DMG_TILES * 16);
+    }
+    set_bkg_data((uint8_t)(TB_DMG_BUF_TILE + buf * (2 * TB_DMG_TILES) + side * TB_DMG_TILES), TB_DMG_TILES, src);
+    SWITCH_ROM(prev_bank);
+}
+
+// Map cells of a side, worked out ahead (tb_dmg_plan) so that the scroll step frame only copies
+// them (tb_dmg_commit): written late, they would land after the LCD drew the button's first rows
+#define TB_DMG_MAP_W (TB_DMG_COLS + 8)   // a step across the 64 px wrap moves the cells back 8
+static uint8_t dmg_map[2][TB_DMG_ROWS * TB_DMG_MAP_W];
+static uint8_t dmg_map_x[2], dmg_map_w[2], dmg_c0_next[2];
+
+// The cells of one side for scroll position scx from buffer buf; the cells it leaves get their sky
+// tile back
+static void tb_dmg_plan(uint8_t side, uint8_t scx, uint8_t buf) {
+    uint8_t c0 = (uint8_t)((tb_dmg_left_ram[side] + scx) >> 3);
+    uint8_t lo = c0, hi = (uint8_t)(c0 + TB_DMG_COLS - 1);
+    if (dmg_c0[side] != 0xFF) {
+        if (dmg_c0[side] < lo) lo = dmg_c0[side];
+        if (dmg_c0[side] + TB_DMG_COLS - 1 > hi) hi = (uint8_t)(dmg_c0[side] + TB_DMG_COLS - 1);
+    }
+    uint8_t w = (uint8_t)(hi - lo + 1);
+    uint8_t *out = dmg_map[side];
+    uint8_t first = (uint8_t)(TB_DMG_BUF_TILE + buf * (2 * TB_DMG_TILES) + side * TB_DMG_TILES);
+    for (uint8_t r = 0; r < TB_DMG_ROWS; r++) {
+        uint8_t ty = (uint8_t)(tb_dmg_row0_ram[side] + r);
+        for (uint8_t c = lo; c <= hi; c++) {
+            uint8_t t;
+            if (c >= c0 && c < c0 + TB_DMG_COLS) t = (uint8_t)(first + r * TB_DMG_COLS + (c - c0));
+            else if (setting_show_bg_enabled) t = (uint8_t)(TB_DMG_SKY_TILE + sky_ty0(ty) + (c & 7));
+            else t = 0;
+            *out++ = t;
+        }
+    }
+    dmg_map_x[side] = lo; dmg_map_w[side] = w;
+    dmg_c0_next[side] = c0;
+}
+
+static void tb_dmg_commit(void) {
+    set_bkg_tiles(dmg_map_x[0], tb_dmg_row0_ram[0], dmg_map_w[0], TB_DMG_ROWS, dmg_map[0]);
+    set_bkg_tiles(dmg_map_x[1], tb_dmg_row0_ram[1], dmg_map_w[1], TB_DMG_ROWS, dmg_map[1]);
+    dmg_c0[0] = dmg_c0_next[0]; dmg_c0[1] = dmg_c0_next[1];
+}
+
+// Show both sides for scroll position scx now (through the other buffer)
+static void tb_dmg_show(uint8_t scx) {
+    uint8_t nb = dmg_buf ^ 1;
+    tb_dmg_copy(0, scx, nb);
+    tb_dmg_copy(1, scx, nb);
+    tb_dmg_plan(0, scx, nb);
+    tb_dmg_plan(1, scx, nb);
+    tb_dmg_commit();
+    dmg_buf = nb; dmg_scx = scx; dmg_prep = 0;
+}
+
+static void menu_stop_irqs(uint8_t dmg_sky_irq) {
+    if (dmg_sky_irq) {
+        disable_interrupts();
+        remove_LCD(menu_stat_isr);
+        remove_VBL(menu_vbl_isr);
+        STAT_REG &= ~STATF_LYC;
+        SCX_REG = 0;
+        set_interrupts(VBL_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+    } else if (_cpu == CGB_TYPE) {
+        disable_interrupts();
+        remove_LCD(menu_cgb_stat_isr);
+        remove_VBL(menu_cgb_vbl_isr);
+        STAT_REG &= ~STATF_LYC;
+        set_interrupts(VBL_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+        LCDC_REG |= LCDCF_OBJ16;
+    }
+}
+
 GameState update_menu_state(void) BANKED {
     // Load behind the black screen the last state faded to, display on (a display switched off
     // shows white): the palettes are only stored until fade_from_black
@@ -233,6 +415,7 @@ GameState update_menu_state(void) BANKED {
 
     static uint16_t frame_counter = 0;
 
+    sky_ty0_init();
     menu_load_bg_gfx();
     static const uint8_t blank_tile[16] = { 0 };
     set_bkg_data(0, 1, blank_tile);
@@ -272,47 +455,11 @@ GameState update_menu_state(void) BANKED {
     menu_load_playbutton_gfx();
 
     if (_cpu == CGB_TYPE) {
-        static const uint8_t yellow_fill_tile[32] = {
-            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
-            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00
-        };
-        static const uint8_t top_blue_tile[32] = {
-            0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00,
-            0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        };
-        static const uint8_t bot_blue_tile[32] = {
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x7C, 0x00, 0x7C, 0x00,
-            0x7C, 0x00, 0x7C, 0x00, 0x7C, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        };
+        // Big buttons: rim sprite tiles (OBJ), core tiles (VRAM bank 1), their palettes
+        tb_cgb_load_gfx();
+        for (uint8_t i = 0; i < TB_CORE_PAL_COUNT; i++)   // BG palettes 2, 5, 6, 7
+            fade_set_bkg_palette(i ? (uint8_t)(4 + i) : 2, 1, &tb_core_pals_ram[i * 4]);
 
-        set_sprite_data(16, 2, yellow_fill_tile);
-        set_sprite_data(18, 2, top_blue_tile);
-        set_sprite_data(20, 2, bot_blue_tile);
-
-        static const uint16_t play_button_palette[] = {
-            RGB8(255, 255, 255),
-            RGB8(138, 245, 30),
-            RGB8(30, 140, 20),
-            RGB8(0, 0, 0)
-        };
-        static const uint16_t play_button_yellow_palette[] = {
-            RGB8(255, 255, 255),
-            RGB8(255, 240, 0),
-            RGB8(255, 210, 0),
-            RGB8(220, 160, 0)
-        };
-        static const uint16_t play_button_blue_palette[] = {
-            RGB8(255, 255, 255),
-            RGB8(0, 240, 255),
-            RGB8(0, 160, 255),
-            RGB8(0, 80, 220)
-        };
         static const uint16_t music_btn_palette[] = {
             RGB8(255, 255, 255),
             RGB8(255, 235, 20),
@@ -325,16 +472,18 @@ GameState update_menu_state(void) BANKED {
             RGB8(255, 255, 255),
             RGB8(0, 0, 0)
         };
-        // fade_set_sprite_palette is banked: RAM copies of this bank's tables
-        palette_color_t spr[20];
+        // fade_set_sprite_palette is banked: RAM copies of this bank's tables. Palettes 0..2 and
+        // 5..7: big button rims, 3: ground buttons, 4: cursor
+        palette_color_t spr[32];
+        for (uint8_t i = 0; i < 32; i++) spr[i] = RGB8(255, 255, 255);
+        for (uint8_t i = 0; i < TB_OBJ_PAL_COUNT * 4; i++) spr[(i < 12) ? i : i + 8] = tb_obj_pals_ram[i];
         for (uint8_t i = 0; i < 4; i++) {
-            spr[i] = play_button_palette[i];
-            spr[4 + i] = play_button_yellow_palette[i];
-            spr[8 + i] = play_button_blue_palette[i];
             spr[12 + i] = music_btn_palette[i];
             spr[16 + i] = cursor_palette[i];
         }
-        fade_set_sprite_palette(0, 5, spr);
+        fade_set_sprite_palette(0, 8, spr);
+    } else {
+        tb_dmg_init();
     }
 
     // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
@@ -373,8 +522,9 @@ GameState update_menu_state(void) BANKED {
     set_sprite_data(26, 2, pause_cursor_tiles);
 
     SPRITES_8x16;
-    uint8_t menu_sel = 0; // 0 = Play, 1 = Music, 2 = Settings
-    uint8_t last_ground_sel = 1;
+    // Top row: icon, play, wrench. Ground row: music, settings.
+    uint8_t menu_sel = SEL_PLAY;
+    uint8_t last_ground_sel = SEL_MUSIC;
 
     update_menu_sprites(menu_sel);
 
@@ -387,6 +537,18 @@ GameState update_menu_state(void) BANKED {
     }
 
     uint8_t dmg_sky_irq = (_cpu != CGB_TYPE && setting_show_bg_enabled);
+    if (_cpu == CGB_TYPE) {
+        tb_cgb_cores();
+        disable_interrupts();
+        add_LCD(menu_cgb_stat_isr);
+        add_VBL(menu_cgb_vbl_isr);
+        STAT_REG |= STATF_LYC;
+        LYC_REG = MENU_OBJ16_LINE;
+        set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
+        enable_interrupts();
+    } else {
+        tb_dmg_show(0);
+    }
     if (dmg_sky_irq) {
         menu_sky_scx = 0;
         disable_interrupts();
@@ -397,6 +559,8 @@ GameState update_menu_state(void) BANKED {
         set_interrupts(VBL_IFLAG | LCD_IFLAG | TIM_IFLAG);
         enable_interrupts();
     }
+    // DMG: the side buttons follow the sky scroll
+    uint8_t dmg_scroll = dmg_sky_irq && setting_parallax_enabled;
 
     SHOW_BKG;
     SHOW_SPRITES;
@@ -425,10 +589,30 @@ GameState update_menu_state(void) BANKED {
             }
         }
         bg_wait_vbl();
+        if (dmg_scroll) {
+            // In VBlank: the STAT handler takes menu_sky_scx at line 16, and the side buttons' map
+            // cells (from line 48) have to move with it in the same frame
+            uint8_t scx = (uint8_t)(frame_counter >> 1) & (DMG_SKY_PERIOD - 1);
+            if (scx != dmg_scx) {
+                uint8_t nb = dmg_buf ^ 1;
+                if (dmg_prep < 2 || scx != ((dmg_scx + 1) & (DMG_SKY_PERIOD - 1))) {
+                    menu_sky_scx = scx;                // not ready (a slow frame): copy now
+                    tb_dmg_show(scx);
+                } else {
+                    menu_sky_scx = scx;
+                    tb_dmg_commit();   // (planned when the tiles were ready)
+                    dmg_buf = nb; dmg_scx = scx; dmg_prep = 0;
+                }
+            }
+        }
         draw_ground(ground_x);
-        if (dmg_sky_irq) {
-            if (setting_parallax_enabled) {
-                menu_sky_scx = (uint8_t)(frame_counter >> 1) & (DMG_SKY_PERIOD - 1);
+        if (dmg_scroll && dmg_prep < 2) {
+            // the next scroll position into the buffer not shown, a side per frame
+            uint8_t next = (uint8_t)((dmg_scx + 1) & (DMG_SKY_PERIOD - 1));
+            tb_dmg_copy(dmg_prep, next, dmg_buf ^ 1);
+            if (++dmg_prep == 2) {
+                tb_dmg_plan(0, next, dmg_buf ^ 1);
+                tb_dmg_plan(1, next, dmg_buf ^ 1);
             }
         }
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
@@ -438,72 +622,45 @@ GameState update_menu_state(void) BANKED {
         uint8_t joy = joypad();
         uint8_t pressed = joy & ~prev_joy;
         prev_joy = joy;
+        uint8_t old_sel = menu_sel;
 
         if (pressed & (J_LEFT | J_RIGHT)) {
-            if (menu_sel == 0) {
-                menu_sel = (pressed & J_LEFT) ? 1 : 2;
-                last_ground_sel = menu_sel;
-            } else if (menu_sel == 1 && (pressed & J_RIGHT)) {
-                menu_sel = 2;
-                last_ground_sel = 2;
-            } else if (menu_sel == 2 && (pressed & J_LEFT)) {
-                menu_sel = 1;
-                last_ground_sel = 1;
+            uint8_t left = (pressed & J_LEFT) != 0;
+            switch (menu_sel) {
+                case SEL_PLAY:     menu_sel = left ? SEL_ICON : SEL_WRENCH; break;
+                case SEL_ICON:     if (!left) menu_sel = SEL_PLAY; break;
+                case SEL_WRENCH:   if (left) menu_sel = SEL_PLAY; break;
+                case SEL_MUSIC:    if (!left) menu_sel = SEL_SETTINGS; break;
+                case SEL_SETTINGS: if (left) menu_sel = SEL_MUSIC; break;
             }
+        } else if (pressed & J_DOWN) {
+            if (menu_sel == SEL_PLAY) menu_sel = last_ground_sel;
+            else if (menu_sel == SEL_ICON) menu_sel = SEL_MUSIC;
+            else if (menu_sel == SEL_WRENCH) menu_sel = SEL_SETTINGS;
+        } else if (pressed & J_UP) {
+            if (menu_sel == SEL_MUSIC || menu_sel == SEL_SETTINGS) menu_sel = SEL_PLAY;
+        }
+        if (menu_sel != old_sel) {
+            if (menu_sel == SEL_MUSIC || menu_sel == SEL_SETTINGS) last_ground_sel = menu_sel;
             update_menu_sprites(menu_sel);
         }
 
-        if (pressed & (J_UP | J_DOWN)) {
-            if (menu_sel == 0 && (pressed & J_DOWN)) {
-                menu_sel = last_ground_sel;
-            } else if (menu_sel != 0 && (pressed & J_UP)) {
-                last_ground_sel = menu_sel;
-                menu_sel = 0;
-            }
-            update_menu_sprites(menu_sel);
-        }
-
-        if (pressed & J_SELECT) {
+        // A on the wrench (custom levels, not made yet) does nothing
+        uint8_t go = (pressed & J_SELECT) || ((pressed & (J_A | J_START)) && menu_sel != SEL_WRENCH);
+        if (go) {
             fade_capture_current();   // the rainbow palette changes: fade out from the current one
             fade_to_black(2);
-            if (dmg_sky_irq) {
-                disable_interrupts();
-                remove_LCD(menu_stat_isr);
-                remove_VBL(menu_vbl_isr);
-                STAT_REG &= ~STATF_LYC;
-                SCX_REG = 0;
-                set_interrupts(VBL_IFLAG | TIM_IFLAG);
-                enable_interrupts();
-            }
+            menu_stop_irqs(dmg_sky_irq);
             bg_parallax_isr_stop();
             HIDE_SPRITES;
             HIDE_WIN;
             for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
-            return STATE_ICON_SELECT;
-        }
-
-        if (pressed & (J_A | J_START)) {
-            fade_capture_current();
-            fade_to_black(2);
-            if (dmg_sky_irq) {
-                disable_interrupts();
-                remove_LCD(menu_stat_isr);
-                remove_VBL(menu_vbl_isr);
-                STAT_REG &= ~STATF_LYC;
-                SCX_REG = 0;
-                set_interrupts(VBL_IFLAG | TIM_IFLAG);
-                enable_interrupts();
-            }
-            bg_parallax_isr_stop();
-            HIDE_SPRITES;
-            HIDE_WIN;
-            for (uint8_t s = 0; s < 40; s++) hide_sprite(s);
-            if (menu_sel == 0) {
-                return STATE_NEW_MENU_SELECT;
-            } else if (menu_sel == 1) {
-                return STATE_MUSIC_TEST;
-            } else {
-                return STATE_SETTINGS;
+            if (pressed & J_SELECT) return STATE_ICON_SELECT;
+            switch (menu_sel) {
+                case SEL_PLAY:  return STATE_NEW_MENU_SELECT;
+                case SEL_MUSIC: return STATE_MUSIC_TEST;
+                case SEL_ICON:  return STATE_ICON_SELECT;
+                default:        return STATE_SETTINGS;
             }
         }
 
