@@ -11,6 +11,7 @@
 #include "title_buttons.h"
 #include <gb/gb.h>
 #include <gb/cgb.h>
+#include <string.h>
 
 // CGB: the menu background is never scrolled. Like in gameplay, the sky is the parallax block
 // pattern, animated by the VBlank handler, and the ground strip scrolls by rewriting its map
@@ -145,11 +146,14 @@ static void build_ground_variants(void) {
 }
 
 // phase = screen x of the first pillar's left edge (pillars are GROUND_PERIOD apart)
+static void ground_rows_hblank(const uint8_t *rows) __nonbanked;
+
+// The 3 rows are written whole (32 columns, contiguous in the map): on DMG with the fast HBlank
+// copy (set_bkg_tiles waits on STAT per byte: ~66 scanlines for these 60 bytes). Columns 20..31
+// are never seen on the ground lines (SCX 0 there).
 static void draw_ground(uint8_t phase) {
-    uint8_t rows[GROUND_ROWS][20];
-    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-        for (uint8_t x = 0; x < 20; x++) rows[k][x] = GROUND_UNIFORM(k);
-    }
+    uint8_t rows[GROUND_ROWS][32];
+    for (uint8_t k = 0; k < GROUND_ROWS; k++) memset(rows[k], GROUND_UNIFORM(k), 32);
     for (uint8_t j = 0; j < 3; j++) {
         int16_t xl = (int16_t)phase + (int16_t)(j * GROUND_PERIOD) - 8;
         int8_t tx = (int8_t)(xl >> 3);
@@ -159,8 +163,12 @@ static void draw_ground(uint8_t phase) {
             if (o && tx + 1 >= 0 && tx + 1 < 20) rows[k][tx + 1] = GROUND_RIGHT(k, o);
         }
     }
-    for (uint8_t k = 0; k < GROUND_ROWS; k++) {
-        set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
+    if (_cpu != CGB_TYPE && (LCDC_REG & LCDCF_ON)) {
+        ground_rows_hblank(&rows[0][0]);
+    } else {
+        for (uint8_t k = 0; k < GROUND_ROWS; k++) {
+            set_bkg_tiles(0, (uint8_t)(GROUND_ROW + k), 20, 1, rows[k]);
+        }
     }
 }
 
@@ -319,58 +327,140 @@ static void tb_dmg_init(void) __nonbanked {
     dmg_c0[0] = dmg_c0[1] = 0xFF;
 }
 
+// VRAM copy with the display on, 8 bytes per HBlank: set_bkg_data waits on STAT before every byte
+// and copying a side per frame with it made the DMG menu miss every other VBlank (30 fps).
+// Waits for mode 3 with interrupts on, then (interrupts off) for its end and copies 8 bytes:
+// 41 M-cycles + ~9 for noticing the mode change, inside HBlank + the next line's OAM scan (VRAM
+// is free in both). That is >= 55 M-cycles on the menu's lines, which have at most ~5 sprites
+// (a line with 10 sprites can cut HBlank to 21). An interrupt between the two waits makes it
+// miss the mode 3 start: then it waits for the next line.
+static const uint8_t *hb_src;
+static uint8_t *hb_dst;
+static uint8_t hb_bursts;    // 8-byte bursts, 1..255
+static void tb_hblank_copy(void) __naked __nonbanked {   // (called with a data bank switched in)
+    __asm
+        ld      hl, #_hb_src
+        ld      a, (hl+)
+        ld      h, (hl)
+        ld      l, a                    ; hl = src
+        ld      a, (_hb_dst)
+        ld      e, a
+        ld      a, (_hb_dst + 1)
+        ld      d, a                    ; de = dst
+        ld      a, (_hb_bursts)
+        ld      b, a
+    1$:
+        ldh     a, (_STAT_REG + 0)      ; mode 3 (interrupts on)
+        and     a, #3
+        cp      a, #3
+        jr      NZ, 1$
+        di
+        ldh     a, (_STAT_REG + 0)
+        and     a, #3
+        cp      a, #3
+        jr      Z, 2$
+        ei                              ; mode 3 is over already (an interrupt): next line
+        jr      1$
+    2$:
+        ldh     a, (_STAT_REG + 0)      ; until HBlank
+        and     a, #3
+        cp      a, #3
+        jr      Z, 2$
+        .rept 7                         ; (dst is 8-byte aligned: e only wraps on the 8th)
+        ld      a, (hl+)
+        ld      (de), a
+        inc     e
+        .endm
+        ld      a, (hl+)
+        ld      (de), a
+        inc     de
+        ei
+        dec     b
+        jr      NZ, 1$
+        ret
+    __endasm;
+}
+
+static void ground_rows_hblank(const uint8_t *rows) __nonbanked {
+    hb_src = rows;
+    hb_dst = (uint8_t *)(0x9800u + GROUND_ROW * 32u);
+    hb_bursts = GROUND_ROWS * 32 / 8;
+    tb_hblank_copy();
+}
+
 // The tiles of one side (0 icon, 1 wrench) for scroll position scx into buffer buf
 static void tb_dmg_copy(uint8_t side, uint8_t scx, uint8_t buf) __nonbanked {
     uint8_t prev_bank = _current_bank;
     const uint8_t *src;
     if (setting_show_bg_enabled) {
-        uint8_t k = (uint8_t)(side * 2 + (scx >> 5));
+        uint8_t k = (uint8_t)(side * 2 + ((scx & 63) >> 5));   // (the sky repeats every 64 px)
         SWITCH_ROM(tb_dmg_bank[k]);
         src = tb_dmg_src[k] + (uint16_t)(scx & 31) * (TB_DMG_TILES * 16);
     } else {
         SWITCH_ROM(BANK(title_buttons));
         src = tb_dmg_plain + (uint16_t)side * (TB_DMG_TILES * 16);
     }
-    set_bkg_data((uint8_t)(TB_DMG_BUF_TILE + buf * (2 * TB_DMG_TILES) + side * TB_DMG_TILES), TB_DMG_TILES, src);
+    uint8_t tile = (uint8_t)(TB_DMG_BUF_TILE + buf * (2 * TB_DMG_TILES) + side * TB_DMG_TILES);
+    if (LCDC_REG & LCDCF_ON) {
+        hb_src = src;
+        hb_dst = (uint8_t *)(0x8800u + (uint16_t)(tile - 128u) * 16u);   // (buffer tiles are >= 128)
+        hb_bursts = TB_DMG_TILES * 2;
+        tb_hblank_copy();
+    } else {
+        set_bkg_data(tile, TB_DMG_TILES, src);   // display off: no waiting
+    }
     SWITCH_ROM(prev_bank);
 }
 
-// Map cells of a side, worked out ahead (tb_dmg_plan) so that the scroll step frame only copies
-// them (tb_dmg_commit): written late, they would land after the LCD drew the button's first rows
-#define TB_DMG_MAP_W (TB_DMG_COLS + 8)   // a step across the 64 px wrap moves the cells back 8
-static uint8_t dmg_map[2][TB_DMG_ROWS * TB_DMG_MAP_W];
-static uint8_t dmg_map_x[2], dmg_map_w[2], dmg_c0_next[2];
+// Map cells of the sides. SCX runs 0..255 (the sky repeats every 64 px and the 32 column map is
+// 256 px wide), so a scroll step moves a side's cells by at most one column, wrapping around the
+// map (no jump back at the 64 px wrap, which made that frame rewrite 13 columns and miss a VBlank).
+// All the tile numbers are worked out once (tb_dmg_ids_init): a step writes the button's 5 x 4
+// cells and the column it left (its sky tiles back), 2 small writes per side; written late, they
+// would land after the LCD drew the button's first rows (line 48).
+static uint8_t dmg_ids[2][2][TB_DMG_TILES];               // [side][buffer]: row major, 5 x 4
+static uint8_t dmg_col_ids[2][2][TB_DMG_COLS][TB_DMG_ROWS]; // the same, a column at a time
+static uint8_t dmg_sky_col[2][8][TB_DMG_ROWS];             // [side][map column & 7]: sky tiles
 
-// The cells of one side for scroll position scx from buffer buf; the cells it leaves get their sky
-// tile back
-static void tb_dmg_plan(uint8_t side, uint8_t scx, uint8_t buf) {
-    uint8_t c0 = (uint8_t)((tb_dmg_left_ram[side] + scx) >> 3);
-    uint8_t lo = c0, hi = (uint8_t)(c0 + TB_DMG_COLS - 1);
-    if (dmg_c0[side] != 0xFF) {
-        if (dmg_c0[side] < lo) lo = dmg_c0[side];
-        if (dmg_c0[side] + TB_DMG_COLS - 1 > hi) hi = (uint8_t)(dmg_c0[side] + TB_DMG_COLS - 1);
-    }
-    uint8_t w = (uint8_t)(hi - lo + 1);
-    uint8_t *out = dmg_map[side];
-    uint8_t first = (uint8_t)(TB_DMG_BUF_TILE + buf * (2 * TB_DMG_TILES) + side * TB_DMG_TILES);
-    for (uint8_t r = 0; r < TB_DMG_ROWS; r++) {
-        uint8_t ty = (uint8_t)(tb_dmg_row0_ram[side] + r);
-        for (uint8_t c = lo; c <= hi; c++) {
-            uint8_t t;
-            if (c >= c0 && c < c0 + TB_DMG_COLS) t = (uint8_t)(first + r * TB_DMG_COLS + (c - c0));
-            else if (setting_show_bg_enabled) t = (uint8_t)(TB_DMG_SKY_TILE + sky_ty0(ty) + (c & 7));
-            else t = 0;
-            *out++ = t;
+static void tb_dmg_ids_init(void) {
+    for (uint8_t side = 0; side < 2; side++) {
+        uint8_t row0 = tb_dmg_row0_ram[side];
+        for (uint8_t b = 0; b < 2; b++) {
+            uint8_t first = (uint8_t)(TB_DMG_BUF_TILE + b * (2 * TB_DMG_TILES) + side * TB_DMG_TILES);
+            for (uint8_t r = 0; r < TB_DMG_ROWS; r++)
+                for (uint8_t i = 0; i < TB_DMG_COLS; i++) {
+                    uint8_t t = (uint8_t)(first + r * TB_DMG_COLS + i);
+                    dmg_ids[side][b][r * TB_DMG_COLS + i] = t;
+                    dmg_col_ids[side][b][i][r] = t;
+                }
         }
+        for (uint8_t c = 0; c < 8; c++)
+            for (uint8_t r = 0; r < TB_DMG_ROWS; r++)
+                dmg_sky_col[side][c][r] = setting_show_bg_enabled ? (uint8_t)(TB_DMG_SKY_TILE + sky_ty0(row0 + r) + c) : 0;
     }
-    dmg_map_x[side] = lo; dmg_map_w[side] = w;
-    dmg_c0_next[side] = c0;
 }
 
-static void tb_dmg_commit(void) {
-    set_bkg_tiles(dmg_map_x[0], tb_dmg_row0_ram[0], dmg_map_w[0], TB_DMG_ROWS, dmg_map[0]);
-    set_bkg_tiles(dmg_map_x[1], tb_dmg_row0_ram[1], dmg_map_w[1], TB_DMG_ROWS, dmg_map[1]);
-    dmg_c0[0] = dmg_c0_next[0]; dmg_c0[1] = dmg_c0_next[1];
+// Map cells of both sides for scroll position scx from buffer buf
+static void tb_dmg_place(uint8_t scx, uint8_t buf) {
+    for (uint8_t side = 0; side < 2; side++) {
+        uint8_t row0 = tb_dmg_row0_ram[side];
+        uint8_t c0 = (uint8_t)((((uint16_t)tb_dmg_left_ram[side] + scx) >> 3) & 31);
+        if (c0 + TB_DMG_COLS <= 32) {
+            set_bkg_tiles(c0, row0, TB_DMG_COLS, TB_DMG_ROWS, dmg_ids[side][buf]);
+        } else {                                  // across the map's right edge
+            for (uint8_t i = 0; i < TB_DMG_COLS; i++)
+                set_bkg_tiles((uint8_t)((c0 + i) & 31), row0, 1, TB_DMG_ROWS, dmg_col_ids[side][buf][i]);
+        }
+        uint8_t old = dmg_c0[side];
+        if (old != 0xFF && old != c0) {           // the columns left: sky again (normally 1)
+            for (uint8_t i = 0; i < TB_DMG_COLS; i++) {
+                uint8_t c = (uint8_t)((old + i) & 31);
+                if ((uint8_t)((c - c0) & 31) >= TB_DMG_COLS)
+                    set_bkg_tiles(c, row0, 1, TB_DMG_ROWS, dmg_sky_col[side][c & 7]);
+            }
+        }
+        dmg_c0[side] = c0;
+    }
 }
 
 // Show both sides for scroll position scx now (through the other buffer)
@@ -378,9 +468,7 @@ static void tb_dmg_show(uint8_t scx) {
     uint8_t nb = dmg_buf ^ 1;
     tb_dmg_copy(0, scx, nb);
     tb_dmg_copy(1, scx, nb);
-    tb_dmg_plan(0, scx, nb);
-    tb_dmg_plan(1, scx, nb);
-    tb_dmg_commit();
+    tb_dmg_place(scx, nb);
     dmg_buf = nb; dmg_scx = scx; dmg_prep = 0;
 }
 
@@ -484,6 +572,7 @@ GameState update_menu_state(void) BANKED {
         fade_set_sprite_palette(0, 8, spr);
     } else {
         tb_dmg_init();
+        tb_dmg_ids_init();
     }
 
     // Music button tiles (16x16 icon -> 4 8x8 tiles = 2 8x16 sprites)
@@ -592,15 +681,15 @@ GameState update_menu_state(void) BANKED {
         if (dmg_scroll) {
             // In VBlank: the STAT handler takes menu_sky_scx at line 16, and the side buttons' map
             // cells (from line 48) have to move with it in the same frame
-            uint8_t scx = (uint8_t)(frame_counter >> 1) & (DMG_SKY_PERIOD - 1);
+            uint8_t scx = (uint8_t)(frame_counter >> 1);   // 0..255, see tb_dmg_place
             if (scx != dmg_scx) {
                 uint8_t nb = dmg_buf ^ 1;
-                if (dmg_prep < 2 || scx != ((dmg_scx + 1) & (DMG_SKY_PERIOD - 1))) {
+                if (dmg_prep < 2 || scx != (uint8_t)(dmg_scx + 1)) {
                     menu_sky_scx = scx;                // not ready (a slow frame): copy now
                     tb_dmg_show(scx);
                 } else {
                     menu_sky_scx = scx;
-                    tb_dmg_commit();   // (planned when the tiles were ready)
+                    tb_dmg_place(scx, nb);
                     dmg_buf = nb; dmg_scx = scx; dmg_prep = 0;
                 }
             }
@@ -608,12 +697,9 @@ GameState update_menu_state(void) BANKED {
         draw_ground(ground_x);
         if (dmg_scroll && dmg_prep < 2) {
             // the next scroll position into the buffer not shown, a side per frame
-            uint8_t next = (uint8_t)((dmg_scx + 1) & (DMG_SKY_PERIOD - 1));
+            uint8_t next = (uint8_t)(dmg_scx + 1);
             tb_dmg_copy(dmg_prep, next, dmg_buf ^ 1);
-            if (++dmg_prep == 2) {
-                tb_dmg_plan(0, next, dmg_buf ^ 1);
-                tb_dmg_plan(1, next, dmg_buf ^ 1);
-            }
+            dmg_prep++;
         }
         if (_cpu == CGB_TYPE && (frame_counter & 15) == 0) {
             apply_rainbow_palette((uint8_t)(frame_counter >> 4));
