@@ -13,15 +13,15 @@ typedef struct { const uint8_t *spr; uint8_t nspr; const uint8_t *core; uint8_t 
 #define TB_ICON 1
 #define TB_WRENCH 2
 #define TB_OBJ_TILE_BASE 32
-#define TB_OBJ_TILE_COUNT 30
+#define TB_OBJ_TILE_COUNT 20
 #define TB_CORE_TILE_BASE 48
-#define TB_CORE_TILE_COUNT 13
+#define TB_CORE_TILE_COUNT 16
 #define TB_OBJ_PAL_COUNT 6
-#define TB_CORE_PAL_COUNT 4
+#define TB_CORE_PAL_COUNT 3
 #define TB_CURSOR_Y 43   // screen y
 #define TB_PLAY_CURSOR_X 76
-#define TB_ICON_CURSOR_X 26
-#define TB_WRENCH_CURSOR_X 126
+#define TB_ICON_CURSOR_X 32
+#define TB_WRENCH_CURSOR_X 120
 
 // DMG side buttons: 5 x 4 map cells per side, blended with the sky for each SCX 0..63
 #define TB_DMG_COLS 5

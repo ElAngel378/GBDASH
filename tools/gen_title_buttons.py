@@ -12,9 +12,12 @@ DMG: the sky scrolls with SCX, so the side buttons are BG tiles blended with the
      every one of the 64 scroll positions (the sky period), copied in as the sky moves. PLAY stays
      the old 8x16 sprites (4 per line).
 
-Side buttons: Famidash's art (tools/title_buttons/fd_side_buttons.txt), the icon's face yellow like in
-Geometry Dash, the corner boxes hollow (cyan ones need more than 10 sprites on a line). The big
-buttons do not move when selected (a 2 px bump breaks PLAY's core alignment: 11 on a line).
+Side buttons (load_sides): Geometry Dash style 24x24 crosses with 8 px arms on the tile grid, so
+the cross is all BG core and only the 4 cyan corner boxes are sprites; the yellow icon face and
+tool come from Famidash's art (tools/title_buttons/fd_side_buttons.txt). (Famidash's own 26 px
+shape, 10 px arms, needs 2 sprites per corner: 10-11 on a line.) The big buttons do not move when
+selected (a 2 px bump breaks PLAY's core alignment: 11 on a line). On DMG the corner boxes show
+the sky, like PLAY's.
 
   python tools/gen_title_buttons.py --solve   # search the CGB sprite/core split (seconds), writes
                                               # tools/title_buttons/layout.json
@@ -30,8 +33,8 @@ OUT_H = os.path.join(ROOT, 'include', 'title_buttons.h')
 
 # ---- layout (screen pixels of the art grids; side grids have a 1 px empty border) ----
 PLAY_X, PLAY_Y = 64, 52
-ICON_X, WRENCH_X = 16, 116
-SIDE_Y = 53
+ICON_X, WRENCH_X = 24, 112             # side buttons: 24x24 crosses on the 8 px tile grid
+SIDE_Y = 56
 CURSOR_Y = 43                          # cursor (8x8, pixels in rows 0..5) above the selected button
 SPR_H = 8
 OBJ_TILE_BASE = 32                     # CGB rim tiles (OBJ 0..31: play button, ground buttons, cursor)
@@ -51,17 +54,61 @@ COLORS = {'1': (138, 245, 30), '2': (30, 140, 20), '3': (0, 0, 0), 'c': (0, 240,
           'o': (220, 160, 0)}
 
 # ---------------------------------------------------------------------------------------- art
-def load_sides():
+def fd_art(name):
     txt = open(os.path.join(TB, 'fd_side_buttons.txt')).read()
-    out = {}
-    for name in ('icon', 'wrench'):
-        block = txt.split('[%s]' % name)[1].strip().split('[')[0]
-        # the corner box holes show the sky, like in Famidash (filling them cyan needs too many sprites)
-        out[name] = [l.replace('c', '.') for l in block.splitlines() if l and not l.startswith('#')]
-    # the icon's face (inside its black square) is yellow like in Geometry Dash: 1 -> y, 2 -> o
-    out['icon'] = [''.join(('y' if ch == '1' else 'o' if ch == '2' else ch) if 8 <= x <= 19 and 8 <= y <= 19 else ch
-                           for x, ch in enumerate(r)) for y, r in enumerate(out['icon'])]
-    return out['icon'], out['wrench']
+    block = txt.split('[%s]' % name)[1].strip().split('[')[0]
+    return [l for l in block.splitlines() if l and not l.startswith('#')]
+
+def cross24(inner):
+    """24x24 cross with 8 px arms (outline included: every arm / centre cell is fully inside the
+    button, so it is a static BG tile), lime top half / dark green bottom half, a cyan box with a
+    black outline in each 8x8 corner cell (sprites), `inner` (rows of art, '.' = see through)
+    centred on top"""
+    a = {}
+    def inside(x, y): return 0 <= x < 24 and 0 <= y < 24 and (8 <= x < 16 or 8 <= y < 16)
+    for y in range(24):
+        for x in range(24):
+            if not inside(x, y): continue
+            edge = not all(inside(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            a[(x, y)] = '3' if edge else ('1' if y < 12 else '2')
+    for cx, cy in ((0, 0), (16, 0), (0, 16), (16, 16)):      # boxes hug the cross
+        for y in range(8):
+            for x in range(8):
+                bx = x - 1 if cx == 0 else x
+                by = y - 1 if cy == 0 else y
+                if 0 <= bx < 7 and 0 <= by < 7:
+                    a[(cx + x, cy + y)] = '3' if bx in (0, 6) or by in (0, 6) else 'c'
+    h, w = len(inner), len(inner[0])
+    ox, oy = (24 - w) // 2, (24 - h) // 2
+    for y, r in enumerate(inner):
+        for x, ch in enumerate(r):
+            if ch != '.': a[(ox + x, oy + y)] = ch
+    return [''.join(a.get((x, y), '.') for x in range(24)) for y in range(24)]
+
+def load_sides():
+    """Geometry Dash style side buttons (yellow icon face / tool on a cross with cyan corners), the
+    face and tool taken from Famidash's art (tools/title_buttons/fd_side_buttons.txt)"""
+    icon = fd_art('icon')
+    # the face: inside the black square x7..20, y7..20; its pale pixels yellow, the rest black
+    face = [''.join('y' if ch == '1' else '3' if ch in '23' else '.' for ch in r[7:21]) for r in icon[7:21]]
+    # the tool: the pale / green pixels not connected to the button body (flood fill from the body)
+    w = fd_art('wrench')
+    H, W = len(w), len(w[0])
+    seen = set(); st = [(14, 2), (3, 10), (25, 10), (3, 14), (25, 14), (14, 25)]
+    while st:
+        x, y = st.pop()
+        if (x, y) in seen or not (0 <= x < W and 0 <= y < H) or w[y][x] not in '12': continue
+        seen.add((x, y)); st += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    tool = {(x, y) for y, r in enumerate(w) for x, ch in enumerate(r)
+            if ch in '12' and (x, y) not in seen and 6 <= x <= 23 and 6 <= y <= 21}
+    out = {p: 'y' for p in tool}                 # yellow, with a fresh black outline around it
+    for (x, y) in tool:
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if (x + dx, y + dy) not in tool: out[(x + dx, y + dy)] = '3'
+    xs = [p[0] for p in out]; ys = [p[1] for p in out]
+    tool = [''.join(out.get((x, y), '.') for x in range(min(xs), max(xs) + 1)) for y in range(min(ys), max(ys) + 1)]
+    return cross24(face), cross24(tool)
 
 def flood_out(g):
     H, W = len(g), len(g[0]); out = set()
@@ -383,7 +430,7 @@ def emit():
          '#define TB_CORE_PAL_COUNT %d' % len(cpals),
          '#define TB_CURSOR_Y %d   // screen y' % CURSOR_Y,
          '#define TB_PLAY_CURSOR_X %d' % (PLAY_X + 12),
-         '#define TB_ICON_CURSOR_X %d' % (ICON_X + 10), '#define TB_WRENCH_CURSOR_X %d' % (WRENCH_X + 10),
+         '#define TB_ICON_CURSOR_X %d' % (ICON_X + 8), '#define TB_WRENCH_CURSOR_X %d' % (WRENCH_X + 8),
          '', '// DMG side buttons: %d x %d map cells per side, blended with the sky for each SCX 0..63' % (DMG_COLS, DMG_ROWS),
          '#define TB_DMG_COLS %d' % DMG_COLS, '#define TB_DMG_ROWS %d' % DMG_ROWS,
          '#define TB_DMG_TILES (TB_DMG_COLS * TB_DMG_ROWS)', '#define TB_DMG_BUF_TILE %d' % DMG_BUF_TILE,
